@@ -2,6 +2,7 @@
 definePageMeta({
   layout: 'auth',
 })
+const phone = ref('')
 </script>
 
 <template>
@@ -13,9 +14,10 @@ definePageMeta({
     <div class="mb-[16px]">
       <label class="text-sm text-[#0C1421]" for="username">Phone Number</label>
       <input
+        v-model="phone"
         v-maska
-        type="text"
         data-maska="(###) ###-####"
+        type="text"
         class="w-full h-[52px] border border-[#E0E8E7] p-[16px] rounded-[8px] bg-[#F8F8F8]"
         placeholder="(---) -------"
       >

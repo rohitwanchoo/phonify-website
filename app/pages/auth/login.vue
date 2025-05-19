@@ -30,9 +30,9 @@ definePageMeta({
   </div>
   <div class="text-sm mt-[40px] flex justify-center">
     <span class="text-[#313957]">
-      Don't have an account?
+      Don't have an account?<span />
     </span>
-    <NuxtLink to="/auth/signup" class="underline text-[#162D3A] font-semibold">
+    <NuxtLink to="/auth/signup" class="underline text-[#162D3A] font-semibold pl-[5px]">
       Sign up
     </NuxtLink>
   </div>
