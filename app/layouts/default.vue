@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DashSecOne from '@/components/dash-components/dash-sec-one/index.vue'
 import DashSecTwo from '@/components/dash-components/dash-sec-two/index.vue'
+<<<<<<<< HEAD:app/layouts/default.vue
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -45,4 +46,14 @@ import MainBar from '~/components/app-sidebar/Main.vue'
       </div>
     </SidebarInset>
   </SidebarProvider>
+========
+</script>
+
+<template>
+  <div class="flex flex-1 flex-col gap-4 p-4 pt-5 md:rounded-tl-xl bg-white">
+    <DashSecOne />
+    <DashSecTwo />
+    <div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+  </div>
+>>>>>>>> 78d846c874b2eda6a0c7a395265bd77c4a115794:app/pages/app/dashboard/index.vue
 </template>

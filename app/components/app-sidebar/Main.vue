@@ -38,9 +38,9 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const data = {
   navMain: [
-    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-    { title: 'SMS AI', url: '/sms-ai', icon: MessageSquareText },
-    { title: 'Chat AI', url: '/chat-ai', icon: BotMessageSquare },
+    { title: 'Dashboard', url: '/app/dashboard', icon: LayoutDashboard },
+    { title: 'SMS AI', url: '/app/sms-ai', icon: MessageSquareText },
+    { title: 'Chat AI', url: '/app/chat-ai', icon: BotMessageSquare },
     {
       title: 'Start Dailing',
       url: '/start-dailing',
