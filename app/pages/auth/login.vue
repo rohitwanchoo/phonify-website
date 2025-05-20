@@ -23,7 +23,7 @@ definePageMeta({
 
   <div>
     <Button class="bg-[#162D3A] text-white font-normal text-base w-full h-[52px] rounded-[12px]">
-      <NuxtLink to="/app/dashboard" class="w-full h-full flex items-center justify-center">
+      <NuxtLink to="/dashboard" class="w-full h-full flex items-center justify-center">
         Sign in
       </NuxtLink>
     </Button>
