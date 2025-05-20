@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/sidebar'
 
 defineProps<{
+  heading: string
   items: {
     title: string
     url: string
@@ -28,12 +29,13 @@ defineProps<{
       url: string
     }[]
   }[]
+
 }>()
 </script>
 
 <template>
   <SidebarGroup>
-    <SidebarGroupLabel>Platform</SidebarGroupLabel>
+    <SidebarGroupLabel>{{ heading }}</SidebarGroupLabel>
     <SidebarMenu>
       <template v-for="item in items" :key="item.title">
         <!-- If item has sub-items, render collapsible -->

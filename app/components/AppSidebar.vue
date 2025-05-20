@@ -23,6 +23,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 
@@ -112,21 +113,51 @@ const data = {
       icon: Settings2,
     },
   ],
+  navMain2: [
+    {
+      title: 'Campaign',
+      url: '#',
+      icon: SquareTerminal,
+      isActive: true,
+
+    },
+    {
+      title: 'Do Not Call',
+      url: '#',
+      icon: Bot,
+    },
+    {
+      title: 'Lead Management',
+      url: '#',
+      icon: BookOpen,
+
+    },
+  ],
+  navMain3: [
+    {
+      title: 'User Management',
+      url: '#',
+      icon: SquareTerminal,
+      isActive: true,
+
+    },
+    {
+      title: 'Inbound Settings',
+      url: '#',
+      icon: Bot,
+    },
+    {
+      title: 'Configuration',
+      url: '#',
+      icon: BookOpen,
+
+    },
+  ],
   projects: [
     {
-      name: 'Campaign',
+      name: 'Report',
       url: '#',
       icon: Frame,
-    },
-    {
-      name: 'Do Not Call',
-      url: '#',
-      icon: PieChart,
-    },
-    {
-      name: 'Lead Management',
-      url: '#',
-      icon: Map,
     },
   ],
 }
@@ -138,8 +169,13 @@ const data = {
       <SidebarTrigger class="mx-auto hidden md:block" />
     </SidebarHeader>
     <SidebarContent>
-      <NavMain :items="data.navMain" :heading="'Main Menu'" />
-      <NavProjects :projects="data.projects" />
+      <NavMain :items="data.navMain" heading="MAIN MENU" />
+      <!-- <SidebarSeparator /> -->
+      <NavMain :items="data.navMain2" heading="CAMPAIGN & LEAD MANAGEMENT" />
+      <!-- <SidebarSeparator /> -->
+      <NavMain :items="data.navMain3" heading="USER & ACCESS MANAGEMENT" />
+
+      <!-- <NavProjects :projects="data.projects" /> -->
     </SidebarContent>
     <!-- <SidebarFooter>
       <NavUser :user="data.user" />
