@@ -46,7 +46,7 @@ import {
           </Breadcrumb> -->
         </div>
       </header>
-      <div class="flex flex-1 flex-col gap-4 p-4 pt-5 md:rounded-tl-xl bg-red-900">
+      <div class="flex flex-1 flex-col gap-4 p-4 pt-5 md:rounded-tl-xl bg-white">
         <DashSecOne />
         <DashSecTwo />
         <div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
