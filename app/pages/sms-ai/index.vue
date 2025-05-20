@@ -1,0 +1,3 @@
+<template>
+    sms page
+</template>

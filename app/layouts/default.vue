@@ -1,12 +1,6 @@
-<script lang="ts">
-export const description
-  = 'A sidebar that collapses to icons.'
-export const iframeHeight = '800px'
-export const containerClass = 'w-full h-full'
-</script>
-
 <script setup lang="ts">
-import AppSidebar from '@/components/AppSidebar.vue'
+import DashSecOne from '@/components/dash-components/dash-sec-one/index.vue'
+import DashSecTwo from '@/components/dash-components/dash-sec-two/index.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,26 +9,22 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
+  SidebarProvider
 } from '@/components/ui/sidebar'
+import MainBar from '~/components/app-sidebar/Main.vue'
 </script>
 
 <template>
   <SidebarProvider>
-    <AppSidebar />
+    <MainBar />
     <SidebarInset>
       <header class="flex h-16  items-center gap-2 ">
         <div class="w-full">
-          <CoreNavbar/>
-          <!-- <SidebarTrigger class="-ml-1 md:hidden" /> -->
-          <!-- <Separator
-            orientation="vertical"
-            class="mr-2 data-[orientation=vertical]:h-4"
-          /> -->
+          <CoreNavbar />
           <!-- <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem class="hidden md:block">
@@ -50,13 +40,8 @@ import {
           </Breadcrumb> -->
         </div>
       </header>
-      <div class="flex flex-1 flex-col gap-4 p-4 pt-5 md:rounded-tl-xl bg-gray-900">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-          <div class="bg-muted/50 aspect-video rounded-xl" />
-          <div class="bg-muted/50 aspect-video rounded-xl" />
-          <div class="bg-muted/50 aspect-video rounded-xl" />
-        </div>
-        <div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+      <div class="flex flex-1 flex-col gap-4 p-4 pt-5 md:rounded-tl-xl bg-white">
+        <slot />
       </div>
     </SidebarInset>
   </SidebarProvider>
