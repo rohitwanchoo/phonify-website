@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import { ref } from 'vue'
 import { cn } from '@/lib/utils'
 import { useSidebar } from './utils'
-import { useMediaQuery } from '@vueuse/core'
 
 const props = defineProps<{
   class?: HTMLAttributes['class']
@@ -37,7 +37,7 @@ function handleClick() {
       class="absolute top-1/2 left-1/2 h-[40px] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-in-out"
       :class="{
         'opacity-100': toggle && !isMobile,
-        'opacity-0': !toggle || isMobile
+        'opacity-0': !toggle || isMobile,
       }"
     >
     <!-- Logo 2 -->
@@ -47,7 +47,7 @@ function handleClick() {
       class="absolute top-1/2 left-1/14 h-[35px] -translate-y-1/2 transition-opacity duration-300 ease-in-out"
       :class="{
         'opacity-0': toggle && !isMobile,
-        'opacity-100': !toggle || isMobile
+        'opacity-100': !toggle || isMobile,
       }"
     >
 

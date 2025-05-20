@@ -29,7 +29,6 @@ defineProps<{
       url: string
     }[]
   }[]
-
 }>()
 </script>
 
