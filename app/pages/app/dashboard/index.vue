@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import DashSecOne from '@/components/dash-components/dash-sec-one/index.vue'
 import DashSecTwo from '@/components/dash-components/dash-sec-two/index.vue'
-const date = ref()
-
 </script>
 
 <template>
@@ -11,12 +9,9 @@ const date = ref()
     <!-- <DashSecTwo /> -->
     <dashboardUsers />
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div>
-        <dashboardMap></dashboardMap>
-      </div>
-      <dashboardCalendar></dashboardCalendar>
+      <dashboardMap />
+      <dashboardCalendar />
     </div>
     <dashboardTable />
-
   </div>
 </template>

@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { Separator } from '@/components/ui/separator'
-
 import * as echarts from 'echarts/core'
+import { Separator } from '@/components/ui/separator'
 import usaJson from '~/assets/map/USA.json'
 
 echarts.registerMap('USA', usaJson as any, {
-  Alaska: {
+  'Alaska': {
     left: -131,
     top: 25,
     width: 15,
   },
-  Hawaii: {
+  'Hawaii': {
     left: -110,
     top: 28,
     width: 5,
@@ -45,7 +44,7 @@ const option: ECOption = {
         '#477A95',
         '#4E85A2',
         '#5590AF',
-        '#5C9BBC'
+        '#5C9BBC',
       ],
     },
     text: ['High', 'Low'],
@@ -68,8 +67,8 @@ const option: ECOption = {
       zoom: 1.3, // Add this line to set default zoom level
       center: [-95, 37], // Add this to center the map on USA
       scaleLimit: {
-        min: 1,  // minimum zoom level
-        max: 5   // maximum zoom level
+        min: 1, // minimum zoom level
+        max: 5, // maximum zoom level
       },
       emphasis: {
         label: {
@@ -136,12 +135,12 @@ const option: ECOption = {
 </script>
 
 <template>
-    <div class="h-full w-full border rounded-lg p-6 overflow-hidden"> 
-        <div>
-            State Wise Call Report Map
-        </div>
-        <Separator class="my-6"  />
-
-        <VChart :option="option" class="bg-[url('/images/dashboard/map/bg.png')]" ></VChart>
+  <div class="h-full w-full border rounded-lg p-6 overflow-hidden">
+    <div>
+      State Wise Call Report Map
     </div>
+    <Separator class="my-6" />
+
+    <VChart :option="option" class="bg-[url('/images/dashboard/map/bg.png')]" />
+  </div>
 </template>
