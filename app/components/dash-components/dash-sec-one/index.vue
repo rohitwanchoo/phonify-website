@@ -57,7 +57,7 @@ const cardData = [
 
 <template>
   <div class="gap-4 bg-[#E9F5F3] p-[20px] rounded-xl overflow-x-auto">
-    <div class=" grid grid-cols-1 md:grid-cols-5 gap-5">
+    <div class=" grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
       <DashCard
         v-for="(card, index) in cardData"
         :key="index"
