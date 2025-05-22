@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import DashSecOne from '@/components/dash-components/dash-sec-one/index.vue'
-import DashSecTwo from '@/components/dash-components/dash-sec-two/index.vue'
+import DashSecOne from '@/components/dashboard/dash-cards/index.vue'
+
 import {
   Breadcrumb,
   BreadcrumbItem,
