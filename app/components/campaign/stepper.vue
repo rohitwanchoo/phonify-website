@@ -13,7 +13,7 @@ function allStepsBeforeAreValid(index: number): boolean {
 </script>
 
 <template>
-  <div class="block md:grid grid-cols-8 w-full overflow-hidden bg-transparent mt-6 h-[calc(100vh-180px)]">
+  <div class="block md:grid grid-cols-8 w-full overflow-hidden bg-transparent mt-6 h-[calc(100vh-160px)]">
     <div class="col-span-16 md:col-span-2 bg-primary rounded-lg md:rounded-xl md:rounded-r-none pl-7 py-7 pr-2 ">
       <div
         v-for="(step, key, index) in stepper?.steps.value" :key="key"
@@ -50,7 +50,7 @@ function allStepsBeforeAreValid(index: number): boolean {
     </div>
 
     <div
-      class="col-span-6 grow px-5 py-[16px] h-[100%] rounded-lg md:rounded-xl md:rounded-l-none border border-[gray/100] focus:shadow-[0_0_0_2px] focus:shadow-black mt-5 md:mt-0 bg-[#FAFAFA]"
+      class="col-span-6 grow p-5 h-[100%] rounded-lg md:rounded-xl md:rounded-l-none border border-[gray/100] focus:shadow-[0_0_0_2px] focus:shadow-black mt-5 md:mt-0 bg-[#FAFAFA] overflow-y-auto"
     >
       <slot />
     </div>
