@@ -5,7 +5,7 @@ import {
 </script>
 
 <template>
-  <div class="w-full bg-secondary text-primary h-[50px] lg:h-[88px] flex items-center justify-between md:justify-end px-4">
+  <div class="w-full bg-secondary text-primary h-[45px] lg:h-[63px] flex items-center justify-between md:justify-end px-4">
     <SidebarTrigger class=" md:hidden" />
     <div class="flex gap-5 text-xs md:text-sm items-center">
       <button class=" bg-white px-2 py-1 rounded-md flex">
