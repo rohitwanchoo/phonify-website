@@ -17,9 +17,11 @@ import {
   Voicemail,
 } from 'lucide-vue-next'
 
-import NavMain from '@/components/app-sidebar/NavMain.vue'
-import NavUser from '@/components/app-sidebar/NavUser.vue'
-import TeamSwitcher from '@/components/app-sidebar/TeamSwitcher.vue'
+import NavMain from '@/components/core/app-sidebar/NavMain.vue'
+import NavProjects from '@/components/core/app-sidebar/NavProjects.vue'
+import NavUser from '@/components/core/app-sidebar/NavUser.vue'
+import TeamSwitcher from '@/components/core/app-sidebar/TeamSwitcher.vue'
+
 import {
   Sidebar,
   SidebarContent,
@@ -30,21 +32,19 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 
-import NavProjects from '~/components/app-sidebar/NavProjects.vue'
-
 const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
 
 const data = {
   navMain: [
-    { title: 'Dashboard', url: '/app/dashboard', icon: LayoutDashboard },
-    { title: 'SMS AI', url: '/app/sms-ai', icon: MessageSquareText },
-    { title: 'Chat AI', url: '/app/chat-ai', icon: BotMessageSquare },
+    { title: 'Dashboard', url: '/app/dashboard', icon: "icons:dashboard" },
+    { title: 'SMS AI', url: '/app/sms-ai', icon: "icons:sms-ai" },
+    { title: 'Chat AI', url: '/app/chat-ai', icon: "icons:chat-ai" },
     {
       title: 'Start Dailing',
       url: '/start-dailing',
-      icon: Settings2,
+      icon: "icons:start-dialing",
       items: [
         { title: 'General', url: '/start-dailing/general' },
         { title: 'Team', url: '/start-dailing/team' },
@@ -52,20 +52,20 @@ const data = {
         { title: 'Limits', url: '/start-dailing/limits' },
       ],
     },
-    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: Voicemail },
-    { title: 'Mailbox', url: '/mailbox', icon: Mailbox },
-    { title: 'SMS', url: '/sms', icon: MessageSquareMore },
+    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: "icons:ringless-voicemail" },
+    { title: 'Mailbox', url: '/mailbox', icon: "icons:mailbox" },
+    { title: 'SMS', url: '/sms', icon: "icons:sms" },
   ],
   navMain2: [
-    { title: 'Campaign', url: '/campaign', icon: Megaphone },
-    { title: 'Do Not Call', url: '/do-not-call', icon: Bot },
-    { title: 'Lead Management', url: '/lead-management', icon: UsersRound },
+    { title: 'Campaign', url: '/campaign', icon: "icons:campaign" },
+    { title: 'Do Not Call', url: '/do-not-call', icon: "icons:do-not-call" },
+    { title: 'Lead Management', url: '/lead-management', icon: "icons:lead-management" },
   ],
   navMain3: [
-    { title: 'User Management', url: '/user-management', icon: UserRoundCog },
-    { title: 'Inbound Settings', url: '/inbound-settings', icon: Bot },
-    { title: 'Configuration', url: '/configuration', icon: BookOpen },
-    { title: 'Report', url: '/report', icon: BookOpen },
+    { title: 'User Management', url: '/user-management', icon: "icons:user-management" },
+    { title: 'Inbound Settings', url: '/inbound-settings', icon: "icons:inbound-settings" },
+    { title: 'Configuration', url: '/configuration', icon: "icons:configuration" },
+    { title: 'Report', url: '/report', icon: "icons:report" },
   ],
   projects: [
     { name: 'Report', url: '/projects/report', icon: Frame },

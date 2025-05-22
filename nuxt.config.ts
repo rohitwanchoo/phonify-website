@@ -14,6 +14,14 @@ export default defineNuxtConfig({
     'nuxt-charts',
     'nuxt-echarts',
   ],
+  icon: {
+    customCollections: [
+      {
+        prefix: 'icons',
+        dir: './app/assets/icons'
+      },
+    ],
+  },
   echarts:{
     renderer:['svg', 'canvas'],
     charts: ['BarChart', 'MapChart'],
