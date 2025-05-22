@@ -38,13 +38,13 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const data = {
   navMain: [
-    { title: 'Dashboard', url: '/app/dashboard', icon: "icons:dashboard" },
-    { title: 'SMS AI', url: '/app/sms-ai', icon: "icons:sms-ai" },
-    { title: 'Chat AI', url: '/app/chat-ai', icon: "icons:chat-ai" },
+    { title: 'Dashboard', url: '/app/dashboard', icon: 'icons:dashboard' },
+    { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
+    { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
     {
       title: 'Start Dailing',
       url: '/start-dailing',
-      icon: "icons:start-dialing",
+      icon: 'icons:start-dialing',
       items: [
         { title: 'General', url: '/start-dailing/general' },
         { title: 'Team', url: '/start-dailing/team' },
@@ -52,20 +52,25 @@ const data = {
         { title: 'Limits', url: '/start-dailing/limits' },
       ],
     },
-    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: "icons:ringless-voicemail" },
-    { title: 'Mailbox', url: '/mailbox', icon: "icons:mailbox" },
-    { title: 'SMS', url: '/sms', icon: "icons:sms" },
+    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: 'icons:ringless-voicemail' },
+    { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
+    { title: 'SMS', url: '/sms', icon: 'icons:sms' },
   ],
   navMain2: [
-    { title: 'Campaign', url: '/campaign', icon: "icons:campaign" },
-    { title: 'Do Not Call', url: '/do-not-call', icon: "icons:do-not-call" },
-    { title: 'Lead Management', url: '/lead-management', icon: "icons:lead-management" },
+    { title: 'Campaign', url: '/campaign', icon: 'icons:campaign', items: [
+      { title: 'Campaign', url: '/campaign' },
+      { title: 'Agent Status', url: '/start-campaign/agent-status' },
+      { title: 'Diposition', url: '/campaign/diposition' },
+
+    ] },
+    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call' },
+    { title: 'Lead Management', url: '/lead-management', icon: 'icons:lead-management' },
   ],
   navMain3: [
-    { title: 'User Management', url: '/user-management', icon: "icons:user-management" },
-    { title: 'Inbound Settings', url: '/inbound-settings', icon: "icons:inbound-settings" },
-    { title: 'Configuration', url: '/configuration', icon: "icons:configuration" },
-    { title: 'Report', url: '/report', icon: "icons:report" },
+    { title: 'User Management', url: '/user-management', icon: 'icons:user-management' },
+    { title: 'Inbound Settings', url: '/inbound-settings', icon: 'icons:inbound-settings' },
+    { title: 'Configuration', url: '/configuration', icon: 'icons:configuration' },
+    { title: 'Report', url: '/report', icon: 'icons:report' },
   ],
   projects: [
     { name: 'Report', url: '/projects/report', icon: Frame },

@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import MainBar from '@/components/core/app-sidebar/Main.vue'
 import DashSecOne from '@/components/dash-components/dash-sec-one/index.vue'
 import DashSecTwo from '@/components/dash-components/dash-sec-two/index.vue'
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,20 +11,18 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar'
-import MainBar from '@/components/core/app-sidebar/Main.vue'
 </script>
 
 <template>
   <SidebarProvider>
     <MainBar />
     <SidebarInset class="bg-secondary">
-      <header class="flex h-10 items-center gap-2 ">
+      <header class="flex h-10 items-center gap-2 z-2">
         <div class="w-full fixed top-0 left-0">
           <CoreNavbar />
         </div>
