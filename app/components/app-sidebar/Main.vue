@@ -57,7 +57,7 @@ const data = {
     { title: 'SMS', url: '/sms', icon: MessageSquareMore },
   ],
   navMain2: [
-    { title: 'Campaign', url: '/camp aign', icon: Megaphone },
+    { title: 'Campaign', url: '/campaign', icon: Megaphone },
     { title: 'Do Not Call', url: '/do-not-call', icon: Bot },
     { title: 'Lead Management', url: '/lead-management', icon: UsersRound },
     { title: 'Call Times', url: '/call-times', icon: UsersRound }
