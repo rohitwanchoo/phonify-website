@@ -25,7 +25,7 @@ const props = defineProps<{
   items: {
     title: string
     url: string
-    icon?: LucideIcon
+    icon?: string
     isActive?: boolean
     items?: {
       title: string
@@ -56,8 +56,11 @@ const isActive = (url: string) => route.path === url
               <SidebarMenuButton
                 :tooltip="item.title"
                 :data-active="item.items.some(sub => isActive(sub.url))"
+                class="lg:h-10"
               >
-                <component :is="item.icon" v-if="item.icon" />
+                <div class="translate-y-0.5 top-1/120 relative">
+                  <Icon v-if="item.icon" :name="item.icon" />
+                </div>
                 <span>{{ item.title }}</span>
                 <ChevronRight
                   class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
@@ -90,9 +93,12 @@ const isActive = (url: string) => route.path === url
             as-child
             :tooltip="item.title"
             :data-active="isActive(item.url)"
+            class="lg:h-10 "
           >
             <NuxtLink :to="item.url" class="flex items-center gap-2 w-full">
-              <component :is="item.icon" v-if="item.icon" />
+              <div class="translate-y-0.5 top-1/120 relative">
+                <Icon v-if="item.icon" :name="item.icon" />
+              </div>
               <span>{{ item.title }}</span>
             </NuxtLink>
           </SidebarMenuButton>
