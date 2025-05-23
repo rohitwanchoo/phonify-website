@@ -13,21 +13,19 @@ const breadcrumbs = [
     active: true,
   },
 ]
-// stepper.goTo('select-list')
+// stepper.goTo('show-preview')
 </script>
 
 <template>
-  <div>
-    <BaseHeader title="Create New Campaign" :breadcrumbs="breadcrumbs">
-      <template #actions>
-        <Button variant="outline" class="h-11">
-          <icon name="material-symbols:save-rounded" size="18" />
-          Save as Draft
-        </Button>
-      </template>
-    </BaseHeader>
-    <CampaignStepper :stepper="stepper">
-      <component :is="stepper.current.value.component" @completed="(e) => stepper.goToNext()" />
-    </CampaignStepper>
-  </div>
+  <BaseHeader title="Create New Campaign" :breadcrumbs="breadcrumbs">
+    <template #actions>
+      <Button variant="outline" class="h-11">
+        <icon name="material-symbols:save-rounded" size="18" />
+        Save as Draft
+      </Button>
+    </template>
+  </BaseHeader>
+  <CampaignStepper :stepper="stepper">
+    <component :is="stepper.current.value.component" @completed="(e) => stepper.goToNext()" />
+  </CampaignStepper>
 </template>
