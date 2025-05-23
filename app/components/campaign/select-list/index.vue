@@ -34,7 +34,7 @@ function handleContinue() {
           <input
             id="Email"
             type="email"
-            class="mt-0.5 w-[250px] rounded-md rounded bg-white border-gray-300 px-3 h-10 shadow-sm sm:text-sm pr-10"
+            class="mt-0.5 w-[250px] rounded-md bg-white border-gray-300 px-3 h-10 shadow-sm sm:text-sm pr-10"
             placeholder="Search List"
           >
           <Icon name="lucide:search" class="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer" />

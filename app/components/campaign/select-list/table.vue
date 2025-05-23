@@ -7,7 +7,8 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 
-import { ArrowRight, Check, ChevronsUpDown, Eye, Search } from 'lucide-vue-next'
+import { Check, ChevronsUpDown, Eye } from 'lucide-vue-next'
+import moment from 'moment'
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -77,8 +78,7 @@ const columns = [
       ]),
     cell: ({ row }) => {
       const date = new Date(row.getValue('createdDate'))
-      return h('div', { class: 'text-sm text-center' }, `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}${date.getHours() >= 12 ? 'PM' : 'AM'}`,
-      )
+      return h('div', { class: 'text-sm text-center' }, moment(date).format('DD/MM/YYYY h:mmA'))
     },
   }),
 
