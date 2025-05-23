@@ -70,9 +70,9 @@ const data = {
   navMain3: [
     { title: 'User Management', url: '/user-management', icon: 'icons:user-management' ,
     items: [
-        { title: 'Extension', url: '/app/user-management/extension' },
-        { title: 'Group', url: '/app/user-management/group' },
-        { title: 'Ring Groups', url: '/app/user-management/ring-groups' },
+        { title: 'Extension', url: '/app/extension' },
+        { title: 'Group', url: '/app/group' },
+        { title: 'Ring Groups', url: '/app/ring-groups' },
       
       ],
     },
