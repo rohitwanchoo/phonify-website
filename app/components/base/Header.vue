@@ -44,5 +44,5 @@ interface HeaderProps {
     <div class="flex items-center gap-x-3">
       <slot name="actions" />
     </div>
-  </div>
+  </div> 
 </template>
