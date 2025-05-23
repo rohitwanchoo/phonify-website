@@ -22,8 +22,9 @@ export function useCreateCampaign() {
       description: 'Office ipsum you must be muted.',
       component: CampaignCreate,
       isValid: () => {
-        const state = formState.value
-        return Boolean(state.name)
+        // const state = formState.value
+        // return Boolean(state.name)
+        return stepper.isCurrent('select-list') || stepper.isCurrent('show-preview')
       },
     },
     'select-list': {
