@@ -58,7 +58,7 @@ const data = {
   ],
   navMain2: [
     { title: 'Campaign', url: '/campaign', icon: 'icons:campaign', items: [
-      { title: 'Campaign', url: '/campaign' },
+      { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
 

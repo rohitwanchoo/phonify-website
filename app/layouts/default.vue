@@ -21,7 +21,7 @@ import {
 <template>
   <SidebarProvider>
     <MainBar />
-    <SidebarInset class="bg-secondary">
+    <SidebarInset class="bg-secondary overflow-hidden">
       <header class="flex h-10 items-center gap-2 z-2">
         <div class="w-full fixed top-0 left-0">
           <CoreNavbar />
