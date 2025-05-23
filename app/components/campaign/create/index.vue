@@ -69,6 +69,36 @@ const templates = [
   },
 ]
 
+const CallerIds = [
+  {
+    id: 1,
+    name: 'Custom',
+  },
+  {
+    id: 2,
+    name: 'Area Code',
+  },
+  {
+    id: 3,
+    name: 'Area Code and Randomizer',
+  },
+]
+
+const dialingModes = [
+  {
+    id: 1,
+    name: 'Super Power Dial',
+  },
+  {
+    id: 2,
+    name: 'Predictive Dial',
+  },
+  {
+    id: 3,
+    name: 'Outbound Dial',
+  },
+]
+
 const depositions = [
   'Callback',
   'Feedback',
@@ -104,9 +134,16 @@ const formSchema = toTypedSchema(z.object({
   name: z.string().min(1, 'required').max(50),
   countryCode: z.string().min(1, 'required').max(10),
   description: z.string().min(1, 'required').max(255),
-  callerId: z.string().min(1, 'required').max(50),
-  customCallerId: z.string().min(1, 'required').max(50),
-  dialingMode: z.string().min(1, 'required').max(50),
+  callerId: z.number().min(1, 'required'),
+  customCallerId: z.string().min(1, 'required').max(50).optional().superRefine((val, ctx) => {
+    if (values.callerId === 1 && !val) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom Caller Is is required when Caller Is is Custom',
+      })
+    }
+  }),
+  dialingMode: z.number().min(1, 'required'),
   callerGroup: z.string().min(1, 'required').max(50),
 
 }))
@@ -118,6 +155,7 @@ const { handleSubmit, values } = useForm({
 // const onSubmit = handleSubmit((values) => {
 //   console.log('Form submitted!', values)
 // })
+
 function onSubmit() {
   emits('completed')
 }
@@ -217,26 +255,48 @@ function onSubmit() {
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" class="" name="callerId">
+                <FormField v-slot="{ componentField }" name="callerId">
                   <FormItem>
                     <FormLabel class="font-normal text-xs">
                       Caller Id
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Search List" v-bind="componentField" />
+                      <Select v-bind="componentField">
+                        <SelectTrigger class="w-full !h-11">
+                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Caller Id" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem v-for="item in CallerIds" :key="item.id" :value="item.id">
+                              {{ item.name }}
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage class="text-xs" />
                   </FormItem>
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" class="" name="customCallerId">
+                <FormField v-slot="{ componentField }" name="customCallerId">
                   <FormItem>
                     <FormLabel class="font-normal text-xs">
                       Custom Caller Id
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Search List" v-bind="componentField" />
+                      <Select v-bind="componentField">
+                        <SelectTrigger :disabled="values.callerId !== 1" class="w-full !h-11">
+                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Custom Caller Id" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem v-for="i in 3" :key="i" :value="`custom-${i}`">
+                              Custom ID {{ i }}
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage class="text-xs" />
                   </FormItem>
@@ -245,26 +305,48 @@ function onSubmit() {
             </div>
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" class="" name="dialingMode">
+                <FormField v-slot="{ componentField }" name="dialingMode">
                   <FormItem>
                     <FormLabel class="font-normal text-xs">
                       Dialing Mode
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Search List" v-bind="componentField" />
+                      <Select v-bind="componentField">
+                        <SelectTrigger class="w-full !h-11">
+                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Dialing Mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem v-for="item in dialingModes" :key="item.id" :value="item.id">
+                              {{ item.name }}
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage class="text-xs" />
                   </FormItem>
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" class="" name="callerGroup">
+                <FormField v-slot="{ componentField }" name="callerGroup">
                   <FormItem>
                     <FormLabel class="font-normal text-xs">
                       Caller Group
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Search List" v-bind="componentField" />
+                      <Select v-bind="componentField">
+                        <SelectTrigger class="w-full !h-11">
+                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Caller Group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem v-for="i in 3" :key="i" :value="`group-${i}`">
+                              Caller Group {{ i }}
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage class="text-xs" />
                   </FormItem>
