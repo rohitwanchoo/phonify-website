@@ -7,7 +7,7 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 
-import { ArrowRight, Check, ChevronsUpDown, Eye, Search } from 'lucide-vue-next' // Added Search icon
+import { ArrowRight, Check, ChevronsUpDown, Eye, Search } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,27 +20,14 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
-const emit = defineEmits(['completed'])
-
-
-// 1. Define interface for row data
-interface ListData {
-  listName: string
-  createdDate: string
-  totalLeads: number
-}
-
-// 2. Dummy data
-const dummyData = ref<ListData[]>([
-  { listName: 'List 1', createdDate: '2024-05-10T10:00:00', totalLeads: 1200 },
-  { listName: 'List 2', createdDate: '2024-04-22T14:30:00', totalLeads: 850 },
-  { listName: 'List 3', createdDate: '2024-03-15T09:15:00', totalLeads: 420 },
-  { listName: 'List 4', createdDate: '2024-02-28T16:45:00', totalLeads: 100 },
-  { listName: 'List 5', createdDate: '2024-05-10T10:00:00', totalLeads: 1200 },
-  { listName: 'List 6', createdDate: '2024-04-22T14:30:00', totalLeads: 850 },
-  { listName: 'List 7', createdDate: '2024-03-15T09:15:00', totalLeads: 420 },
-  { listName: 'List 8', createdDate: '2024-02-28T16:45:00', totalLeads: 100 },
-])
+// Define props
+const props = defineProps<{
+  data: {
+    listName: string
+    createdDate: string
+    totalLeads: number
+  }[]
+}>()
 
 // Track selected rows
 const selectedRows = ref<Record<number, boolean>>({})
@@ -52,8 +39,8 @@ function toggleSelected(rowIndex: number) {
   }
 }
 
-// 3. Create column helpers
-const columnHelper = createColumnHelper<ListData>()
+// Create column helpers
+const columnHelper = createColumnHelper<typeof props.data[0]>()
 
 const columns = [
   // No. column (not sortable)
@@ -117,8 +104,8 @@ const columns = [
       h(Button, {
         variant: 'outline',
         size: 'icon',
-        class: 'h-10 w-10 text-white bg-primary', // Added text-primary class
-      }, h(Eye, { class: 'h-6 w-6' })), // Eye icon button with primary color
+        class: 'h-10 w-10 text-white bg-primary',
+      }, h(Eye, { class: 'h-6 w-6' })),
       h(Button, {
         variant: selectedRows.value[row.index] ? 'default' : 'outline',
         size: 'sm',
@@ -140,40 +127,17 @@ const columns = [
   }),
 ]
 
-// 4. Create TanStack table instance
+// Create TanStack table instance
 const table = useVueTable({
-  data: dummyData,
+  data: props.data,
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
 })
-
-const handleContinue = () => {
-  emit('completed') // Just emit the event
-}
 </script>
 
 <template>
-  <div class="flex w-full flex-col sm:flex-row sm:justify-between items-center">
-    <h2 class="text-xl text-primary ">
-      Lists
-    </h2>
-    <div class="flex items-center justify-between gap-5">
-      <label for="Email" class="relative">
-        <input
-          id="Email"
-          type="email"
-          class="mt-0.5 w-[250px] rounded-md rounded bg-white border-gray-300 px-3 h-10 shadow-sm sm:text-sm pr-10"
-          placeholder="Search List"
-        >
-        <Search class="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer" /> <!-- Search icon -->
-      </label>
-      <button class="text-white text-sm bg-primary px-3 h-10 rounded-md cursor-pointer">
-        + Create List
-      </button>
-    </div>
-  </div>
-  <div class="border rounded-lg overflow-hidden mt-5">
+  <div class="border rounded-lg  mt-5 max-h-[85%] overflow-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -212,8 +176,4 @@ const handleContinue = () => {
       </TableBody>
     </Table>
   </div>
-
-  <button class="w-full bg-primary text-white p-2 rounded-md text-sm  my-4 cursor-pointer justify-center items-center gap-2 flex" @click="handleContinue">
-    Continue <ArrowRight class="w-5" />
-  </button>
 </template>
