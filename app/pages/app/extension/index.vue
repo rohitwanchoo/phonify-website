@@ -6,7 +6,7 @@ import { Input } from '~/components/ui/input'
 <template>
   <div class="">
     <!-- HEADER -->
-    <BaseHeader title="Campaign">
+    <BaseHeader title="Extension List">
       <template #actions>
         <div class="relative">
           <Input placeholder="Search List" />
