@@ -57,7 +57,7 @@ const data = {
     { title: 'SMS', url: '/sms', icon: 'icons:sms' },
   ],
   navMain2: [
-    { title: 'Campaign', url: '/campaign', icon: 'icons:campaign', items: [
+    { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
       { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
