@@ -13,7 +13,7 @@ const breadcrumbs = [
     active: true,
   },
 ]
-// stepper.goTo('show-preview')
+stepper.goTo('show-preview')
 </script>
 
 <template>
@@ -26,6 +26,6 @@ const breadcrumbs = [
     </template>
   </BaseHeader>
   <CampaignStepper :stepper="stepper">
-    <component :is="stepper.current.value.component" @completed="(e) => stepper.goToNext()" />
+    <component :is="stepper.current.value.component" @completed="(e: any) => stepper.goToNext()" @go-to="(e: any) => stepper.goTo(e)" />
   </CampaignStepper>
 </template>

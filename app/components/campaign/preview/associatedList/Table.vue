@@ -9,7 +9,7 @@ import {
 
 import { Check, ChevronsUpDown, Eye } from 'lucide-vue-next'
 import moment from 'moment'
-import { h, popScopeId, ref } from 'vue'
+import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -21,18 +21,15 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
-// Define props with defaults
-const props = withDefaults(defineProps<{
-  enableSelect?: boolean
-  data?: {
+// Define props
+const props = defineProps<{
+  data: {
     listName: string
     createdDate: string
     totalLeads: number
   }[]
-}>(), {
-  enableSelect: true,
-  data: () => [],
-})
+}>()
+
 // Track selected rows
 const selectedRows = ref<Record<number, boolean>>({})
 
@@ -109,7 +106,7 @@ const columns = [
         size: 'icon',
         class: 'h-10 w-10 text-white bg-primary',
       }, h(Eye, { class: 'h-6 w-6' })),
-      props.enableSelect && h(Button, {
+      h(Button, {
         variant: selectedRows.value[row.index] ? 'default' : 'outline',
         size: 'sm',
         class: cn('h-10 w-28 flex items-center justify-center gap-1', {
@@ -126,7 +123,6 @@ const columns = [
         }),
         selectedRows.value[row.index] ? 'Selected' : 'Select',
       ]),
-
     ]),
   }),
 ]
