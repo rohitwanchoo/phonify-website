@@ -13,17 +13,18 @@ export default defineNuxtConfig({
     'shadcn-nuxt',
     'nuxt-charts',
     'nuxt-echarts',
+    'nuxt-auth-utils',
   ],
   icon: {
     customCollections: [
       {
         prefix: 'icons',
-        dir: './app/assets/icons'
+        dir: './app/assets/icons',
       },
     ],
   },
-  echarts:{
-    renderer:['svg', 'canvas'],
+  echarts: {
+    renderer: ['svg', 'canvas'],
     charts: ['BarChart', 'MapChart'],
     components: [
       'DatasetComponent',
@@ -50,5 +51,23 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+  },
+  runtimeConfig: {
+    // Private keys (only available on the server-side)
+    sessionPassword: '',
+    // Public keys (exposed to the client-side)
+    public: {
+      apiBaseUrl: '/api/proxy',
+    },
+  },
+  nitro: {
+    // Configure development proxy to avoid CORS issues
+    devProxy: {
+      '/api/proxy': {
+        target: 'https://api.voiptella.com',
+        changeOrigin: true,
+        prependPath: false,
+      },
+    },
   },
 })

@@ -47,7 +47,7 @@ const data = {
     { title: 'SMS', url: '/sms', icon: 'icons:sms' },
   ],
   navMain2: [
-    { title: 'Campaign', url: '/campaign', icon: 'icons:campaign', items: [
+    { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
       { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
@@ -55,9 +55,17 @@ const data = {
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call' },
     { title: 'Lead Management', url: '/lead-management', icon: 'icons:lead-management' },
+    { title: 'Call Times', url: '/app/call-times', icon: 'icons:do-not-call' },
   ],
   navMain3: [
-    { title: 'User Management', url: '/user-management', icon: 'icons:user-management' },
+    { title: 'User Management', url: '/user-management', icon: 'icons:user-management' ,
+    items: [
+        { title: 'Extension', url: '/app/extension' },
+        { title: 'Group', url: '/app/group' },
+        { title: 'Ring Groups', url: '/app/ring-groups' },
+      
+      ],
+    },
     { title: 'Inbound Settings', url: '/inbound-settings', icon: 'icons:inbound-settings' },
     { title: 'Configuration', url: '/configuration', icon: 'icons:configuration' },
     { title: 'Report', url: '/report', icon: 'icons:report' },

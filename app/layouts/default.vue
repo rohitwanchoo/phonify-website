@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import MainBar from '@/components/core/app-sidebar/Main.vue'
-import DashSecOne from '@/components/dash-components/dash-sec-one/index.vue'
-import DashSecTwo from '@/components/dash-components/dash-sec-two/index.vue'
 
 import {
   Breadcrumb,

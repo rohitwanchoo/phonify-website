@@ -13,7 +13,7 @@ function allStepsBeforeAreValid(index: number): boolean {
 </script>
 
 <template>
-  <div class="block md:grid grid-cols-8 w-full overflow-hidden bg-transparent mt-6">
+  <div class="block md:grid grid-cols-8 w-full overflow-hidden bg-transparent">
     <div class="col-span-16 md:col-span-2 bg-primary rounded-lg md:rounded-xl md:rounded-r-none pl-7 py-7 pr-2 ">
       <div
         v-for="(step, key, index) in stepper?.steps.value" :key="key"
