@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import DashSecOne from '@/components/dashboard/dash-cards/index.vue'
+
+// Protect this page with authentication
+definePageMeta({
+  middleware: 'auth',
+})
 </script>
 
 <template>
