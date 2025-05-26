@@ -68,7 +68,7 @@ const isActive = (url: string) => route.path === url
               </SidebarMenuButton>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <SidebarMenuSub>
+              <SidebarMenuSub class="mt-2">
                 <SidebarMenuSubItem
                   v-for="subItem in item.items"
                   :key="subItem.title"
@@ -76,6 +76,7 @@ const isActive = (url: string) => route.path === url
                   <SidebarMenuSubButton
                     as-child
                     :data-active="isActive(subItem.url)"
+                    class="text-primary/70 hover:text-primary ml-1 lg:h-10 hover:bg-accent pb-1 border-l-2 hover:border-primary rounded-none"
                   >
                     <NuxtLink :to="subItem.url">
                       <span>{{ subItem.title }}</span>
