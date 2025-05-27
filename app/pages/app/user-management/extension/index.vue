@@ -12,10 +12,14 @@ import { Input } from '~/components/ui/input'
           <Input placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Nuxt-link to="/app/campaign/new-campaign">
+        <Button variant="outline" class="text-black bg-white">
+          <Icon class="!text-black" name="lucide:download" />
+          Excel
+        </Button>
+        <Nuxt-link to="/app/extension/new-extension">
           <Button>
             <Icon class="!text-white" name="lucide:plus" />
-            Create Campaign
+            Add Extensions
           </Button>
         </Nuxt-link>
       </template>
@@ -23,7 +27,7 @@ import { Input } from '~/components/ui/input'
 
     <!-- TABLE -->
     <div>
-      <CampaignTable />
+      <ExtensionTable />
     </div>
   </div>
 </template>
