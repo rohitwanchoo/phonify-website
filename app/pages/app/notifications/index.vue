@@ -72,10 +72,10 @@ function markAllAsRead() {
       </Nuxt-link>
     </template>
   </BaseHeader>
-<!-- notification container -->
-  <div class="border border-gray-200 lg:max-h-[75vh] rounded-xl overflow-y-auto">
+  <!-- notification container -->
+  <div class="border border-gray-200 rounded-xl">
     <!-- Tabs -->
-    <div class="w-full min-h-[50px] bg-[#FAFAFA] flex rounded-t-lg items-center border-b">
+    <div class="w-full min-h-[50px]  bg-[#FAFAFA] flex rounded-t-xl items-center border-b">
       <div
         class="w-[50%] h-[50px] flex items-center justify-center cursor-pointer border-b-2"
         :class="activeTab === 'all' ? 'border-[#00A086]' : 'border-transparent'"
@@ -101,7 +101,7 @@ function markAllAsRead() {
     </div>
 
     <!-- Notifications -->
-    <div class="pt-2 px-2">
+    <div class="pt-2 px-2 lg:max-h-[65vh] overflow-y-auto">
       <div
         v-for="notification in filteredNotifications"
         :key="notification.id"
