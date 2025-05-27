@@ -19,15 +19,7 @@ const notifications = ref<Notification[]>([
   { id: 1, message: 'Lorem ipsum dolor sit amet consectetur.', isRead: false, date: 'Today' },
   { id: 2, message: 'Sit magna lorem ac sed donec lectus.', isRead: false, date: 'Today' },
   { id: 3, message: 'Pellentesque habitant morbi tristique.', isRead: true, date: 'Today' },
-  { id: 1, message: 'Lorem ipsum dolor sit amet consectetur.', isRead: false, date: 'Today' },
-  { id: 2, message: 'Sit magna lorem ac sed donec lectus.', isRead: false, date: 'Today' },
-  { id: 3, message: 'Pellentesque habitant morbi tristique.', isRead: true, date: 'Today' },
-  { id: 1, message: 'Lorem ipsum dolor sit amet consectetur.', isRead: false, date: 'Today' },
-  { id: 2, message: 'Sit magna lorem ac sed donec lectus.', isRead: false, date: 'Today' },
-  { id: 3, message: 'Pellentesque habitant morbi tristique.', isRead: true, date: 'Today' },
-  { id: 1, message: 'Lorem ipsum dolor sit amet consectetur.', isRead: false, date: 'Today' },
-  { id: 2, message: 'Sit magna lorem ac sed donec lectus.', isRead: false, date: 'Today' },
-  { id: 3, message: 'Pellentesque habitant morbi tristique.', isRead: true, date: 'Today' },
+
 ])
 
 // Tab state
@@ -73,9 +65,9 @@ function markAllAsRead() {
     </template>
   </BaseHeader>
   <!-- notification container -->
-  <div class="border border-gray-200 rounded-xl">
+  <div class="border border-gray-200 rounded-xl h-full">
     <!-- Tabs -->
-    <div class="w-full min-h-[50px]  bg-[#FAFAFA] flex rounded-t-xl items-center border-b">
+    <div class="w-full bg-[#FAFAFA] flex rounded-t-xl items-center border-b">
       <div
         class="w-[50%] h-[50px] flex items-center justify-center cursor-pointer border-b-2"
         :class="activeTab === 'all' ? 'border-[#00A086]' : 'border-transparent'"
