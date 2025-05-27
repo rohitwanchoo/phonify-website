@@ -48,7 +48,8 @@ function handleContinue() {
         </Button>
       </div>
     </div>
-    <ListTable :data="dummyData" />
+    <!-- daa -->
+    <ListTable :list="dummyData" :meta="meta" />
   </div>
 
   <div class="sticky bg-white bottom-0 right-0 w-full shadow-2xl p-4">
