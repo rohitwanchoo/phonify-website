@@ -13,7 +13,7 @@ const breadcrumbs = [
     active: true,
   },
 ]
-stepper.goTo('show-preview')
+stepper.goTo('select-list')
 </script>
 
 <template>

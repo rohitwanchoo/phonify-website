@@ -5,8 +5,8 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon } from '#components'
 
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -17,10 +17,20 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ChevronsUpDown } from 'lucide-vue-next'
 
+import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
+
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -42,7 +52,25 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
+const props = withDefaults(defineProps<Props>(), {
+
+})
+
+const emits = defineEmits(['pageNavigation', 'refresh'])
+
+interface Meta {
+  current_page: number
+  per_page: number
+  last_page: number
+  total: number
+}
+interface Props {
+  list: { [key: string]: any }[]
+  loading?: boolean
+  meta?: Meta
+}
+
+// const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
 
 export interface Campaign {
   siNo?: number
@@ -61,178 +89,6 @@ export interface Campaign {
 
 }
 const sheet = ref(false)
-
-const data = ref<Campaign[]>([
-  {
-    name: 'Campaign 1',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: true,
-  },
-  {
-    name: 'Campaign 2',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: true,
-  },
-  {
-    name: 'Campaign 3',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: true,
-  },
-  {
-    name: 'Campaign 4',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: true,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-  {
-    name: 'Campaign 5',
-    callTime: '9:00 AM to 6:00 PM',
-    list: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    campaignStatus: false,
-  },
-])
 
 const columnHelper = createColumnHelper<Campaign>()
 
@@ -351,7 +207,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  data,
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
@@ -374,6 +230,10 @@ const table = useVueTable({
     },
   },
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
 </script>
 
 <template>
@@ -394,7 +254,12 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <TableRow :data-state="row.getIsSelected() && 'selected'">
               <TableCell
@@ -426,6 +291,35 @@ const table = useVueTable({
         </TableRow>
       </TableBody>
     </Table>
+  </div>
+  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ meta?.current_page }} to
+
+        <span>
+          <Select :default-value="10">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+
+        of {{ meta?.total }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <!-- Pagination Controls -->
+      <TableServerPagination
+        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+      />
+    </div>
   </div>
 
   <CampaignTableSheet v-model:open="sheet" />

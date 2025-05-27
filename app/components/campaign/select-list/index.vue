@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {  Search } from 'lucide-vue-next'
+import { Search } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { Button } from '~/components/ui/button'
 import ListTable from './table.vue' // Adjust the import path as needed
@@ -17,6 +17,20 @@ const dummyData = ref([
   { listName: 'List 7', createdDate: '2024-03-15T09:15:00', totalLeads: 420 },
   { listName: 'List 8', createdDate: '2024-02-28T16:45:00', totalLeads: 100 },
 ])
+
+interface Meta {
+  current_page: number
+  per_page: number
+  last_page: number
+  total: number
+}
+
+const meta = ref<Meta>({
+  current_page: 1,
+  per_page: 10,
+  last_page: 1,
+  total: 50,
+})
 
 function handleContinue() {
   emit('completed')
@@ -44,7 +58,8 @@ function handleContinue() {
         </Button>
       </div>
     </div>
-    <ListTable :data="dummyData" />
+    <!-- daa -->
+    <ListTable :list="dummyData" :meta="meta" />
   </div>
   <div class="sticky bg-white bottom-0 right-0 w-full shadow-2xl p-4">
     <Button class="w-full h-[52px] cursor-pointer" type="submit" @click="handleContinue">
@@ -52,5 +67,4 @@ function handleContinue() {
       <Icon name="lucide:arrow-right" size="20" />
     </Button>
   </div>
-
 </template>
