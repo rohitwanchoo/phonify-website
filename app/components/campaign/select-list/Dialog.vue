@@ -23,7 +23,7 @@ const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required').max(50, 'Title must be less than 50 characters'),
 }))
 
-const { handleSubmit, values, errors } = useForm({
+const { handleSubmit, values } = useForm({
   validationSchema: formSchema,
 })
 
@@ -88,7 +88,6 @@ defineExpose({ open })
                 />
               </FormControl>
               <FormMessage class="ml-2 text-xs" />
-              <div>{{ errors }}</div>
             </FormItem>
           </FormField>
 
