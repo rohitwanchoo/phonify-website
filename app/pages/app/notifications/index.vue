@@ -93,7 +93,7 @@ function markAllAsRead() {
     </div>
 
     <!-- Notifications -->
-    <div class="pt-2 px-2 lg:max-h-[65vh] overflow-y-auto">
+    <div class="pt-2 px-2 h-full overflow-y-auto">
       <div
         v-for="notification in filteredNotifications"
         :key="notification.id"

@@ -77,6 +77,7 @@ const data = {
     { title: 'Inbound Settings', url: '/inbound-settings', icon: 'icons:inbound-settings' },
     { title: 'Configuration', url: '/configuration', icon: 'icons:configuration' },
     { title: 'Report', url: '/report', icon: 'icons:report' },
+    { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
   projects: [
     { name: 'Report', url: '/projects/report', icon: Frame },
