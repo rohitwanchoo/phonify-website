@@ -1,6 +1,85 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+
+const data = [
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'John Doe',
+    email: 'john@example.com',
+    phoneNumber: 1234567890,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+  {
+    extension: 123456,
+    secret: '********',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phoneNumber: 9876543210,
+  },
+]
+const meta = {
+  current_page: 1,
+  per_page: 10,
+  last_page: 1,
+  total: 20,
+}
 </script>
 
 <template>
@@ -16,7 +95,7 @@ import { Input } from '~/components/ui/input'
           <Icon class="!text-black" name="lucide:download" />
           Excel
         </Button>
-        <Nuxt-link to="/app/extension/new-extension">
+        <Nuxt-link to="/app/user-management/extension/create">
           <Button>
             <Icon class="!text-white" name="lucide:plus" />
             Add Extensions
@@ -27,7 +106,7 @@ import { Input } from '~/components/ui/input'
 
     <!-- TABLE -->
     <div>
-      <ExtensionTable />
+      <UserManagementExtensionTable :list="data" :meta="meta" />
     </div>
   </div>
 </template>

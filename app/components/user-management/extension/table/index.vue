@@ -16,11 +16,20 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-
 import { ChevronsUpDown, Copy } from 'lucide-vue-next'
 
 import { h, ref } from 'vue'
+
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -41,6 +50,21 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
+const props = defineProps<{
+  loading: boolean
+  meta: Meta
+  list: any[]
+}>()
+
+const emits = defineEmits(['pageNavigation', 'refresh'])
+
+interface Meta {
+  current_page: number
+  per_page: number
+  last_page: number
+  total: number
+}
+
 export interface Extension {
   siNo?: number
   extension: number
@@ -52,79 +76,6 @@ export interface Extension {
 }
 
 const sheet = ref(false)
-
-const data = ref<Extension[]>([
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phoneNumber: 1234567890,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-  {
-    extension: 123456,
-    secret: '********',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phoneNumber: 9876543210,
-  },
-])
 
 const columnHelper = createColumnHelper<Extension>()
 
@@ -188,7 +139,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  data,
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
@@ -208,6 +159,10 @@ const table = useVueTable({
     get expanded() { return expanded.value },
   },
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
 </script>
 
 <template>
@@ -224,7 +179,12 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <TableRow :data-state="row.getIsSelected() && 'selected'">
               <TableCell
@@ -250,6 +210,35 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
+  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ meta?.current_page }} to
 
-  <CampaignTableSheet v-model:open="sheet" />
+        <span>
+          <Select :default-value="10">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+
+        of {{ meta?.total }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <!-- Pagination Controls -->
+      <TableServerPagination
+        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+      />
+    </div>
+  </div>
+
+  <UserManagementDetails v-model:open="sheet" />
 </template>

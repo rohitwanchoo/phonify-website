@@ -63,6 +63,7 @@ function changePage(page: number) {
           v-if="item.type === 'page'"
           :value="item.value"
           :is-active="item.value === page"
+          @click="changePage(item.value)"
         >
           {{ item.value }}
         </PaginationItem>
