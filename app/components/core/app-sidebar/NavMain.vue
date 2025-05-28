@@ -76,7 +76,7 @@ const isActive = (url: string) => route.path === url
                   <SidebarMenuSubButton
                     as-child
                     :data-active="isActive(subItem.url)"
-                    class="text-primary/70 hover:text-primary ml-1 lg:h-10 hover:bg-accent pb-1 border-l-2 hover:border-primary rounded-none"
+                    class="text-primary/70 hover:text-primary ml-1 lg:h-10 hover:bg-accent pb-1 border-l-2 hover:border-primary rounded-none pl-4"
                   >
                     <NuxtLink :to="subItem.url">
                       <span>{{ subItem.title }}</span>
