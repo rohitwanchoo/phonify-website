@@ -129,7 +129,7 @@ const columns = [
 
 // Create TanStack table instance
 const table = useVueTable({
-  data: props.data,
+  data: props.data || [],
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),

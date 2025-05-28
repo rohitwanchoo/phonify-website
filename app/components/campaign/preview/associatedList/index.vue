@@ -31,7 +31,7 @@ function onEdit() {
       </div>
     </div>
     <div class="p-5">
-      <CampaignSelectListTable :data="data" :enable-select="false" />
+      <CampaignSelectListTable :list="data" :enable-select="false" />
     </div>
   </div>
 </template>
