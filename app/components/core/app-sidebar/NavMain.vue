@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/sidebar'
 
 const props = defineProps<{
-  heading: string
   items: {
     title: string
     url: string
@@ -40,10 +39,11 @@ const isActive = (url: string) => route.path === url
 </script>
 
 <template>
-  <SidebarGroup>
-    <SidebarGroupLabel>{{ heading }}</SidebarGroupLabel>
-    <SidebarMenu>
-      <template v-for="item in items" :key="item.title">
+    <SidebarGroup>
+     <div v-for="heading in Object.keys(items)">
+      <SidebarGroupLabel class="uppercase">{{ heading }}</SidebarGroupLabel>
+      <SidebarMenu>
+        <template v-for="item in (items as any)[heading]" :key="item.title">
         <!-- Collapsible menu -->
         <Collapsible
           v-if="item.items"
@@ -105,6 +105,8 @@ const isActive = (url: string) => route.path === url
           </SidebarMenuButton>
         </SidebarMenuItem>
       </template>
-    </SidebarMenu>
-  </SidebarGroup>
+      </SidebarMenu>
+     </div>
+    </SidebarGroup>
+
 </template>
