@@ -91,7 +91,7 @@ const userInitials = computed(() => {
           <DropdownMenuSeparator />
 
           <DropdownMenuItem as-child>
-            <NuxtLink to="/app/profile" class="cursor-pointer">
+            <NuxtLink to="/app/profile-demo" class="cursor-pointer">
               <Icon name="material-symbols:person-outline" class="mr-2 h-4 w-4" />
               <span>Profile</span>
             </NuxtLink>
