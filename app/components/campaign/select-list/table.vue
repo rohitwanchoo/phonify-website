@@ -1,17 +1,4 @@
 <script setup lang="ts">
-
-const emits = defineEmits(['pageNavigation', 'refresh'])
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-
 import {
   createColumnHelper,
   FlexRender,
@@ -21,9 +8,17 @@ import {
 } from '@tanstack/vue-table'
 
 import { Check, ChevronsUpDown, Eye } from 'lucide-vue-next'
+
 import moment from 'moment'
 import { h, popScopeId, ref } from 'vue'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -33,13 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
 
 // Define props with defaults
 const props = withDefaults(defineProps<{
@@ -55,6 +43,16 @@ const props = withDefaults(defineProps<{
   enableSelect: true,
   data: () => [],
 })
+
+const emits = defineEmits(['pageNavigation', 'refresh'])
+
+interface Meta {
+  current_page: number
+  per_page: number
+  last_page: number
+  total: number
+}
+
 // Track selected rows
 const selectedRows = ref<Record<number, boolean>>({})
 
@@ -160,6 +158,10 @@ const table = useVueTable({
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
 </script>
 
 <template>

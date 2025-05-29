@@ -51,10 +51,11 @@ const userInitials = computed(() => {
 
     <div class="flex gap-3 text-xs md:text-sm items-center">
       <!-- Notifications Button -->
-      <button class="bg-white px-3 py-2 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors">
-        <Icon name="material-symbols-light:notifications" class="text-xl md:text-2xl" />
-      </button>
-
+      <nuxt-link to="/app/notifications">
+        <button class="bg-white px-3 py-2 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
+          <Icon name="material-symbols-light:notifications" class="text-xl md:text-2xl" />
+        </button>
+      </nuxt-link>
       <!-- User Dropdown -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
