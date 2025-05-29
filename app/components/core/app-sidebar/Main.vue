@@ -37,7 +37,7 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 })
 
 const data = {
-  navMain: [
+  'Main Menu': [
     { title: 'Dashboard', url: '/app/dashboard', icon: 'icons:dashboard' },
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
     { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
@@ -46,7 +46,7 @@ const data = {
     { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
     { title: 'SMS', url: '/sms', icon: 'icons:sms' },
   ],
-  navMain2: [
+  'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
       { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
@@ -57,22 +57,21 @@ const data = {
     { title: 'Lead Management', url: '/lead-management', icon: 'icons:lead-management' },
     { title: 'Call Times', url: '/app/call-times', icon: 'icons:do-not-call' },
   ],
-  navMain3: [
-    { title: 'User Management', url: '/user-management', icon: 'icons:user-management' ,
-    items: [
-        { title: 'Extension', url: '/app/extension' },
-        { title: 'Group', url: '/app/group' },
-        { title: 'Ring Groups', url: '/app/ring-groups' },
-      
-      ],
-    },
+  'User & Access Management': [
+    { title: 'User Management', url: '/user-management', icon: 'icons:user-management', items: [
+      { title: 'Extension', url: '/app/user-management/extension' },
+      { title: 'Group', url: '/app/user-management/group' },
+      { title: 'Ring Groups', url: '/app/ring-groups' },
+
+    ] },
     { title: 'Inbound Settings', url: '/inbound-settings', icon: 'icons:inbound-settings' },
     { title: 'Configuration', url: '/configuration', icon: 'icons:configuration' },
     { title: 'Report', url: '/report', icon: 'icons:report' },
+    { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
-  projects: [
-    { name: 'Report', url: '/projects/report', icon: Frame },
-  ],
+  // projects: [
+  //   { name: 'Report', url: '/projects/report', icon: Frame },
+  // ],
 }
 </script>
 
@@ -82,12 +81,7 @@ const data = {
       <SidebarTrigger class="mx-auto hidden md:block" />
     </SidebarHeader>
     <SidebarContent class="pb-10">
-      <NavMain :items="data.navMain" heading="MAIN MENU" />
-      <SidebarSeparator class="max-w-[250px] mx-auto" />
-      <NavMain :items="data.navMain2" heading="CAMPAIGN & LEAD MANAGEMENT" />
-      <SidebarSeparator class="max-w-[250px] mx-auto" />
-      <NavMain :items="data.navMain3" heading="USER & ACCESS MANAGEMENT" />
-      <!-- <NavProjects :projects="data.projects" /> -->
+      <NavMain :items="data"  />
     </SidebarContent>
     <!-- <SidebarFooter>
       <NavUser :user="data.user" />

@@ -8,9 +8,17 @@ import {
 } from '@tanstack/vue-table'
 
 import { Check, ChevronsUpDown, Eye } from 'lucide-vue-next'
+
 import moment from 'moment'
 import { h, popScopeId, ref } from 'vue'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -24,7 +32,9 @@ import { cn } from '@/lib/utils'
 // Define props with defaults
 const props = withDefaults(defineProps<{
   enableSelect?: boolean
-  data?: {
+  loading?: boolean
+  meta?: Meta
+  list?: {
     listName: string
     createdDate: string
     totalLeads: number
@@ -33,6 +43,16 @@ const props = withDefaults(defineProps<{
   enableSelect: true,
   data: () => [],
 })
+
+const emits = defineEmits(['pageNavigation', 'refresh'])
+
+interface Meta {
+  current_page: number
+  per_page: number
+  last_page: number
+  total: number
+}
+
 // Track selected rows
 const selectedRows = ref<Record<number, boolean>>({})
 
@@ -133,11 +153,15 @@ const columns = [
 
 // Create TanStack table instance
 const table = useVueTable({
-  data: props.data,
+  data: props.list || [],
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
 </script>
 
 <template>
@@ -160,7 +184,12 @@ const table = useVueTable({
       </TableHeader>
 
       <TableBody class="bg-white">
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id" class="hover:bg-gray-50">
             <TableCell
               v-for="cell in row.getVisibleCells()"
@@ -179,5 +208,34 @@ const table = useVueTable({
         </TableRow>
       </TableBody>
     </Table>
+  </div>
+  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ meta?.current_page }} to
+
+        <span>
+          <Select :default-value="10">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+
+        of {{ meta?.total }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <!-- Pagination Controls -->
+      <TableServerPagination
+        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+      />
+    </div>
   </div>
 </template>

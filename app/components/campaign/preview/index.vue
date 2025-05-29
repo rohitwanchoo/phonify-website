@@ -26,10 +26,11 @@ const emit = defineEmits(['goTo'])
         dfa
       </div> -->
     </div>
-    <!-- <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" type="submit" @click="onSubmit">
-        Continue
+    <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
+      <Button class="w-full h-[52px] items-center" type="submit" @click="onSubmit">
+        <Icon name="mdi:phone" size="18" />
+        Start Dialing
       </Button>
-    </div> -->
+    </div>
   </div>
 </template>

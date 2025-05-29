@@ -5,7 +5,6 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-
 import { Icon } from '#components'
 import {
   createColumnHelper,
@@ -17,8 +16,8 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import { ChevronsUpDown, Copy } from 'lucide-vue-next'
 
-import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 
 import { Button } from '@/components/ui/button'
@@ -40,7 +39,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 
-import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -52,9 +50,11 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const props = withDefaults(defineProps<Props>(), {
-
-})
+const props = defineProps<{
+  loading: boolean
+  meta: Meta
+  list: any[]
+}>()
 
 const emits = defineEmits(['pageNavigation', 'refresh'])
 
@@ -64,140 +64,72 @@ interface Meta {
   last_page: number
   total: number
 }
-interface Props {
-  list: { [key: string]: any }[]
-  loading?: boolean
-  meta?: Meta
-}
 
-// const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
-
-export interface Campaign {
+export interface Extension {
   siNo?: number
+  extension: number
+  secret: string
   name: string
-  callTime: string
-  list: number
-  dialed: string
-  hoppers: number
-  dialingMode: string
-  dateTime: {
-    date: string
-    time: string
-  }
-  campaignStatus: boolean
+  email: string
+  phoneNumber: number
   actions?: string
-
 }
+
 const sheet = ref(false)
 
-const columnHelper = createColumnHelper<Campaign>()
+const columnHelper = createColumnHelper<Extension>()
 
 const columns = [
-
   columnHelper.accessor('siNo', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
-    },
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+  }),
+
+  columnHelper.accessor('extension', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension')),
+  }),
+
+  columnHelper.accessor('secret', {
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Secret'),
+    cell: ({ row }) =>
+      h(
+        'div',
+        { class: 'flex items-center justify-center gap-2 text-sm font-normal' },
+        [
+          h('span', row.getValue('secret')),
+          h(Copy, { class: 'w-4 h-4 text-gray-500 cursor-pointer' }), // Copy icon
+        ],
+      ),
   }),
 
   columnHelper.accessor('name', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('name'))
-    },
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('name')),
   }),
 
-  columnHelper.accessor('callTime', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, row.getValue('callTime')),
+  columnHelper.accessor('email', {
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email')),
   }),
 
-  columnHelper.accessor('list', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'List'),
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('list'))
-    },
-  }),
-
-  columnHelper.accessor('dialed', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('dialed'))
-    },
-  }),
-  columnHelper.accessor('dateTime', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', row.original.dateTime.date),
-        h('br'),
-        h('div', { class: 'text-xs' }, row.original.dateTime.time),
-      ])
-    },
-  }),
-
-  columnHelper.accessor('campaignStatus', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center ' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.original.campaignStatus, 'onUpdate:modelValue': (val: boolean) => {
-        data.value[row.index].campaignStatus = val
-      } }))
-    },
-    sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.getValue(columnId)
-      const valueB = rowB.getValue(columnId)
-      if (valueA === valueB) {
-        return 0
-      }
-      if (valueA === true && valueB === false) {
-        return -1
-      }
-      if (valueA === false && valueB === true) {
-        return 1
-      }
-      return 0
-    },
+  columnHelper.accessor('phoneNumber', {
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Phone Number'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('phoneNumber')),
   }),
 
   columnHelper.accessor('actions', {
-    header: () => {
-      return h('div', { class: 'text-center' }, 'Actions')
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-        h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => sheet.value = true }, h(Icon, { name: 'lucide:eye' })),
-        h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
-      ])
-    },
+    header: () => h('div', { class: 'text-center' }, 'Actions'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+      h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => sheet.value = true }, h(Icon, { name: 'lucide:eye' })),
+      h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
+    ]),
   }),
-
 ]
 
 const sorting = ref<SortingState>([])
@@ -225,9 +157,6 @@ const table = useVueTable({
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
     get expanded() { return expanded.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
 
@@ -242,14 +171,10 @@ function handlePageChange(page: number) {
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
-            v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
+            v-for="header in headerGroup.headers" :key="header.id"
             class="bg-gray-50"
-            :class="cn(
-              { 'sticky bg-background/95': header.column.getIsPinned() },
-              header.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-            )"
           >
-            <FlexRender v-if="!header.isPlaceholder" class="" :render="header.column.columnDef.header" :props="header.getContext()" />
+            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -263,12 +188,8 @@ function handlePageChange(page: number) {
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <TableRow :data-state="row.getIsSelected() && 'selected'">
               <TableCell
-                v-for="cell in row.getVisibleCells()" :key="cell.id" :data-pinned="cell.column.getIsPinned()"
+                v-for="cell in row.getVisibleCells()" :key="cell.id"
                 class="p-[12px]"
-                :class="cn(
-                  { 'sticky bg-background/95': cell.column.getIsPinned() },
-                  cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-                )"
               >
                 <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
               </TableCell>
@@ -282,10 +203,7 @@ function handlePageChange(page: number) {
         </template>
 
         <TableRow v-else>
-          <TableCell
-            :colspan="columns.length"
-            class="h-24 text-center"
-          >
+          <TableCell :colspan="columns.length" class="h-24 text-center">
             No results.
           </TableCell>
         </TableRow>
@@ -322,5 +240,5 @@ function handlePageChange(page: number) {
     </div>
   </div>
 
-  <CampaignTableSheet v-model:open="sheet" />
+  <UserManagementDetails v-model:open="sheet" />
 </template>
