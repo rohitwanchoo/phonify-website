@@ -69,9 +69,10 @@ export interface Extension {
   siNo?: number
   extension: number
   secret: string
-  name: string
+  first_name: string
+  last_name: string
   email: string
-  phoneNumber: number
+  mobile: string
   actions?: string
 }
 
@@ -102,25 +103,26 @@ const columns = [
         'div',
         { class: 'flex items-center justify-center gap-2 text-sm font-normal' },
         [
-          h('span', row.getValue('secret')),
+          h('span', '******'),
           h(Copy, { class: 'w-4 h-4 text-gray-500 cursor-pointer' }), // Copy icon
         ],
       ),
   }),
 
-  columnHelper.accessor('name', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('name')),
-  }),
+  // columnHelper.accessor('first_name', {
+  //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
+  //   cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.first_name + ' ' + row.original.last_name),
+    
+  // }),
 
   columnHelper.accessor('email', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email')),
   }),
 
-  columnHelper.accessor('phoneNumber', {
+  columnHelper.accessor('mobile', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Phone Number'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('phoneNumber')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('mobile') || '-'),
   }),
 
   columnHelper.accessor('actions', {
@@ -132,11 +134,11 @@ const columns = [
   }),
 ]
 
+
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
   get data() { return props.list || [] },
@@ -145,20 +147,26 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: 10 } },
+  manualPagination: true,
+  pageCount: props.meta?.last_page,
+  rowCount: props.meta?.total,
   state: {
+    pagination: {
+      pageIndex: props.meta?.current_page,
+      pageSize: props.meta?.per_page,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
   },
 })
+
 
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
