@@ -20,17 +20,21 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 
+interface SubMenuItem {
+  title: string
+  url: string
+}
+
+interface MenuItem {
+  title: string
+  url: string
+  icon?: string
+  isActive?: boolean
+  items?: MenuItem[]
+}
+
 const props = defineProps<{
-  items: {
-    title: string
-    url: string
-    icon?: string
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+  items: Record<string, MenuItem[]>
 }>()
 
 const route = useRoute()
