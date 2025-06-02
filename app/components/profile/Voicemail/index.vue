@@ -11,9 +11,9 @@ import { Textarea } from '@/components/ui/textarea'
 </script>
 
 <template>
-  <div class="relative w-full h-full flex flex-col border rounded-lg overflow-hidden">
+  <div class="relative w-full h-full flex flex-col overflow-hidden">
     <!-- Scrollable content container -->
-    <div class="flex-1 overflow-auto px-4 py-6 space-y-6">
+    <div class="flex-1  pt-2 space-y-6">
       <!-- Textarea section -->
       <div class="space-y-2">
         <Label for="description" class="text-primary">Audio File Description</Label>
@@ -24,21 +24,20 @@ import { Textarea } from '@/components/ui/textarea'
       <Tabs default-value="file" class="w-full">
         <TabsList class="grid w-full grid-cols-2">
           <TabsTrigger value="file">
-            <ProfileVoicemailFileUpload />
+            <p>Upload File</p>
           </TabsTrigger>
           <TabsTrigger value="text">
-            <ProfileVoicemailTextToAudio />
+            <p>Text To Audio</p>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="file">
-          <p>Upload File</p>
+          <ProfileVoicemailFileUpload />
           <!-- Add file upload controls here -->
         </TabsContent>
 
         <TabsContent value="text">
-          <p>Text To Audio</p>
-          <!-- Add text-to-audio input here -->
+          <ProfileVoicemailTextToAudio />
         </TabsContent>
       </Tabs>
     </div>

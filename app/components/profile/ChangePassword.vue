@@ -31,9 +31,9 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <div class="relative w-full h-full flex flex-col overflow-hidden border rounded-lg">
+  <div class="relative w-full h-full flex flex-col pt-2 overflow-hidden">
     <!-- Scrollable form -->
-    <Form class="flex-1 overflow-auto px-4 py-6 space-y-4" @submit="onSubmit">
+    <Form class="flex-1 overflow-auto space-y-4" @submit="onSubmit">
       <!-- Current Password -->
       <FormField v-slot="{ componentField }" name="currentPassword">
         <FormItem>
