@@ -15,6 +15,7 @@ export default defineNuxtConfig({
     'nuxt-charts',
     'nuxt-echarts',
     'nuxt-auth-utils',
+    '@nuxt/image',
   ],
   icon: {
     customCollections: [
