@@ -94,25 +94,37 @@ const tabButtonText: Record<string, string> = {
                 value="account"
                 class="text-left text-white data-[state=active]:text-primary max-h-14 px-4 w-full block mx-auto mb-2"
               >
-                <Icon name="icons:dashboard" /> Edit Profile
+                <div class="flex items-center gap-2">
+                  <Icon name="material-symbols:person" class="w-6 h-6 text-xl" />
+                  Edit Profile
+                </div>
               </TabsTrigger>
               <TabsTrigger
                 value="password"
                 class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
               >
-                <Icon name="icons:dashboard" /> Change Password
+                <div class="flex items-center gap-2">
+                  <Icon name="material-symbols:lock" class="w-6 h-6 text-xl" />
+                  Change Password
+                </div>
               </TabsTrigger>
               <TabsTrigger
                 value="voicemail"
                 class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
               >
-                <Icon name="icons:dashboard" /> Voicemail Drop
+                <div class="flex items-center gap-2">
+                  <Icon name="material-symbols:voicemail" class="text-2xl" />
+                  Voicemail
+                </div>
               </TabsTrigger>
               <TabsTrigger
                 value="aireplies"
                 class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
               >
-                <Icon name="icons:dashboard" /> Voice AI
+                <div class="flex items-center gap-2">
+                  <Icon name="icons:voiceai" class="w-6 h-6" />
+                  Voice AI
+                </div>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -135,10 +147,16 @@ const tabButtonText: Record<string, string> = {
             </div>
 
             <!-- Sticky Button -->
-            <div class="sticky bottom-0 left-0 right-0 bg-primary border-t mt-4 rounded-[8px] flex justify-center items-center ">
-              <Button type="submit" form="form" class="w-full px-4 py-3 text-white text-sm ">
-                {{ tabButtonText[currentTab] }}
-                <Icon name="material-symbols:save-rounded" />
+            <div class="sticky bottom-0 left-0 right-0 bg-primary border-t mt-4 rounded-[8px]">
+              <Button type="submit" form="form" class="w-full px-4 py-3 text-white text-sm">
+                <span class="flex items-center justify-center gap-1">
+                  <Icon
+                    v-if="['voicemail', 'aireplies'].includes(currentTab)"
+                    name="material-symbols:save-rounded"
+                    class="text-base"
+                  />
+                  {{ tabButtonText[currentTab] }}
+                </span>
               </Button>
             </div>
           </div>
