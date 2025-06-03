@@ -5,6 +5,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
+import type { Extension } from '~/types/extension'
 import { Icon } from '#components'
 import {
   createColumnHelper,
@@ -16,11 +17,11 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ChevronsUpDown, Copy } from 'lucide-vue-next'
-
+import { useConfirmDialog } from '@vueuse/core'
+import { ChevronsUpDown, CircleCheck, Copy } from 'lucide-vue-next'
 import { h, ref } from 'vue'
-
 import { Button } from '@/components/ui/button'
+
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
 import {
   Sheet,
   SheetContent,
@@ -38,7 +40,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-
 import {
   Table,
   TableBody,
@@ -48,7 +49,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+
 import { cn } from '@/lib/utils'
+import resetImage from '~/assets/svg/reset.svg'
+import Action from './Action.vue'
 
 const props = defineProps<{
   loading: boolean
@@ -65,18 +69,72 @@ interface Meta {
   total: number
 }
 
-export interface Extension {
-  siNo?: number
-  extension: number
-  secret: string
-  first_name: string
-  last_name: string
-  email: string
-  mobile: string
-  actions?: string
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const {
+  isRevealed: showResetConfirm,
+  reveal: revealResetConfirm,
+  confirm: resetConfirm,
+  cancel: resetCancel,
+} = useConfirmDialog()
+
+async function deleteMethod() {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  // console.log(row)
+  // TODO: API CALL HERE
+
+  showToast({
+    type: 'success',
+    message: 'Extension deleted successfully',
+  })
 }
 
+async function resetPassword() {
+  const { isCanceled } = await revealResetConfirm()
+  if (isCanceled) {
+    return false
+  }
+  // console.log(row)
+  // TODO: API CALL HERE
+  showToast({
+    type: 'success',
+    message: 'Extension reset successfully',
+  })
+}
+
+const extensionLoadingId = ref(0)
 const sheet = ref(false)
+
+const extensionById = ref<Extension>()
+
+function getExtensionByID(id: number) {
+  extensionLoadingId.value = id
+
+  useApi().post('extension', {
+    extension_id: id,
+  }).then((res: any) => {
+    extensionById.value = res.data
+    sheet.value = true
+  }).catch(({ data }) => {
+    showToast({
+      type: 'error',
+      message: data.message,
+    })
+  }).finally(() => {
+    extensionLoadingId.value = 0
+  })
+}
+
+const changePasswordModel = ref(false)
+const copy = ref('')
 
 const columnHelper = createColumnHelper<Extension>()
 
@@ -104,7 +162,18 @@ const columns = [
         { class: 'flex items-center justify-center gap-2 text-sm font-normal' },
         [
           h('span', '******'),
-          h(Copy, { class: 'w-4 h-4 text-gray-500 cursor-pointer' }), // Copy icon
+          h('div', { class: 'relative ' }, [
+            h(copy.value === row.original.secret ? CircleCheck : Copy, {
+              class: copy.value === row.original.secret ? 'w-4 h-4 text-green-600 cursor-pointer' : 'w-4 h-4 text-gray-500 cursor-pointer',
+              onClick: async () => {
+                await copyToClipboard(row.original.secret, 'Secret')
+                copy.value = row.original.secret
+                setTimeout(() => {
+                  copy.value = ''
+                }, 2000)
+              },
+            }),
+          ]),
         ],
       ),
   }),
@@ -112,7 +181,7 @@ const columns = [
   // columnHelper.accessor('first_name', {
   //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
   //   cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.first_name + ' ' + row.original.last_name),
-    
+
   // }),
 
   columnHelper.accessor('email', {
@@ -128,12 +197,21 @@ const columns = [
   columnHelper.accessor('actions', {
     header: () => h('div', { class: 'text-center' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => sheet.value = true }, h(Icon, { name: 'lucide:eye' })),
-      h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
+      h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => getExtensionByID(row.original?.id) }, h(Icon, { name: extensionLoadingId.value === row.original?.id ? 'eos-icons:bubble-loading' : 'lucide:eye' })),
+      h(Action, {
+        onDelete: () => {
+          deleteMethod(row?.original)
+        },
+        onChangePassword: () => {
+          changePasswordModel.value = true
+        },
+        onReset: () => {
+          resetPassword(row?.original)
+        },
+      }),
     ]),
   }),
 ]
-
 
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
@@ -167,9 +245,16 @@ const table = useVueTable({
   },
 })
 
-
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
+}
+
+function savePassword() {
+  changePasswordModel.value = false
+  showToast({
+    type: 'success',
+    message: 'Password changed successfully',
+  })
 }
 </script>
 
@@ -248,5 +333,43 @@ function handlePageChange(page: number) {
     </div>
   </div>
 
-  <UserManagementDetails v-model:open="sheet" />
+  <!-- DETAILS -->
+  <UserManagementDetails v-model:open="sheet" :data="extensionById as Extension" />
+
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Extension" description="You are about to delete extension. Do you wish to proceed?" />
+
+  <!-- CONFIRM RESET -->
+  <ConfirmAction v-model="showResetConfirm" :img="resetImage" title="Reset Extension" :cancel="resetCancel" description="You are about to reset extension. Do you wish to proceed?">
+    <template #actions>
+      <Button variant="outline" class="w-[49%] h-11 font-normal text-primary " @click="resetCancel">
+        <Icon name="material-symbols:close" />
+        Close
+      </Button>
+      <Button class="w-[49%] h-11 font-normal" @click="resetConfirm">
+        <Icon name="material-symbols:delete" />
+        Reset
+      </Button>
+    </template>
+  </ConfirmAction>
+
+  <!-- CHANGE PASSWORD -->
+  <UserManagementExtensionChangePassword v-model="changePasswordModel" @save="savePassword" />
 </template>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.25s ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+</style>
