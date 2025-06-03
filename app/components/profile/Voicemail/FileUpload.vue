@@ -36,7 +36,7 @@ function removeFile(index: number) {
     <!-- Dropzone -->
     <div v-if="uploadedFiles.length === 0">
       <div
-        class="w-full p-4 mt-2 border-2 border-dashed border-[#00A086] text-sm text-muted-foreground rounded-md cursor-pointer bg-[#F0F9F8] hover:bg-muted/80 transition min-h-[20%] flex flex-col items-center justify-center"
+        class="w-full p-[80px] mt-2 border-2 border-dashed border-[#00A086] text-sm text-muted-foreground rounded-md cursor-pointer bg-[#F0F9F8] hover:bg-muted/80 transition min-h-[20%] flex flex-col items-center justify-center"
         @dragover.prevent
         @drop="handleDrop"
       >
@@ -50,7 +50,7 @@ function removeFile(index: number) {
             id="file-upload"
             type="file"
             class="hidden"
-            :accept="accept || '.csv, .xls, .xlsx'"
+            :accept="accept || '.MP3, .WAV'"
             @change="handleFileChange"
           >
         </label>
@@ -58,8 +58,8 @@ function removeFile(index: number) {
 
       <!-- File Info -->
       <div class="text-xs font-light text-muted-foreground flex justify-between mt-1">
-        <p>Supported formats: XLS, XLSX, CSV</p>
-        <p>Maximum size: 5MB</p>
+        <p>Supported formats: MP3,WAV</p>
+        <p>Maximum size: 25MB</p>
       </div>
     </div>
 
