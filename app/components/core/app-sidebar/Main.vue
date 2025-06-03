@@ -71,7 +71,7 @@ const data = {
     { title: 'User Management', url: '/user-management', icon: 'icons:user-management', items: [
       { title: 'Extension', url: '/app/user-management/extension' },
       { title: 'Group', url: '/app/user-management/group' },
-      { title: 'Ring Groups', url: '/app/ring-groups' },
+      { title: 'Ring Groups', url: '/app/user-management/ring-group' },
 
     ] },
     { title: 'Inbound Settings', url: '/inbound-settings', icon: 'icons:inbound-settings' },

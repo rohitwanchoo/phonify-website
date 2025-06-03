@@ -214,10 +214,7 @@ const data = ref<Campaign[]>([
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
         <div>
-          <Button>
-            <Icon class="!text-white" name="lucide:plus" />
-            Create Call Time
-          </Button>
+          <CallTimesCreate />
         </div>
       </template>
     </BaseHeader>
