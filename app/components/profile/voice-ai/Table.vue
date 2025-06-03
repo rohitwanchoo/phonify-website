@@ -2,6 +2,7 @@
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { Edit2, Trash2 } from 'lucide-vue-next'
 import { h, ref } from 'vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 // Dummy data with playable audio
 const dummyData = ref([
@@ -10,6 +11,9 @@ const dummyData = ref([
   { id: 3, extension: '345678', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
   { id: 4, extension: '456789', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' }
 ])
+
+const isEditDialogOpen = ref(false)
+const currentEditItem = ref<typeof dummyData.value[0] | null>(null)
 
 const columnHelper = createColumnHelper<typeof dummyData.value[0]>()
 
@@ -33,7 +37,7 @@ const columns = [
       h('div', { class: 'flex justify-center' }, [
         h('audio', {
           controls: true,
-          class: ' w-[95%]  max-w-xs font-light',
+          class: ' w-[95%] max-w-xs font-light',
         }, [
           h('source', {
             src: row.original.audioUrl,
@@ -72,7 +76,8 @@ const table = useVueTable({
 })
 
 function handleEdit(file: typeof dummyData.value[0]) {
-  console.log('Editing:', file)
+  currentEditItem.value = file
+  isEditDialogOpen.value = true
 }
 
 function handleDelete(id: number) {
@@ -118,5 +123,11 @@ function handleDelete(id: number) {
         </tr>
       </tbody>
     </table>
+
+   <ProfileVoiceAiEditDialog 
+  v-if="currentEditItem"
+  v-model:open="isEditDialogOpen"
+  :item="currentEditItem"
+/>
   </div>
 </template>
