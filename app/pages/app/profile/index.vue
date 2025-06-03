@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { Button } from '@/components/ui/button'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 // Protect this page with authentication
 definePageMeta({
@@ -82,11 +84,11 @@ const tabButtonText: Record<string, string> = {
 
 <template>
   <BaseHeader title="Profile" class="text-primary" orientation="vertical" />
-  <div class="grid grid-cols-[66.6667%_33.3333%] gap-2 h-full">
+  <div class="grid grid-cols-[75%_25%] gap-2 h-full">
     <!-- Left Side -->
-    <div class="h-full rounded border">
+    <div class="h-full rounded-lg border">
       <Tabs v-model="currentTab" class="h-full" orientation="vertical">
-        <div class="grid grid-cols-[40%_60%] h-full">
+        <div class="grid grid-cols-[30%_70%] h-full">
           <!-- Sidebar Tabs -->
           <div>
             <TabsList class="py-3 px-4 flex justify-start flex-col w-full h-full bg-primary rounded-r-none">
@@ -130,7 +132,7 @@ const tabButtonText: Record<string, string> = {
           </div>
 
           <!-- Tab Content -->
-          <div class="p-4 flex flex-col h-full">
+          <div class="flex flex-col h-full max-h-[calc(100vh-138px)]">
             <div class="flex-1 overflow-auto ">
               <TabsContent value="account">
                 <ProfileEdit />
@@ -147,8 +149,14 @@ const tabButtonText: Record<string, string> = {
             </div>
 
             <!-- Sticky Button -->
-            <div class="sticky bottom-0 left-0 right-0 bg-primary border-t mt-4 rounded-[8px]">
-              <Button type="submit" form="form" class="w-full px-4 py-3 text-white text-sm">
+            <div class="p-5 w-full border-t">
+              <Button class="w-full h-13 ">
+                {{ tabButtonText[currentTab] }}
+              </Button>
+            </div>
+
+            <!-- <div class="sticky bottom-0 left-0 right-0 bg-primary border-t mt-4 rounded-[8px] px-5">
+              <Button type="submit" form="form" class="w-full px-4 py-3 text-white text-sm h-10">
                 <span class="flex items-center justify-center gap-1">
                   <Icon
                     v-if="['voicemail', 'aireplies'].includes(currentTab)"
@@ -158,14 +166,14 @@ const tabButtonText: Record<string, string> = {
                   {{ tabButtonText[currentTab] }}
                 </span>
               </Button>
-            </div>
+            </div> -->
           </div>
         </div>
       </Tabs>
     </div>
 
     <!-- Right Side -->
-    <div class="h-full rounded-sm bg-[#F4F4F5]">
+    <div class="h-full rounded-lg bg-[#f2faf9]">
       <ProfileDetails :user="user" />
     </div>
   </div>

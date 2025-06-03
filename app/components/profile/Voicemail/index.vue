@@ -11,12 +11,12 @@ import { Textarea } from '@/components/ui/textarea'
 </script>
 
 <template>
-  <div class="relative w-full h-full flex flex-col overflow-hidden">
+  <div class="relative w-full h-full flex flex-col overflow-hidden p-5">
     <!-- Scrollable content container -->
     <div class="flex-1  pt-2 space-y-6">
       <!-- Textarea section -->
       <div class="space-y-2">
-        <Label for="description" class="text-primary">Audio File Description</Label>
+        <Label for="description" class="text-primary text-xs font-normal">Audio File Description</Label>
         <Textarea id="description" placeholder="Enter here..." class="w-full min-h-[150px]" />
       </div>
 

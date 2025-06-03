@@ -21,14 +21,14 @@ const columnHelper = createColumnHelper<typeof dummyData.value[0]>()
 const columns = [
   columnHelper.display({
     id: 'serial',
-    header: '#',
-    cell: ({ row }) => h('span', { class: 'text-sm font-light' }, row.index + 1),
+    header: () => h('span', { class: 'pl-3'}, '#'),
+    cell: ({ row }) => h('span', { class: 'text-xs font-light pl-3' }, row.index + 1),
     meta: { className: 'w-[50px] text-center' },
   }),
 
   columnHelper.accessor('extension', {
     header: 'Extension',
-    cell: ({ row }) => h('span', { class: 'text-sm font-light' }, row.original.extension),
+    cell: ({ row }) => h('span', { class: 'text-xs font-light' }, row.original.extension),
     meta: { className: 'w-[120px] text-center' },
   }),
 
@@ -58,12 +58,14 @@ const columns = [
         h(Button, {
           class: 'p-0 border border-primary rounded-md text-primary',
           variant: 'outline',
+          size: 'icon',
           onClick: () => handleEdit(row.original),
         }, h(SquarePen, { class: 'h-3 w-3 ' })),
 
         h(Button, {
           class: 'p-0 rounded-md border border-red-500 text-red-500  hover:text-red-500',
           variant: 'outline',
+          size: 'icon',
           onClick: () => handleDelete(row.original.id),
         }, h(Trash2, { class: 'h-3 w-3 ' })),
       ])
@@ -90,13 +92,13 @@ function handleDelete(id: number) {
 
 <template>
   <div class="w-full overflow-x-auto">
-    <table class="w-[600px] table-fixed">
+    <table class="table-fixed">
       <thead class="bg-gray-50">
         <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <th
             v-for="header in headerGroup.headers"
             :key="header.id"
-            class="px-2 py-2 text-xs font-medium text-gray-500" :class="[header.column.columnDef.meta?.className]"
+            class="px-2 py-2 text-xs font-normal text-gray-500 h-11" :class="[header.column.columnDef.meta?.className]"
           >
             <FlexRender
               v-if="!header.isPlaceholder"

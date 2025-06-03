@@ -31,20 +31,22 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <div class="relative w-full h-full flex flex-col pt-2 overflow-hidden">
+  <div class="relative w-full h-full flex flex-col  overflow-hidden p-5">
     <!-- Scrollable form -->
-    <Form class="flex-1 overflow-auto space-y-4" @submit="onSubmit">
+    <Form class="flex-1 overflow-auto space-y-5" @submit="onSubmit">
       <!-- Current Password -->
       <FormField v-slot="{ componentField }" name="currentPassword">
         <FormItem>
-          <FormLabel>Current Password</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Current Password
+          </FormLabel>
           <FormControl>
             <div class="relative">
               <Input
                 v-bind="componentField"
                 :type="showCurrent ? 'text' : 'password'"
                 placeholder="Enter current password"
-                class="w-full pr-10"
+                class="h-11 w-full pr-10"
               />
               <button
                 type="button"
@@ -63,14 +65,16 @@ const onSubmit = handleSubmit((values) => {
       <!-- New Password -->
       <FormField v-slot="{ componentField }" name="newPassword">
         <FormItem>
-          <FormLabel>New Password</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            New Password
+          </FormLabel>
           <FormControl>
             <div class="relative">
               <Input
                 v-bind="componentField"
                 :type="showNew ? 'text' : 'password'"
                 placeholder="Enter new password"
-                class="w-full pr-10"
+                class="h-11 w-full pr-10"
               />
               <button
                 type="button"
@@ -89,14 +93,16 @@ const onSubmit = handleSubmit((values) => {
       <!-- Confirm Password -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <FormItem>
-          <FormLabel>Confirm Password</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Confirm Password
+          </FormLabel>
           <FormControl>
             <div class="relative">
               <Input
                 v-bind="componentField"
                 :type="showConfirm ? 'text' : 'password'"
                 placeholder="Confirm new password"
-                class="w-full pr-10"
+                class="h-11 w-full pr-10"
               />
               <button
                 type="button"

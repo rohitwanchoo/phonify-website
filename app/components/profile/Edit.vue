@@ -29,15 +29,17 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <div class="relative h-full max-w-2xl mx-auto rounded-lg overflow-hidden flex flex-col">
+  <div class="relative h-full max-w-2xl mx-auto rounded-lg overflow-hidden flex flex-col p-5">
     <!-- Scrollable Form Content -->
-    <Form class="flex-1 overflow-auto py-2 space-y-4" @submit="onSubmit">
+    <Form class="flex-1 overflow-auto py-2 space-y-5" @submit="onSubmit">
       <!-- First Name -->
       <FormField v-slot="{ componentField }" name="firstName">
         <FormItem>
-          <FormLabel>First Name</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            First Name
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" placeholder="John" class="w-full" />
+            <Input v-bind="componentField" placeholder="John" class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -46,9 +48,11 @@ const onSubmit = handleSubmit((values) => {
       <!-- Last Name -->
       <FormField v-slot="{ componentField }" name="lastName">
         <FormItem>
-          <FormLabel>Last Name</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Last Name
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" placeholder="Doe" class="w-full" />
+            <Input v-bind="componentField" placeholder="Doe" class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -57,9 +61,11 @@ const onSubmit = handleSubmit((values) => {
       <!-- Email -->
       <FormField v-slot="{ componentField }" name="email">
         <FormItem>
-          <FormLabel>Email</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Email
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" type="email" placeholder="john@example.com" class="w-full" />
+            <Input v-bind="componentField" type="email" placeholder="john@example.com" class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -68,9 +74,11 @@ const onSubmit = handleSubmit((values) => {
       <!-- Company -->
       <FormField v-slot="{ componentField }" name="company">
         <FormItem>
-          <FormLabel>Company Name</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Company Name
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" placeholder="Acme Inc." class="w-full" />
+            <Input v-bind="componentField" placeholder="Acme Inc." class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -79,9 +87,11 @@ const onSubmit = handleSubmit((values) => {
       <!-- Phone -->
       <FormField v-slot="{ componentField }" name="phone">
         <FormItem>
-          <FormLabel>Phone Number</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Phone Number
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" placeholder="+1 555-123-4567" class="w-full" />
+            <Input v-bind="componentField" placeholder="+1 555-123-4567" class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -90,9 +100,11 @@ const onSubmit = handleSubmit((values) => {
       <!-- Address 1 -->
       <FormField v-slot="{ componentField }" name="address1">
         <FormItem>
-          <FormLabel>Address Line 1</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Address Line 1
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" placeholder="123 Main Street" class="w-full" />
+            <Input v-bind="componentField" placeholder="123 Main Street" class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -101,9 +113,11 @@ const onSubmit = handleSubmit((values) => {
       <!-- Address 2 -->
       <FormField v-slot="{ componentField }" name="address2">
         <FormItem>
-          <FormLabel>Address Line 2</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Address Line 2
+          </FormLabel>
           <FormControl>
-            <Input v-bind="componentField" placeholder="Apt 4B" class="w-full" />
+            <Input v-bind="componentField" placeholder="Apt 4B" class="w-full h-11" />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -112,10 +126,12 @@ const onSubmit = handleSubmit((values) => {
       <!-- Timezone -->
       <FormField v-slot="{ componentField }" name="timeZone">
         <FormItem>
-          <FormLabel>Time Zone</FormLabel>
+          <FormLabel class="text-xs font-normal">
+            Time Zone
+          </FormLabel>
           <FormControl>
             <Select v-bind="componentField">
-              <SelectTrigger class="w-full">
+              <SelectTrigger class="w-full h-11">
                 <SelectValue placeholder="Select time zone" />
               </SelectTrigger>
               <SelectContent>
