@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const data = {
   'Main Menu': [
-    { title: 'Dashboard', url: '/app/dashboard', icon: 'icons:dashboard' },
+    { title: 'Dashboard', url: '/app/dashboard', icon: 'material-symbols:dashboard' },
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
     { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
     { title: 'Start Dailing', url: '/app/start-dialing', icon: 'icons:start-dialing' },
@@ -81,7 +81,7 @@ const data = {
       <SidebarTrigger class="mx-auto hidden md:block" />
     </SidebarHeader>
     <SidebarContent class="pb-10">
-      <NavMain :items="data"  />
+      <NavMain :items="data" />
     </SidebarContent>
     <!-- <SidebarFooter>
       <NavUser :user="data.user" />

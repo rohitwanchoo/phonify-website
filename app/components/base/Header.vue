@@ -21,7 +21,7 @@ interface HeaderProps {
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between flex-wrap">
     <div class="text-2xl font-medium space-y-2">
       <div v-if="breadcrumbs?.length">
         <Breadcrumb>
@@ -37,12 +37,12 @@ interface HeaderProps {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div>
+      <div class="text-nowrap">
         {{ title }}
       </div>
     </div>
-    <div class="flex items-center gap-x-3">
+    <div class="flex items-center gap-x-3 flex-wrap gap-y-3">
       <slot name="actions" />
     </div>
-  </div> 
+  </div>
 </template>
