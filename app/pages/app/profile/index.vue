@@ -95,7 +95,7 @@ const tabButtonText: Record<string, string> = {
                 class="text-left text-white data-[state=active]:text-primary max-h-14 px-4 w-full block mx-auto mb-2"
               >
                 <div class="flex items-center gap-2">
-                  <Icon name="material-symbols:person" class="w-6 h-6 text-xl" />
+                  <Icon name="material-symbols:person" class="text-2xl" />
                   Edit Profile
                 </div>
               </TabsTrigger>
@@ -104,7 +104,7 @@ const tabButtonText: Record<string, string> = {
                 class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
               >
                 <div class="flex items-center gap-2">
-                  <Icon name="material-symbols:lock" class="w-6 h-6 text-xl" />
+                  <Icon name="material-symbols:lock" class="text-xl" />
                   Change Password
                 </div>
               </TabsTrigger>
@@ -122,7 +122,7 @@ const tabButtonText: Record<string, string> = {
                 class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
               >
                 <div class="flex items-center gap-2">
-                  <Icon name="icons:voiceai" class="w-6 h-6" />
+                  <Icon name="icons:voiceai" class="text-lg" />
                   Voice AI
                 </div>
               </TabsTrigger>
