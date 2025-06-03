@@ -21,6 +21,7 @@
     "clsx": "^2.1.1",
     "echarts": "^5.5.1",
     "eslint": "^9.0.0",
+    "libphonenumber-js": "^1.12.8",
     "lucide-vue-next": "^0.510.0",
     "maska": "^3.1.1",
     "moment": "^2.30.1",

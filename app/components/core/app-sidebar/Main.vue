@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const data = {
   'Main Menu': [
-    { title: 'Dashboard', url: '/app/dashboard', icon: 'icons:dashboard' },
+    { title: 'Dashboard', url: '/app/dashboard', icon: 'material-symbols:dashboard' },
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
     { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
     {
@@ -52,7 +52,7 @@ const data = {
         { title: 'Limits', url: '/start-dailing/limits' },
       ],
     },
-    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: 'icons:ringless-voicemail' },
+    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: 'material-symbols:voicemail-2' },
     { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
     { title: 'SMS', url: '/sms', icon: 'icons:sms' },
   ],
@@ -91,7 +91,7 @@ const data = {
       <SidebarTrigger class="mx-auto hidden md:block" />
     </SidebarHeader>
     <SidebarContent class="pb-10">
-      <NavMain :items="data"  />
+      <NavMain :items="data" />
     </SidebarContent>
     <!-- <SidebarFooter>
       <NavUser :user="data.user" />
