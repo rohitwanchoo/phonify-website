@@ -8,6 +8,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { Switch } from '~/components/ui/switch'
 
 const selectedDisposition = ref('')
 
@@ -113,28 +116,34 @@ function handleSave() {
         </DialogTitle>
       </DialogHeader>
       <div class="grid grid-cols-4 gap-3">
-        <div
+        <Label
           v-for="(item, index) in disposition"
           :key="index"
-          class="h-11 rounded-lg flex gap-2 items-center justify-between px-3 cursor-pointer" :class="[
-            selectedDisposition === item.value ? 'border border-primary bg-[#00A0861A]' : 'bg-[#00A0860D]',
+          :for="`disposition-${index}`"
+          class="h-11 text-sm text-primary rounded-lg flex gap-2 items-center justify-between px-3 cursor-pointer border border-[#00A0861A]" :class="[
+            selectedDisposition === item.value ? 'bg-[#00A086] text-white' : 'bg-[#00A0860D]',
           ]"
         >
-          <label
-            :for="`disposition-${index}`"
-            class="text-sm text-primary w-full flex justify-between items-center"
+          {{ item.label }}
+          <input
+            :id="`disposition-${index}`"
+            v-model="selectedDisposition"
+            type="radio"
+            name="disposition"
+            :value="item.value"
+            class="ml-2 appearance-none size-4 checked:size-3 p-1 border border-primary rounded-full checked:bg-white checked:border-3 checked:border-[#00A086] checked:ring-1 ring-white"
           >
-            {{ item.label }}
-            <input
-              :id="`disposition-${index}`"
-              v-model="selectedDisposition"
-              type="radio"
-              name="disposition"
-              :value="item.value"
-              class="ml-2"
-            >
-          </label>
-        </div>
+        </Label>
+      </div>
+
+      <div>
+        <Label class="text-xs text-[#162D3A] mb-1">Title</Label>
+        <Input type="datetime-local" class="w-full placeholder:text-[#162D3A80]" />
+      </div>
+
+      <div class="flex items-center justify-between">
+        <Label class="text-xs text-[#162D3A]">Pause Calling</Label>
+        <Switch class="data-[state=checked]:bg-green-600" />
       </div>
 
       <DialogFooter class="flex gap-3 justify-between items-center">

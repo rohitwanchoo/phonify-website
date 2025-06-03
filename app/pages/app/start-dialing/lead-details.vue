@@ -5,7 +5,7 @@ function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text)
 }
 
-const isOpen = ref(false)
+const showDialer = ref(false)
 
 const data = [
   {
@@ -119,7 +119,7 @@ const data = [
         <Icon name="material-symbols:upload-file" size="20" />
         Export Lead
       </Button>
-      <Button variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="isOpen = true">
+      <Button variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="showDialer = true">
         <Icon name="material-symbols:dialpad" size="20" />
         Dial-pad
       </Button>
@@ -130,5 +130,7 @@ const data = [
       </Button>
     </div>
   </div>
-  <DialerModal :show="isOpen" @close="isOpen = false" />
+  <Teleport to="body">
+    <Dialer v-if="showDialer" @close="showDialer = false" />
+  </Teleport>
 </template>
