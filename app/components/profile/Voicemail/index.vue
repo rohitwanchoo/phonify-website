@@ -17,21 +17,24 @@ import { Textarea } from '@/components/ui/textarea'
       <!-- Textarea section -->
       <div class="space-y-2">
         <Label for="description" class="text-primary">Audio File Description</Label>
-        <Textarea id="description" placeholder="Enter a description..." class="w-full min-h-[150px]" />
+        <Textarea id="description" placeholder="Enter here..." class="w-full min-h-[150px]" />
       </div>
 
       <!-- Tabs section -->
       <Tabs default-value="file" class="w-full">
-        <TabsList class="grid w-full grid-cols-2">
-          <TabsTrigger value="file">
-            <p>Upload File</p>
+        <TabsList class="grid w-full grid-cols-2 p-0">
+          <TabsTrigger value="file" class="data-[state=active]:bg-[#00A086] data-[state=active]:text-white font-light">
+            <p>
+              Upload File
+            </p>
           </TabsTrigger>
-          <TabsTrigger value="text">
-            <p>Text To Audio</p>
+          <TabsTrigger value="text" class="data-[state=active]:bg-[#00A086] data-[state=active]:text-white font-light">
+            <p>Text to Audio</p>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="file">
+          <Label for="file upload" class="text-primary mt-4">Upload File*</Label>
           <ProfileVoicemailFileUpload />
           <!-- Add file upload controls here -->
         </TabsContent>
@@ -43,10 +46,10 @@ import { Textarea } from '@/components/ui/textarea'
     </div>
 
     <!-- Fixed Save Button -->
-    <div class="sticky bottom-0 left-0 right-0 bg-white border-t px-4 py-3">
+    <!-- <div class="sticky bottom-0 left-0 right-0 bg-white border-t px-4 py-3">
       <Button class="w-full">
         Save
       </Button>
-    </div>
+    </div> -->
   </div>
 </template>

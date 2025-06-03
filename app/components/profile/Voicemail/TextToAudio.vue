@@ -31,14 +31,14 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <form class="space-y-4 w-full h-full flex flex-col" @submit.prevent="onSubmit">
+  <form class="space-y-4 w-full h-full flex flex-col mt-4" @submit.prevent="onSubmit">
     <!-- Language Dropdown -->
     <FormField v-slot="{ componentField }" name="language">
       <FormItem class="w-full">
-        <label class="text-sm font-medium text-primary">Select a Language</label>
+        <label class="text-sm font-medium text-primary"> Language</label>
         <FormControl>
           <Select v-bind="componentField">
-            <SelectTrigger class="w-full">
+            <SelectTrigger class="w-full p-5">
               <SelectValue placeholder="Choose a language" />
             </SelectTrigger>
             <SelectContent>
@@ -64,12 +64,12 @@ const onSubmit = handleSubmit((values) => {
         <label class="text-sm font-medium text-primary">Voice Name</label>
         <FormControl>
           <Select v-bind="componentField">
-            <SelectTrigger class="w-full">
-              <SelectValue placeholder="Choose a voice" />
+            <SelectTrigger class="w-full p-5 ">
+              <SelectValue placeholder="Choose a Voice Name" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="emma">
-                Emma 
+                Emma
               </SelectItem>
               <SelectItem value="matthew">
                 Matthew
@@ -91,9 +91,9 @@ const onSubmit = handleSubmit((values) => {
         <FormControl>
           <Textarea
             v-bind="componentField"
-            placeholder="Enter text to convert to audio..."
-            class="w-full resize-none"
-            rows="6"
+            placeholder="Type what you like your customers to hear and click on the icon to listen"
+            class="w-full resize-none min-h-[120px] placeholder:text-[#162D3A80]"
+            rows="10"
           />
         </FormControl>
         <FormMessage class="text-xs" />

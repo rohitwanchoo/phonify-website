@@ -143,10 +143,10 @@ const onSubmit = handleSubmit((values) => {
     </Form>
 
     <!-- Sticky Submit Button -->
-    <div class="sticky bottom-0 left-0 right-0 bg-white border-t px-4 py-3">
+    <!-- <div class="sticky bottom-0 left-0 right-0 bg-white border-t px-4 py-3">
       <Button type="submit" form="form" class="w-full">
         Update
       </Button>
-    </div>
+    </div> -->
   </div>
 </template>
