@@ -16,6 +16,8 @@ export default defineNuxtConfig({
     'nuxt-echarts',
     'nuxt-auth-utils',
     '@nuxt/image',
+    '@formkit/auto-animate/nuxt',
+
   ],
   icon: {
     customCollections: [

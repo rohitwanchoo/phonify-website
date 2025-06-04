@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Extension } from '@/types/extension'
 import { Button } from '@/components/ui/button'
 
 import { Separator } from '@/components/ui/separator'
@@ -15,79 +16,46 @@ import { Checkbox } from '~/components/ui/checkbox'
 
 import { Input } from '~/components/ui/input'
 
+const props = defineProps({
+  showButton: {
+    type: Boolean,
+    default: true,
+  },
+})
+
+const emits = defineEmits(['submit'])
+
 const open = defineModel<boolean>()
+const { data: extensions, status } = await useLazyAsyncData('extension', () =>
+  useApi().get('extension'), {
+  transform: (res) => {
+    return res.data
+  },
+})
 
-const extensions = [
-  {
-    name: 'Emma Thompson',
-    id: '454354',
-  },
-  {
-    name: 'Marcus Chen',
-    id: '789012',
-  },
-  {
-    name: 'Sofia Rodriguez',
-    id: '345678',
-  },
-  {
-    name: 'Aiden Patel',
-    id: '901234',
-  },
-  {
-    name: 'Isabella Kim',
-    id: '567890',
-  },
-  {
-    name: 'Liam Lee',
-    id: '123456',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234567',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234561',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234562',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234563',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234564',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234565',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234566',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234567',
-  },
+const selectedExtensions = defineModel<Extension[]>('selectedExtensions', { default: [] })
 
-  {
-    name: 'Mia Garcia',
-    id: '234568',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '234569',
-  },
-  {
-    name: 'Mia Garcia',
-    id: '2345610',
-  },
-]
+function handleCheckboxChange(id: any, extension: Extension) {
+  const extensionData = {
+    first_name: extension.first_name,
+    last_name: extension.last_name,
+    extension: extension.extension,
+  }
+
+  if (selectedExtensions.value.some(item => item.extension === extension.extension)) {
+    selectedExtensions.value = selectedExtensions.value.filter(
+      item => item.extension !== extension.extension,
+    )
+  }
+  else {
+    selectedExtensions.value.push(extensionData)
+  }
+}
+
+function submit() {
+  emits('submit', selectedExtensions.value)
+  // selectedExtensions.value = []
+}
 </script>
 
 <template>
@@ -96,7 +64,7 @@ const extensions = [
   >
     <SheetTrigger>
       <slot>
-        <Button variant="outline" class="h-11">
+        <Button v-if="showButton" variant="outline" class="h-11">
           <Icon name="mdi:plus" />
           Add Extension
         </Button>
@@ -120,20 +88,32 @@ const extensions = [
             </Button>
           </div>
           <Separator class="my-3 bg-gray-100" />
+          <template v-if="status === 'pending'">
+            <div v-for="n in 10" :key="n">
+              <BaseSkelton classes="!rounded-none" class="h-10" />
+              <Separator class="my-3 bg-gray-100" />
+            </div>
+          </template>
           <div
-            v-for="extension in extensions" :key="extension.name" class="border-b border-gray-100 py-[19px]
+            v-for="extension in extensions"
+            v-else :key="extension.name" class="border-b border-gray-100 py-[19px]
           px-[12px] last:border-b-0 font-normal text-sm flex items-center justify-between"
           >
             <label :for="extension.id" class="cursor-pointer">
-              {{ extension.name }} - {{ extension.id }}
+              {{ extension.first_name }} {{ extension.last_name }} - {{ extension.id }}
             </label>
-            <Checkbox :id="extension.id" class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" />
+            <Checkbox
+              :id="extension.id"
+              :model-value="selectedExtensions.some(item => item.extension === extension.extension)"
+              class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+              @update:model-value="(checked) => handleCheckboxChange(extension.id, extension)"
+            />
           </div>
         </div>
       </div>
       <SheetFooter class="">
         <SheetClose as-child>
-          <Button type="submit" class="h-[52px]">
+          <Button type="submit" class="h-[52px]" @click="submit">
             <Icon name="mdi:plus" />
             Add Extension
           </Button>

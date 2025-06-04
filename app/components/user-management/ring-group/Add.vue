@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { Extension } from '~/types/extension'
 import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
 
+import { useForm } from 'vee-validate'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
+
 import {
   Dialog,
   DialogClose,
@@ -22,7 +24,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -38,20 +39,19 @@ import { Separator } from '@/components/ui/separator'
 import Textarea from '~/components/ui/textarea/Textarea.vue'
 
 const formSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'required').max(50),
-  description: z.string().min(1, 'required').max(255),
-  extension: z.number().min(1, 'required'),
-  email: z.string().email().min(1, 'required').max(50),
-  ring_mode: z.number().min(1,'required'),
-  receive_on: z.string().min(1, 'required'),
+  name: z.string().min(1, 'name is required').max(50, 'max'),
+  description: z.string().min(1, 'description is required').max(250, 'max'),
+  extension: z.number().min(1, 'extension is required'),
+  email: z.string().email().min(1, 'email is required').max(50),
+  ring_mode: z.number().min(1, ' ring mode is required'),
+  receive_on: z.string().min(1, 'receive is required'),
 
 }))
 
-const form = useForm({
+const { handleSubmit, errors } = useForm({
   validationSchema: formSchema,
 })
-
-const onSubmit = form.handleSubmit((values) => {
+const onSubmit = handleSubmit((values) => {
   // Handle form submission
   console.log(values)
 })
@@ -87,6 +87,14 @@ const ringModes = [
     name: 'Round Robin',
   },
 ]
+
+const addExtensionSheet = ref(false)
+
+const selectedExtensions = ref<Extension[]>([])
+
+function removeExtension(index: number) {
+  selectedExtensions.value.splice(index, 1)
+}
 </script>
 
 <template>
@@ -101,14 +109,15 @@ const ringModes = [
     </DialogTrigger>
     <DialogContent class="sm:max-w-[600px] [&>button]:hidden">
       <DialogHeader class="gap-y-[17px]">
-        <DialogTitle class="text-[16px] font-medium flex items-center justify-between">
+        <DialogTitle class="text-[16px] font-medium flex justify-between">
           Add Ring Group
-          <DialogClose class="cursor-pointer">
+          <DialogClose class="cursor-pointer flex items-center">
             <Icon name="mdi:close" size="20" />
           </DialogClose>
         </DialogTitle>
         <Separator />
       </DialogHeader>
+      <!-- {{ selectedExtensions }} -->
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
           <FormField
@@ -146,21 +155,23 @@ const ringModes = [
           >
             <FormItem>
               <FormLabel class="text-xs font-normal">
-                Description
+                Extensions
               </FormLabel>
               <FormControl>
-                <Select v-bind="componentField">
-                  <SelectTrigger class="w-full !h-11 ">
-                    <SelectValue class="text-xs" placeholder="Select extension" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem v-for="item in Extensions" :key="item.id" :value="item.id">
-                        {{ item.name }}
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <div :class="errors.extension && 'border-red-600'" class="p-4 text-xs text-gray-500 flex items-center border rounded-lg cursor-pointer">
+                  <div v-if="!selectedExtensions.length" class="hover:text-primary" @click="addExtensionSheet = true">
+                    Select extensions
+                  </div>
+                  <ul v-else v-auto-animate class="flex gap-2 items-center flex-wrap">
+                    <li v-for="(item, index) in selectedExtensions" :key="item.extension" class="border py-[3px] px-[5px] rounded-[6px] text-xs text-primary border-[#00A086] bg-[#00A0861A] flex items-center gap-x-1 text-nowrap">
+                      {{ item.first_name }} {{ item.last_name }} - {{ item.extension }}
+                      <Icon size="14" name="lucide:x" class="" @click.stop="removeExtension(index)" />
+                    </li>
+                    <li class="hover:text-primary" @click="addExtensionSheet = true">
+                      Add more..
+                    </li>
+                  </ul>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -253,4 +264,10 @@ const ringModes = [
       </form>
     </DialogContent>
   </Dialog>
+
+  <UserManagementGroupAddExtension
+    v-model="addExtensionSheet"
+    v-model:selected-extensions="selectedExtensions"
+    :show-button="false"
+  />
 </template>
