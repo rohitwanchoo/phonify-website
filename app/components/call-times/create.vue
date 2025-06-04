@@ -86,7 +86,7 @@ const initialValues = ref({
   ],
 })
 
-const { handleSubmit, validate } = useForm({
+const { handleSubmit, validate, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: initialValues.value,
 })
@@ -98,15 +98,11 @@ function toggleDay(day: string) {
     validate()
   }
 }
-
-const onSubmit = handleSubmit((values) => {
-  // Handle form submission
-  console.log(values)
-})
 </script>
 
 <template>
-  <Dialog>
+  <!-- reset form when dialog close -->
+  <Dialog @update:open="(val) => { if (val) resetForm() }">
     <DialogTrigger as-child>
       <slot>
         <Button class="">
