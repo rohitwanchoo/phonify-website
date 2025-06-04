@@ -87,6 +87,7 @@ function makeCall() {
 
 function hangup() {
   calling.value = false
+  closeDialer()
   // Reset the phone number to simulate hanging up the call
   phoneNumber.value = ''
 }
@@ -95,8 +96,10 @@ function closeDialer() {
   emit('close')
 }
 
+const shortDialer = ref(false)
+
 // Digit buttons data
-const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 </script>
 
 <template>
@@ -108,138 +111,183 @@ const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
     @mousedown="$event.target === $el && ($el.style.cursor = 'grabbing')"
     @mouseup="$el.style.cursor = 'grab'"
   >
-    <div class="w-full max-w-[326px]">
-      <!-- Header -->
-      <div class="relative bg-[#162D3A] text-white p-4 pb-8 flex justify-between items-center">
-        <h2 class="flex-1 w-full text-sm text-center">
-          Dialer
-        </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          class="size-5 p-0 text-white absolute right-5"
-          @click="closeDialer"
-        >
-          <Icon name="material-symbols:close" class="text-xl" />
-        </Button>
+    <div
+      class="w-full max-w-[326px] duration-300"
+      :class="[shortDialer ? 'max-h-[150px]' : 'max-h-[600px]']"
+    >
+      <!-- Short Dialer -->
+      <div v-if="shortDialer" class="bg-[#162D3A] px-3 pb-3 pt-2">
+        <div class="h-0.5 w-10 bg-white/50 mb-4 mx-auto" />
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-start gap-3">
+            <div class="size-12 rounded-full bg-[#00A086] flex items-center justify-center">
+              <span class="text-white text-lg font-bold">JD</span>
+            </div>
+            <div>
+              <p class="text-white text-base font-medium">
+                John Doe
+              </p>
+              <p class="text-white/70 text-xs font-medium">
+                Call in progress - 00:30
+              </p>
+            </div>
+          </div>
+          <Icon name="material-symbols:crop-free" class="text-xl text-white cursor-pointer" @click="shortDialer = false" />
+        </div>
+        <div class="flex items-center gap-2 w-full">
+          <Button variant="ghost" class="flex-1 h-11 bg-white/10 text-white">
+            <Icon name="material-symbols:dialpad" class="text-xl" />
+          </Button>
+          <Button variant="ghost" class="flex-1 h-11 bg-white/10 text-white">
+            <Icon name="material-symbols:pause" class="text-xl" />
+          </Button>
+          <Button variant="ghost" class="flex-1 h-11 bg-white/10 text-white">
+            <Icon name="material-symbols:mic-off" class="text-xl" />
+          </Button>
+          <Button
+            class="bg-red-600 hover:bg-red-500 h-11 flex-1"
+            @click="hangup"
+          >
+            <Icon name="ic:round-call-end" class="text-xl text-white" />
+          </Button>
+        </div>
       </div>
-
-      <!-- Country Selection & Phone Input -->
-      <div v-if="!calling" class="bg-[#162D3A] p-8 space-y-2.5">
-        <!-- Country Selector -->
-        <Select v-model="selectedCountry">
-          <SelectTrigger class="w-full bg-[#00A08633] border-none text-white">
-            <SelectValue placeholder="Select country" />
-          </SelectTrigger>
-          <SelectContent class="bg-primary border-[#00A08633]">
-            <SelectItem
-              v-for="country in countries"
-              :key="country.value"
-              :value="country.value"
-              class="text-white hover:bg-slate-700"
+      <div v-else>
+        <div class="bg-[#162D3A] h-[254px] flex flex-col pt-2 justify-between">
+          <!-- Header -->
+          <div class="relative text-white p-4 pb-8 flex justify-between items-center">
+            <div class="absolute top-0 h-0.5 w-10 bg-white/50 left-1/2 -translate-x-1/2" />
+            <h2 class="flex-1 w-full text-sm text-center">
+              Dialer
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="size-5 p-0 text-white hover:bg-emerald-800 absolute right-5"
+              @click="shortDialer = true"
             >
-              {{ country.label }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
+              <Icon name="material-symbols:close" class="text-xl" />
+            </Button>
+          </div>
 
-        <!-- Phone Number Input -->
-        <div class="flex items-center space-x-2 bg-[#00A08633] rounded-md px-3">
-          <span class="text-white text-sm font-medium border-r pr-2.5 border-[#1F1E1C]">
-            {{ currentCountry.flag }} {{ currentCountry.code }}
-          </span>
-          <Input
-            v-model="phoneNumber"
-            type="tel"
-            placeholder="Enter phone number"
-            class="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus:ring-0 focus:outline-none p-0"
+          <!-- Country Selection & Phone Input -->
+          <div v-if="!calling" class="bg-[#162D3A] p-8 space-y-2.5">
+            <!-- Country Selector -->
+            <Select v-model="selectedCountry">
+              <SelectTrigger class="w-full bg-[#00A08633] border-none text-white">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent class="bg-primary border-[#00A08633]">
+                <SelectItem
+                  v-for="country in countries"
+                  :key="country.value"
+                  :value="country.value"
+                  class="text-white hover:bg-slate-700"
+                >
+                  {{ country.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <!-- Phone Number Input -->
+            <div class="flex items-center space-x-2 bg-[#00A08633] rounded-md px-3">
+              <span class="text-white text-sm font-medium border-r pr-2.5 border-[#1F1E1C]">
+                {{ currentCountry.flag }} {{ currentCountry.code }}
+              </span>
+              <Input
+                v-model="phoneNumber"
+                type="tel"
+                placeholder="Enter phone number"
+                class="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus:ring-0 focus:outline-none p-0"
+              />
+            </div>
+          </div>
+
+          <!-- Calling State -->
+          <div v-else class="flex flex-col items-center bg-primary px-8 pb-10">
+            <div class="border border-white rounded-xl bg-[#00A086] size-[54px] flex items-center justify-center">
+              <Icon name="material-symbols:person" class="text-2xl text-white" />
+            </div>
+            <div class="mt-4 flex flex-col items-center gap-0.5">
+              <span v-if="!addOnDigits" class="text-white text-base font-semibold">{{ currentCountry.code }} {{ phoneNumber }}</span>
+              <span v-else class="text-white text-base font-semibold">{{ addOnDigits }}</span>
+
+              <span class="text-xs text-gray-300">Connecting...</span>
+              <span class="text-xs font-medium text-green-600">00:00:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Number Pad -->
+        <div class="grid grid-cols-3 px-6">
+          <Button
+            v-for="digit in digits.slice(0, 9)"
+            :key="digit"
+            variant="ghost"
+            class="h-16 w-full text-lg font-normal text-[#1F1E1C] hover:bg-gray-50 border-r border-b rounded-none"
+            :class="digit % 3 === 0 ? 'border-r-0' : ''"
+            @click="appendDigit(digit)"
+          >
+            {{ digit }}
+          </button>
+
+          <Button
+            variant="ghost"
+            class="h-16 w-full hover:bg-white rounded-none border-r cursor-auto"
+          />
+          <Button
+            variant="ghost"
+            class="h-16 w-full text-lg font-normal text-[#1F1E1C] hover:bg-gray-50 rounded-none border-r"
+            @click="appendDigit(0)"
+          >
+            0
+          </Button>
+          <Button
+            variant="ghost"
+            class="h-16 w-full hover:bg-white rounded-none cursor-auto"
           />
         </div>
-      </div>
 
-      <!-- Calling State -->
-      <div v-else class="flex flex-col items-center bg-primary px-8 pb-10">
-        <div class="border border-white rounded-xl bg-[#00A086] size-[54px] flex items-center justify-center">
-          <Icon name="material-symbols:person" class="text-2xl text-white" />
+        <!-- Action Buttons -->
+        <div class="flex justify-center items-center gap-6 pt-3 pb-6 bg-white">
+          <!-- Favorites Button -->
+          <Button
+            variant="ghost"
+            size="lg"
+            class="rounded-full size-[54px] p-0 hover:bg-gray-100"
+          >
+            <Icon name="material-symbols:favorite-outline" class="text-xl text-black" />
+          </Button>
+
+          <!-- Call Button -->
+          <Button
+            v-if="!calling"
+            class="bg-green-600 hover:bg-green-500 rounded-full size-[54px] p-0"
+            :disabled="!phoneNumber.trim()"
+            @click="makeCall"
+          >
+            <Icon name="ion:call" class="text-2xl text-white" />
+          </Button>
+          <!-- Hangup Button -->
+          <Button
+            v-else
+            class="bg-red-600 hover:bg-red-500 rounded-full size-[54px] p-0"
+            @click="hangup"
+          >
+            <Icon name="ic:round-call-end" class="text-2xl text-white" />
+          </Button>
+
+          <!-- Backspace Button -->
+          <Button
+            variant="ghost"
+            size="lg"
+            class="rounded-full size-[54px] p-0 hover:bg-gray-100"
+            :disabled="!phoneNumber"
+            @click="backspace"
+          >
+            <Icon name="material-symbols:arrow-back" class="text-xl text-black" />
+          </Button>
         </div>
-        <div class="mt-4 flex flex-col items-center gap-0.5">
-          <span v-if="!addOnDigits" class="text-white text-base font-semibold">{{ currentCountry.code }} {{ phoneNumber }}</span>
-          <span v-else class="text-white text-base font-semibold">{{ addOnDigits }}</span>
-
-          <span class="text-xs text-gray-300">Connecting</span>
-          <span class="text-xs font-medium text-green-600">00:00:00</span>
-        </div>
-      </div>
-
-      <!-- Number Pad -->
-      <div class="grid grid-cols-3 px-6">
-        <Button
-          v-for="digit in digits.slice(0, 9)"
-          :key="digit"
-          variant="ghost"
-          class="h-16 w-full text-lg font-normal text-[#1F1E1C] hover:bg-gray-50 border-r border-b rounded-none"
-          :class="digit % 3 === 0 ? 'border-r-0' : ''"
-          @click="appendDigit(digit)"
-        >
-          {{ digit }}
-        </button>
-
-        <Button
-          variant="ghost"
-          class="h-16 w-full hover:bg-white rounded-none border-r cursor-auto"
-        />
-        <Button
-          variant="ghost"
-          class="h-16 w-full text-lg font-normal text-[#1F1E1C] hover:bg-gray-50 rounded-none border-r"
-          @click="appendDigit(0)"
-        >
-          0
-        </Button>
-        <Button
-          variant="ghost"
-          class="h-16 w-full hover:bg-white rounded-none cursor-auto"
-        />
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex justify-center items-center gap-6 pt-3 pb-6 bg-white">
-        <!-- Favorites Button -->
-        <Button
-          variant="ghost"
-          size="lg"
-          class="rounded-full size-[54px] p-0 hover:bg-gray-100"
-        >
-          <Icon name="material-symbols:favorite-outline" class="text-xl text-black" />
-        </Button>
-
-        <!-- Call Button -->
-        <Button
-          v-if="!calling"
-          class="bg-green-600 hover:bg-green-500 rounded-full size-[54px] p-0"
-          :disabled="!phoneNumber.trim()"
-          @click="makeCall"
-        >
-          <Icon name="ion:call" class="text-2xl text-white" />
-        </Button>
-        <!-- Hangup Button -->
-        <Button
-          v-else
-          class="bg-red-600 hover:bg-red-500 rounded-full size-[54px] p-0"
-          @click="hangup"
-        >
-          <Icon name="ic:round-call-end" class="text-2xl text-white" />
-        </Button>
-
-        <!-- Backspace Button -->
-        <Button
-          variant="ghost"
-          size="lg"
-          class="rounded-full size-[54px] p-0 hover:bg-gray-100"
-          :disabled="!phoneNumber"
-          @click="backspace"
-        >
-          <Icon name="material-symbols:arrow-back" class="text-xl text-black" />
-        </Button>
       </div>
     </div>
   </div>

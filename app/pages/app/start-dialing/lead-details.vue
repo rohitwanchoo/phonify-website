@@ -124,7 +124,6 @@ const data = [
         Dial-pad
       </Button>
       <StartDialingLeadDetailsSelectDisposition />
-      <!-- <StartDialingLeadDetailsSelectDisposition /> -->
       <Button class="w-full flex-1 cursor-pointer bg-green-600 hidden" name="call">
         <Icon name="material-symbols:call" size="20" />
         Call
