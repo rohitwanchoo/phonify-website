@@ -39,7 +39,14 @@ const props = defineProps<{
 
 const route = useRoute()
 
-const isActive = (url: string) => route.path === url
+function isActive(url: string) {
+  // Exact match for root path
+  if (url === '/') {
+    return route.path === '/'
+  }
+  // For other paths, check if current route starts with the url
+  return route.path.startsWith(url)
+}
 </script>
 
 <template>

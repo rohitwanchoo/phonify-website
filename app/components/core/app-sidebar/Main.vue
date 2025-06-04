@@ -41,17 +41,7 @@ const data = {
     { title: 'Dashboard', url: '/app/dashboard', icon: 'material-symbols:dashboard' },
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
     { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
-    {
-      title: 'Start Dailing',
-      url: '/start-dailing',
-      icon: 'icons:start-dialing',
-      items: [
-        { title: 'General', url: '/start-dailing/general' },
-        { title: 'Team', url: '/start-dailing/team' },
-        { title: 'Billing', url: '/start-dailing/billing' },
-        { title: 'Limits', url: '/start-dailing/limits' },
-      ],
-    },
+    { title: 'Start Dailing', url: '/app/start-dialing/lead-details', icon: 'icons:start-dialing' },
     { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: 'material-symbols:voicemail-2' },
     { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
     { title: 'SMS', url: '/sms', icon: 'icons:sms' },
