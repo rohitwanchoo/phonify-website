@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DashCard from '@/components/cards/dash-sec-one-cards/index.vue'
+// import DashCard from '@/components/cards/dash-sec-one-cards/index.vue'
 
 const cardData = [
   {
@@ -58,7 +58,7 @@ const cardData = [
 <template>
   <div class="gap-4 bg-[#E9F5F3] p-[20px] rounded-xl overflow-x-auto">
     <div class=" grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-      <DashCard
+      <DashboardCard
         v-for="(card, index) in cardData"
         :key="index"
         :image="card.image"
