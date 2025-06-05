@@ -13,24 +13,41 @@ export interface CallTiming {
   actions?: string
 }
 
+const perPage = 10
+const currentPage = ref(1)
+
 interface Meta {
   current_page: number
   per_page: number
   last_page: number
   total: number
 }
-const meta = ref<Meta>({
-  current_page: 1,
-  per_page: 10,
-  last_page: 10,
-  total: 50,
-})
 
 const { data: callTimingList, status, pending } = await useLazyAsyncData('/get-call-timings', () =>
   useApi().post('/get-call-timings', {}), {
   transform: (res) => {
     return res.data
   },
+})
+
+const meta = ref<Meta>({
+  current_page: currentPage.value,
+  per_page: perPage,
+  last_page: 1,
+  total: 0,
+})
+
+// Watch for callTimingList changes to update meta
+watchEffect(() => {
+  if (callTimingList.value) {
+    const total = callTimingList.value.length
+    meta.value = {
+      current_page: currentPage.value,
+      per_page: perPage,
+      last_page: Math.ceil(total / perPage),
+      total,
+    }
+  }
 })
 
 // Create a reactive reference for the list
