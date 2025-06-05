@@ -100,20 +100,44 @@ const Timezones = [
 const selectedCountry = ref('+1')
 
 const formSchema = toTypedSchema(z.object({
-  firstName: z.string().min(1, 'required').max(50),
-  lastName: z.string().min(1, 'required').max(50),
-  extension: z.string().min(1, 'required').max(50),
+  extension_name: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(4, 'maximum 4 character allowed'),
+  first_name: z.string().min(1, 'required').max(50),
+  last_name: z.string().min(1, 'required').max(50),
   email: z.string().min(1, 'required').email('invalid email format').max(50),
+  mobile: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(10, 'maximum 10 character allowed'),
+  // country_code: z.string().min(1, 'required'),
+  follow_me: z.string().min(1, 'required'),
+  call_forward: z.string().min(1, 'required'),
+  voicemail: z.boolean(),
+  vm_pin: z.string().min(1, 'required'),
+  voicemail_send_to_email: z.boolean(),
+  twinning: z.string().min(1, 'required'),
+  asterisk_server_id: z.number().min(1, 'required'),
+  timezone: z.string().min(1, 'required'),
+  cli_setting: z.string().min(1, 'required'),
+  cli: z.string().min(1, 'required'),
+  cnam: z.string().min(1, 'required'),
   password: z.string().min(1, 'required').max(20),
-  voiceServer: z.number().min(1, 'required'),
-  phoneNumber: z.string().min(1, 'required').max(10),
-  cliSettings: z.number().min(1, 'required'),
-  extensionType: z.string().min(1, 'required'),
-  package: z.string().min(1, 'required'),
+  extension_type: z.string().min(1, 'required'),
+  sms_setting_id: z.number().min(1, 'required'),
+  receive_sms_on_email: z.boolean(),
+  receive_sms_on_mobile: z.boolean(),
+  ip_filtering: z.boolean(),
+  enable_2fa: z.boolean(),
+  voip_configuration_id: z.number().min(1, 'required'),
+  app_status: z.string().min(1, 'required'),
+  package_id: z.number().min(1, 'required'),
+  group_id: z.array(z.number()).min(1, 'At least one group must be selected'),
+
+  // voiceServer: z.number().min(1, 'required'),
+  // phoneNumber: z.string().min(1, 'required').max(10),
+  // cliSettings: z.number().min(1, 'required'),
+  // extensionType: z.string().min(1, 'required'),
+  // package: z.string().min(1, 'required'),
 
 }))
 
-const { handleSubmit, values } = useForm({
+const { handleSubmit, values, errors } = useForm({
   validationSchema: formSchema,
 })
 const onSubmit = handleSubmit((values) => {
@@ -122,6 +146,8 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
+  <!-- {{ values }} -->
+  <!-- {{ errors.extension }} -->
   <BaseHeader title="Add Extension" :breadcrumbs />
 
   <form class="space-y-4 relative h-[calc(100vh-165px)] overflow-y-auto">
@@ -133,7 +159,7 @@ const onSubmit = handleSubmit((values) => {
       <div class="p-5 space-y-5 w-full">
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="firstName">
+            <FormField v-slot="{ componentField }" class="" name="first_name">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   First Name
@@ -146,7 +172,7 @@ const onSubmit = handleSubmit((values) => {
             </FormField>
           </div>
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="lastName">
+            <FormField v-slot="{ componentField }" class="" name="last_name">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Last Name
@@ -161,18 +187,20 @@ const onSubmit = handleSubmit((values) => {
         </div>
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="extension">
+            <FormField v-slot="{ componentField }" class="" name="extension_name">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Extension
                 </FormLabel>
                 <FormControl>
-                  <div class="border flex items-center rounded-lg">
-                    <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
-                    <Button class=" text-xs font-normal mr-1 rounded-lg">
+                  <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Extension" v-bind="componentField" />
+
+                  <!-- <div class="border flex items-center rounded-lg"> -->
+                  <!-- <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" /> -->
+                  <!-- <Button class=" text-xs font-normal mr-1 rounded-lg">
                       Auto Generate
-                    </Button>
-                  </div>
+                    </Button> -->
+                  <!-- </div> -->
                 </FormControl>
                 <FormMessage class="text-xs" />
               </FormItem>
@@ -194,13 +222,13 @@ const onSubmit = handleSubmit((values) => {
         </div>
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="password">
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="password">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Password
                 </FormLabel>
                 <FormControl>
-                  <div class="border flex items-center rounded-lg">
+                  <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg">
                     <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
                     <Button class=" text-xs font-normal mr-1 rounded-lg">
                       Auto Generate
@@ -212,14 +240,14 @@ const onSubmit = handleSubmit((values) => {
             </FormField>
           </div>
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="voiceServer">
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="asterisk_server_id">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Voice Server
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger class="w-full !h-11">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
                       <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Server" />
                     </SelectTrigger>
                     <SelectContent>
@@ -246,13 +274,13 @@ const onSubmit = handleSubmit((values) => {
       </div>
       <div class="p-5 space-y-5">
         <div class="">
-          <FormField v-slot="{ componentField }" class="" name="voiceMailPin">
+          <FormField v-slot="{ componentField, errorMessage }" class="" name="vm_pin">
             <FormItem>
               <FormLabel class="font-normal text-xs">
                 VoiceMail Pin
               </FormLabel>
               <FormControl>
-                <div class="border flex items-center rounded-lg">
+                <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg">
                   <Input type="text" placeholder="Type VM Pin" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
                   <Button class=" text-xs font-normal mr-1 rounded-lg">
                     Auto Generate
@@ -319,7 +347,7 @@ const onSubmit = handleSubmit((values) => {
       <div class="p-5 space-y-5">
         <div class="flex gap-x-3 items-center">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="phoneNumber">
+            <FormField v-slot="{ componentField }" class="" name="mobile">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Phone Number
@@ -349,7 +377,7 @@ const onSubmit = handleSubmit((values) => {
           </div>
 
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="cliSettings">
+            <FormField v-slot="{ componentField }" class="" name="cli_setting">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   CLI Setting

@@ -191,7 +191,10 @@ const columns = [
 
   columnHelper.accessor('mobile', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Phone Number'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('mobile') || '-'),
+    cell: ({ row }) => {
+      const mobile = row.original.country_code + row.original.mobile
+      return h('div', { class: 'text-center font-normal text-sm' }, mobile || '-')
+    },
   }),
 
   columnHelper.accessor('actions', {

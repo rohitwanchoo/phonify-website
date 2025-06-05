@@ -13,7 +13,6 @@ const breadcrumbs = [
     active: true,
   },
 ]
-stepper.goTo('select-list')
 </script>
 
 <template>
