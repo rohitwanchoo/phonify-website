@@ -24,20 +24,10 @@ import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 
 import { Switch } from '@/components/ui/switch'
 import {
@@ -50,6 +40,7 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
+import moment from 'moment'
 
 const props = withDefaults(defineProps<Props>(), {
 
@@ -71,29 +62,25 @@ interface Props {
 
 const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
 
-export interface Campaign {
-  siNo?: number
+export interface CallTiming {
+  id: number
+  day: string
+  from_time: string
+  to_time: string
+  department_id: number
   name: string
-  callTime: string
-  usedCampaigns: number
-  dialed: string
-  hoppers: number
-  dialingMode: string
-  dateTime: {
-    date: string
-    time: string
-  }
+  description: string
   calltimeStatus: boolean
   actions?: string
-
 }
+
 const sheet = ref(false)
 
-const columnHelper = createColumnHelper<Campaign>()
+const columnHelper = createColumnHelper<CallTiming>()
 
 const columns = [
 
-  columnHelper.accessor('siNo', {
+  columnHelper.accessor('id', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
@@ -109,7 +96,7 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('callTime', {
+  columnHelper.accessor('from_time', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -117,10 +104,10 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Default Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, row.getValue('callTime')),
+    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${moment(row.original.from_time, 'HH:mm:ss').format('h:mm A')} to ${moment(row.original.to_time, 'HH:mm:ss').format('h:mm A')}`),
   }),
 
-  columnHelper.accessor('usedCampaigns', {
+  columnHelper.accessor('department_id', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -129,23 +116,10 @@ const columns = [
       }, () => ['No. Used Campaigns', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('usedCampaigns'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('department_id'))
     },
   }),
-
-  //   columnHelper.accessor('dialed', {
-  //     header: ({ column }) => {
-  //       return h('div', { class: 'text-center' }, h(Button, {
-  //         class: 'text-sm font-normal',
-  //         variant: 'ghost',
-  //         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-  //       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-  //     },
-  //     cell: ({ row }) => {
-  //       return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('dialed'))
-  //     },
-  //   }),
-  columnHelper.accessor('dateTime', {
+  columnHelper.accessor('day', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -155,9 +129,7 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', row.original.dateTime.date),
-        h('br'),
-        h('div', { class: 'text-xs' }, row.original.dateTime.time),
+        h('div', { class: 'text-xs' }, `${row.original.day} ${moment(row.original.from_time, 'HH:mm:ss').format('h:mm A')}`),
       ])
     },
   }),

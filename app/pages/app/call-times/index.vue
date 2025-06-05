@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
-export interface Campaign {
-  siNo?: number
+export interface CallTiming {
+  id: number
+  day: string
+  from_time: string
+  to_time: string
+  department_id: number
   name: string
-  callTime: string
-  usedCampaigns: number
-  dialed: string
-  hoppers: number
-  dialingMode: string
-  dateTime: {
-    date: string
-    time: string
-  }
+  description: string
   calltimeStatus: boolean
   actions?: string
-
 }
 
 interface Meta {
@@ -31,181 +25,27 @@ const meta = ref<Meta>({
   last_page: 10,
   total: 50,
 })
-const data = ref<Campaign[]>([
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: true,
+
+const { data: callTimingList, status, pending } = await useLazyAsyncData('/get-call-timings', () =>
+  useApi().post('/get-call-timings', {}), {
+  transform: (res) => {
+    return res.data
   },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: true,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: true,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: true,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-  {
-    name: 'Call Time 1',
-    callTime: '9:00 AM to 6:00 PM',
-    usedCampaigns: 1,
-    dialed: '200/500',
-    hoppers: 0,
-    dialingMode: 'Super Power Dial',
-    dateTime: {
-      date: '10/10/2023',
-      time: '10:00 AM',
-    },
-    calltimeStatus: false,
-  },
-])
+})
+
+// Create a reactive reference for the list
+const data = ref<CallTiming[]>([])
+
+// Sync API result to data ref
+watchEffect(() => {
+  if (callTimingList.value) {
+    data.value = callTimingList.value
+  }
+})
 </script>
 
 <template>
-  <div class="">
+  <div>
     <!-- HEADER -->
     <BaseHeader title="Call Times">
       <template #actions>
@@ -221,7 +61,7 @@ const data = ref<Campaign[]>([
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :list="data" :meta="meta" />
+      <CallTimesTable :list="data" :meta="meta" :loading="pending" />
     </div>
   </div>
 </template>
