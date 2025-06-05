@@ -44,7 +44,7 @@ function changePage(page: number) {
 </script>
 
 <template>
-  <Pagination v-slot="{ page }" :page="currentPage" :show-edges="true" :items-per-page="itemsPerPage" :total="totalItems" :default-page="defaultPage">
+  <Pagination v-slot="{ page }" :page="currentPage" :show-edges="true" :sibling-count="1" :items-per-page="itemsPerPage" :total="totalItems" :default-page="defaultPage">
     <PaginationContent v-slot="{ items }">
       <PaginationFirst class="w-7 h-7 sm:w-10 sm:h-10 p-0" data-cy="pagination-first" @click="changePage(1)">
         <Button variant="outline" size="icon">

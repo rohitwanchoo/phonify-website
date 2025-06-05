@@ -9,17 +9,30 @@ const meta = {
   total: 20,
 }
 
-const { data: extensionList, status } = await useLazyAsyncData('extension-list', () =>
+const pageStart = ref(0)
+const limit = ref(10)
+
+const { data: extensionList, status, refresh } = await useLazyAsyncData('extension-list', () =>
   useApi().get('extension', {
     params: {
-      start: 0,
-      limit: 10,
+      start: pageStart.value,
+      limit: limit.value,
     },
   }), {
   transform: (res) => {
-    return res.data
+    return res
   },
 })
+
+function changePage(page: number) {
+  pageStart.value = Number((page - 1) * limit.value)
+  return refresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refresh()
+}
 
 function toastTest() {
   showToast({ type: 'warning', message: 'Test' })
@@ -49,6 +62,6 @@ function toastTest() {
       </template>
     </BaseHeader>
 
-    <UserManagementExtensionTable :list="extensionList || []" :meta="meta" :loading="status === 'pending'" />
+    <UserManagementExtensionTable :limit="limit" :total-rows="extensionList?.total_rows" :start="pageStart" :list="extensionList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
   </div>
 </template>

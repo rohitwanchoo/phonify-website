@@ -170,7 +170,6 @@ const data: Extension[] = [
     phoneNumber: '123-456-43290',
     webPhone: '62390',
   },
-
   {
     siNo: 2,
     extension: '1002',
@@ -206,6 +205,14 @@ const data: Extension[] = [
 
 ]
 
+// api call form extension group
+const { data: extensionGroup, status } = await useLazyAsyncData('extension-group-list', () =>
+  useApi().get('extension-group'), {
+  transform: (res) => {
+    return res.data
+  },
+})
+
 interface Meta {
   current_page: number
   per_page: number
@@ -236,21 +243,18 @@ const meta: Meta = {
         <Tabs orientation="vertical" class="space-y-2 h-full">
           <TabsList class="flex flex-col h-full gap-y-2 bg-transparent w-full">
             <TabsTrigger
-              v-for="group in groups" :key="group.name" :value="group.id" class="min-h-[56px] w-full border border-[#FFFFFF1A] bg-[#FFFFFF0D] text-white data-[state=active]:bg-[#00A086] mr-2
+              v-for="group in extensionGroup" :key="group.name" :value="group.id" class="min-h-[56px] w-full border border-[#FFFFFF1A] bg-[#FFFFFF0D] text-white data-[state=active]:bg-[#00A086] mr-2
                rounded-[8px] flex items-center justify-between px-[16px] !text-sm !font-normal cursor-pointer hover:bg-[#FFFFFF0D]/80 relative data-[state=inactive]:after:hidden after:absolute after:-right-[16px] after:border-8 after:border-transparent after:border-l-[#00A086] "
             >
               <div class="truncate">
-                {{ group.name }}
+                {{ group?.title }}
               </div>
               <div class="flex items-center gap-x-1">
                 <div class="bg-[#FFFFFF14] px-2 py-1.5 flex items-center rounded-[6px] text-xs gap-x-1">
                   <Icon name="clarity:user-line" size="13" />
-                  {{ group.count }}
+                  {{ group?.count }}
                 </div>
                 <Actions />
-              <!-- <Button variant="ghost" size="icon" class="h-[28px] w-[28px]">
-                <icon name="lucide:ellipsis-vertical" />
-              </Button> -->
               </div>
             </TabsTrigger>
           </TabsList>
@@ -268,10 +272,7 @@ const meta: Meta = {
             <Input placeholder="Search List" class="h-11 w-[250px]" />
             <Icon name="lucide:search" class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2" />
           </div>
-          <!-- <Button variant="outline" class="h-11">
-            <icon name="lucide:plus" />
-            Add Extension
-          </Button> -->
+
           <UserManagementGroupAddExtension />
         </div>
       </div>

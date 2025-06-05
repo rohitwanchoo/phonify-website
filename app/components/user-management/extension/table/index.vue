@@ -54,20 +54,20 @@ import { cn } from '@/lib/utils'
 import resetImage from '~/assets/svg/reset.svg'
 import Action from './Action.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   loading: boolean
-  meta: Meta
+  totalRows: number
   list: any[]
-}>()
-
-const emits = defineEmits(['pageNavigation', 'refresh'])
-
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const {
   isRevealed: showDeleteConfirm,
@@ -229,14 +229,14 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  initialState: { pagination: { pageSize: 10 } },
+  initialState: { pagination: { pageSize: props.limit } },
   manualPagination: true,
-  pageCount: props.meta?.last_page,
-  rowCount: props.meta?.total,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
     pagination: {
-      pageIndex: props.meta?.current_page,
-      pageSize: props.meta?.per_page,
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
     },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
@@ -255,6 +255,10 @@ function savePassword() {
     type: 'success',
     message: 'Password changed successfully',
   })
+}
+
+function changeLimit(val: number) {
+  emits('changeLimit', val)
 }
 </script>
 
@@ -303,13 +307,14 @@ function savePassword() {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -321,14 +326,15 @@ function savePassword() {
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
+
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

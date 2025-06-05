@@ -1,7 +1,10 @@
 <script setup lang="ts">
 const { data: ringGroupList, status } = await useLazyAsyncData('ring-group-list', () =>
   useApi().post('ring-group', {
-
+    body: {
+      start: 1,
+      limit: 2,
+    },
   }), {
   transform: (res) => {
     return res.data
