@@ -1,64 +1,74 @@
 <script setup lang="ts">
+import moment from 'moment'
 import { computed, ref } from 'vue'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
-// Placeholder notification structure
-interface Notification {
-  id: number
-  message: string
-  isRead: boolean
-  date: string
-}
 
-// Sample data
-const notifications = ref<Notification[]>([
-  { id: 1, message: 'Lorem ipsum dolor sit amet consectetur.', isRead: false, date: 'Today' },
-  { id: 2, message: 'Sit magna lorem ac sed donec lectus.', isRead: false, date: 'Today' },
-  { id: 3, message: 'Pellentesque habitant morbi tristique.', isRead: true, date: 'Today' },
-  { id: 1, message: 'Lorem ipsum dolor sit amet consectetur.', isRead: false, date: 'Today' },
-  { id: 2, message: 'Sit magna lorem ac sed donec lectus.', isRead: false, date: 'Today' },
-  { id: 3, message: 'Pellentesque habitant morbi tristique.', isRead: true, date: 'Today' },
-
-])
+const { data: notificationList, status, pending } = await useLazyAsyncData('notification-list', () =>
+  useApi().get('/notifications', {}), {
+  transform: (res) => {
+    const sortedArray = Object.values(res.data).sort((a: any, b: any) => a.display_order - b.display_order)
+    return sortedArray
+  },
+})
 
 // Tab state
 const activeTab = ref<'all' | 'unread'>('all')
 
-// Computed values
-const filteredNotifications = computed(() => {
-  return activeTab.value === 'all'
-    ? notifications.value
-    : notifications.value.filter(n => !n.isRead)
-})
+const searchQuery = ref('')
 
-const totalCount = computed(() => notifications.value.length)
-const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length)
+const totalCount = computed(() => notificationList.value?.length || 0)
+const unreadCount = computed(() => notificationList.value?.is_read?.length || 0)
 
 // Mark all as read
-function markAllAsRead() {
-  notifications.value = notifications.value.map(n => ({ ...n, isRead: true }))
+// function markAllAsRead() {
+//   notifications.value = notifications.value.map(n => ({ ...n, read_at: new Date().toISOString() }))
+// }
+
+// Formate date
+function formatDate(dateStr: string): string {
+  const date = moment(dateStr)
+
+  if (date.isSame(moment(), 'day'))
+    return 'Today'
+  if (date.isSame(moment().subtract(1, 'day'), 'day'))
+    return 'Yesterday'
+
+  return date.format('DD MMM, YYYY')
 }
+
+const filteredNotifications = computed(() => {
+  if (!notificationList.value)
+    return []
+
+  return notificationList.value.filter((n: any) => {
+    const matchesTab = activeTab.value === 'all' || !n.isRead
+    const matchesSearch = n.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    return matchesTab && matchesSearch
+  })
+})
 </script>
 
 <template>
   <BaseHeader title="Notifications">
     <template #actions>
       <div class="relative">
-        <Input placeholder="Search List" />
+        <Input v-model="searchQuery" type="text" class="pr-7" placeholder="Search Notifications" />
         <Icon class="absolute top-[9px] text-gray-400 right-2" name="lucide:search" />
       </div>
 
       <Nuxt-link to="">
         <Button variant="outline" @click="markAllAsRead">
-          <Icon class="!text-primary" name="lucide:check-check" />
+          <Icon class="text-xl text-primary" name="material-symbols:done-all" />
           Mark All as Read
         </Button>
       </Nuxt-link>
 
       <Nuxt-link to="">
         <Button>
-          <Icon class="!text-white" name="lucide:funnel" />
+          <Icon class="text-xl text-[#E8EAED]" name="material-symbols:filter-alt-outline" />
           Sort
         </Button>
       </Nuxt-link>
@@ -87,7 +97,7 @@ function markAllAsRead() {
         <p>Unread</p>
         <Icon class="text-black mx-1" name="lucide:dot" />
         <p class="font-light text-sm">
-          {{ unreadCount }}
+          {{ unreadCount || 0 }}
         </p>
       </div>
     </div>
@@ -95,23 +105,34 @@ function markAllAsRead() {
     <!-- Notifications -->
     <div class="pt-2 px-2 h-full overflow-y-auto">
       <div
+        v-if="pending"
+      >
+        <div
+          v-for="n in 10"
+          :key="n"
+        >
+          <Skeleton class="w-full min-h-[50px] flex justify-between items-center px-4 mb-2 rounded-md" />
+        </div>
+      </div>
+      <div
         v-for="notification in filteredNotifications"
-        :key="notification.id"
+        v-else
+        :key="notification?.id"
         class="w-full min-h-[50px] flex justify-between items-center px-4 mb-2 rounded-md"
-        :class="notification.isRead ? '' : 'bg-[#00A08608]'"
+        :class="notification?.isRead ? '' : 'bg-[#00A08608]'"
       >
         <div class="flex items-center text-primary text-sm">
-          <Icon
-            class="text-5xl mr-1"
-            :class="notification.isRead ? 'text-white' : 'text-[#00A086]'"
+          <div
+            class="size-2 rounded-full mr-2"
+            :class="notification?.isRead ? 'bg-white' : 'bg-[#00A086]'"
             name="lucide:dot"
           />
-          <Icon class="text-primary txt-md mr-2" name="lucide:bell-ring" />
-          {{ notification.message }}
+          <Icon class="text-primary text-xl mr-2" name="material-symbols:notifications-active" />
+          {{ notification?.name }}
         </div>
         <div class="flex gap-4 items-center text-primary text-sm">
-          {{ notification.date }}
-          <Icon class="text-red-500 text-md cursor-pointer" name="lucide:trash-2" />
+          {{ formatDate(notification?.updated_at) }}
+          <Icon class="text-red-600 text-xl cursor-pointer" name="material-symbols:delete" />
         </div>
       </div>
     </div>
