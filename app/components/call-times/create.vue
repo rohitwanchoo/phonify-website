@@ -98,6 +98,10 @@ function toggleDay(day: string) {
     validate()
   }
 }
+
+const onSubmit = handleSubmit((values) => {
+  console.log(values)
+})
 </script>
 
 <template>
