@@ -348,7 +348,7 @@ const onSubmit = handleSubmit((values) => {
         Contact Information
       </div>
       <div class="p-5 space-y-5">
-        <div class="flex gap-x-3 items-center">
+        <div class="flex gap-x-3 items-start">
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="mobile">
               <FormItem>
@@ -413,7 +413,7 @@ const onSubmit = handleSubmit((values) => {
         Extension Configuration
       </div>
       <div class="p-5 space-y-5">
-        <div class="flex gap-x-3 items-center">
+        <div class="flex gap-x-3 items-start">
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="extensionType">
               <FormItem>
