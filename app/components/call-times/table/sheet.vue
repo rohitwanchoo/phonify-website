@@ -1,24 +1,23 @@
 <script setup lang="ts">
+import moment from 'moment'
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
 
-const open = defineModel<boolean>()
+const props = defineProps<{
+  schedule: {
+    name?: string
+    status?: string
+    day?: string
+    from_time?: string
+    to_time?: string
+  }
+}>()
 
-const schedule = [
-  { day: 'Default', start: '10:00 AM', stop: '04:00 PM' },
-  { day: 'Sunday', start: '09:00 AM', stop: '05:00 PM' },
-  { day: 'Monday', start: '10:30 AM', stop: '04:30 PM' },
-  { day: 'Tuesday', start: '11:00 AM', stop: '05:00 PM' },
-  { day: 'Wednesday', start: '09:00 AM', stop: '03:00 PM' },
-  { day: 'Thursday', start: '10:00 AM', stop: '04:00 PM' },
-  { day: 'Friday', start: '09:30 AM', stop: '02:30 PM' },
-  { day: 'Saturday', start: '11:00 AM', stop: '01:00 PM' },
-]
+const open = defineModel<boolean>()
 </script>
 
 <template>
@@ -40,7 +39,7 @@ const schedule = [
                 <span class="text-sm font-normal">Name</span>
               </div>
               <div class="text-[16px] font-medium">
-                Call Time 1
+                {{ schedule?.name }}
               </div>
             </div>
 
@@ -50,7 +49,7 @@ const schedule = [
                 <span class="text-sm font-normal">Status</span>
               </div>
               <div class="text-[16px] font-medium text-[#16A34A]">
-                Active
+                {{ schedule?.status || 'Inactive' }}
               </div>
             </div>
           </div>
@@ -61,10 +60,10 @@ const schedule = [
           </h1>
           <div class="border-t border-[#F4F4F5] my-4" />
 
-          <div v-for="entry in schedule" :key="entry.day" class="flex justify-between items-center w-full mb-6">
+          <div v-if="schedule.day" class="flex justify-between items-center w-full mb-6">
             <div>
               <p class="text-xs">
-                {{ entry.day }}
+                {{ schedule?.day }}
               </p>
             </div>
             <div class="flex gap-2">
@@ -75,7 +74,7 @@ const schedule = [
                   </h2>
                 </div>
                 <div class="text-sm">
-                  {{ entry.start }}
+                  {{ moment(schedule?.from_time, 'HH:mm:ss').format('h:mm A') }}
                 </div>
               </div>
               <div class="flex items-center gap-9 border border-[#F4F4F5] p-[12px] rounded-[8px]">
@@ -85,7 +84,7 @@ const schedule = [
                   </h2>
                 </div>
                 <div class="text-sm">
-                  {{ entry.stop }}
+                  {{ moment(schedule?.to_time, 'HH:mm:ss').format('h:mm A') }}
                 </div>
               </div>
             </div>

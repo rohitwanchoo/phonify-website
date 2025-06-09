@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Input } from '~/components/ui/input'
 
-export interface CallTiming {
+export interface callTimingList {
   id: number
   day: string
   from_time: string
@@ -13,52 +13,37 @@ export interface CallTiming {
   actions?: string
 }
 
-const perPage = 10
-const currentPage = ref(1)
-
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
+const meta = {
+  current_page: 1,
+  per_page: 10,
+  last_page: 1,
+  total: 20,
 }
 
-const { data: callTimingList, status, pending } = await useLazyAsyncData('/get-call-timings', () =>
-  useApi().post('/get-call-timings', {}), {
+const pageStart = ref(0)
+const limit = ref(10)
+
+const { data: callTimingList, status, refresh } = await useLazyAsyncData('get-call-timings', () =>
+  useApi().post('/get-call-timings', {
+    body: {
+      start: pageStart.value,
+      limit: limit.value,
+    },
+  }), {
   transform: (res) => {
-    return res.data
+    return res
   },
 })
 
-const meta = ref<Meta>({
-  current_page: currentPage.value,
-  per_page: perPage,
-  last_page: 1,
-  total: 0,
-})
+function changePage(page: number) {
+  pageStart.value = Number((page - 1) * limit.value)
+  return refresh()
+}
 
-// Watch for callTimingList changes to update meta
-watchEffect(() => {
-  if (callTimingList.value) {
-    const total = callTimingList.value.length
-    meta.value = {
-      current_page: currentPage.value,
-      per_page: perPage,
-      last_page: Math.ceil(total / perPage),
-      total,
-    }
-  }
-})
-
-// Create a reactive reference for the list
-const data = ref<CallTiming[]>([])
-
-// Sync API result to data ref
-watchEffect(() => {
-  if (callTimingList.value) {
-    data.value = callTimingList.value
-  }
-})
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refresh()
+}
 </script>
 
 <template>
@@ -78,7 +63,7 @@ watchEffect(() => {
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :list="data" :meta="meta" :loading="pending" />
+      <CallTimesTable :limit="limit" :total-rows="callTimingList?.total_rows" :start="pageStart" :list="callTimingList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>

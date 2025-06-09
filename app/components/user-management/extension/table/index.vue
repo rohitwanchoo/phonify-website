@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
@@ -11,7 +10,6 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -25,21 +23,11 @@ import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import {
   Table,
   TableBody,
@@ -334,7 +322,6 @@ function changeLimit(val: number) {
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
-
       <TableServerPagination
         :total-items="Number(total)" :current-page="Number(current_page)"
         :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
@@ -10,16 +9,17 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
 
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { h, ref } from 'vue'
 
+import moment from 'moment'
+import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -40,29 +39,47 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import moment from 'moment'
+import Action from './Action.vue'
 
-const props = withDefaults(defineProps<Props>(), {
-
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
 })
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const emits = defineEmits(['pageNavigation', 'refresh'])
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
 
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
-interface Props {
-  list: { [key: string]: any }[]
-  loading?: boolean
-  meta?: Meta
+async function deleteMethod() {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  // console.log(row)
+  // TODO: API CALL HERE
+
+  showToast({
+    type: 'success',
+    message: 'Call times deleted successfully',
+  })
 }
 
 const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
 
-export interface CallTiming {
+export interface callTimingList {
   id: number
   day: string
   from_time: string
@@ -76,7 +93,9 @@ export interface CallTiming {
 
 const sheet = ref(false)
 
-const columnHelper = createColumnHelper<CallTiming>()
+const selectedRowData = ref<callTimingList | null>(null)
+
+const columnHelper = createColumnHelper<callTimingList>()
 
 const columns = [
 
@@ -144,22 +163,8 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.original.calltimeStatus, 'onUpdate:modelValue': (val: boolean) => {
-        data.value[row.index].calltimeStatus = val
+        row.original.calltimeStatus = val
       } }))
-    },
-    sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.getValue(columnId)
-      const valueB = rowB.getValue(columnId)
-      if (valueA === valueB) {
-        return 0
-      }
-      if (valueA === true && valueB === false) {
-        return -1
-      }
-      if (valueA === false && valueB === true) {
-        return 1
-      }
-      return 0
     },
   }),
 
@@ -169,8 +174,19 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-        h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => sheet.value = true }, h(Icon, { name: 'lucide:eye' })),
-        h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
+        h(Button, { 
+          size: 'icon', 
+          class: 'cursor-pointer', 
+          onClick: () => { 
+            selectedRowData.value = row.original
+            sheet.value = true
+          } 
+        }, h(Icon, { name: 'lucide:eye' })),
+        h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Action, {
+          onDelete: () => {
+            deleteMethod(row?.original)
+          },
+        })),
       ])
     },
   }),
@@ -181,7 +197,6 @@ const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
   get data() { return props.list || [] },
@@ -190,23 +205,36 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
     columnPinning: {
       left: ['status'],
     },
   },
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number) {
+  emits('changeLimit', val)
+}
 </script>
 
 <template>
@@ -255,23 +283,20 @@ const table = useVueTable({
         </template>
 
         <TableRow v-else>
-          <TableCell
-            :colspan="columns.length"
-            class="h-24 text-center"
-          >
+          <TableCell :colspan="columns.length" class="h-24 text-center">
             No results.
           </TableCell>
         </TableRow>
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -283,17 +308,21 @@ const table = useVueTable({
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
 
-  <Call-timesTableSheet v-model:open="sheet" />
+  <!---->
+  <CallTimesTableSheet v-model:open="sheet" :schedule="selectedRowData" />
+
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Call Times" description="You are about to delete call time. Do you wish to proceed?" />
 </template>
