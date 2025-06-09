@@ -20,7 +20,7 @@ defineProps<{
     </div>
     <div class="mt-2">
       <h1 class="text-2xl font-extrabold">
-        {{ value }}
+        {{ formatWithCommas(value) }}
       </h1>
     </div>
   </div>
