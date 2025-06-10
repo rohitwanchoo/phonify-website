@@ -19,8 +19,7 @@ import {
 } from '@tanstack/vue-table'
 
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { h, ref } from 'vue'
-import moment from 'moment'
+import { h, ref, watch } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -53,34 +52,94 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const props = defineProps({
-  list: Array, // Raw list of campaigns from the API response
-  meta: Object, // Pagination metadata
-  loading: Boolean, // Loading state
+const props = withDefaults(defineProps<Props>(), {
+
 })
 
 const emits = defineEmits(['pageNavigation', 'refresh'])
 
-const sheet = ref(false)
 
-const columnHelper = createColumnHelper()
+
+interface Meta {
+  current_page: number
+  per_page: number
+  last_page: number
+  total: number
+}
+interface Props {
+  list: { [key: string]: any }[]
+  loading?: boolean
+  meta?: Meta
+}
+
+// const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
+
+export interface Campaign {
+  siNo?: number
+  name: string
+  callTime: string
+  list: number
+  dialed: string
+  hoppers: number
+  dialingMode: string
+  dateTime: {
+    date: string
+    time: string
+  }
+  campaignStatus: boolean
+  actions?: string
+
+}
+const sheet = ref(false)
+const selectedCampaign = ref(null) // Store the campaign details
+const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
+
+async function openSheet(id: number) {
+
+  campaignLoadingId.value = id
+  try {
+    const res = await useApi().post('campaign-by-id', { campaign_id: id })
+   
+    selectedCampaign.value = res[0]
+
+    sheet.value = true
+  } catch (error) {
+
+    showToast({
+      type: 'error',
+      message: error?.message || 'An error occurred while fetching campaign details.',
+    })
+  } finally {
+    campaignLoadingId.value = null
+  }
+}
+
+// Watch for changes to selectedCampaign and log them
+watch(selectedCampaign, (val) => {
+  console.log('[watch] selectedCampaign changed:', val)
+})
+
+const columnHelper = createColumnHelper<Campaign>()
 
 const columns = [
-  columnHelper.accessor('id', {
+
+  columnHelper.accessor('siNo', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('id'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.siNo)
     },
   }),
-  columnHelper.accessor('title', {
+
+  columnHelper.accessor('name', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('name'))
     },
   }),
-  columnHelper.accessor('call_time_start', {
+
+  columnHelper.accessor('callTime', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -88,19 +147,17 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) => {
-      const start = row.original.call_time_start
-      const end = row.original.call_time_end
-      return h('div', { class: 'lowercase text-center text-sm' }, start && end ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}` : 'No Data')
-    },
+    cell: ({ row }) => h('div', { class: 'uppercase text-center text-sm' }, row.getValue('callTime')),
   }),
-  columnHelper.accessor('group_id', {
+
+  columnHelper.accessor('list', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'List'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('group_id'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('list'))
     },
   }),
-  columnHelper.accessor('min_lead_temp', {
+
+  columnHelper.accessor('dialed', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -109,12 +166,10 @@ const columns = [
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      const min = row.original.min_lead_temp // Access the raw data directly
-      const max = row.original.max_lead_temp // Access the raw data directly
-      return h('div', { class: 'text-center font-normal text-center text-sm' }, min !== null && max !== null ? `${min}/${max}` : 'No Data')
+      return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('dialed'))
     },
   }),
-  columnHelper.accessor('updated', {
+  columnHelper.accessor('dateTime', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -123,17 +178,15 @@ const columns = [
       }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      const updated = row.original.updated
-      const date = moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD')
-      const time = moment(updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A')
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', date),
+        h('div', row.original.dateTime.date),
         h('br'),
-        h('div', { class: 'text-xs' }, time),
+        h('div', { class: 'text-xs' }, row.original.dateTime.time),
       ])
     },
   }),
-  columnHelper.accessor('status', {
+
+  columnHelper.accessor('campaignStatus', {
     header: ({ column }) => {
       return h('div', { class: 'text-center ' }, h(Button, {
         class: 'text-sm font-normal',
@@ -142,22 +195,54 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.getValue('status') === 1, 'onUpdate:modelValue': (val: boolean) => {
-        props.list[row.index].status = val ? 1 : 0
+      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.original.campaignStatus, 'onUpdate:modelValue': (val: boolean) => {
+        data.value[row.index].campaignStatus = val
       } }))
     },
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.getValue(columnId)
+      const valueB = rowB.getValue(columnId)
+      if (valueA === valueB) {
+        return 0
+      }
+      if (valueA === true && valueB === false) {
+        return -1
+      }
+      if (valueA === false && valueB === true) {
+        return 1
+      }
+      return 0
+    },
   }),
+
   columnHelper.accessor('actions', {
     header: () => {
       return h('div', { class: 'text-center' }, 'Actions')
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-        h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => sheet.value = true }, h(Icon, { name: 'lucide:eye' })),
+        h(
+          Button,
+          {
+            size: 'icon',
+            class: 'cursor-pointer',
+            onClick: () => openSheet(row.original.id),
+            disabled: campaignLoadingId.value === row.original.id,
+          },
+          h(
+            Icon,
+            {
+              name: campaignLoadingId.value === row.original.id
+                ? 'eos-icons:bubble-loading'
+                : 'lucide:eye',
+            }
+          )
+        ),
         h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
       ])
     },
   }),
+
 ]
 
 const sorting = ref<SortingState>([])
@@ -185,9 +270,9 @@ const table = useVueTable({
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
     get expanded() { return expanded.value },
-    // columnPinning: {
-    //   left: ['status'],
-    // },
+    columnPinning: {
+      left: ['status'],
+    },
   },
 })
 
@@ -198,17 +283,7 @@ function handlePageChange(page: number) {
 
 <template>
   <div class="border rounded-lg my-6 overflow-hidden">
-    <Table v-if="loading">
-      <TableBody>
-        <TableRow>
-          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
-            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2 rounded-sm animate-pulse" />
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
-
-    <Table v-else-if="list?.length">
+    <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
@@ -224,37 +299,48 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-for="row in table.getRowModel().rows" :key="row.id">
-          <TableRow :data-state="row.getIsSelected() && 'selected'">
-            <TableCell
-              v-for="cell in row.getVisibleCells()" :key="cell.id" :data-pinned="cell.column.getIsPinned()"
-              class="p-[12px]"
-              :class="cn(
-                { 'sticky bg-background/95': cell.column.getIsPinned() },
-                cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-              )"
-            >
-              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-            </TableCell>
-          </TableRow>
-          <TableRow v-if="row.getIsExpanded()">
-            <TableCell :colspan="row.getAllCells().length">
-              {{ JSON.stringify(row.original) }}
-            </TableCell>
-          </TableRow>
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
+          <template v-for="row in table.getRowModel().rows" :key="row.id">
+            <TableRow :data-state="row.getIsSelected() && 'selected'">
+              <TableCell
+                v-for="cell in row.getVisibleCells()" :key="cell.id" :data-pinned="cell.column.getIsPinned()"
+                class="p-[12px]"
+                :class="cn(
+                  { 'sticky bg-background/95': cell.column.getIsPinned() },
+                  cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
+                )"
+              >
+                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              </TableCell>
+            </TableRow>
+            <TableRow v-if="row.getIsExpanded()">
+              <TableCell :colspan="row.getAllCells().length">
+                {{ JSON.stringify(row.original) }}
+              </TableCell>
+            </TableRow>
+          </template>
         </template>
+
+        <TableRow v-else>
+          <TableCell
+            :colspan="columns.length"
+            class="h-24 text-center"
+          >
+            No results.
+          </TableCell>
+        </TableRow>
       </TableBody>
     </Table>
-
-    <div v-else class="text-center py-4">
-      No results.
-    </div>
   </div>
-
-  <div v-if="list?.length && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ table.getState().pagination.pageIndex + 1 }} to
+        Showing {{ meta?.current_page }} to
 
         <span>
           <Select :default-value="10">
@@ -269,16 +355,17 @@ function handlePageChange(page: number) {
           </Select>
         </span>
 
-        of {{ list.length }} entries
+        of {{ meta?.total }} entries
       </div>
     </div>
     <div class="space-x-2">
+      <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="list.length" :current-page="table.getState().pagination.pageIndex + 1"
-        :items-per-page="table.getState().pagination.pageSize" :last-page="Math.ceil(list.length / table.getState().pagination.pageSize)" @page-change="handlePageChange"
+        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
 
-  <CampaignTableSheet v-model:open="sheet" />
+  <CampaignTableSheet v-model:open="sheet" :campaign="selectedCampaign" />
 </template>
