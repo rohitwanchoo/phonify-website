@@ -225,9 +225,8 @@ const columns = [
           Button,
           {
             size: 'icon',
-            class: 'cursor-pointer',
+            class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
             onClick: () => openSheet(row.original.id),
-            disabled: campaignLoadingId.value === row.original.id,
           },
           h(
             Icon,
