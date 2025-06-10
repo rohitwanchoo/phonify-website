@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useConfirmDialog } from '@vueuse/core'
+
 import {
   ResizableHandle,
   ResizablePanel,
@@ -28,88 +30,17 @@ import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
 import Actions from './Actions.vue'
 
-const groups = [
-  {
-    id: 'group-1',
-    name: 'Extension Group dsaf fadsfa dfdasf adsfdsf dsfdfasd',
-    count: 10,
-  },
-  {
-    id: 'group-2',
-    name: 'Extension Group #2',
-    count: 10,
-  },
-  {
-    id: 'group-3',
-    name: 'Extension Group #3',
-    count: 10,
-  },
-  {
-    id: 'group-4',
-    name: 'Extension Group #4',
-    count: 10,
-  },
-  {
-    id: 'group-5',
-    name: 'Extension Group #5',
-    count: 10,
-  },
-  {
-    id: 'group-6',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-7',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-8',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-9',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-10',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-11',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-12',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-13',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-14',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-15',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-  {
-    id: 'group-16',
-    name: 'Extension Group #6',
-    count: 10,
-  },
-]
+interface Group {
+  id: number
+  title: string
+  count: number
+}
+interface Props {
+  extensionGroup: Group[]
+  loading: boolean
+}
+const props = withDefaults(defineProps<Props>(), {})
+const emits = defineEmits(['refresh', 'onRename'])
 export interface Extension {
   siNo?: number
   extension: string
@@ -120,7 +51,7 @@ export interface Extension {
   actions?: string
 
 }
-const loading = ref(false)
+// const loading = ref(false)
 const data: Extension[] = [
   {
     siNo: 1,
@@ -206,12 +137,6 @@ const data: Extension[] = [
 ]
 
 // api call form extension group
-const { data: extensionGroup, status } = await useLazyAsyncData('extension-group-list', () =>
-  useApi().get('extension-group'), {
-  transform: (res) => {
-    return res.data
-  },
-})
 
 interface Meta {
   current_page: number
@@ -224,6 +149,34 @@ const meta: Meta = {
   per_page: 20,
   last_page: 1,
   total: 20,
+}
+
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const selectedGroup = ref({})
+
+async function deleteGroup(group: { id: number }) {
+  selectedGroup.value = group
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  try {
+    const response = await useApi().delete(`extension-group/${group.id}`)
+    showToast({ message: response.message })
+    emits('refresh')
+  }
+  catch (error) {
+    showToast({
+      message: (error as any)?.message || 'Failed to delete extension group',
+      type: 'error',
+    })
+  }
 }
 </script>
 
@@ -242,8 +195,13 @@ const meta: Meta = {
       <ScrollArea class="h-[calc(100vh-280px)]">
         <Tabs orientation="vertical" class="space-y-2 h-full">
           <TabsList class="flex flex-col h-full gap-y-2 bg-transparent w-full">
+            <template v-if="loading">
+              <BaseSkelton v-for="i in 7" :key="i" class="h-14 w-full mb-2" rounded="rounded-sm" />
+            </template>
+
             <TabsTrigger
-              v-for="group in extensionGroup" :key="group.name" :value="group.id" class="min-h-[56px] w-full border border-[#FFFFFF1A] bg-[#FFFFFF0D] text-white data-[state=active]:bg-[#00A086] mr-2
+              v-for="group in extensionGroup"
+              v-else :key="group.title" :value="group.id" class="min-h-[56px] w-full border border-[#FFFFFF1A] bg-[#FFFFFF0D] text-white data-[state=active]:bg-[#00A086] mr-2
                rounded-[8px] flex items-center justify-between px-[16px] !text-sm !font-normal cursor-pointer hover:bg-[#FFFFFF0D]/80 relative data-[state=inactive]:after:hidden after:absolute after:-right-[16px] after:border-8 after:border-transparent after:border-l-[#00A086] "
             >
               <div class="truncate">
@@ -254,7 +212,7 @@ const meta: Meta = {
                   <Icon name="clarity:user-line" size="13" />
                   {{ group?.count }}
                 </div>
-                <Actions />
+                <Actions @on-delete="deleteGroup(group)" @on-rename="emits('onRename', group)" />
               </div>
             </TabsTrigger>
           </TabsList>
@@ -310,4 +268,7 @@ const meta: Meta = {
       />
     </div>
   </div>
+
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Extension Group" description="You are about to delete extension group. Do you wish to proceed?" />
 </template>

@@ -14,6 +14,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+const emits = defineEmits(['onDelete', 'onRename'])
 </script>
 
 <template>
@@ -25,11 +27,11 @@ import {
     </DropdownMenuTrigger>
     <DropdownMenuContent>
       <DropdownMenuGroup>
-        <DropdownMenuItem class="text-sm cursor-pointer">
+        <DropdownMenuItem class="text-sm cursor-pointer" @click="emits('onRename')">
           <Icon name="material-symbols:edit-square-outline" />
           Rename Group
         </DropdownMenuItem>
-        <DropdownMenuItem class="text-red-600 cursor-pointer hover:!text-red-500 text-sm">
+        <DropdownMenuItem class="text-red-600 cursor-pointer hover:!text-red-500 text-sm" @click="emits('onDelete')">
           <Icon name="mdi:trash-can" />
           Delete
         </DropdownMenuItem>
