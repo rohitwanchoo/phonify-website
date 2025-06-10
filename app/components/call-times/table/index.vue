@@ -135,7 +135,7 @@ const columns = [
       }, () => ['No. Used Campaigns', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('department_id'))
+      return h('div', { class: 'text-center font-normal text-sm' }, '-')
     },
   }),
   columnHelper.accessor('day', {
@@ -148,7 +148,7 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, `${row.original.day} ${moment(row.original.from_time, 'HH:mm:ss').format('h:mm A')}`),
+        h('div', { class: 'text-xs' }, '-'),
       ])
     },
   }),
