@@ -5,52 +5,52 @@ const cardData = [
   {
     image: '/images/dashboard/users.png',
     title: 'Users',
-    value: '567',
+    value: 567,
   },
   {
     image: '/images/dashboard/phone.png',
     title: 'Phone Numbers',
-    value: '32',
+    value: 32,
   },
   {
     image: '/images/dashboard/campaigns.png',
     title: 'Campaigns',
-    value: '45',
+    value: 45,
   },
   {
     image: '/images/dashboard/leads.png',
     title: 'Leads',
-    value: '324',
+    value: 324,
   },
   {
     image: '/images/dashboard/lists.png',
     title: 'Lists',
-    value: '31',
+    value: 31,
   },
   {
     image: '/images/dashboard/callback.png',
     title: 'Call Back',
-    value: '5763',
+    value: 5763,
   },
   {
     image: '/images/dashboard/smsrecieve.png',
     title: 'SMS Recieved',
-    value: '23123',
+    value: 23123,
   },
   {
     image: '/images/dashboard/smssent.png',
     title: 'SMS Sent  ',
-    value: '412,214',
+    value: 412214,
   },
   {
     image: '/images/dashboard/voicemail.png',
     title: 'Voicemail Recieved',
-    value: '1,232',
+    value: 1232,
   },
   {
     image: '/images/dashboard/Unread.png',
     title: 'Unread Voicemail',
-    value: '322',
+    value: 322,
   },
 ]
 </script>

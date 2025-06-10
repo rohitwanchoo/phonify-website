@@ -81,6 +81,10 @@ const CLIS = [
     id: 1,
     name: 'Area Code',
   },
+  {
+    id: 2,
+    name: 'Custom',
+  }
 ]
 
 const Timezones = [
@@ -113,8 +117,8 @@ const formSchema = toTypedSchema(z.object({
   voicemail_send_to_email: z.boolean(),
   twinning: z.string().min(1, 'required'),
   asterisk_server_id: z.number().min(1, 'required'),
-  timezone: z.string().min(1, 'required'),
-  cli_setting: z.string().min(1, 'required'),
+  timezone: z.number().min(1, 'required'),
+  cli_setting: z.number().min(1, 'required'),
   cli: z.string().min(1, 'required'),
   cnam: z.string().min(1, 'required'),
   password: z.string().min(1, 'required').max(20),
@@ -139,6 +143,9 @@ const formSchema = toTypedSchema(z.object({
 
 const { handleSubmit, values, errors } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    timezone: 1,
+  },
 })
 const onSubmit = handleSubmit((values) => {
   console.log('Form submitted!', values)
@@ -187,20 +194,20 @@ const onSubmit = handleSubmit((values) => {
         </div>
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="extension_name">
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="extension_name">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Extension
                 </FormLabel>
                 <FormControl>
-                  <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Extension" v-bind="componentField" />
+                  <!-- <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Extension" v-bind="componentField" /> -->
 
-                  <!-- <div class="border flex items-center rounded-lg"> -->
-                  <!-- <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" /> -->
-                  <!-- <Button class=" text-xs font-normal mr-1 rounded-lg">
+                  <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg">
+                    <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
+                    <Button class=" text-xs font-normal mr-1 rounded-lg">
                       Auto Generate
-                    </Button> -->
-                  <!-- </div> -->
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage class="text-xs" />
               </FormItem>
@@ -345,7 +352,7 @@ const onSubmit = handleSubmit((values) => {
         Contact Information
       </div>
       <div class="p-5 space-y-5">
-        <div class="flex gap-x-3 items-center">
+        <div class="flex gap-x-3 items-start">
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="mobile">
               <FormItem>
@@ -410,7 +417,7 @@ const onSubmit = handleSubmit((values) => {
         Extension Configuration
       </div>
       <div class="p-5 space-y-5">
-        <div class="flex gap-x-3 items-center">
+        <div class="flex gap-x-3 items-start">
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="extensionType">
               <FormItem>
@@ -436,7 +443,7 @@ const onSubmit = handleSubmit((values) => {
             </FormField>
           </div>
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="package">
+            <FormField v-slot="{ componentField }" class="" name="package_id">
               <FormItem>
                 <FormLabel class="font-normal text-xs">
                   Select Package
@@ -448,8 +455,8 @@ const onSubmit = handleSubmit((values) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="item in ['Package 1']" :key="item" :value="item">
-                          {{ item }}
+                        <SelectItem v-for="item in [{ name: 'Package 1', id: 1 }]" :key="item.id" :value="item.id">
+                          {{ item.name }}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -492,7 +499,7 @@ const onSubmit = handleSubmit((values) => {
                   Times Zone
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField" :default-value="1">
+                  <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue class="text-xs placeholder:text-[#ef698180]" />
                     </SelectTrigger>

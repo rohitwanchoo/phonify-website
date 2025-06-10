@@ -48,3 +48,7 @@ export function copyToClipboard(value: any, name?: string) {
     })
     .catch(() => { })
 }
+
+export function formatWithCommas(value: number | string): string {
+  return new Intl.NumberFormat().format(Number(value))
+}

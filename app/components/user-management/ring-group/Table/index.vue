@@ -56,7 +56,7 @@ import Action from './Action.vue'
 
 const props = defineProps<{
   loading: boolean
-  meta: Meta
+  // meta: Meta
   list: any[]
 }>()
 
@@ -110,6 +110,7 @@ interface GroupList {
   number_of_extension: string
   emails: string
   actions: string
+  extension_count: number
 }
 
 const columnHelper = createColumnHelper<GroupList>()
@@ -136,6 +137,18 @@ const columns = [
       h('div', { class: 'flex items-center justify-center gap-2 text-sm font-normal' }, row.original.description),
   }),
 
+  columnHelper.accessor('extension_count', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['No. of Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'flex items-center justify-center gap-1 text-sm font-normal' }, [
+      row.original.extension_count,
+      h(Icon, { name:'material-symbols:visibility-outline', class:'h-5 w-5 cursor-pointer' }),
+      ]),
+  }),
 
   columnHelper.accessor('emails', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
