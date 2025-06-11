@@ -16,28 +16,6 @@ const { data: campaignList, status, refresh } = await useLazyAsyncData('campaign
   return response
 })
 
-// Map API data to table row structure
-const tableRows = computed(() =>
-  (campaignList.value?.data || []).map((item, idx) => ({
-    ...item,
-    siNo: idx + 1,
-    name: item.title,
-    callTime: item.call_time_start && item.call_time_end
-      ? `${moment(item.call_time_start, 'HH:mm:ss').format('hh:mm A')} - ${moment(item.call_time_end, 'HH:mm:ss').format('hh:mm A')}`
-      : 'N/A',
-    list: item.group_id,
-    dialed: `${item.min_lead_temp || 0}/${item.max_lead_temp || 0}`,
-    hoppers: item.hopper_mode,
-    dialingMode: item.dial_mode,
-    dateTime: item.updated
-      ? {
-          date: moment(item.updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD'),
-          time: moment(item.updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A'),
-        }
-      : { date: '', time: '' },
-    campaignStatus: item.status === 1,
-  }))
-)
 </script>
 
 <template>
@@ -60,7 +38,7 @@ const tableRows = computed(() =>
 
     <!-- TABLE -->
     <div>
-      <CampaignTable :list="tableRows" :meta="meta" :loading="status === 'pending'" />
+      <CampaignTable :list="campaignList?.data"  :meta="meta" :loading="status === 'pending'" />
     </div>
   </div>
 </template>
