@@ -99,8 +99,22 @@ function toggleDay(day: string) {
   }
 }
 
-const onSubmit = handleSubmit((values) => {
-  console.log(values)
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    const { data, status, refresh } = await useLazyAsyncData('save-call-timings', () =>
+      useApi().post('/save-call-timings', {
+        body: {
+            name: values.title,
+            day: values.weeks.map((d) => d.day),
+            from: values.weeks.map((f) => f.start),
+            to: values.weeks.map((t) => t.stop),
+        },
+      }))
+      resetForm()
+  }
+  catch (error) {
+    console.log('error: ', error)
+  }
 })
 </script>
 

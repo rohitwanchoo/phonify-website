@@ -379,9 +379,12 @@ function onSubmit() {
                       </AccordionTrigger>
 
                       <AccordionContent class="p-3 border rounded-lg mt-1 ">
-                        <Button class="w-full rounded-[8px]">
-                          Create Custom Call Time <Icon name="lucide:plus" />
-                        </Button>
+                        <CallTimesCreate>
+                          <Button type="button" class="w-full rounded-[8px]">
+                            Create Custom Call Time <Icon name="lucide:plus" />
+                          </Button>
+                        </CallTimesCreate>
+
                         <div class="max-h-[300px] overflow-y-auto">
                           <div v-for="n in 10" :key="n" class="text-xs flex items-center justify-between border-b last:border-b-0 py-3">
                             Call Time #1
