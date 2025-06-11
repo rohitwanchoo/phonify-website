@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import moment from 'moment'
+import { computed, ref } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import moment from 'moment'
 
 const meta = {
   current_page: 1,
@@ -12,10 +12,14 @@ const meta = {
 }
 
 const { data: campaignList, status, refresh } = await useLazyAsyncData('campaigns-list', async () => {
-  const response = await useApi().get('campaigns', {})
+  const response = await useApi().get('campaigns', {
+    params: {
+      // start: 0,
+      // limit: 5,
+    },
+  })
   return response
 })
-
 </script>
 
 <template>
@@ -38,7 +42,7 @@ const { data: campaignList, status, refresh } = await useLazyAsyncData('campaign
 
     <!-- TABLE -->
     <div>
-      <CampaignTable :list="campaignList?.data"  :meta="meta" :loading="status === 'pending'" />
+      <CampaignTable :list="campaignList?.data" :meta="meta" :loading="status === 'pending'" />
     </div>
   </div>
 </template>

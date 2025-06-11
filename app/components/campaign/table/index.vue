@@ -19,8 +19,8 @@ import {
 } from '@tanstack/vue-table'
 
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { h, ref, watch, computed } from 'vue'
 import moment from 'moment'
+import { computed, h, ref, watch } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -81,16 +81,17 @@ async function openSheet(id: number) {
     const res = await useApi().post('campaign-by-id', { campaign_id: id })
     selectedCampaign.value = res[0]
     sheet.value = true
-  } catch (error) {
+  }
+  catch (error) {
     showToast({
       type: 'error',
       message: error?.message || 'An error occurred while fetching campaign details.',
     })
-  } finally {
+  }
+  finally {
     campaignLoadingId.value = null
   }
 }
-
 
 const columnHelper = createColumnHelper<any>()
 
@@ -106,7 +107,7 @@ const columns = [
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-center text-sm font-normal',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
@@ -117,16 +118,14 @@ const columns = [
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
       const start = row.original.call_time_start
       const end = row.original.call_time_end
-      return h('div', { class: 'uppercase text-center text-sm' },
-        start && end
-          ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
-          : 'N/A'
-      )
+      return h('div', { class: 'uppercase text-center text-sm' }, start && end
+        ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
+        : 'N/A')
     },
   }),
 
@@ -141,10 +140,21 @@ const columns = [
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' },
-      `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`,
+    ),
+  }),
+
+  columnHelper.display({
+    id: 'hoppers',
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Hoppers', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, 0,
     ),
   }),
 
@@ -154,7 +164,7 @@ const columns = [
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
       const updated = row.original.updated
@@ -172,24 +182,25 @@ const columns = [
       h('div', { class: 'text-center ' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal leading-[9px] text-sm' },
-        h(Switch, {
-          class: 'data-[state=checked]:bg-green-600 cursor-pointer',
-          modelValue: row.original.status === 1,
-          'onUpdate:modelValue': (val: boolean) => {
-            row.original.status = val ? 1 : 0
-          }
-        })
-      ),
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
+        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'modelValue': row.original.status === 1,
+        'onUpdate:modelValue': (val: boolean) => {
+          row.original.status = val ? 1 : 0
+        },
+      })),
     sortingFn: (rowA, rowB, columnId) => {
       const valueA = rowA.original.status === 1
       const valueB = rowB.original.status === 1
-      if (valueA === valueB) return 0
-      if (valueA && !valueB) return -1
-      if (!valueA && valueB) return 1
+      if (valueA === valueB)
+        return 0
+      if (valueA && !valueB)
+        return -1
+      if (!valueA && valueB)
+        return 1
       return 0
     },
   }),
@@ -211,8 +222,8 @@ const columns = [
             name: campaignLoadingId.value === row.original.id
               ? 'eos-icons:bubble-loading'
               : 'lucide:eye',
-          }
-        )
+          },
+        ),
       ),
       h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
     ]),
@@ -256,7 +267,6 @@ function handlePageChange(page: number) {
 </script>
 
 <template>
-  
   <div class="border rounded-lg my-6 overflow-hidden">
     <Table>
       <TableHeader>
