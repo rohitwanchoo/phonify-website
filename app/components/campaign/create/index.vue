@@ -4,6 +4,16 @@ import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from '@/components/ui/command'
 
 import {
   FormControl,
@@ -99,6 +109,8 @@ const dialingModes = [
   },
 ]
 
+const selectedCallTime = ref<{ id: number, name: string }>()
+
 const depositions = [
   'Callback',
   'Feedback',
@@ -158,6 +170,45 @@ const { handleSubmit, values } = useForm({
 
 function onSubmit() {
   emits('completed')
+}
+
+const CallTimes = [
+  {
+    id: 1,
+    name: 'Call Time 1',
+  },
+  {
+    id: 2,
+    name: 'Call Time 2',
+  },
+  {
+    id: 3,
+    name: 'Call Time 3',
+  },
+  {
+    id: 4,
+    name: 'Call Time 4',
+  },
+  {
+    id: 5,
+    name: 'Call Time 5',
+  },
+  {
+    id: 6,
+    name: 'Call Time 6',
+  },
+  {
+    id: 7,
+    name: 'Call Time 7',
+  },
+  {
+    id: 8,
+    name: 'Call Time 8',
+  },
+]
+
+function onSelectCallTime(val: any) {
+  accordion2.value = ''
 }
 </script>
 
@@ -374,8 +425,8 @@ function onSubmit() {
                 <AccordionContent class="p-5">
                   <Accordion v-model="accordion2" collapsible class="">
                     <AccordionItem value="item-2" class="">
-                      <AccordionTrigger class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-xs font-normal">
-                        Select a Call Time
+                      <AccordionTrigger :class="selectedCallTime && '!text-black' " class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-xs font-normal">
+                        {{ selectedCallTime ? selectedCallTime?.name : 'Select Call Time' }}
                       </AccordionTrigger>
 
                       <AccordionContent class="p-3 border rounded-lg mt-1 ">
@@ -384,15 +435,18 @@ function onSubmit() {
                             Create Custom Call Time <Icon name="lucide:plus" />
                           </Button>
                         </CallTimesCreate>
-
-                        <div class="max-h-[300px] overflow-y-auto">
-                          <div v-for="n in 10" :key="n" class="text-xs flex items-center justify-between border-b last:border-b-0 py-3">
-                            Call Time #1
-                            <Button size="icon" variant="outline">
-                              <Icon name="mdi:eye" />
-                            </Button>
-                          </div>
-                        </div>
+                        <Command v-model="selectedCallTime" selection-behavior="toggle" class="max-h-[300px] overflow-y-auto" @update:model-value="onSelectCallTime">
+                          <CommandList>
+                            <CommandGroup>
+                              <CommandItem v-for="item in CallTimes" :key="item.name" :value="item" va class="text-xs flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
+                                {{ item.name }}
+                                <Button size="icon" variant="outline">
+                                  <Icon name="mdi:eye" />
+                                </Button>
+                              </CommandItem>
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
