@@ -1,64 +1,64 @@
 <script setup lang="ts">
 import { Input } from '~/components/ui/input'
 
-export interface CallTiming {
-  id: number
-  day: string
-  from_time: string
-  to_time: string
-  department_id: number
-  name: string
-  description: string
-  calltimeStatus: boolean
-  actions?: string
+// export interface callTimingList {
+//   id: number
+//   day: string
+//   from_time: string
+//   to_time: string
+//   department_id: number
+//   name: string
+//   description: string
+//   calltimeStatus: boolean
+//   actions?: string
+// }
+
+const meta = {
+  current_page: 1,
+  per_page: 10,
+  last_page: 1,
+  total: 20,
 }
 
-const perPage = 10
-const currentPage = ref(1)
+const pageStart = ref(0)
+const limit = ref(10)
+const searchQuery = ref('')
 
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
-
-const { data: callTimingList, status, pending } = await useLazyAsyncData('/get-call-timings', () =>
-  useApi().post('/get-call-timings', {}), {
+const { data: callTimingList, status, refresh } = await useLazyAsyncData('get-call-timings', () =>
+  useApi().post('/get-call-timings', {
+    body: {
+      start: pageStart.value,
+      limit: limit.value,
+    },
+  }), {
   transform: (res) => {
-    return res.data
+    return res
   },
 })
 
-const meta = ref<Meta>({
-  current_page: currentPage.value,
-  per_page: perPage,
-  last_page: 1,
-  total: 0,
+function changePage(page: number) {
+  pageStart.value = Number((page - 1) * limit.value)
+  return refresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refresh()
+}
+
+const filteredCallTimes = computed(() => {
+  if (!callTimingList.value?.data) return []
+
+  return callTimingList.value.data.filter((item: { name: string; day: string; description: string }) => {
+    const query = searchQuery.value.toLowerCase()
+    return (
+      item.name?.toLowerCase().includes(query) ||
+      item.day?.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query)
+    )
+  })
 })
 
-// Watch for callTimingList changes to update meta
-watchEffect(() => {
-  if (callTimingList.value) {
-    const total = callTimingList.value.length
-    meta.value = {
-      current_page: currentPage.value,
-      per_page: perPage,
-      last_page: Math.ceil(total / perPage),
-      total,
-    }
-  }
-})
-
-// Create a reactive reference for the list
-const data = ref<CallTiming[]>([])
-
-// Sync API result to data ref
-watchEffect(() => {
-  if (callTimingList.value) {
-    data.value = callTimingList.value
-  }
-})
 </script>
 
 <template>
@@ -67,7 +67,7 @@ watchEffect(() => {
     <BaseHeader title="Call Times">
       <template #actions>
         <div class="relative">
-          <Input placeholder="Search List" />
+          <Input v-model="searchQuery" placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
         <div>
@@ -78,7 +78,7 @@ watchEffect(() => {
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :list="data" :meta="meta" :loading="pending" />
+      <CallTimesTable :limit="limit" :total-rows="filteredCallTimes.length" :start="pageStart" :list="filteredCallTimes || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>

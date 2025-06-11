@@ -5,13 +5,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -28,23 +21,23 @@ const emits = defineEmits(['delete', 'edit', 'reset', 'unlock', 'changePassword'
     <DropdownMenuContent class="">
       <DropdownMenuGroup>
         <DropdownMenuItem class="cursor-pointer" @click="emits('edit')">
-          <Icon name="material-symbols:edit-square-outline" />
+          <Icon name="material-symbols:edit-square-outline" size="16" />
           Edit
         </DropdownMenuItem>
         <DropdownMenuItem class="cursor-pointer" @click="emits('changePassword')">
-          <Icon name="material-symbols:password" />
+          <Icon name="material-symbols:password" size="16" />
           Change Password
         </DropdownMenuItem>
         <DropdownMenuItem class="cursor-pointer" @click="emits('unlock')">
-          <Icon name="material-symbols:lock-open-outline" />
+          <Icon name="material-symbols:lock-open-outline" size="16" />
           Unlock Extension
         </DropdownMenuItem>
         <DropdownMenuItem class="cursor-pointer" @click="emits('reset')">
-          <Icon name="material-symbols:refresh" />
+          <Icon name="material-symbols:refresh" size="16" />
           Reset Extension
         </DropdownMenuItem>
         <DropdownMenuItem class="text-red-600 cursor-pointer hover:!text-red-500" @click="emits('delete')">
-          <Icon name="mdi:trash-can" />
+          <Icon name="mdi:trash-can" size="16" />
           Delete
         </DropdownMenuItem>
       </DropdownMenuGroup>
