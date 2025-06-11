@@ -91,10 +91,6 @@ async function openSheet(id: number) {
   }
 }
 
-// Watch for changes to selectedCampaign and log them
-watch(selectedCampaign, (val) => {
-  console.log('[watch] selectedCampaign changed:', val)
-})
 
 const columnHelper = createColumnHelper<any>()
 
