@@ -63,7 +63,7 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-async function deleteMethod() {
+async function deleteMethod(_original: callTimingList) {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
     return false
@@ -93,7 +93,11 @@ export interface callTimingList {
 
 const sheet = ref(false)
 
+const edit = ref(false)
+
 const selectedRowData = ref<callTimingList | null>(null)
+
+const editRowData = ref<callTimingList | null>(null)
 
 const columnHelper = createColumnHelper<callTimingList>()
 
@@ -174,15 +178,18 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-        h(Button, { 
-          size: 'icon', 
-          class: 'cursor-pointer', 
-          onClick: () => { 
+        h(Button, {
+          size: 'icon',
+          class: 'cursor-pointer',
+          onClick: () => {
             selectedRowData.value = row.original
             sheet.value = true
-          } 
+          },
         }, h(Icon, { name: 'lucide:eye' })),
         h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Action, {
+          onEdit: () => {
+            editMethod(row?.original)
+          },
           onDelete: () => {
             deleteMethod(row?.original)
           },
@@ -232,8 +239,15 @@ function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
 
-function changeLimit(val: number) {
-  emits('changeLimit', val)
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function editMethod(original: callTimingList) {
+  editRowData.value = original
+  edit.value = true
 }
 </script>
 
@@ -296,7 +310,7 @@ function changeLimit(val: number) {
         Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -321,7 +335,9 @@ function changeLimit(val: number) {
   </div>
 
   <!---->
-  <CallTimesTableSheet v-model:open="sheet" :schedule="selectedRowData" />
+  <CallTimesTableSheet v-model:open="sheet" :schedule="selectedRowData || {}" />
+
+  <CallTimesTableEdit v-model:open="edit" :edit-data="editRowData" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Call Times" description="You are about to delete call time. Do you wish to proceed?" />

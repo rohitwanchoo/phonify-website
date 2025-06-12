@@ -129,7 +129,7 @@ const onSubmit = handleSubmit(async (values) => {
         </Button>
       </slot>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[715px] [&>button]:hidden">
+    <DialogContent class="sm:max-w-[715px] max-h-screen overflow-y-auto [&>button]:hidden">
       <DialogHeader class="gap-y-[17px]">
         <DialogTitle class="text-[16px] font-medium flex items-center justify-between">
           Create Call Time

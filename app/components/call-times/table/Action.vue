@@ -16,8 +16,8 @@ const emits = defineEmits(['delete', 'edit'])
         <Icon name="material-symbols:more-vert" size="24" class="cursor-pointer" />
     </DropdownMenuTrigger>
     <DropdownMenuContent>
-      <DropdownMenuItem>
-        <Icon name="material-symbols:edit-square-outline" size="16" @click="emits('edit')" />
+      <DropdownMenuItem class="cursor-pointer" @click="emits('edit')">
+        <Icon name="material-symbols:edit-square-outline" size="16" />
         Edit
       </DropdownMenuItem>
       <DropdownMenuItem class="text-red-600 cursor-pointer hover:!text-red-500" @click="emits('delete')">
