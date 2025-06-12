@@ -130,7 +130,7 @@ const columns = [
   }),
 
   columnHelper.accessor('group_id', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'List'),
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.group_id),
   }),
 

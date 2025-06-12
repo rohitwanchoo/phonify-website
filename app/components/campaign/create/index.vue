@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
+import { useFilter } from 'reka-ui'
+
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
+
 import {
   Command,
   CommandEmpty,
@@ -32,6 +36,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+import { Skeleton } from '@/components/ui/skeleton'
+
+import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input'
 
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Button } from '~/components/ui/button'
@@ -111,36 +119,29 @@ const dialingModes = [
 
 const selectedCallTime = ref<{ id: number, name: string }>()
 
-const depositions = [
-  'Callback',
-  'Feedback',
-  'Notification',
-  'Event Trigger',
-  'Confirmation',
-  'Alert',
-  'Reminder',
-  'Execution',
-  'Feedback',
-  'Notification',
-  'Event Trigger',
-  'Confirmation',
-  'Feedback',
-  'Notification',
-  'Event Trigger',
-  'Confirmation',
-  'Feedback',
-  'Notification',
-  'Event Trigger',
-  'Confirmation',
-  'Feedback',
-  'Notification',
-  'Event Trigger',
-  'Confirmation',
-  'Feedback',
-  'Notification',
-  'Event Trigger',
-  'Confirmation',
-]
+const { data: callTimingList, status: callTimingListStatus, refresh: callTimingListRefresh } = await useLazyAsyncData('get-call-timings-campaign', () =>
+  useApi().post('/get-call-timings', {
+
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+  immediate: false,
+})
+const { data: emailTemplateList } = await useLazyAsyncData('get-email-template', () =>
+  useApi().get('/email-templates', {
+
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+})
+
+function onEnableTimeBasedCalling(val: boolean) {
+  if (val && !callTimingList.value?.length) {
+    callTimingListRefresh()
+  }
+}
 
 const formSchema = toTypedSchema(z.object({
   name: z.string().min(1, 'required').max(50),
@@ -172,42 +173,34 @@ function onSubmit() {
   emits('completed')
 }
 
-const CallTimes = [
-  {
-    id: 1,
-    name: 'Call Time 1',
-  },
-  {
-    id: 2,
-    name: 'Call Time 2',
-  },
-  {
-    id: 3,
-    name: 'Call Time 3',
-  },
-  {
-    id: 4,
-    name: 'Call Time 4',
-  },
-  {
-    id: 5,
-    name: 'Call Time 5',
-  },
-  {
-    id: 6,
-    name: 'Call Time 6',
-  },
-  {
-    id: 7,
-    name: 'Call Time 7',
-  },
-  {
-    id: 8,
-    name: 'Call Time 8',
-  },
+const depositions = [
+  { value: 1, label: 'Call Back' },
+  { value: 2, label: 'Cancelled By User' },
+  { value: 3, label: 'Click2Call' },
+  { value: 4, label: 'clickable' },
+  { value: 5, label: 'clickable' },
+  { value: 6, label: 'Disconnected' },
+  { value: 7, label: 'Do Not Call' },
+  { value: 9, label: 'No Answer' },
+  { value: 10, label: 'No longer in Business' },
+  { value: 11, label: 'Not Interested' },
+  { value: 12, label: 'Outbound AI Dialed' },
+  { value: 13, label: 'Sale - (Survey Done)' },
+  { value: 14, label: 'Sale Made' },
+
 ]
 
-function onSelectCallTime(val: any) {
+const selectedDeposition = ref<string[]>([])
+const open = ref(false)
+const searchTerm = ref('')
+
+const { contains } = useFilter({ sensitivity: 'base' })
+const filteredDeposition = computed(() => {
+  const options = depositions.filter(i => !selectedDeposition.value.includes(i.label))
+  return searchTerm.value ? options.filter(option => contains(option.label, searchTerm.value)) : options
+})
+
+function onSelectCallTime() {
   accordion2.value = ''
 }
 </script>
@@ -418,7 +411,7 @@ function onSelectCallTime(val: any) {
                   </div>
                   <AccordionTrigger>
                     <template #icon>
-                      <Switch class="data-[state=checked]:bg-green-600" />
+                      <Switch class="data-[state=checked]:bg-green-600" @update:model-value="onEnableTimeBasedCalling" />
                     </template>
                   </AccordionTrigger>
                 </div>
@@ -438,7 +431,12 @@ function onSelectCallTime(val: any) {
                         <Command v-model="selectedCallTime" selection-behavior="toggle" class="max-h-[300px] overflow-y-auto" @update:model-value="onSelectCallTime">
                           <CommandList>
                             <CommandGroup>
-                              <CommandItem v-for="item in CallTimes" :key="item.name" :value="item" va class="text-xs flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
+                              <template v-if="callTimingListStatus === 'pending'">
+                                <CommandItem v-for="item in 10" :key="item" :value="item" class="text-xs flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
+                                  <Skeleton class="h-[50px] w-full" />
+                                </CommandItem>
+                              </template>
+                              <CommandItem v-for="item in callTimingList" v-else :key="item.name" :value="item" class="text-xs flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
                                 {{ item.name }}
                                 <Button size="icon" variant="outline">
                                   <Icon name="mdi:eye" />
@@ -472,8 +470,8 @@ function onSelectCallTime(val: any) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem v-for="item in templates" :key="item.id" :value="item.id">
-                      {{ item.name }}
+                    <SelectItem v-for="item in emailTemplateList" :key="item.id" :value="item.id">
+                      {{ item.template_name }}
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -536,16 +534,48 @@ function onSelectCallTime(val: any) {
                 </Select>
               </div>
             </div>
+
             <div class="mt-5">
               <Label class="text-xs font-normal">Deposition</Label>
-              <div class="border rounded-lg p-3 flex flex-wrap gap-2">
-                <div v-for="item in depositions" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] flex gap-x-1 px-[5px] py-1">
-                  <div class="text-xs">
-                    {{ item }}
-                  </div>
-                  <Icon name="lucide:x" class="cursor-pointer" />
-                </div>
-              </div>
+              <Combobox v-model="selectedDeposition" v-model:open="open" :ignore-filter="true">
+                <ComboboxAnchor as-child>
+                  <TagsInput v-model="selectedDeposition" class="px-2 gap-2 [&_svg]:hidden w-full ">
+                    <div class="flex gap-2 flex-wrap items-center ">
+                      <TagsInputItem v-for="item in selectedDeposition" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] p-[11px] px-[7px]" :value="item">
+                        <TagsInputItemText />
+                        <TagsInputItemDelete>
+                          <Icon name="lucide:x" />
+                        </TagsInputItemDelete>
+                      </TagsInputItem>
+                    </div>
+                    <ComboboxInput v-model="searchTerm" as-child class="border-none ">
+                      <TagsInputInput placeholder="deposition..." class=" w-full p-0 border-none focus-visible:ring-0 h-auto " @keydown.enter.prevent />
+                    </ComboboxInput>
+                  </TagsInput>
+
+                  <ComboboxList class="w-[--reka-popper-anchor-width]">
+                    <ComboboxEmpty />
+                    <ComboboxGroup class="w-[400px]">
+                      <ComboboxItem
+                        v-for="item in filteredDeposition" :key="item.value" :value="item.label"
+                        @select.prevent="(ev) => {
+
+                          if (typeof ev.detail.value === 'string') {
+                            searchTerm = ''
+                            selectedDeposition.push(ev.detail.value)
+                          }
+
+                          if (filteredDeposition.length === 0) {
+                            open = false
+                          }
+                        }"
+                      >
+                        {{ item.label }}
+                      </ComboboxItem>
+                    </ComboboxGroup>
+                  </ComboboxList>
+                </ComboboxAnchor>
+              </Combobox>
             </div>
           </div>
         </div>
