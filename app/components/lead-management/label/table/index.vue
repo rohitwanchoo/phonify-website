@@ -17,7 +17,7 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 
-import { ChevronsUpDown } from 'lucide-vue-next'
+// import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 import { h, ref } from 'vue'
 
