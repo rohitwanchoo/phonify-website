@@ -52,3 +52,8 @@ export function copyToClipboard(value: any, name?: string) {
 export function formatWithCommas(value: number | string): string {
   return new Intl.NumberFormat().format(Number(value))
 }
+
+// function for listing timezones using moment
+export function listTimezones(): string[] {
+  return Intl.supportedValuesOf('timeZone')
+}
