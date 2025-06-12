@@ -41,7 +41,7 @@ const userDetails = computed(() => [
       </div>
       <div name="details_container" class="flex flex-col p-5 gap-5 w-full overflow-y-auto">
         <div v-for="(detail, index) in userDetails" :key="index">
-          <p class="text-xs text-gray-600 pb-1">
+          <p class="text-sm text-gray-600 pb-1">
             {{ detail.label }}
           </p>
           <p class="text-sm text-primary font-medium">

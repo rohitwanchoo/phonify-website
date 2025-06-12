@@ -84,7 +84,7 @@ const CLIS = [
   {
     id: 2,
     name: 'Custom',
-  }
+  },
 ]
 
 const Timezones = [
@@ -168,26 +168,26 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="first_name">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   First Name
                 </FormLabel>
                 <FormControl>
-                  <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Type Fist Name" v-bind="componentField" />
+                  <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type Fist Name" v-bind="componentField" />
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="last_name">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Last Name
                 </FormLabel>
                 <FormControl>
-                  <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Type Fist Name" v-bind="componentField" />
+                  <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type Fist Name" v-bind="componentField" />
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -196,33 +196,33 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="extension_name">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Extension
                 </FormLabel>
                 <FormControl>
-                  <!-- <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Extension" v-bind="componentField" /> -->
+                  <!-- <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Extension" v-bind="componentField" /> -->
 
                   <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg">
-                    <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
-                    <Button class=" text-xs font-normal mr-1 rounded-lg">
+                    <Input type="text" class="text-sm focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-sm h-11" v-bind="componentField" />
+                    <Button class=" text-sm font-normal mr-1 rounded-lg">
                       Auto Generate
                     </Button>
                   </div>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="email">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   E-mail
                 </FormLabel>
                 <FormControl>
-                  <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Type E-mail" v-bind="componentField" />
+                  <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type E-mail" v-bind="componentField" />
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -231,31 +231,31 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="password">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Password
                 </FormLabel>
                 <FormControl>
                   <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg">
-                    <Input type="text" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
-                    <Button class=" text-xs font-normal mr-1 rounded-lg">
+                    <Input type="text" class="text-sm focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-sm h-11" v-bind="componentField" />
+                    <Button class=" text-sm font-normal mr-1 rounded-lg">
                       Auto Generate
                     </Button>
                   </div>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="asterisk_server_id">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Voice Server
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                      <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Server" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Server" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -266,7 +266,7 @@ const onSubmit = handleSubmit((values) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -283,35 +283,35 @@ const onSubmit = handleSubmit((values) => {
         <div class="">
           <FormField v-slot="{ componentField, errorMessage }" class="" name="vm_pin">
             <FormItem>
-              <FormLabel class="font-normal text-xs">
+              <FormLabel class="font-normal text-sm">
                 VoiceMail Pin
               </FormLabel>
               <FormControl>
                 <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg">
-                  <Input type="text" placeholder="Type VM Pin" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
-                  <Button class=" text-xs font-normal mr-1 rounded-lg">
+                  <Input type="text" placeholder="Type VM Pin" class="text-sm focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-sm h-11" v-bind="componentField" />
+                  <Button class=" text-sm font-normal mr-1 rounded-lg">
                     Auto Generate
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage class="text-xs" />
+              <FormMessage class="text-sm" />
             </FormItem>
           </FormField>
         </div>
         <div class="flex gap-x-2">
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Follow Me
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Call forward
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Voicemail
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Send Voicemail to email
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
@@ -326,19 +326,19 @@ const onSubmit = handleSubmit((values) => {
       </div>
       <div class="p-5 space-y-5">
         <div class="flex gap-x-2">
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Enable 2FA
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Allow Mobile App Login
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             Twinning
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
-          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-xs font-normal flex-1">
+          <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             IP Filtering
             <Switch class="data-[state=checked]:bg-green-600" />
           </div>
@@ -356,7 +356,7 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="mobile">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Phone Number
                 </FormLabel>
                 <FormControl>
@@ -364,7 +364,7 @@ const onSubmit = handleSubmit((values) => {
                     <div class="border flex items-center rounded-lg  w-full">
                       <Select v-model="selectedCountry" default-value="+1">
                         <SelectTrigger class="w-min border-none rounded-sm bg-gray-100 !h-11">
-                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Server" />
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Server" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -374,11 +374,11 @@ const onSubmit = handleSubmit((values) => {
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <Input type="text" placeholder="Enter Phone Number" class="text-xs focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-xs h-11" v-bind="componentField" />
+                      <Input type="text" placeholder="Enter Phone Number" class="text-sm focus-visible:ring-0 focus:ring-0 border-0 font-normal placeholder:text-sm h-11" v-bind="componentField" />
                     </div>
                   </div>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -386,13 +386,13 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="cli_setting">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   CLI Setting
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Area Code" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Area Code" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -403,7 +403,7 @@ const onSubmit = handleSubmit((values) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -421,13 +421,13 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="extensionType">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Extension Type
                 </FormLabel>
                 <FormControl>
                   <Select default-value="Extension" v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-xs placeholder:text-[#ef698180]" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -438,20 +438,20 @@ const onSubmit = handleSubmit((values) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="package_id">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Select Package
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Please Select Package" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Please Select Package" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -462,7 +462,7 @@ const onSubmit = handleSubmit((values) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -471,13 +471,13 @@ const onSubmit = handleSubmit((values) => {
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="Group">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Group
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Group" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Group" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -488,20 +488,20 @@ const onSubmit = handleSubmit((values) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="timezone">
               <FormItem>
-                <FormLabel class="font-normal text-xs">
+                <FormLabel class="font-normal text-sm">
                   Times Zone
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-xs placeholder:text-[#ef698180]" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -512,7 +512,7 @@ const onSubmit = handleSubmit((values) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -527,17 +527,17 @@ const onSubmit = handleSubmit((values) => {
       </div>
       <div class="p-5 space-y-5 flex">
         <div class="w-[30%] flex items-center gap-x-5">
-          <div class="text-xs font-normal text-nowrap">
+          <div class="text-sm font-normal text-nowrap">
             Forward Incoming SMS To:
           </div>
           <div class="flex justify-between items-center w-full">
             <div class="flex items-center gap-x-1">
               <Checkbox id="email" class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" />
-              <Label class="text-xs font-normal" for="email">Email</Label>
+              <Label class="text-sm font-normal" for="email">Email</Label>
             </div>
             <div class="flex items-center gap-x-1">
               <Checkbox id="sms" class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" />
-              <Label class="text-xs font-normal" for="sms">SMS</Label>
+              <Label class="text-sm font-normal" for="sms">SMS</Label>
             </div>
           </div>
         </div>

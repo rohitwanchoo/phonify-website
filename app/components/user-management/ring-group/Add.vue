@@ -131,7 +131,7 @@ function removeExtension(index: number) {
             name="name"
           >
             <FormItem>
-              <FormLabel class="text-xs font-normal">
+              <FormLabel class="text-sm font-normal">
                 Name
               </FormLabel>
               <FormControl>
@@ -145,7 +145,7 @@ function removeExtension(index: number) {
             name="description"
           >
             <FormItem>
-              <FormLabel class="text-xs font-normal">
+              <FormLabel class="text-sm font-normal">
                 Description
               </FormLabel>
               <FormControl>
@@ -160,16 +160,16 @@ function removeExtension(index: number) {
             name="extension"
           >
             <FormItem>
-              <FormLabel class="text-xs font-normal">
+              <FormLabel class="text-sm font-normal">
                 Extensions
               </FormLabel>
               <FormControl>
-                <div :class="errors.extension && 'border-red-600'" class="p-4 text-xs text-gray-500 flex items-center border rounded-lg cursor-pointer">
+                <div :class="errors.extension && 'border-red-600'" class="p-4 text-sm text-gray-500 flex items-center border rounded-lg cursor-pointer">
                   <div v-if="!selectedExtensions.length" class="hover:text-primary" @click="addExtensionSheet = true">
                     Select extensions
                   </div>
                   <ul v-else v-auto-animate class="flex gap-2 items-center flex-wrap">
-                    <li v-for="(item, index) in selectedExtensions" :key="item.extension" class="border py-[3px] px-[5px] rounded-[6px] text-xs text-primary border-[#00A086] bg-[#00A0861A] flex items-center gap-x-1 text-nowrap">
+                    <li v-for="(item, index) in selectedExtensions" :key="item.extension" class="border py-[3px] px-[5px] rounded-[6px] text-sm text-primary border-[#00A086] bg-[#00A0861A] flex items-center gap-x-1 text-nowrap">
                       {{ item.first_name }} {{ item.last_name }} - {{ item.extension }}
                       <Icon size="14" name="lucide:x" class="" @click.stop="removeExtension(index)" />
                     </li>
@@ -187,7 +187,7 @@ function removeExtension(index: number) {
             name="email"
           >
             <FormItem>
-              <FormLabel class="text-xs font-normal">
+              <FormLabel class="text-sm font-normal">
                 email
               </FormLabel>
               <FormControl>
@@ -204,13 +204,13 @@ function removeExtension(index: number) {
                 name="ring_mode"
               >
                 <FormItem>
-                  <FormLabel class="text-xs font-normal">
+                  <FormLabel class="text-sm font-normal">
                     Ring Mode
                   </FormLabel>
                   <FormControl>
                     <Select v-bind="componentField">
                       <SelectTrigger class="w-full !h-11 ">
-                        <SelectValue class="text-xs" placeholder="Select ring mode" />
+                        <SelectValue class="text-sm" placeholder="Select ring mode" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -231,13 +231,13 @@ function removeExtension(index: number) {
                 name="receive_on"
               >
                 <FormItem>
-                  <FormLabel class="text-xs font-normal">
+                  <FormLabel class="text-sm font-normal">
                     Receive On
                   </FormLabel>
                   <FormControl>
                     <Select v-bind="componentField">
                       <SelectTrigger class="w-full !h-11 ">
-                        <SelectValue class="text-xs" placeholder="Select received on" />
+                        <SelectValue class="text-sm" placeholder="Select received on" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
