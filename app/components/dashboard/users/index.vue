@@ -109,17 +109,17 @@ const data = [
       </div>
       <div class="grid grid-cols-2 w-full xl:col-span-3 gap-4">
         <div v-for="item in data" :key="item.id" class="bg-white rounded-lg border p-3 w-full max-h-[103px] col-span-2 md:col-span-1">
-          <h2 class="text-sm font-medium text-black mb-5">
+          <h2 class=" font-medium text-black mb-3">
             {{ item.title }}
           </h2>
-          <div class="space-y-2">
+          <div class="space-y-1">
             <div class="flex justify-between items-center">
-              <span class="text-[#000000B2] text-xs font-normal">Calls</span>
-              <span class="text-[#1D3E51] font-medium text-xs">{{ item.calls }}</span>
+              <span class="text-[#000000B2] text-sm font-normal">Calls</span>
+              <span class="text-[#1D3E51] font-medium text-sm">{{ item.calls }}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-[#000000B2] text-xs font-normal">Avg Duration</span>
-              <span class="text-[#000000B2] text-xs font-normal">{{ item.avgDuration }}</span>
+              <span class="text-[#000000B2] text-sm font-normal">Avg Duration</span>
+              <span class="text-[#000000B2] text-sm font-normal">{{ item.avgDuration }}</span>
             </div>
           </div>
         </div>

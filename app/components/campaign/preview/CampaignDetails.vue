@@ -93,33 +93,33 @@ const enableEdit = ref(false)
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="name">
               <FormItem>
-                <FormLabel class="font-normal text-xs" :class="!enableEdit && 'text-gray-500'">
+                <FormLabel class="font-normal text-sm" :class="!enableEdit && 'text-gray-500'">
                   Name
                 </FormLabel>
                 <FormControl>
                   <Input
                     v-if="enableEdit"
-                    type="text" class="text-xs font-normal placeholder:text-xs h-11"
+                    type="text" class="text-sm font-normal placeholder:text-sm h-11"
                     placeholder="Enter Campaign Name" v-bind="componentField"
                   />
                   <div v-else class="text-[16px] font-normal text-primary">
                     {{ values.name }}
                   </div>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" name="countryCode">
               <FormItem>
-                <FormLabel class="font-normal text-xs" :class="!enableEdit && 'text-gray-500'">
+                <FormLabel class="font-normal text-sm" :class="!enableEdit && 'text-gray-500'">
                   Country Code
                 </FormLabel>
                 <FormControl>
                   <Select v-if="enableEdit" v-bind="componentField">
                     <SelectTrigger class="w-full !h-11 ">
-                      <SelectValue class="text-xs" placeholder="Select Code" />
+                      <SelectValue class="text-sm" placeholder="Select Code" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -133,7 +133,7 @@ const enableEdit = ref(false)
                     {{ values.countryCode }}
                   </div>
                 </FormControl>
-                <FormMessage class="text-xs" />
+                <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
           </div>
@@ -142,16 +142,16 @@ const enableEdit = ref(false)
         <div class="w-full">
           <FormField v-slot="{ componentField }" class="" name="description">
             <FormItem>
-              <FormLabel class="font-normal text-xs" :class="!enableEdit && 'text-gray-500'">
+              <FormLabel class="font-normal text-sm" :class="!enableEdit && 'text-gray-500'">
                 Description
               </FormLabel>
               <FormControl>
-                <Textarea v-if="enableEdit" type="text" class="text-xs font-normal placeholder:text-xs  " placeholder="Enter Campaign Name" v-bind="componentField" />
+                <Textarea v-if="enableEdit" type="text" class="text-sm font-normal placeholder:text-sm  " placeholder="Enter Campaign Name" v-bind="componentField" />
                 <div v-else class="text-[16px] font-normal text-primary">
                   {{ values.description }}
                 </div>
               </FormControl>
-              <FormMessage class="text-xs" />
+              <FormMessage class="text-sm" />
             </FormItem>
           </FormField>
         </div>

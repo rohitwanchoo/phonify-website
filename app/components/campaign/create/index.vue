@@ -216,16 +216,16 @@ function onSelectCallTime() {
               Campaign Details
             </div>
             <div class="flex items-center gap-x-2">
-              <div class="text-primary text-xs font-normal">
+              <div class="text-primary text-sm font-normal">
                 status:
               </div>
               <div class="bg-[#FEF2F2] rounded-lg">
                 <ToggleGroup v-model:model-value="isActive" type="single">
-                  <ToggleGroupItem value="active" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-xs" aria-label="Status active">
+                  <ToggleGroupItem value="active" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
                     <Icon name="stash:circle-dot" size="30" />
                     Active
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="inactive" class="!bg-[#FEF2F2] data-[state=on]:!bg-red-600 data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-xs" aria-label="Status inactive">
+                  <ToggleGroupItem value="inactive" class="!bg-[#FEF2F2] data-[state=on]:!bg-red-600 data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-sm" aria-label="Status inactive">
                     Inactive
                   </ToggleGroupItem>
                 </ToggleGroup>
@@ -237,26 +237,26 @@ function onSelectCallTime() {
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" class="" name="name">
                   <FormItem>
-                    <FormLabel class="font-normal text-xs">
+                    <FormLabel class="font-normal text-sm">
                       Name
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
+                      <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
                     </FormControl>
-                    <FormMessage class="text-xs" />
+                    <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" name="countryCode">
                   <FormItem>
-                    <FormLabel class="font-normal text-xs">
+                    <FormLabel class="font-normal text-sm">
                       Country Code
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger class="w-full !h-11">
-                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Code" />
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Code" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -267,7 +267,7 @@ function onSelectCallTime() {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage class="text-xs" />
+                    <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
@@ -276,13 +276,13 @@ function onSelectCallTime() {
             <div class="w-full">
               <FormField v-slot="{ componentField }" class="" name="description">
                 <FormItem>
-                  <FormLabel class="font-normal text-xs">
+                  <FormLabel class="font-normal text-sm">
                     Description
                   </FormLabel>
                   <FormControl>
-                    <Textarea type="text" class="text-xs font-normal placeholder:text-xs h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
+                    <Textarea type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
                   </FormControl>
-                  <FormMessage class="text-xs" />
+                  <FormMessage class="text-sm" />
                 </FormItem>
               </FormField>
             </div>
@@ -301,13 +301,13 @@ function onSelectCallTime() {
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" name="callerId">
                   <FormItem>
-                    <FormLabel class="font-normal text-xs">
+                    <FormLabel class="font-normal text-sm">
                       Caller Id
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger class="w-full !h-11">
-                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Caller Id" />
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Caller Id" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -318,20 +318,20 @@ function onSelectCallTime() {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage class="text-xs" />
+                    <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" name="customCallerId">
                   <FormItem>
-                    <FormLabel class="font-normal text-xs">
+                    <FormLabel class="font-normal text-sm">
                       Custom Caller Id
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger :disabled="values.callerId !== 1" class="w-full !h-11">
-                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Custom Caller Id" />
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Custom Caller Id" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -342,7 +342,7 @@ function onSelectCallTime() {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage class="text-xs" />
+                    <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
@@ -351,13 +351,13 @@ function onSelectCallTime() {
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" name="dialingMode">
                   <FormItem>
-                    <FormLabel class="font-normal text-xs">
+                    <FormLabel class="font-normal text-sm">
                       Dialing Mode
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger class="w-full !h-11">
-                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Dialing Mode" />
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Dialing Mode" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -368,20 +368,20 @@ function onSelectCallTime() {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage class="text-xs" />
+                    <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" name="callerGroup">
                   <FormItem>
-                    <FormLabel class="font-normal text-xs">
+                    <FormLabel class="font-normal text-sm">
                       Caller Group
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger class="w-full !h-11">
-                          <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select Caller Group" />
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Caller Group" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -392,7 +392,7 @@ function onSelectCallTime() {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage class="text-xs" />
+                    <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
@@ -418,7 +418,7 @@ function onSelectCallTime() {
                 <AccordionContent class="p-5">
                   <Accordion v-model="accordion2" collapsible class="">
                     <AccordionItem value="item-2" class="">
-                      <AccordionTrigger :class="selectedCallTime && '!text-black' " class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-xs font-normal">
+                      <AccordionTrigger :class="selectedCallTime && '!text-black' " class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
                         {{ selectedCallTime ? selectedCallTime?.name : 'Select Call Time' }}
                       </AccordionTrigger>
 
@@ -432,11 +432,11 @@ function onSelectCallTime() {
                           <CommandList>
                             <CommandGroup>
                               <template v-if="callTimingListStatus === 'pending'">
-                                <CommandItem v-for="item in 10" :key="item" :value="item" class="text-xs flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
+                                <CommandItem v-for="item in 10" :key="item" :value="item" class="text-sm flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
                                   <Skeleton class="h-[50px] w-full" />
                                 </CommandItem>
                               </template>
-                              <CommandItem v-for="item in callTimingList" v-else :key="item.name" :value="item" class="text-xs flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
+                              <CommandItem v-for="item in callTimingList" v-else :key="item.name" :value="item" class="text-sm flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
                                 {{ item.name }}
                                 <Button size="icon" variant="outline">
                                   <Icon name="mdi:eye" />
@@ -463,10 +463,10 @@ function onSelectCallTime() {
           </div>
           <div class="p-5 gap-x-5 w-full flex items-center">
             <div class="w-1/2">
-              <Label class="text-xs font-normal">Send Email</Label>
+              <Label class="text-sm font-normal">Send Email</Label>
               <Select class="">
                 <SelectTrigger class="w-full !h-11">
-                  <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select" />
+                  <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -479,15 +479,15 @@ function onSelectCallTime() {
             </div>
             <div class="w-1/2 flex items-center justify-between">
               <div class="flex flex-col gap-y-3">
-                <Label for="send-sms" class="text-xs font-normal">Send SMS</Label>
+                <Label for="send-sms" class="text-sm font-normal">Send SMS</Label>
                 <Switch id="send-sms" class="data-[state=checked]:bg-green-600" />
               </div>
               <div class="flex flex-col gap-y-3">
-                <Label for="send-report" class="text-xs font-normal">Send Report</Label>
+                <Label for="send-report" class="text-sm font-normal">Send Report</Label>
                 <Switch id="send-report" class="data-[state=checked]:bg-green-600" />
               </div>
               <div class="flex flex-col gap-y-3">
-                <Label for="call-transfer" class="text-xs font-normal">Call Transfer</Label>
+                <Label for="call-transfer" class="text-sm font-normal">Call Transfer</Label>
                 <Switch id="call-transfer" class="data-[state=checked]:bg-green-600" />
               </div>
             </div>
@@ -504,10 +504,10 @@ function onSelectCallTime() {
           <div class="p-5">
             <div class=" gap-x-5 w-full flex items-center">
               <div class="w-1/2">
-                <Label class="text-xs font-normal">Hopper Mode Type</Label>
+                <Label class="text-sm font-normal">Hopper Mode Type</Label>
                 <Select class="">
                   <SelectTrigger class="w-full !h-11">
-                    <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select" />
+                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -519,10 +519,10 @@ function onSelectCallTime() {
                 </Select>
               </div>
               <div class="w-1/2">
-                <Label class="text-xs font-normal">OutBound Line</Label>
+                <Label class="text-sm font-normal">OutBound Line</Label>
                 <Select class="">
                   <SelectTrigger class="w-full !h-11">
-                    <SelectValue class="text-xs placeholder:text-[#ef698180]" placeholder="Select" />
+                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -536,10 +536,10 @@ function onSelectCallTime() {
             </div>
 
             <div class="mt-5">
-              <Label class="text-xs font-normal">Deposition</Label>
+              <Label class="text-sm font-normal">Deposition</Label>
               <Combobox v-model="selectedDeposition" v-model:open="open" :ignore-filter="true">
                 <ComboboxAnchor as-child>
-                  <TagsInput v-model="selectedDeposition" class="px-2 gap-2 [&_svg]:hidden w-full ">
+                  <TagsInput v-model="selectedDeposition" class="px-2 gap-2 [&_svg]:hidden w-full [&_[data-slot='command-input-wrapper']]:border-none [&_[data-slot='command-input-wrapper']]:px-1">
                     <div class="flex gap-2 flex-wrap items-center ">
                       <TagsInputItem v-for="item in selectedDeposition" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] p-[11px] px-[7px]" :value="item">
                         <TagsInputItemText />

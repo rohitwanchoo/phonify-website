@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { object } from 'zod'
 import { Button } from '@/components/ui/button'
+
 import {
   Dialog,
   DialogClose,
@@ -11,23 +13,17 @@ import {
   DialogTrigger,
 
 } from '@/components/ui/dialog'
-
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { object } from 'zod'
-
 
 const emits = defineEmits(['refresh'])
 
 interface Group {
   id?: number
   title: string
-  
+
 }
-
-
-
 
 const title = ref('')
 const loading = ref(false)
@@ -69,10 +65,11 @@ const isRename = computed(() => {
   return Object.keys(tempGroup.value || {}).length > 0
 })
 
-function save(){
-  if(isRename.value){
+function save() {
+  if (isRename.value) {
     updateGroup()
-  }else{
+  }
+  else {
     addNewGroup()
   }
 }
@@ -81,28 +78,26 @@ function setRenameValues() {
   if (tempGroup.value) {
     title.value = tempGroup.value.title
   }
-  
 }
 
 watch(() => open.value, (val) => {
   if (val) {
     setRenameValues()
-  }else{
+  }
+  else {
     title.value = ''
     tempGroup.value = null
   }
 })
-
-
 </script>
 
 <template>
-  <Dialog v-model:open="open" >
+  <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <slot>
         <Button>
           <Icon class="!text-white" name="lucide:plus" />
-          Add Group 
+          Add Group
         </Button>
       </slot>
     </DialogTrigger>
@@ -118,14 +113,14 @@ watch(() => open.value, (val) => {
       </DialogHeader>
       <div class="">
         <div class="space-y-2">
-          <Label for="name" class="text-right text-xs">
+          <Label for="name" class="text-right text-sm">
             Name
           </Label>
           <Input id="name" v-model="title" class="h-11" />
         </div>
       </div>
       <DialogFooter>
-        <DialogClose class="w-1/2" >
+        <DialogClose class="w-1/2">
           <Button variant="outline" class="border-red-600 w-full h-11">
             <Icon name="mdi:close" />
             Close
