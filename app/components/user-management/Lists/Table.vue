@@ -126,15 +126,7 @@ const columns = [
     id: 'actions',
     header: () => h('div', { class: 'text-center w-full' }, 'Actions'),
     cell: _ctx => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
-      h(Button, {
-        size: 'sm',
-        variant: 'outline',
-        color: 'primary',
-        class: 'cursor-pointer flex items-center gap-x-1 border border-primary',
-        onClick: () => {
-          navigateTo('/app/lead-management/list/view-leads')
-        },
-      }, [
+      h(Button, { size: 'sm', variant: 'outline', color: 'primary', class: 'cursor-pointer flex items-center gap-x-1 border border-primary' }, [
         h(Icon, { name: 'lucide:eye', color: 'primary' }),
         'View Leads',
       ]),

@@ -18,8 +18,4 @@ import { Input } from '~/components/ui/input'
       </Nuxt-link>
     </template>
   </BaseHeader>
-  <!-- TABLE -->
-  <div>
-    <LeadManagementListsTable />
-  </div>
 </template>
