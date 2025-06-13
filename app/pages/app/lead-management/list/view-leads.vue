@@ -4,7 +4,7 @@ import { Input } from '~/components/ui/input'
 </script>
 
 <template>
-  <BaseHeader title="Lists">
+  <BaseHeader title="#List1">
     <template #actions>
       <div class="relative">
         <Input placeholder="Search List" />
@@ -12,10 +12,11 @@ import { Input } from '~/components/ui/input'
       </div>
       <Nuxt-link to="/app/campaign/new-campaign">
         <Button>
-          <Icon class="!text-white" name="lucide:plus" />
-          Create Lists
+          <Icon class="!text-white" name="lucide:download" />
+          Download
         </Button>
       </Nuxt-link>
     </template>
   </BaseHeader>
+  <LeadManagementListsLeadsTable />
 </template>
