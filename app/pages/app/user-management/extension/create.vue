@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 
 import { Checkbox } from '@/components/ui/checkbox'
 
+const countries = await getCountriesAll()
+
 import {
   FormControl,
   FormField,
@@ -63,19 +65,6 @@ const { data: extensionGroups } = await useLazyAsyncData('get-extension-groups',
   },
 })
 
-const countries = [
-  {
-    id: 1,
-    code: '+1',
-    name: 'USA',
-  },
-  {
-    id: 2,
-    code: '+44',
-    name: 'UK',
-  },
-
-]
 
 const cliSettingsList = [
   {
@@ -91,6 +80,18 @@ const cliSettingsList = [
     name: 'Area Code and Randomizer',
   },
 ]
+
+const extensionTypes = [
+  {
+    id: '1',
+    name: 'Extension',
+  },
+  {
+    id:'2',
+    name: 'Ring Group',
+  },
+]
+
 
 const { data: customCliList, refresh: customCliRefresh, status: customCliStatus } = await useLazyAsyncData('get-custom-cli-list', () =>
   useApi().post('did').catch((error) => {
@@ -110,26 +111,32 @@ const { data: customCliList, refresh: customCliRefresh, status: customCliStatus 
   immediate: false,
 })
 
-const selectedCountry = ref('+1')
+const selectedCountry = ref({ name: 'United States', dial_code: '+1', code: 'US' })
 
 const formSchema = toTypedSchema(z.object({
-  extension_name: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(4, 'maximum 4 character allowed'),
+  extension: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(4, 'maximum 4 character allowed'),
   first_name: z.string().min(1, 'required').max(50),
   last_name: z.string().min(1, 'required').max(50),
   email: z.string().min(1, 'required').email('invalid email format').max(50),
   mobile: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(10, 'maximum 10 character allowed'),
-  // country_code: z.string().min(1, 'required'),
   follow_me: z.boolean(),
   call_forward: z.boolean(),
   voicemail: z.boolean(),
   vm_pin: z.string().min(1, 'required'),
   voicemail_send_to_email: z.boolean(),
-  twinning: z.string().min(1, 'required'),
+  twinning: z.boolean(),
   asterisk_server_id: z.number().min(1, 'required'),
   timezone: z.string().min(1, 'required'),
   cli_setting: z.string().min(0, 'required'),
-  cli: z.string().optional(), // initially optional
-  // cnam: z.string().min(1, 'required'),
+  cli: z.string().min(1, 'required').optional().superRefine((val, ctx) => {
+    if (values.cli_setting === '1' && !val) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CLI is required when CLI Setting is Custom',
+
+      })
+    }
+  }),
   password: z.string().min(1, 'required').max(10, 'maximum 10 character allowed'),
   extension_type: z.string().min(1, 'required'),
   sms_setting_id: z.number().min(1, 'required'),
@@ -138,35 +145,28 @@ const formSchema = toTypedSchema(z.object({
   ip_filtering: z.boolean(),
   enable_2fa: z.boolean(),
   voip_configuration_id: z.number().min(1, 'required'),
-  app_status: z.string().min(1, 'required'),
+  app_status: z.boolean(),
   package_id: z.number().min(1, 'required'),
   group_id: z.array(z.number()).min(1, 'At least one group must be selected'),
-
-  // voiceServer: z.number().min(1, 'required'),
-  // phoneNumber: z.string().min(1, 'required').max(10),
-  // cliSettings: z.number().min(1, 'required'),
-  // extensionType: z.string().min(1, 'required'),
-  // package: z.string().min(1, 'required'),
-
-}).refine((data) => {
-  // If CLI setting is Custom (1), CLI must be provided and non-empty
-  if (data.cli_setting === '1') {
-    return data.cli && data.cli.trim() !== ''
-  }
-  return true
-}, {
-  message: 'CLI is required when CLI Setting is Custom',
-  path: ['cli'],
 }),
 )
 
-const { handleSubmit, values, setValues, errors, setFieldValue } = useForm({
+const { handleSubmit, values, errors, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
     timezone: 'America/New_York',
-    app_status: 'active',
+    app_status: false,
     call_forward: false,
     follow_me: false,
+    voicemail: false,
+    voicemail_send_to_email: false,
+    enable_2fa: false,
+    twinning: false,
+    ip_filtering: false,
+    sms_setting_id: 3, //TODO: need clarity
+    voip_configuration_id: 2 , //TODO: need clarity
+    receive_sms_on_email: false,
+    receive_sms_on_mobile: false,
 
   },
 })
@@ -180,7 +180,7 @@ watch(() => values.cli_setting, (newValue) => {
 
 function autoGenerateExtension() {
   const extension = Math.floor(1000 + Math.random() * 9000)
-  setFieldValue('extension_name', extension.toString())
+  setFieldValue('extension', extension.toString())
 }
 
 function autoGeneratePassword() {
@@ -192,9 +192,6 @@ function autoGenerateVoiceMailPin() {
   const voiceMailPin = Math.floor(1000 + Math.random() * 9000)
   setFieldValue('vm_pin', voiceMailPin.toString())
 }
-const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted!', values)
-})
 
 function onNumericInput(e: Event) {
   const input = e.target as HTMLInputElement
@@ -207,25 +204,48 @@ function onNumericInput(e: Event) {
     input.dispatchEvent(new Event('input', { bubbles: true }))
   }
 }
+const loading = ref(false)
+
+const onSubmit = handleSubmit((values) => {
+  loading.value = true
+  // console.log('Form submitted!', values)
+  const payload = {
+    ...values,
+    follow_me: values.follow_me ? '1' : '0',
+    call_forward: values.call_forward? '1' : '0',
+    twinning: values.twinning? '1' : '0',
+    cnam: values.first_name + ' ' + values.last_name,
+    app_status: values.app_status? 'active' : 'inactive',
+    voicemail: values.voicemail? '1' : '0',
+    voicemail_send_to_email: values.voicemail_send_to_email? '1' : '0',
+    country_code: selectedCountry.value.dial_code
+  }
+
+  useApi().put('/user', payload).then((res) => {
+    console.log(res)
+    showToast({
+      message: res.data.message,
+      type: 'success',
+    })
+
+    navigateTo('/app/user-management/extension')
+
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
+  }).finally(() => {
+    loading.value = false
+  })
+})
 </script>
 
 <template>
-  <!-- {{ values }} -->
-  <!-- {{ errors.extension }} -->
   <BaseHeader title="Add Extension" :breadcrumbs />
 
   <form class="space-y-4 relative h-[calc(100vh-165px)] overflow-y-auto">
     <!-- User Information -->
-    <div>
-      {{ values }}
-    </div>
-    <div class="w-full text-red-600 text-center">
-      ////////////////////////////////////////////////////////////////////////////////////
-    </div>
-    <div>
-      {{ errors }}
-    </div>
-
     <div class="border rounded-lg">
       <div class="px-5 pt-5 pb-3 text-[16px] font-medium border-b">
         User Information
@@ -261,7 +281,7 @@ function onNumericInput(e: Event) {
         </div>
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField, errorMessage }" class="" name="extension_name">
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="extension">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
                   Extension
@@ -397,17 +417,36 @@ function onNumericInput(e: Event) {
                     class="data-[state=checked]:bg-green-600" @update:model-value="handleChange"
                   />
                 </FormControl>
-                <!-- <FormMessage class="text-sm" /> -->
               </FormItem>
             </FormField>
           </div>
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
-            Voicemail
-            <Switch class="data-[state=checked]:bg-green-600" />
+            <FormField v-slot="{ value, handleChange }" name="voicemail">
+              <FormItem class="flex items-center justify-between w-full">
+                Voicemail
+                <FormControl>
+                  <Switch
+                    :model-value="value"
+                    class="data-[state=checked]:bg-green-600"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+              </FormItem>
+            </FormField>
           </div>
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
-            Send Voicemail to email
-            <Switch class="data-[state=checked]:bg-green-600" />
+            <FormField v-slot="{ value, handleChange }" name="voicemail_send_to_email">
+              <FormItem class="flex items-center justify-between w-full">
+                Send Voicemail to email
+                <FormControl>
+                  <Switch
+                    :model-value="value"
+                    class="data-[state=checked]:bg-green-600"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+              </FormItem>
+            </FormField>
           </div>
         </div>
       </div>
@@ -421,20 +460,60 @@ function onNumericInput(e: Event) {
       <div class="p-5 space-y-5">
         <div class="flex gap-x-2">
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
-            Enable 2FA
-            <Switch class="data-[state=checked]:bg-green-600" />
+            <FormField v-slot="{ value, handleChange }" name="enable_2fa">
+              <FormItem class="flex items-center justify-between w-full">
+                Enable 2FA
+                <FormControl>
+                  <Switch
+                    :model-value="value"
+                    class="data-[state=checked]:bg-green-600"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+              </FormItem>
+            </FormField>
           </div>
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
-            Allow Mobile App Login
-            <Switch class="data-[state=checked]:bg-green-600" />
+            <FormField v-slot="{ value, handleChange }" name="app_status">
+              <FormItem class="flex items-center justify-between w-full">
+                Allow Mobile App Login
+                <FormControl>
+                  <Switch
+                    :model-value="value"
+                    class="data-[state=checked]:bg-green-600"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+              </FormItem>
+            </FormField>
           </div>
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
-            Twinning
-            <Switch class="data-[state=checked]:bg-green-600" />
+            <FormField v-slot="{ value, handleChange }" name="twinning">
+              <FormItem class="flex items-center justify-between w-full">
+                Twinning
+                <FormControl>
+                  <Switch
+                    :model-value="value"
+                    class="data-[state=checked]:bg-green-600"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+              </FormItem>
+            </FormField>
           </div>
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
-            IP Filtering
-            <Switch class="data-[state=checked]:bg-green-600" />
+            <FormField v-slot="{ value, handleChange }" name="ip_filtering">
+              <FormItem class="flex items-center justify-between w-full">
+                IP Filtering
+                <FormControl>
+                  <Switch
+                    :model-value="value"
+                    class="data-[state=checked]:bg-green-600"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+              </FormItem>
+            </FormField>
           </div>
         </div>
       </div>
@@ -456,14 +535,14 @@ function onNumericInput(e: Event) {
                 <FormControl>
                   <div class="flex">
                     <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
-                      <Select v-model="selectedCountry" default-value="+1">
+                      <Select v-model="selectedCountry" >
                         <SelectTrigger class="w-min border-none rounded-sm rounded-r-none bg-gray-100 !h-11">
                           <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Server" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in countries" :key="item.id" :value="item.code">
-                              {{ item.name }} ({{ item.code }})
+                            <SelectItem v-for="item in countries" :key="item?.code" :value="item">
+                              {{ item?.name }} ({{ item?.dial_code }})
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -545,20 +624,20 @@ function onNumericInput(e: Event) {
       <div class="p-5 space-y-5">
         <div class="flex gap-x-3 items-start">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="extensionType">
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="extension_type">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
                   Extension Type
                 </FormLabel>
                 <FormControl>
-                  <Select default-value="Extension" v-bind="componentField">
+                  <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-sm placeholder:text-[#ef698180]" />
+                      <SelectValue :class="errorMessage && 'border-red-500'" class="text-sm placeholder:text-[#ef698180]" placeholder="Select Extension Type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="item in ['Extension']" :key="item" :value="item">
-                          {{ item }}
+                        <SelectItem v-for="item in extensionTypes" :key="item.id" :value="item.id">
+                          {{ item.name }}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -593,21 +672,21 @@ function onNumericInput(e: Event) {
             </FormField>
           </div>
         </div>
-        <div class="flex gap-x-3 items-center">
+        <div class="flex gap-x-3 items-start">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="Group">
+            <FormField v-slot="{ componentField }" class="" name="group_id">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
                   Group
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField">
+                  <Select v-bind="componentField" multiple>
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Group" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="item in extensionGroups" :key="item" :value="item">
+                        <SelectItem v-for="item in extensionGroups" :key="item" :value="item.id">
                           {{ item.title }}
                         </SelectItem>
                       </SelectGroup>
@@ -631,8 +710,8 @@ function onNumericInput(e: Event) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="item in listTimezones()" :key="item" :value="item">
-                          {{ item }}
+                        <SelectItem v-for="item in timeZones" :key="item.value" :value="item.value">
+                          {{ item.title }}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -658,12 +737,32 @@ function onNumericInput(e: Event) {
           </div>
           <div class="flex justify-between items-center w-full">
             <div class="flex items-center gap-x-1">
-              <Checkbox id="email" class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" />
-              <Label class="text-sm font-normal" for="email">Email</Label>
+              <FormField v-slot="{ value, handleChange }" name="receive_sms_on_email">
+                <FormItem class="flex items-center gap-x-1">
+                  <FormControl>
+                    <Checkbox 
+                      id="email" 
+                      :model-value="value" @update:model-value="handleChange"
+                      class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" 
+                    />
+                  </FormControl>
+                  <Label class="text-sm font-normal" for="email">Email</Label>
+                </FormItem>
+              </FormField>
             </div>
             <div class="flex items-center gap-x-1">
-              <Checkbox id="sms" class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" />
-              <Label class="text-sm font-normal" for="sms">SMS</Label>
+              <FormField v-slot="{ value, handleChange }" name="receive_sms_on_mobile">
+                <FormItem class="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox 
+                      id="sms" 
+                      :model-value="value" @update:model-value="handleChange"
+                      class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" 
+                    />
+                  </FormControl>
+                  <Label class="text-sm font-normal" for="sms">SMS</Label>
+                </FormItem>
+              </FormField>
             </div>
           </div>
         </div>
@@ -671,8 +770,7 @@ function onNumericInput(e: Event) {
     </div>
     <div class="sticky bottom-0 right-0 w-full  shadow-2xl p-4 bg-white">
       <Button class="w-full h-[52px]" type="submit" @click="onSubmit">
-        <Icon name="material-symbols:save" size="20" />
-
+        <Icon :name="loading ? 'line-md:loading-twotone-loop' :'material-symbols:save'" size="20" />
         Submit
       </Button>
     </div>
