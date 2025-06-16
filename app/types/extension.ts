@@ -24,5 +24,15 @@ export interface Extension {
   ip_filtering: string
   twinning: string
   cli_setting: number
+  asterisk_server_id: number
+  vm_pin: number
   extension_type: string
+  app_status: string
+  cli: string
+  package_id: number
+  group: { group_id: number }[]
+  timezone: string
+  receive_sms_on_email: string
+  receive_sms_on_mobile: string
+  extension_id: number
 }
