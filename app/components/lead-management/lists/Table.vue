@@ -32,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import LeadManagementListsActionsDropdown from './ActionsDropdown.vue'
 
 import { valueUpdater } from '@/components/ui/table/utils'
 
@@ -125,7 +126,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center w-full' }, 'Actions'),
-    cell: _ctx => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
       h(Button, {
         size: 'sm',
         variant: 'outline',
@@ -138,7 +139,12 @@ const columns = [
         h(Icon, { name: 'lucide:eye', color: 'primary' }),
         'View Leads',
       ]),
-      h(Button, { size: 'icon', variant: 'ghost', color: 'primary', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20', color: 'primary' })),
+      h(LeadManagementListsActionsDropdown, {
+        // Pass the row context if needed for actions
+        onEdit: () => { console.log('Edit', row.original) },
+        onDownload: () => { console.log('Download', row.original) },
+        onDelete: () => { console.log('Delete', row.original) },
+      }),
     ]),
   }),
 ]
@@ -177,7 +183,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg my-6 overflow-x-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -236,7 +242,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
+              <SelectItem v-for="n in 15" :key="n" :value="String(n)">
                 {{ n }}
               </SelectItem>
             </SelectContent>

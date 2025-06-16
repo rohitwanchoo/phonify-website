@@ -73,7 +73,7 @@ const columns = [
     cell: info => h(Checkbox, {
       modelValue: info.row.original.searchFilter,
       'onUpdate:modelValue': (val: boolean) => info.row.original.searchFilter = val,
-      class: 'mx-auto !border-2 !border-primary data-[state=checked]:!bg-[#16A34A] data-[state=checked]:!border-[#16A34A] focus:!ring-[#16A34A] focus-visible:!ring-[#16A34A]'
+      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A] rounded-none'
     }),
   }),
   columnHelper.accessor('visible', {
@@ -81,7 +81,7 @@ const columns = [
     cell: info => h(Checkbox, {
       modelValue: info.row.original.visible,
       'onUpdate:modelValue': (val: boolean) => info.row.original.visible = val,
-      class: 'mx-auto !border-2 !border-primary data-[state=checked]:!bg-[#16A34A] data-[state=checked]:!border-[#16A34A] focus:!ring-[#16A34A] focus-visible:!ring-[#16A34A]'
+      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A] rounded-none'
     }),
   }),
   columnHelper.accessor('editable', {
@@ -89,7 +89,7 @@ const columns = [
     cell: info => h(Checkbox, {
       modelValue: info.row.original.editable,
       'onUpdate:modelValue': (val: boolean) => info.row.original.editable = val,
-      class: 'mx-auto !border-2 !border-primary data-[state=checked]:!bg-[#16A34A] data-[state=checked]:!border-[#16A34A] focus:!ring-[#16A34A] focus-visible:!ring-[#16A34A]'
+      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A] rounded-none'
     }),
   }),
   columnHelper.accessor('dialingColumn', {
@@ -104,11 +104,12 @@ const columns = [
     }, {
       default: () => h(RadioGroupItem, {
         value: info.row.original.slno.toString(),
-        class: 'mx-auto !border-2 !border-gray-300 data-[state=checked]:!border-[#16A34A] data-[state=checked]:!bg-[#16A34A] focus:!ring-[#16A34A] focus-visible:!ring-[#16A34A] !ring-2 !ring-offset-2',
+        class: [
+          'h-4.5 w-4.5 mx-auto border-1 border-primary text-primary',
+          'data-[state=checked]:border-[#16A34A] data-[state=checked]:border-2', // Green border when checked
+        '[&_[data-slot=radio-group-indicator]>svg]:!fill-[#16A34A]' // Targets the inner circle
+        ].join(' '),
         checked: dialingColumnValue.value === info.row.original.slno.toString(),
-        style: {
-          '--radio-indicator-stroke': '3px',
-        },
       })
     }),
   }),
