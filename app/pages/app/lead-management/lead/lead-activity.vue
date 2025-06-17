@@ -29,7 +29,7 @@ const breadcrumbs = [
       <LeadManagementLeadDetails />
     </div>
     <div class="col-span-8">
-      <!-- Add right column content here -->
+      <LeadManagementLeadLeadTabs />
     </div>
   </div>
   
