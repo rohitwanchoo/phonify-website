@@ -87,17 +87,29 @@ async function deleteMethod() {
   })
 }
 
-async function resetPassword() {
+async function resetExtension(row: { id: number }) {
   const { isCanceled } = await revealResetConfirm()
   if (isCanceled) {
     return false
   }
-  // console.log(row)
-  // TODO: API CALL HERE
-  showToast({
-    type: 'success',
-    message: 'Extension reset successfully',
+
+  // TODO: need correction here
+  useApi().post(`/delete-ext-live/${row.id}`).then((res) => {
+    showToast({
+      type: 'success',
+      message: res.message,
+    })
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
   })
+  // // console.log(row)
+  // showToast({
+  //   type: 'success',
+  //   message: 'Extension reset successfully',
+  // })
 }
 
 const extensionLoadingId = ref(0)
@@ -212,7 +224,7 @@ const columns = [
           changePermissionModel.value = true
         },
         onReset: () => {
-          resetPassword(row?.original)
+          resetExtension(row?.original)
         },
       }),
     ]),
@@ -256,10 +268,12 @@ function handlePageChange(page: number) {
 }
 
 function savePassword(values: { password: string }) {
+  // TODO: need clarity for payload
   const payload = {
     ...values,
     id: selectedExtension.value?.id,
   }
+
   useApi().post('/update-agent-password-by-admin', payload).then((res) => {
     showToast({
       message: res.message,
@@ -271,11 +285,6 @@ function savePassword(values: { password: string }) {
       type: 'error',
     })
   })
-  // changePasswordModel.value = false
-  // showToast({
-  //   type: 'success',
-  //   message: 'Password changed successfully',
-  // })
 }
 
 function changeLimit(val: number) {
