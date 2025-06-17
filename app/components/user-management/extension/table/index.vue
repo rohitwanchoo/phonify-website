@@ -190,6 +190,12 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
       h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => getExtensionByID(row.original?.id) }, h(Icon, { name: extensionLoadingId.value === row.original?.id ? 'eos-icons:bubble-loading' : 'lucide:eye' })),
       h(Action, {
+        onEdit: () => {
+          navigateTo({
+            path: '/app/user-management/extension/create',
+            query: { id: row?.original?.id },
+          })
+        },
         onDelete: () => {
           deleteMethod(row?.original)
         },
