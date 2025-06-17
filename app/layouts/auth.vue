@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-12 h-[100dvh] p-[20px] gap-y-[150px] lg:gap-x-[50px] items-center ">
     <div class="col-span-12 lg:col-span-6  flex flex-col gap-y-[72px] items-center justify-center">
-      <img src="/images/logo/phonify-logo.png" alt="logo" class="max-w-[220px] w-full h-full max-h-[64px]">
+      <img src="/images/logo/phonify-logo-full-text.svg" alt="logo" class="max-w-[220px] w-full h-full max-h-[64px]">
       <div class="w-full max-w-[416px] lg:max-w-[380px] xl:max-w-[416px]">
         <slot />
       </div>

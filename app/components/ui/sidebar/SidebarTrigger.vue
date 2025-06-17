@@ -44,7 +44,7 @@ function handleClick() {
   >
     <!-- Logo 1 -->
     <img
-      src="/images/logo/phonify-logo.png"
+      src="/images/logo/phonify-logo-full.svg"
       alt="Logo 1"
       class="absolute top-1/2 left-1/3 h-[40px] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ease-in-out"
       :class="{
@@ -55,7 +55,7 @@ function handleClick() {
     >
     <!-- Logo 2 -->
     <img
-      src="/images/logo/phonify-logo-2.png"
+      src="/images/logo/phonify-logo.svg"
       alt="Logo 2"
       class="absolute top-1/2 left-1/13 h-[35px] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ease-in-out"
       :class="{

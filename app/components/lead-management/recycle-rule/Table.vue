@@ -112,9 +112,9 @@ const columns = [
           selectedRow.value = row.original
           editDialogOpen.value = true
         }
-      }, h(Icon, { name: 'lucide:edit', size: 14 })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle', onClick: () => console.log('Recycle', row.original) }, h(Icon, { name: 'lucide:refresh-cw', size: 14 })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'text-red-600 border-red-600 hover:text-red-600 hover:bg-red-50 h-7 w-7 min-w-0', title: 'Delete', onClick: () => console.log('Delete', row.original) }, h(Icon, { name: 'lucide:trash-2', size: 14 })),
+      }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle', onClick: () => console.log('Recycle', row.original) }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'text-red-600 border-red-600 hover:text-red-600 hover:bg-red-50 h-7 w-7 min-w-0', title: 'Delete', onClick: () => console.log('Delete', row.original) }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
     ]),
   }),
 ]
@@ -221,4 +221,4 @@ const selectedRow = ref<any>(null)
   </div>
 
   <EditRecycleRuleDialog v-model:open="editDialogOpen" />
-</template>
+</template>  
