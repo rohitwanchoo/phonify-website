@@ -92,13 +92,14 @@ function onSubmit(_values: any) {
       Filter
     </Button>
     <Sheet v-model:open="open">
-      <SheetContent class="min-w-[483px]">
+      <SheetContent class="min-w-[483px] flex flex-col h-full">
         <SheetHeader class="bg-[#162D3A]">
           <SheetTitle class="text-white">
             Filter Recycle Rules
           </SheetTitle>
         </SheetHeader>
-        <div>
+        <!-- Scrollable content -->
+        <div class="flex-1 overflow-y-auto">
           <div class="mx-auto p-6 space-y-6">
             <Form :form="form" @submit.prevent="onSubmit">
               <div class="space-y-4">
@@ -171,19 +172,24 @@ function onSubmit(_values: any) {
                             }
                           }"
                         >
-                          <SelectTrigger class="w-full flex items-start relative min-h-7">
+                          <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
                             <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
-                            <div
-                              v-if="selectedDays.length"
-                              class="flex flex-wrap gap-1 items-center pointer-events-auto w-full max-h-24 overflow-y-auto"
+                            <div 
+                              v-if="selectedDays.length" 
+                              class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
+                              style="min-height: 1.5rem;"
                             >
-                              <div
-                                v-for="item in selectedDays"
-                                :key="item"
-                                class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs mr-1 h-7"
+                              <div 
+                                v-for="item in selectedDays" 
+                                :key="item" 
+                                class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
                               >
                                 {{ dayOptions.find(opt => opt.value === item)?.label || item }}
-                                <button type="button" class="m-1" @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)">
+                                <button 
+                                  type="button" 
+                                  class="ml-1" 
+                                  @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
+                                >
                                   <Icon name="lucide:x" class="w-3 h-3" />
                                 </button>
                               </div>
@@ -250,14 +256,16 @@ function onSubmit(_values: any) {
                   </div>
                 </div>
               </div>
-              <div class="flex justify-end gap-2 mt-6">
-                <Button type="submit" class="w-full">
-                  <Icon name="material-symbols:save" class="mr-2" />
-                  Save
-                </Button>
-              </div>
+              <!-- Remove the old Save button from here -->
             </Form>
           </div>
+        </div>
+        <!-- Sticky footer -->
+        <div class="p-6 bg-white">
+          <Button type="submit" class="w-full" @click="form.submitForm()">
+            <Icon name="material-symbols:search" class="mr-1" />
+            Search
+          </Button>
         </div>
       </SheetContent>
     </Sheet>

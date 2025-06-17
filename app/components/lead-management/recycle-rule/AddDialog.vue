@@ -173,17 +173,29 @@ function onSubmit(_values: any) {
                       }
                     }"
                   >
-                    <SelectTrigger class="w-full flex items-center relative">
-                      <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
-                      <div v-if="selectedDays.length" class="flex flex-wrap gap-1 items-center min-h-7 pointer-events-auto ">
-                        <div v-for="item in selectedDays" :key="item" class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs mr-1 h-7">
-                          {{ dayOptions.find(opt => opt.value === item)?.label || item }}
-                          <button type="button" class="m-1" @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)">
-                            <Icon name="lucide:x" class="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </SelectTrigger>
+                   <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
+  <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
+  <div 
+    v-if="selectedDays.length" 
+    class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
+    style="min-height: 1.5rem;"
+  >
+    <div 
+      v-for="item in selectedDays" 
+      :key="item" 
+      class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
+    >
+      {{ dayOptions.find(opt => opt.value === item)?.label || item }}
+      <button 
+        type="button" 
+        class="ml-1" 
+        @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
+      >
+        <Icon name="lucide:x" class="w-3 h-3" />
+      </button>
+    </div>
+  </div>
+</SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in availableDayOptions" :key="option.value" :value="option.value">
                         {{ option.label }}

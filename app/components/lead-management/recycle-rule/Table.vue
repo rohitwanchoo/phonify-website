@@ -30,18 +30,18 @@ import type {
 } from '@tanstack/vue-table'
 
 const dummyData = [
-  { campaignName: 'Campaign 1', listName: 'List #1', day: 'Monday', time: '09:00:00', callTime: 1, recycleStatus: 0 },
-  { campaignName: 'Campaign 2', listName: 'List #2', day: 'Tuesday', time: '10:00:00', callTime: 2, recycleStatus: 1 },
-  { campaignName: 'Campaign 3', listName: 'List #3', day: 'Wednesday', time: '11:00:00', callTime: 3, recycleStatus: 0 },
-  { campaignName: 'Campaign 4', listName: 'List #4', day: 'Thursday', time: '12:00:00', callTime: 4, recycleStatus: 1 },
-  { campaignName: 'Campaign 5', listName: 'List #5', day: 'Friday', time: '13:00:00', callTime: 5, recycleStatus: 0 },
-  { campaignName: 'Campaign 6', listName: 'List #6', day: 'Saturday', time: '14:00:00', callTime: 6, recycleStatus: 1 },
-  { campaignName: 'Campaign 7', listName: 'List #7', day: 'Sunday', time: '15:00:00', callTime: 7, recycleStatus: 0 },
-  { campaignName: 'Campaign 8', listName: 'List #8', day: 'Monday', time: '16:00:00', callTime: 8, recycleStatus: 1 },
-  { campaignName: 'Campaign 9', listName: 'List #9', day: 'Tuesday', time: '17:00:00', callTime: 9, recycleStatus: 0 },
-  { campaignName: 'Campaign 10', listName: 'List #10', day: 'Wednesday', time: '18:00:00', callTime: 10, recycleStatus: 1 },
-  { campaignName: 'Campaign 11', listName: 'List #11', day: 'Thursday', time: '19:00:00', callTime: 11, recycleStatus: 0 },
-  { campaignName: 'Campaign 12', listName: 'List #12', day: 'Friday', time: '20:00:00', callTime: 12, recycleStatus: 1 },
+  { campaignName: 'Campaign 1', listName: 'List #1', disposition: 'Disconnected', day: 'Monday', time: '09:00:00', callTime: 1, recycleStatus: 0 },
+  { campaignName: 'Campaign 2', listName: 'List #2', disposition: 'Not Interested', day: 'Tuesday', time: '10:00:00', callTime: 2, recycleStatus: 1 },
+  { campaignName: 'Campaign 3', listName: 'List #3', disposition: 'Sale', day: 'Wednesday', time: '11:00:00', callTime: 3, recycleStatus: 0 },
+  { campaignName: 'Campaign 4', listName: 'List #4', disposition: 'Callback', day: 'Thursday', time: '12:00:00', callTime: 4, recycleStatus: 1 },
+  { campaignName: 'Campaign 5', listName: 'List #5', disposition: 'No Answer', day: 'Friday', time: '13:00:00', callTime: 5, recycleStatus: 0 },
+  { campaignName: 'Campaign 6', listName: 'List #6', disposition: 'Disconnected', day: 'Saturday', time: '14:00:00', callTime: 6, recycleStatus: 1 },
+  { campaignName: 'Campaign 7', listName: 'List #7', disposition: 'Not Interested', day: 'Sunday', time: '15:00:00', callTime: 7, recycleStatus: 0 },
+  { campaignName: 'Campaign 8', listName: 'List #8', disposition: 'Sale', day: 'Monday', time: '16:00:00', callTime: 8, recycleStatus: 1 },
+  { campaignName: 'Campaign 9', listName: 'List #9', disposition: 'Callback', day: 'Tuesday', time: '17:00:00', callTime: 9, recycleStatus: 0 },
+  { campaignName: 'Campaign 10', listName: 'List #10', disposition: 'No Answer', day: 'Wednesday', time: '18:00:00', callTime: 10, recycleStatus: 1 },
+  { campaignName: 'Campaign 11', listName: 'List #11', disposition: 'Disconnected', day: 'Thursday', time: '19:00:00', callTime: 11, recycleStatus: 0 },
+  { campaignName: 'Campaign 12', listName: 'List #12', disposition: 'Not Interested', day: 'Friday', time: '20:00:00', callTime: 12, recycleStatus: 1 },
 ]
 
 const columnHelper = createColumnHelper<any>()
@@ -66,6 +66,14 @@ const columns = [
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.listName),
+  }),
+  columnHelper.accessor('disposition', {
+    header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
+      class: 'text-center text-sm font-normal w-full',
+      variant: 'ghost',
+      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+    }, () => ['Disposition', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.disposition || '—'),
   }),
   columnHelper.accessor('day', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -221,4 +229,4 @@ const selectedRow = ref<any>(null)
   </div>
 
   <EditRecycleRuleDialog v-model:open="editDialogOpen" />
-</template>  
+</template>
