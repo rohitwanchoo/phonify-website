@@ -57,6 +57,8 @@ const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
+const selectedExtension = ref<Extension>()
+
 const {
   isRevealed: showDeleteConfirm,
   reveal: revealDeleteConfirm,
@@ -122,6 +124,8 @@ function getExtensionByID(id: number) {
 }
 
 const changePasswordModel = ref(false)
+const changePermissionModel = ref(false)
+
 const copy = ref('')
 
 const columnHelper = createColumnHelper<Extension>()
@@ -200,7 +204,12 @@ const columns = [
           deleteMethod(row?.original)
         },
         onChangePassword: () => {
+          selectedExtension.value = row?.original
           changePasswordModel.value = true
+        },
+        onUnlock: () => {
+          selectedExtension.value = row?.original
+          changePermissionModel.value = true
         },
         onReset: () => {
           resetPassword(row?.original)
@@ -246,12 +255,27 @@ function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
 
-function savePassword() {
-  changePasswordModel.value = false
-  showToast({
-    type: 'success',
-    message: 'Password changed successfully',
+function savePassword(values: { password: string }) {
+  const payload = {
+    ...values,
+    id: selectedExtension.value?.id,
+  }
+  useApi().post('/update-agent-password-by-admin', payload).then((res) => {
+    showToast({
+      message: res.message,
+    })
+    changePasswordModel.value = false
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
   })
+  // changePasswordModel.value = false
+  // showToast({
+  //   type: 'success',
+  //   message: 'Password changed successfully',
+  // })
 }
 
 function changeLimit(val: number) {
@@ -357,6 +381,9 @@ function changeLimit(val: number) {
 
   <!-- CHANGE PASSWORD -->
   <UserManagementExtensionChangePassword v-model="changePasswordModel" @save="savePassword" />
+
+  <!-- CHANGE PERMISSION -->
+  <UserManagementExtensionChangePermission v-model="changePermissionModel" :selected-extension="selectedExtension" />
 </template>
 
 <style scoped>
