@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <div class="card-main p-[12px] rounded-xl bg-white shadow-md">
     <div class="flex lg:flex-col lg:items-left xl:flex-col xl:items-left 2xl:flex-row  2xl:items-center gap-2">
-      <div class="w-[26px] h-[26px]">
+      <div class="min-w-[26px] min-h-[26px] w-[26px] h-[26px]">
         <img :src="image" alt="" class="w-full h-full object-contain">
       </div>
       <div>

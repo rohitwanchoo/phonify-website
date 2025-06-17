@@ -46,7 +46,7 @@ const userInitials = computed(() => {
 </script>
 
 <template>
-  <div class="w-full bg-secondary text-primary h-[45px] lg:h-[63px] flex items-center justify-between md:justify-end px-4">
+  <div class="w-full bg-secondary text-primary h-[45px] lg:h-[63px] flex items-center justify-between md:justify-end px-4 py-[30px]">
     <SidebarTrigger class="md:hidden" />
 
     <div class="flex gap-3 text-xs md:text-sm items-center">

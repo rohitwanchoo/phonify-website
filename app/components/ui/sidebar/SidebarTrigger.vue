@@ -57,7 +57,7 @@ function handleClick() {
     <img
       src="/images/logo/phonify-logo-2.png"
       alt="Logo 2"
-      class="absolute top-1/2 left-1/13 h-[35px] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ease-in-out"
+      class="absolute top-1/2 left-1/13 h-[35px] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ease-in-out ml-2"
       :class="{
         'opacity-100 visible pointer-events-auto': showLogo2,
         'opacity-0 invisible pointer-events-none': !showLogo2
