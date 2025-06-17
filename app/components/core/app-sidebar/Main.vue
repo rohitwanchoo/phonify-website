@@ -51,10 +51,14 @@ const data = {
       { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
-
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call' },
-    { title: 'Lead Management', url: '/lead-management', icon: 'icons:lead-management' },
+    { title: 'Lead Management', url: '/app/lead-management', icon: 'icons:lead-management', items: [
+      { title: 'Label', url: '/app/lead-management/label' },
+      { title: 'Lead', url: '/app/lead-management/lead' },
+      { title: 'List', url: '/app/lead-management/list' },
+      { title: 'Recycle Rule', url: '/app/lead-management/recycle-rule' },
+    ] },
     { title: 'Call Times', url: '/app/call-times', icon: 'icons:do-not-call' },
   ],
   'User & Access Management': [

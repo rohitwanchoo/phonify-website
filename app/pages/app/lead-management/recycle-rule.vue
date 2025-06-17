@@ -1,0 +1,3 @@
+<template>
+    recycle-rule
+</template>
