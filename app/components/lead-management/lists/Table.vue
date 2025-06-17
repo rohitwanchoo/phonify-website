@@ -133,7 +133,7 @@ const columns = [
         color: 'primary',
         class: 'cursor-pointer flex items-center gap-x-1 border border-primary',
         onClick: () => {
-          navigateTo('/app/lead-management/list/view-leads')
+          navigateTo('/app/lead-management/list/leads')
         },
       }, [
         h(Icon, { name: 'material-symbols:visibility', color: 'primary' }),
