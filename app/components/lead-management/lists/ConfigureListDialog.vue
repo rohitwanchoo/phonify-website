@@ -73,7 +73,7 @@ const columns = [
     cell: info => h(Checkbox, {
       modelValue: info.row.original.searchFilter,
       'onUpdate:modelValue': (val: boolean) => info.row.original.searchFilter = val,
-      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A] rounded-none'
+      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]'
     }),
   }),
   columnHelper.accessor('visible', {
@@ -81,7 +81,7 @@ const columns = [
     cell: info => h(Checkbox, {
       modelValue: info.row.original.visible,
       'onUpdate:modelValue': (val: boolean) => info.row.original.visible = val,
-      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A] rounded-none'
+      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]'
     }),
   }),
   columnHelper.accessor('editable', {
@@ -89,7 +89,7 @@ const columns = [
     cell: info => h(Checkbox, {
       modelValue: info.row.original.editable,
       'onUpdate:modelValue': (val: boolean) => info.row.original.editable = val,
-      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A] rounded-none'
+      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]'
     }),
   }),
   columnHelper.accessor('dialingColumn', {
@@ -106,7 +106,7 @@ const columns = [
         value: info.row.original.slno.toString(),
         class: [
           'h-4.5 w-4.5 mx-auto border-1 border-primary text-primary',
-          'data-[state=checked]:border-[#16A34A] data-[state=checked]:border-2', // Green border when checked
+          'data-[state=checked]:border-[#16A34A] border-2', // Green border when checked
         '[&_[data-slot=radio-group-indicator]>svg]:!fill-[#16A34A]' // Targets the inner circle
         ].join(' '),
         checked: dialingColumnValue.value === info.row.original.slno.toString(),
@@ -146,7 +146,7 @@ function closeDialog() {
 
 <template>
   <Dialog :open="props.open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-w-[90vw] w-[90vw] min-w-[900px] min-h-[70vh] text-primary">
+    <DialogContent class="max-w-[90vw] w-[90vw]  sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
       <DialogHeader>
         <DialogTitle class="text-primary">
           Configure List
