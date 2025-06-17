@@ -136,7 +136,7 @@ const columns = [
           navigateTo('/app/lead-management/list/view-leads')
         },
       }, [
-        h(Icon, { name: 'lucide:eye', color: 'primary' }),
+        h(Icon, { name: 'material-symbols:visibility', color: 'primary' }),
         'View Leads',
       ]),
       h(LeadManagementListsActionsDropdown, {

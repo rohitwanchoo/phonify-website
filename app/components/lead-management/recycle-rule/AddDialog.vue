@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input'
 import { Clock } from 'lucide-vue-next'
+import { Separator } from '@/components/ui/separator'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -99,6 +100,7 @@ function onSubmit(_values: any) {
       <DialogHeader>
         <DialogTitle>Add Recycle Rule</DialogTitle>
       </DialogHeader>
+      <Separator class="my-1" />
       <Form :form="form" @submit.prevent="onSubmit">
         <div class="space-y-4">
           <FormField name="campaign">
@@ -171,15 +173,15 @@ function onSubmit(_values: any) {
                       }
                     }"
                   >
-                    <SelectTrigger class="w-full max-w-[465px] h-11 min-h-11 flex items-center relative overflow-x-auto whitespace-nowrap scrollbar-hide pr-8 flex-nowrap">
+                    <SelectTrigger class="w-full flex items-center relative">
                       <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
-                      <div v-if="selectedDays.length" class="flex gap-1 items-center h-7 pointer-events-auto flex-nowrap whitespace-nowrap">
-                        <span v-for="item in selectedDays" :key="item" class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs mr-1 h-7">
+                      <div v-if="selectedDays.length" class="flex flex-wrap gap-1 items-center min-h-7 pointer-events-auto ">
+                        <div v-for="item in selectedDays" :key="item" class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs mr-1 h-7">
                           {{ dayOptions.find(opt => opt.value === item)?.label || item }}
-                          <button type="button" class="ml-1" @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)">
+                          <button type="button" class="m-1" @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)">
                             <Icon name="lucide:x" class="w-3 h-3" />
                           </button>
-                        </span>
+                        </div>
                       </div>
                     </SelectTrigger>
                     <SelectContent>
@@ -217,13 +219,12 @@ function onSubmit(_values: any) {
               <FormField name="fromTime">
                 <FormItem class="flex-1">
                   <FormControl>
-                    <div class="relative">
-                      <Input v-model="form.values.fromTime" type="time" class="pl-10 pr-16" />
-                      <span class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock class="w-4 h-4" />
-                        From
-                      </span>
-                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">AM/PM</span>
+                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
+                      <div class="text-sm text-muted-foreground">                   
+                        From:
+                      </div>
+                      
+                      <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28 " />  
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -232,13 +233,12 @@ function onSubmit(_values: any) {
               <FormField name="toTime">
                 <FormItem class="flex-1">
                   <FormControl>
-                    <div class="relative">
-                      <Input v-model="form.values.toTime" type="time" class="pl-10 pr-16" />
-                      <span class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock class="w-4 h-4" />
-                        To
-                      </span>
-                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">AM/PM</span>
+                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
+                      <div class="text-sm text-muted-foreground">                   
+                        To:
+                      </div>
+                      
+                      <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28 " />  
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -248,20 +248,17 @@ function onSubmit(_values: any) {
           </div>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button type="button" variant="outline" @click="open = false">Close</Button>
-          <Button type="submit">Save</Button>
+          <Button type="button" class="w-[50%] text-primary" variant="outline" @click="open = false">
+            <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+            Close
+          </Button>
+          <Button type="submit" class="w-[50%]">
+            <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+            Save
+          </Button>
         </div>
       </Form>
     </DialogContent>
   </Dialog>
 </template>
 
-<style scoped>
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>
