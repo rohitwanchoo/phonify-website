@@ -1,4 +1,23 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
 const callLogs = [
   {
     id: 1,
@@ -21,8 +40,8 @@ const callLogs = [
     },
     timestamp: '2025-01-26T09:15:12',
     phone: '9835519876',
-    status: 'No Answer',
-     icon:'material-symbols:chat'
+    status: '',
+    icon: 'material-symbols:chat'
   },
   {
     id: 3,
@@ -34,8 +53,18 @@ const callLogs = [
     timestamp: '2025-01-26T09:15:12',
     phone: '9835519876',
     status: 'Cancelled User',
+     icon: 'material-symbols:chat'
   },
 ]
+
+const countryCode = [
+  { id: 1, name: 'United States' },
+  { id: 2, name: 'United Kingdom' },
+  { id: 3, name: 'Canada' },
+]
+
+// Track selected value for each log by id
+const selectedCountryCodes = ref<{ [id: number]: string }>({})
 
 const formatDate = (iso: string) => {
   const date = new Date(iso)
@@ -78,15 +107,42 @@ const formatDate = (iso: string) => {
   
 
         <div class="flex items-center gap-2">
-          <span
-            class="text-sm px-3 py-1 border border-[#00A086] bg-[#00A0861A] text-black rounded-md text-center min-w-[150px] "
+          <template v-if="log.id === 3">
+            <FormField v-slot="{ componentField }" name="countryCode">
+              <FormItem>
+                <FormControl>
+                  <Select
+                    v-bind="componentField"
+                    v-model="selectedCountryCodes[log.id]"
+                  >
+                    <SelectTrigger class="min-w-[150px] !h-11">
+                      <SelectValue class="text-[12px] placeholder:text-[#ef698180]" placeholder="Select Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem v-for="item in countryCode" :key="item.id" :value="item.name">
+                          {{ item.name }} 
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+          </template>
+          <template v-else-if="log.status && log.status.trim() !== ''">
+          <button
+            class="text-[12px] px-3 py-1 border border-[#00A086] bg-[#00A0861A] text-black rounded-md text-center min-w-[150px]"
           >
             {{ log.status }}
-          </span>
+          </button>
+        </template>
           <button
+            v-if="log.icon && log.icon.trim() !== ''"
             class="w-8 h-8 flex items-center justify-center border border-primary rounded-md"
           >
-            <Icon :name="log.icon || 'material-symbols:play-circle'" />
+            <Icon :name="log.icon" />
           </button>
         </div>
       </div>
