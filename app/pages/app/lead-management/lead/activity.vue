@@ -1,0 +1,3 @@
+<template>
+    Lead Activity
+</template>
