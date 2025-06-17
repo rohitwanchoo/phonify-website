@@ -46,8 +46,7 @@ const showPassword = ref(false)
 const open = defineModel<boolean>()
 
 const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted!', values)
-  emits('save')
+  emits('save', values)
 })
 </script>
 

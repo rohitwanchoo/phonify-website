@@ -350,7 +350,7 @@ async function setFieldValues() {
 const emailEdit = ref(false)
 const emailEditLoading = ref(false)
 
-function updateEmail(){
+function updateEmail() {
   emailEditLoading.value = true
   useApi().post('/update-email', {
     email: values.email,
@@ -366,7 +366,7 @@ function updateEmail(){
       message: err.message,
       type: 'error',
     })
-  }).finally(()=>{
+  }).finally(() => {
     emailEditLoading.value = false
   })
 }
@@ -447,16 +447,16 @@ onMounted(() => {
                 <FormControl>
                   <div class="relative">
                     <Input type="text" :disabled="isEdit && !emailEdit" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type E-mail" v-bind="componentField" />
-                    <div  class="sm:absolute top-1/2 sm:-translate-y-1/2 right-1 mt-1 sm:mt-0">
+                    <div class="sm:absolute top-1/2 sm:-translate-y-1/2 right-1 mt-1 sm:mt-0">
                       <Button v-if="!emailEdit" type="button" class="rounded" @click="emailEdit = true">
                         Edit
                       </Button>
                       <div v-else class="flex gap-x-1">
-                        <Button :disabled="errorMessage || emailEditLoading" type="button" @click="updateEmail" class="bg-green-600 rounded hover:bg-green-600/60">
+                        <Button :disabled="errorMessage || emailEditLoading" type="button" class="bg-green-600 rounded hover:bg-green-600/60" @click="updateEmail">
                           <Icon v-if="emailEditLoading" name="eos-icons:loading" class="text-white" />
                           save
                         </Button>
-                        <Button  class="bg-red-600 rounded hover:bg-red-600/60" type="button" @click="emailEdit = false">
+                        <Button class="bg-red-600 rounded hover:bg-red-600/60" type="button" @click="emailEdit = false">
                           cancel
                         </Button>
                       </div>
@@ -821,7 +821,8 @@ onMounted(() => {
                     <SelectContent>
                       <SelectGroup>
                         <SelectItem v-for="(item, key) in clientPackages" :key="key" :value="Number(key)">
-                          {{ item.package_name }}
+                          <!-- (Remaining = Total Quantity - Assigned) -->
+                          {{ item.package_name }} ({{ item.quantity - item.assigned.length }} remaining)
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>

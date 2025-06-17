@@ -539,7 +539,7 @@ function onSelectCallTime() {
               <Label class="text-sm font-normal">Deposition</Label>
               <Combobox v-model="selectedDeposition" v-model:open="open" :ignore-filter="true">
                 <ComboboxAnchor as-child>
-                  <TagsInput v-model="selectedDeposition" class="px-2 gap-2 [&_svg]:hidden w-full [&_[data-slot='command-input-wrapper']]:border-none [&_[data-slot='command-input-wrapper']]:px-1">
+                  <TagsInput v-model="selectedDeposition" class="px-2 gap-2 [&_svg]:hidden w-full [&_[data-slot='command-input-wrapper']]:border-none [&_[data-slot='command-input-wrapper']]:px-1" @click="open = true">
                     <div class="flex gap-2 flex-wrap items-center ">
                       <TagsInputItem v-for="item in selectedDeposition" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] p-[11px] px-[7px]" :value="item">
                         <TagsInputItemText />
