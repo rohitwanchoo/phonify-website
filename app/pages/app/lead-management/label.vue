@@ -92,6 +92,6 @@ function openAddDialog() {
     <div class="w-full">
       <LeadManagementLabelTable :limit="limit" :total-rows="filteredLabel.length" :start="pageStart" :list="filteredLabel || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" @edit="openEditDialog" />
     </div>
-    <LeadManagementLabelDisplayOrder />
+    <LeadManagementLabelDisplayOrder class="hidden lg:block" />
   </div>
 </template>
