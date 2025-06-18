@@ -40,7 +40,7 @@ import {
           <!-- Send Email content here -->
         </TabsContent>
         <TabsContent value="fax">
-          <!-- Send Fax content here -->
+          <LeadManagementLeadLeadTabsSendFax />
         </TabsContent>
 </div>
         
