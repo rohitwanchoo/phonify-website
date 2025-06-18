@@ -34,10 +34,10 @@ import {
        </div>
         </TabsContent>
         <TabsContent value="text">
-          <!-- Send Text content here -->
+          <LeadManagementLeadLeadTabsSendText />
         </TabsContent>
         <TabsContent value="email">
-          <!-- Send Email content here -->
+           <LeadManagementLeadLeadTabsSendEmail/>
         </TabsContent>
         <TabsContent value="fax">
           <LeadManagementLeadLeadTabsSendFax />
