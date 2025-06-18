@@ -36,7 +36,7 @@ const form = useForm({
           <div class="flex flex-col sm:flex-row gap-4">
             <FormField name="agentNumber">
               <FormItem class="w-full sm:w-1/2">
-                <FormLabel>Agent Number</FormLabel>
+                <FormLabel>From</FormLabel>
                 <FormControl>
                   <Select v-model="form.values.agentNumber">
                     <SelectTrigger class="w-full">
@@ -53,7 +53,7 @@ const form = useForm({
             </FormField>
             <FormField name="faxNumber">
               <FormItem class="w-full sm:w-1/2">
-                <FormLabel>Fax Number</FormLabel>
+                <FormLabel>Recipient Fax Number</FormLabel>
                 <FormControl>
                   <Input v-model="form.values.faxNumber" type="tel" placeholder="Fax Number" />
                 </FormControl>
