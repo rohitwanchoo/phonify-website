@@ -10,7 +10,7 @@ const breadcrumbs = [
   },
   {
     label: 'Lead Activity',
-    active: true,
+    href: '/app/lead-management/lead/lead-activity',
   },
 ]
 </script>

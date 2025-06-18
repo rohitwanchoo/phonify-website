@@ -1,8 +1,11 @@
 <script setup>
-import Button from '~/components/ui/button/Button.vue';
-// No props or dynamic data needed
+import Button from '~/components/ui/button/Button.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 function onEdit() {
-  console.log('Edit clicked')
+  router.push('/app/lead-management/lead/edit')
 }
 </script>
 
@@ -13,7 +16,7 @@ function onEdit() {
       <h2 class="text-lg font-semibold text-gray-800">
         Lead Details
       </h2>
-      <Button class="bg-white text-black border border-black hover:bg-white">
+      <Button class="bg-white text-black border border-black hover:bg-white" @click="onEdit">
         <Icon name="material-symbols:edit-square"/>
         Edit
       </Button>
