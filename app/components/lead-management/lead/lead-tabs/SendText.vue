@@ -2,9 +2,9 @@
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <Form :form="form" @submit.prevent="onSubmit">
       <div class="space-y-4">
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex flex-col sm:flex-row gap-4 items-stretch">
           <FormField v-slot="{ componentField }" name="leadContact">
-            <FormItem class="w-full sm:w-1/2 flex flex-col gap-1">
+            <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
               <FormLabel class="text-sm font-medium text-gray-700">
                 Lead contact No.
               </FormLabel>
@@ -29,7 +29,7 @@
                   <Input
                     placeholder="Enter Phone Number"
                     v-bind="componentField"
-                    class=" border-gray-200 rounded-l-none"
+                    class="border-gray-200 rounded-l-none"
                   />
                 </div>
               </FormControl>
@@ -37,8 +37,10 @@
             </FormItem>
           </FormField>
           <FormField name="agentContact">
-            <FormItem class="w-full sm:w-1/2">
-              <FormLabel>Agent contact No.</FormLabel>
+            <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
+              <FormLabel class="text-sm font-medium text-gray-700">
+                Agent contact No.
+              </FormLabel>
               <FormControl>
                 <Select v-model="form.values.agentContact">
                   <SelectTrigger class="w-full h-11">
@@ -151,4 +153,3 @@ function onSubmit(values: any) {
   // handle send sms
 }
 </script>
-
