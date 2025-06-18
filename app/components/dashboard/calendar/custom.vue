@@ -46,7 +46,7 @@ function isSunday(weekDate: DateValue) {
     v-bind="forwarded"
     :class="cn('border rounded-lg p-6', props.class)"
   >
-    <div class="flex justify-between items-center text-lg font-normal mt-2 ">
+    <div class="flex justify-between items-center text-base md:text-lg font-normal mt-2 ">
       <div>
         Scheduled Meeting
       </div>

@@ -36,7 +36,7 @@ const open = defineModel<boolean>()
         </AlertDialogCancel>
         <slot name="header">
           <img class="h-[98px] w-[98px] mx-auto" :src="img" alt="">
-          <AlertDialogTitle class="text-center">
+          <AlertDialogTitle class="text-center text-[#6D7076]">
             <div>
               {{ title }}
             </div>
@@ -50,9 +50,9 @@ const open = defineModel<boolean>()
         <slot name="actions">
           <AlertDialogCancel class="w-[49%] h-11 font-normal text-primary " @click="props.cancel?.()">
             <Icon name="material-symbols:close" />
-            Close
+            <span class="text-[#6D7076]">Close</span>
           </AlertDialogCancel>
-          <Button class="w-[49%] h-11 font-normal bg-red-600 hover:bg-red-600/80" @click="props.confirm?.()">
+          <Button class="w-[49%] h-11 font-normal bg-red-600 hover:bg-red-600/80" @click="() => { open = false; props.confirm?.() }">
             <Icon name="material-symbols:delete" />
             Delete
           </Button>

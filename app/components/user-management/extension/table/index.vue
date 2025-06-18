@@ -57,6 +57,8 @@ const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
+const selectedExtension = ref<Extension>()
+
 const {
   isRevealed: showDeleteConfirm,
   reveal: revealDeleteConfirm,
@@ -85,17 +87,29 @@ async function deleteMethod() {
   })
 }
 
-async function resetPassword() {
+async function resetExtension(row: { id: number }) {
   const { isCanceled } = await revealResetConfirm()
   if (isCanceled) {
     return false
   }
-  // console.log(row)
-  // TODO: API CALL HERE
-  showToast({
-    type: 'success',
-    message: 'Extension reset successfully',
+
+  // TODO: need correction here
+  useApi().post(`/delete-ext-live/${row.id}`).then((res) => {
+    showToast({
+      type: 'success',
+      message: res.message,
+    })
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
   })
+  // // console.log(row)
+  // showToast({
+  //   type: 'success',
+  //   message: 'Extension reset successfully',
+  // })
 }
 
 const extensionLoadingId = ref(0)
@@ -122,6 +136,8 @@ function getExtensionByID(id: number) {
 }
 
 const changePasswordModel = ref(false)
+const changePermissionModel = ref(false)
+
 const copy = ref('')
 
 const columnHelper = createColumnHelper<Extension>()
@@ -200,10 +216,15 @@ const columns = [
           deleteMethod(row?.original)
         },
         onChangePassword: () => {
+          selectedExtension.value = row?.original
           changePasswordModel.value = true
         },
+        onUnlock: () => {
+          selectedExtension.value = row?.original
+          changePermissionModel.value = true
+        },
         onReset: () => {
-          resetPassword(row?.original)
+          resetExtension(row?.original)
         },
       }),
     ]),
@@ -246,11 +267,23 @@ function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
 
-function savePassword() {
-  changePasswordModel.value = false
-  showToast({
-    type: 'success',
-    message: 'Password changed successfully',
+function savePassword(values: { password: string }) {
+  // TODO: need clarity for payload
+  const payload = {
+    ...values,
+    id: selectedExtension.value?.id,
+  }
+
+  useApi().post('/update-agent-password-by-admin', payload).then((res) => {
+    showToast({
+      message: res.message,
+    })
+    changePasswordModel.value = false
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
   })
 }
 
@@ -357,6 +390,9 @@ function changeLimit(val: number) {
 
   <!-- CHANGE PASSWORD -->
   <UserManagementExtensionChangePassword v-model="changePasswordModel" @save="savePassword" />
+
+  <!-- CHANGE PERMISSION -->
+  <UserManagementExtensionChangePermission v-model="changePermissionModel" :selected-extension="selectedExtension" />
 </template>
 
 <style scoped>

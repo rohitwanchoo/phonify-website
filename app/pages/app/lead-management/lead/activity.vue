@@ -1,3 +1,3 @@
 <template>
-    list
+    Lead Activity
 </template>

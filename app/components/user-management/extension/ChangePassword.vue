@@ -46,8 +46,7 @@ const showPassword = ref(false)
 const open = defineModel<boolean>()
 
 const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted!', values)
-  emits('save')
+  emits('save', values)
 })
 </script>
 
@@ -84,7 +83,7 @@ const onSubmit = handleSubmit((values) => {
 
         <DialogFooter class="mt-4">
           <DialogClose class="w-[49%]">
-            <Button variant="outline" class="w-full h-11" type="submit" form="dialogForm">
+            <Button variant="outline" class="w-full h-11" type="button" form="dialogForm">
               <Icon name="material-symbols:close" />
               Close
             </Button>

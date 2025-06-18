@@ -76,7 +76,7 @@ const data = [
 
 <template>
   <div class="border rounded-lg p-5">
-    <div class="flex item-center justify-between">
+    <div class="flex item-center justify-between gap-[20px]">
       <Select v-model="selectedUser">
         <SelectTrigger class="w-[180px]">
           <SelectValue placeholder="Select User" />

@@ -1,26 +1,25 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
 
-// import { ChevronsUpDown } from 'lucide-vue-next'
+import { useConfirmDialog } from '@vueuse/core'
+import { ChevronsUpDown } from 'lucide-vue-next'
+
 import moment from 'moment'
 import { h, ref } from 'vue'
-
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -29,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
+import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -41,127 +40,159 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-// const props = withDefaults(defineProps<Props>(), {
-//   list: () => [],
-// })
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const emits = defineEmits(['pageNavigation', 'refresh'])
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
 
-// interface Meta {
-//   current_page: number
-//   per_page: number
-//   last_page: number
-//   total: number
-// }
-// interface Props {
-//   list: { [key: string]: any }[]
-//   loading?: boolean
-//   meta?: Meta
-// }
+const selectedLabelId = ref<number | null>(null)
 
-// const sheet = ref(false)
-// const selectedCampaign = ref(null) // Store the campaign details
-// const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
+async function handleDelete() {
+  if (!selectedLabelId.value)
+    return
 
-// async function openSheet(id: number) {
-//   campaignLoadingId.value = id
-//   try {
-//     const res = await useApi().post('campaign-by-id', { campaign_id: id })
-//     selectedCampaign.value = res[0]
-//     sheet.value = true
-//   }
-//   catch (error) {
-//     showToast({
-//       type: 'error',
-//       message: error?.message || 'An error occurred while fetching campaign details.',
-//     })
-//   }
-//   finally {
-//     campaignLoadingId.value = null
-//   }
-// }
+  try {
+    const res = await useApi().get(`/crm-delete-label/${selectedLabelId.value}`)
 
-const staticData = ref([
-  { title: 'Marketing Group', created: '2025-05-26 12:00:00', status: true },
-  { title: 'Sales Team', created: '2025-05-26 12:00:00', status: true },
-  { title: 'Product Development', created: '2025-05-26 12:00:00', status: true },
-  { title: 'Customer Support', created: '2025-05-26 12:00:00', status: true },
-  { title: 'Finance Department', created: '2025-05-26 12:00:00', status: true },
-  { title: 'IT Support', created: '2025-05-26 12:00:00', status: false },
-  { title: 'Research Team', created: '2025-05-26 12:00:00', status: false },
-  { title: 'Legal Affairs', created: '2025-05-26 12:00:00', status: false },
-  { title: 'Corporate Compliance', created: '2025-05-26 12:00:00', status: false },
-  { title: 'Regulatory Affairs', created: '2025-05-26 12:00:00', status: false },
-  { title: 'Contract Management', created: '2025-05-26 12:00:00', status: false },
-  { title: 'Intellectual Property', created: '2025-05-26 12:00:00', status: false },
-])
+    if (res?.success) {
+      showToast({ type: 'success', message: res.message || 'Deleted successfully' })
+      emits('refresh') // properly emit refresh
+    }
+    else {
+      showToast({ type: 'error', message: res.message || 'Failed to delete label' })
+    }
+  }
+  catch (err) {
+    showToast({ type: 'error', message: 'API error: Unable to delete label' })
+  }
+  finally {
+    selectedLabelId.value = null
+  }
+}
 
-const columnHelper = createColumnHelper<any>()
+export interface crmLabelsList {
+  id: number
+  title: string
+  created_at: string
+  leadStatus: number
+  actions?: string
+}
+
+const columnHelper = createColumnHelper<crmLabelsList>()
 
 const columns = [
-  columnHelper.display({
-    id: 'index',
-    header: () => '#',
-    cell: ({ row }) => row.index + 1,
+
+  columnHelper.accessor('id', {
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
+    },
   }),
+
   columnHelper.accessor('title', {
-    header: 'Group Name',
-    cell: info => info.getValue(),
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Group Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+    },
   }),
-  columnHelper.accessor('created', {
-    header: 'Created Date',
-    cell: info => moment(info.getValue()).format('DD MMM YYYY hh:mm A'),
+  columnHelper.accessor('created_at', {
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
+        h('div', { class: 'text-xs' }, `${moment(row.original.created_at).format('DD MMM YYYY hh:mm A')}`),
+      ])
+    },
   }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: ({ row }) =>
-      h('div', { class: 'flex justify-center' }, [
-        h('input', {
-          type: 'checkbox',
-          checked: row.original.status,
-          class: 'toggle',
-          onChange: () => {
-            row.original.status = !row.original.status
-          },
-        }),
-      ]),
+
+  columnHelper.accessor('leadStatus', {
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+      const isChecked = row.original.leadStatus === 1
+      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
+        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'modelValue': isChecked,
+        'onUpdate:modelValue': async (val: boolean) => {
+          const newStatus = val ? 1 : 0
+          row.original.leadStatus = newStatus // Optimistically update UI
+          await updateStatus(row.original.id, newStatus)
+        },
+      }))
+    },
   }),
-  columnHelper.display({
-    id: 'actions',
-    header: 'Action',
-    cell: () =>
-      h('div', { class: 'flex gap-2 justify-center' }, [
-        h('button', { class: 'p-1 border rounded' }, '✏️'),
-        h('button', { class: 'p-1 border rounded text-red-500' }, '🗑️'),
-      ]),
+
+  columnHelper.accessor('actions', {
+    header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => emits('edit', row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
+        selectedLabelId.value = row.original.id
+        revealDeleteConfirm()
+      } }, h(Icon, { name: 'material-symbols:delete' })),
+    ]),
   }),
+
 ]
 
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return staticData.value },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
     columnPinning: {
       left: ['status'],
     },
@@ -171,10 +202,54 @@ const table = useVueTable({
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
+
+async function updateStatus(id: number, newStatus: number) {
+  const label = props.list.find(item => item.id === id)
+
+  if (!label)
+    return showToast({ type: 'error', message: 'Label not found' })
+
+  try {
+    const res = await useApi().post(`/crm-update-label/${id}`, {
+      title: label.title,
+      edit_mode: true, // or as per actual label data
+      data_type: 'string', // replace with actual value
+      required: false, // adjust accordingly
+      merchant_required: false,
+      number_length: null, // if not used
+      icons: 'fa fa-user', // optional
+      heading_type: 'owner',
+      values: '', // if any
+      leadStatus: newStatus, // <-- include the new status value if backend expects this key
+    })
+
+    if (res?.success) {
+      showToast({ type: 'success', message: res.message || 'Status updated successfully' })
+      emits('refresh')
+    }
+    else {
+      showToast({ type: 'error', message: res.message || 'Failed to update status' })
+    }
+  }
+  catch (err) {
+    showToast({ type: 'error', message: 'API error: Unable to update status' })
+  }
+}
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg overflow-hidden">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -219,23 +294,20 @@ function handlePageChange(page: number) {
         </template>
 
         <TableRow v-else>
-          <TableCell
-            :colspan="columns.length"
-            class="h-24 text-center"
-          >
+          <TableCell :colspan="columns.length" class="h-24 text-center">
             No results.
           </TableCell>
         </TableRow>
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -247,15 +319,24 @@ function handlePageChange(page: number) {
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
+
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete Label"
+    description="You are about to delete this label. Do you wish to proceed?"
+  />
 </template>

@@ -134,7 +134,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border p-6 rounded-lg">
+  <div class="border p-6 rounded-lg lg:h-full">
     <div class="text-[#121E3D] font-normal flex justify-between mb-2">
       <div class="text-[18px]">
         Live Call
