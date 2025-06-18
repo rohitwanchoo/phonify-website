@@ -8,23 +8,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const breadcrumbs = [
-  {
-    label: 'Lead',
-    href: '/app/lead-management/lead',
-    active: false,
-  },
-  {
-    label: 'Lead Activity',
-    href: '/app/lead-management/lead/activity',
-    active: false,
-  },
-  {
-    label: 'Edit Lead',
-    href: '/app/lead-management/lead/edit',
-    active: true,
-  },
-]
+const router = useRouter()
 
 // Country code refs for phone numbers
 const phoneCountryCode = ref('+1')
@@ -83,6 +67,7 @@ const { handleSubmit, resetForm } = useForm({
 const onSubmit = handleSubmit((values) => {
   console.log('Form submitted with values:', values)
   // Handle form submission here
+  router.push('/app/lead-management/lead/activity')
 })
 
 function onCancel() {
@@ -90,6 +75,24 @@ function onCancel() {
   // Handle cancel action (maybe navigate back)
   console.log('Form cancelled')
 }
+
+const breadcrumbs = [
+  {
+    label: 'Lead',
+    href: '/app/lead-management/lead',
+    active: false,
+  },
+  {
+    label: 'Lead Activity',
+    href: '/app/lead-management/lead/activity',
+    active: false,
+  },
+  {
+    label: 'Edit Lead',
+    href: '/app/lead-management/lead/edit',
+    active: true,
+  },
+]
 </script>
 
 <template>

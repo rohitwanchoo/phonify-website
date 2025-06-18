@@ -126,7 +126,7 @@ const columns = [
         size: 'sm',
         class: 'bg-white text-black border border-[#162D3A] flex items-center gap-2 hover:bg-transparent hover:text-inherit',
         onClick: () => {
-          router.push('/app/lead-management/lead/lead-activity')
+          router.push('/app/lead-management/lead/activity')
         },
       }, [
         h(Icon, { name: 'material-symbols:person', filled: true, class: 'text-base text-black' }),
