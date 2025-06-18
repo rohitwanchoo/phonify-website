@@ -2,22 +2,48 @@
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <Form :form="form" @submit.prevent="onSubmit">
       <div class="space-y-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <FormField name="leadContact">
-            <FormItem class="w-full sm:w-1/2">
-              <FormLabel>Lead contact No.</FormLabel>
+        <div class="flex flex-col sm:flex-row gap-4 items-stretch">
+          <FormField v-slot="{ componentField }" name="leadContact">
+            <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
+              <FormLabel class="text-sm font-medium text-gray-700">
+                Lead contact No.
+              </FormLabel>
               <FormControl>
-                <Input v-model="form.values.leadContact" type="tel" placeholder="Enter phone number" />
+                <div class="flex">
+                  <Select v-model="phoneCountryCode">
+                    <SelectTrigger class="w-24 h-11 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
+                      <SelectValue placeholder="USA (+1)" class="text-xs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="+1">
+                        USA (+1)
+                      </SelectItem>
+                      <SelectItem value="+44">
+                        UK (+44)
+                      </SelectItem>
+                      <SelectItem value="+91">
+                        IN (+91)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Enter Phone Number"
+                    v-bind="componentField"
+                    class="border-gray-200 rounded-l-none"
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
           <FormField name="agentContact">
-            <FormItem class="w-full sm:w-1/2">
-              <FormLabel>Agent contact No.</FormLabel>
+            <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
+              <FormLabel class="text-sm font-medium text-gray-700">
+                Agent contact No.
+              </FormLabel>
               <FormControl>
                 <Select v-model="form.values.agentContact">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full h-11">
                     <SelectValue placeholder="Select agent" />
                   </SelectTrigger>
                   <SelectContent>
@@ -36,7 +62,7 @@
             <FormLabel>Template</FormLabel>
             <FormControl>
               <Select v-model="form.values.template">
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full h-11">
                   <SelectValue placeholder="Select template" />
                 </SelectTrigger>
                 <SelectContent>
@@ -121,9 +147,9 @@ const form = useForm({
 })
 
 const messageLength = computed(() => form.values.message?.length || 0)
+const phoneCountryCode = ref('+1')
 
 function onSubmit(values: any) {
   // handle send sms
 }
 </script>
-

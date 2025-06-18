@@ -95,7 +95,7 @@ function onCancel() {
 <template>
   <div class="space-y-6">
     <BaseHeader title="John Doe" :breadcrumbs="breadcrumbs" />
-    <div>
+    <div class="h-[calc(100vh-200px)] overflow-auto">
       <form id="form" class="flex flex-col gap-4" @submit.prevent="onSubmit">
         <!-- Personal Information Section -->
         <div class="border border-gray-100 rounded-xl">
@@ -600,7 +600,7 @@ function onCancel() {
         </div>
 
         <!-- Action Buttons -->
-        <div class="bg-white shadow w-full flex justify-between gap-4 mt-2.5 p-6 border-t border-gray-200">
+        <div class="sticky bottom-0 bg-white shadow w-full flex flex-wrap justify-between gap-4 mt-2.5 p-6 border-t border-gray-200">
           <Button
             variant="outline"
             class="flex-1 px-8 py-3 h-12"
