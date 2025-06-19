@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
+import Action from './Action.vue'
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
@@ -74,6 +75,7 @@ interface Props {
 const sheet = ref(false)
 const selectedCampaign = ref(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
+const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
 
 async function openSheet(id: number) {
   campaignLoadingId.value = id
@@ -208,7 +210,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3', style: 'position:relative;' }, [
       h(
         Button,
         {
@@ -225,7 +227,33 @@ const columns = [
           },
         ),
       ),
-      h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
+      h(Action, {
+        onEdit: () => {
+          navigateTo({
+            path: '/app/user-management/campaign/create',
+            query: { id: row.original.id },
+          })
+        },
+        onDelete: () => {
+          // Call confirm delete logic
+          deleteCampaign(row.original)
+        },
+        onCopy: () => {
+          // Call confirm delete logic
+
+        },
+        // onChangePassword: () => {
+        //   selectedCampaign.value = row.original
+        //   changePasswordModel.value = true
+        // },
+        // onUnlock: () => {
+        //   selectedCampaign.value = row.original
+        //   changePermissionModel.value = true
+        // },
+        onReset: () => {
+          resetCampaign(row.original)
+        },
+      }),
     ]),
   }),
 ]
