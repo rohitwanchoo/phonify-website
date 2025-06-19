@@ -85,9 +85,9 @@ const tabButtonText: Record<string, string> = {
 <template>
   <BaseHeader title="Profile" class="text-primary" orientation="vertical" />
   
-  <div class="md:flex gap-2 md:h-full">
+  <div class="lg:flex gap-2 lg:h-full">
     <!-- Left Side -->
-    <div class="md:h-full md:w-[75%] mb-4 md:mb-0 rounded-lg border">
+    <div class="lg:h-full lg:w-[75%] mb-4 md:mb-0 rounded-lg border">
       <Tabs v-model="currentTab" class="h-full" orientation="vertical">
         <div class="flex flex-col lg:flex-row h-full">
           <!-- Sidebar Tabs -->
@@ -174,7 +174,7 @@ const tabButtonText: Record<string, string> = {
     </div>
 
     <!-- Right Side -->
-    <div class="md:h-full md:w-[25%] rounded-lg bg-[#f2faf9]">
+    <div class="lg:h-full lg:w-[25%] rounded-lg bg-[#f2faf9]">
       <ProfileDetails :user="user" />
     </div>
   </div>
