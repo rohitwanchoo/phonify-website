@@ -51,13 +51,13 @@ function onEdit() {
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">Current Phone System</span><span>-</span>
       </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
+      <div class="flex flex-wrap justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">Monthly Revenue</span><span>$10,000.00</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">Funding Amount</span><span>$20,000.00</span>
       </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
+      <div class="flex flex-wrap justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">Email</span><span>johndoe123@gmail.com</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">

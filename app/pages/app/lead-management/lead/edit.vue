@@ -116,7 +116,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Type First Name"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -133,7 +133,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Type Last Name"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -150,7 +150,7 @@ const breadcrumbs = [
                   <div class="flex">
                     <Select v-model="phoneCountryCode">
                       <SelectTrigger class="w-24 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
-                        <SelectValue placeholder="USA (+1)" class="text-xs" />
+                        <SelectValue placeholder="USA (+1)" class="text-xs md:text-sm" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="+1">
@@ -167,7 +167,7 @@ const breadcrumbs = [
                     <Input
                       placeholder="Enter Phone Number"
                       v-bind="componentField"
-                      class="h-11 border-gray-200 rounded-l-none"
+                      class="h-11 border-gray-200 rounded-l-none text-xs md:text-sm"
                     />
                   </div>
                 </FormControl>
@@ -185,7 +185,7 @@ const breadcrumbs = [
                   <div class="flex">
                     <Select v-model="workPhoneCountryCode">
                       <SelectTrigger class="w-24 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
-                        <SelectValue placeholder="USA (+1)" class="text-xs" />
+                        <SelectValue placeholder="USA (+1)" class="text-xs md:text-sm" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="+1">
@@ -202,7 +202,7 @@ const breadcrumbs = [
                     <Input
                       placeholder="Enter Phone Number"
                       v-bind="componentField"
-                      class="h-11 border-gray-200 rounded-l-none"
+                      class="h-11 border-gray-200 rounded-l-none text-xs md:text-sm"
                     />
                   </div>
                 </FormControl>
@@ -221,7 +221,7 @@ const breadcrumbs = [
                     placeholder="Type E-mail"
                     type="email"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -238,7 +238,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Education"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -255,7 +255,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Extension"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -280,7 +280,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Legal Company Name"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -297,7 +297,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Business Type"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -314,7 +314,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Business Age"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -331,7 +331,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Current Phone System"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -348,7 +348,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Lead Source"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -365,7 +365,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Funding Amount"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -382,7 +382,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Factor Rate"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -399,7 +399,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="No of Open Loans"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -424,7 +424,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Address"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -441,7 +441,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Address 2"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -458,7 +458,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="City"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -475,7 +475,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="State"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -492,7 +492,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Zip"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -506,7 +506,7 @@ const breadcrumbs = [
           <h2 class="text-base font-medium text-[#121E3D] px-5 pt-5 pb-3 border-b border-gray-100">
             Financial Information
           </h2>
-          <div class="p-5 grid grid-cols-3 gap-5">
+          <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-5">
             <!-- Monthly Revenue -->
             <FormField v-slot="{ componentField }" name="monthlyRevenue">
               <FormItem class="flex flex-col gap-1">
@@ -517,7 +517,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Monthly Revenue"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -534,7 +534,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Annual Revenue"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -551,7 +551,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="Credit Score"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -576,7 +576,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="New Label 1"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -593,7 +593,7 @@ const breadcrumbs = [
                   <Input
                     placeholder="New Label 2"
                     v-bind="componentField"
-                    class="h-11 border-gray-200"
+                    class="h-11 border-gray-200 text-xs md:text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -603,10 +603,10 @@ const breadcrumbs = [
         </div>
 
         <!-- Action Buttons -->
-        <div class="sticky bottom-0 bg-white shadow w-full flex flex-wrap justify-between gap-4 mt-2.5 p-6 border-t border-gray-200">
+        <div class="sticky bottom-0 bg-white shadow w-full flex flex-wrap justify-between items-center gap-4 mt-2.5 p-2 md:p-6 border-t border-gray-200">
           <Button
             variant="outline"
-            class="flex-1 px-8 py-3 h-12"
+            class="flex-1 px-8 py-3 h-8 md:h-12 w-[100px] md:w-full"
             @click="onCancel"
           >
             <Icon name="material-symbols:close" size="20" />
@@ -614,7 +614,7 @@ const breadcrumbs = [
           </Button>
           <Button
             type="submit"
-            class="flex-1 px-8 py-3 h-12"
+            class="flex-1 px-8 py-3 h-8 md:h-12 w-[100px] md:w-full"
           >
             <Icon name="material-symbols:save" size="20" />
             Save

@@ -34,13 +34,13 @@ const form = useForm({
       <Form :form="form">
         <div class="space-y-4">
           <div class="flex flex-col sm:flex-row gap-4">
-            <FormField name="agentNumber">
+            <FormField name="agentNumber" v-slot="{ componentField }">
               <FormItem class="w-full sm:w-1/2">
                 <FormLabel>From</FormLabel>
                 <FormControl>
-                  <Select v-model="form.values.agentNumber">
+                  <Select v-bind="componentField">
                     <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Agent Number" />
+                      <SelectValue placeholder="Agent Number" class="text-xs md:text-sm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in agentOptions" :key="option.value" :value="option.value">
@@ -51,11 +51,11 @@ const form = useForm({
                 </FormControl>
               </FormItem>
             </FormField>
-            <FormField name="faxNumber">
+            <FormField name="faxNumber" v-slot="{ componentField }">
               <FormItem class="w-full sm:w-1/2">
                 <FormLabel>Recipient Fax Number</FormLabel>
                 <FormControl>
-                  <Input v-model="form.values.faxNumber" type="tel" placeholder="Fax Number" />
+                  <Input v-bind="componentField" type="tel" placeholder="Fax Number" class="text-xs md:text-sm" />
                 </FormControl>
               </FormItem>
             </FormField>

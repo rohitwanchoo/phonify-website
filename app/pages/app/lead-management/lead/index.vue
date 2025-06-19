@@ -57,11 +57,11 @@ const meta = {
     <!-- HEADER -->
     <BaseHeader title="Manage Leads">
       <template #actions>
-        <div class="relative">
+        <div class="relative mt-4 md:mt-0">
           <Input placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button>
+        <Button class="mt-4 md:mt-0">
           Search
         </Button>
       </template>

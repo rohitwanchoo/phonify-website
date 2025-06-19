@@ -12,7 +12,7 @@
                 <div class="flex">
                   <Select v-model="phoneCountryCode">
                     <SelectTrigger class="w-24 h-11 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
-                      <SelectValue placeholder="USA (+1)" class="text-xs" />
+                      <SelectValue placeholder="USA (+1)" class="text-xs lg:text-sm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="+1">
@@ -27,24 +27,25 @@
                     </SelectContent>
                   </Select>
                   <Input
-                    placeholder="Enter Phone Number"
                     v-bind="componentField"
-                    class="border-gray-200 rounded-l-none"
+                    v-model="form.values.leadContact"
+                    placeholder="Enter Phone Number"
+                    class="border-gray-200 rounded-l-none text-xs lg:text-sm"
                   />
                 </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField name="agentContact">
+          <FormField name="agentContact" v-slot="{ componentField }">
             <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
               <FormLabel class="text-sm font-medium text-gray-700">
                 Agent contact No.
               </FormLabel>
               <FormControl>
-                <Select v-model="form.values.agentContact">
+                <Select v-bind="componentField">
                   <SelectTrigger class="w-full h-11">
-                    <SelectValue placeholder="Select agent" />
+                    <SelectValue placeholder="Select agent" class="text-xs lg:text-sm" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="option in agentOptions" :key="option.value" :value="option.value">
@@ -57,13 +58,13 @@
             </FormItem>
           </FormField>
         </div>
-        <FormField name="template">
+        <FormField name="template" v-slot="{ componentField }">
           <FormItem>
             <FormLabel>Template</FormLabel>
             <FormControl>
-              <Select v-model="form.values.template">
+              <Select v-bind="componentField">
                 <SelectTrigger class="w-full h-11">
-                  <SelectValue placeholder="Select template" />
+                  <SelectValue placeholder="Select template" class="text-xs lg:text-sm" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="option in templateOptions" :key="option.value" :value="option.value">
@@ -84,7 +85,7 @@
                 placeholder="Type your message"
                 maxlength="200"
                 rows="4"
-                class="resize-y pr-14"
+                class="resize-y pr-14 text-xs lg:text-sm"
               />
             </FormControl>
             <div class="flex justify-end mt-1">
