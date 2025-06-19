@@ -7,18 +7,18 @@
             <FormItem class="w-full sm:w-1/2">
               <FormLabel>To</FormLabel>
               <FormControl>
-                <Input v-model="form.values.to" type="email" placeholder="Enter lead email" />
+                <Input v-model="form.values.to" type="email" placeholder="Lead Mail Id" class="text-xs md:text-sm" />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField name="from">
+          <FormField name="from" v-slot="{ componentField }">
             <FormItem class="w-full sm:w-1/2">
               <FormLabel>From</FormLabel>
               <FormControl>
-                <Select v-model="form.values.from">
+                <Select v-bind="componentField">
                   <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select agent email" />
+                    <SelectValue placeholder="Enter Mail Id" class="text-xs md:text-sm" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="option in agentEmailOptions" :key="option.value" :value="option.value">
@@ -31,13 +31,13 @@
             </FormItem>
           </FormField>
         </div>
-        <FormField name="template">
+        <FormField name="template" v-slot="{ componentField }">
           <FormItem>
             <FormLabel>Template</FormLabel>
             <FormControl>
-              <Select v-model="form.values.template">
+              <Select v-bind="componentField">
                 <SelectTrigger class="w-full">
-                  <SelectValue placeholder="Select template" />
+                  <SelectValue placeholder="Select template" class="text-xs md:text-sm" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="option in templateOptions" :key="option.value" :value="option.value">
@@ -50,13 +50,13 @@
           </FormItem>
         </FormField>
         <div class="flex flex-col sm:flex-row gap-4">
-          <FormField name="leadPlaceholder">
+          <FormField name="leadPlaceholder" v-slot="{ componentField }">
             <FormItem class="w-full sm:w-1/2">
               <FormLabel>Lead Placeholders</FormLabel>
               <FormControl>
-                <Select v-model="form.values.leadPlaceholder">
+                <Select v-bind="componentField">
                   <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select lead placeholder" />
+                    <SelectValue placeholder="Select placeholder" class="text-xs md:text-sm" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="option in leadPlaceholderOptions" :key="option.value" :value="option.value">
@@ -68,13 +68,13 @@
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField name="senderPlaceholder">
+          <FormField name="senderPlaceholder" v-slot="{ componentField }">
             <FormItem class="w-full sm:w-1/2">
               <FormLabel>Sender Placeholders</FormLabel>
               <FormControl>
-                <Select v-model="form.values.senderPlaceholder">
+                <Select v-bind="componentField">
                   <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select sender placeholder" />
+                    <SelectValue placeholder="Select placeholder" class="text-xs md:text-sm" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="option in senderPlaceholderOptions" :key="option.value" :value="option.value">
@@ -91,7 +91,7 @@
           <FormItem>
             <FormLabel>Subject</FormLabel>
             <FormControl>
-              <Input v-model="form.values.subject" type="text" placeholder="Enter subject" />
+              <Input v-model="form.values.subject" type="text" placeholder="Enter Mail Subject" class="text-xs md:text-sm" />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -102,10 +102,10 @@
             <FormControl>
               <Textarea
                 v-model="form.values.templateReview"
-                placeholder="Type your email content"
+                placeholder="Enter message here.."
                 maxlength="500"
                 rows="6"
-                class="resize-y pr-14"
+                class="resize-y pr-14 text-xs md:text-sm"
               />
             </FormControl>
             <div class="flex justify-end mt-1">

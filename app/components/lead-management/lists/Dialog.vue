@@ -90,7 +90,7 @@ function onNext() {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input v-model="form.values.title" placeholder="Enter title" />
+                <Input v-model="form.values.title" placeholder="Enter title" class="text-xs md:text-sm" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -110,7 +110,7 @@ function onNext() {
               <FormControl>
                 <Select v-model="form.values.campaign">
                   <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select campaign" />
+                    <SelectValue placeholder="Select campaign" class="text-xs md:text-sm" />
                   </SelectTrigger>
                   <SelectContent class="w-full">
                     <SelectItem v-for="option in campaignOptions" :key="option.value" :value="option.value">
@@ -136,7 +136,7 @@ function onNext() {
             </FormItem>
           </FormField>
         </div>
-        <DialogFooter class="flex justify-between items-center mt-6">
+        <DialogFooter class="flex flex-row justify-between items-center mt-6">
           <Button type="button" variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600" @click="closeDialog">
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Discard
