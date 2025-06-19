@@ -87,18 +87,18 @@ async function deleteMethod() {
   })
 }
 
-async function resetExtension(row: { id: number }) {
+async function resetExtension(row: { extension: number }) {
   const { isCanceled } = await revealResetConfirm()
   if (isCanceled) {
     return false
   }
 
-  // TODO: need correction here
-  useApi().post(`/delete-ext-live/${row.id}`).then((res) => {
+  useApi().post(`/delete-ext-live`, { sip: row.extension }).then((res) => {
     showToast({
       type: 'success',
       message: res.message,
     })
+    emits('refresh')
   }).catch((err) => {
     showToast({
       message: err.message,
@@ -267,26 +267,6 @@ function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
 
-function savePassword(values: { password: string }) {
-  // TODO: need clarity for payload
-  const payload = {
-    ...values,
-    id: selectedExtension.value?.id,
-  }
-
-  useApi().post('/update-agent-password-by-admin', payload).then((res) => {
-    showToast({
-      message: res.message,
-    })
-    changePasswordModel.value = false
-  }).catch((err) => {
-    showToast({
-      message: err.message,
-      type: 'error',
-    })
-  })
-}
-
 function changeLimit(val: number) {
   emits('changeLimit', val)
 }
@@ -389,7 +369,7 @@ function changeLimit(val: number) {
   </ConfirmAction>
 
   <!-- CHANGE PASSWORD -->
-  <UserManagementExtensionChangePassword v-model="changePasswordModel" @save="savePassword" />
+  <UserManagementExtensionChangePassword v-model="changePasswordModel" :selected-extension="selectedExtension" />
 
   <!-- CHANGE PERMISSION -->
   <UserManagementExtensionChangePermission v-model="changePermissionModel" :selected-extension="selectedExtension" />

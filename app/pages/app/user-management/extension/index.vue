@@ -62,6 +62,6 @@ function toastTest() {
       </template>
     </BaseHeader>
 
-    <UserManagementExtensionTable :limit="limit" :total-rows="extensionList?.total_rows" :start="pageStart" :list="extensionList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+    <UserManagementExtensionTable :limit="limit" :total-rows="extensionList?.total_rows" :start="pageStart" :list="extensionList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
   </div>
 </template>

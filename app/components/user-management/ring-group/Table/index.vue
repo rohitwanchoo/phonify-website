@@ -33,14 +33,6 @@ import {
 } from '@/components/ui/select'
 
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-import {
   Table,
   TableBody,
   TableCell,
@@ -50,17 +42,13 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 
-import { cn } from '@/lib/utils'
-import resetImage from '~/assets/svg/reset.svg'
-import Action from './Action.vue'
-
 const props = defineProps<{
   loading: boolean
   // meta: Meta
   list: any[]
 }>()
 
-const emits = defineEmits(['pageNavigation', 'refresh'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'edit'])
 
 interface Meta {
   current_page: number
@@ -76,13 +64,6 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const {
-  isRevealed: showResetConfirm,
-  reveal: revealResetConfirm,
-  confirm: resetConfirm,
-  cancel: resetCancel,
-} = useConfirmDialog()
-
 async function deleteMethod() {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
@@ -96,12 +77,6 @@ async function deleteMethod() {
     message: 'Ring Group deleted successfully',
   })
 }
-
-
-
-
-
-
 
 interface GroupList {
   id: number
@@ -146,8 +121,8 @@ const columns = [
       }, () => ['No. of Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'flex items-center justify-center gap-1 text-sm font-normal' }, [
       row.original.extension_count,
-      h(Icon, { name:'material-symbols:visibility-outline', class:'h-5 w-5 cursor-pointer' }),
-      ]),
+      h(Icon, { name: 'material-symbols:visibility-outline', class: 'h-5 w-5 cursor-pointer' }),
+    ]),
   }),
 
   columnHelper.accessor('emails', {
@@ -158,8 +133,8 @@ const columns = [
   columnHelper.accessor('actions', {
     header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer' }, h(Icon, { name: 'material-symbols:edit-square' })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick:() => deleteMethod() }, h(Icon, { name: 'material-symbols:delete' })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => emits('edit', row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => deleteMethod(row.original) }, h(Icon, { name: 'material-symbols:delete' })),
 
     ]),
   }),
@@ -199,14 +174,6 @@ const table = useVueTable({
 
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
-}
-
-function savePassword() {
-  changePasswordModel.value = false
-  showToast({
-    type: 'success',
-    message: 'Password changed successfully',
-  })
 }
 </script>
 

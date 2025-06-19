@@ -38,6 +38,31 @@ import {
 import { Separator } from '@/components/ui/separator'
 import Textarea from '~/components/ui/textarea/Textarea.vue'
 
+interface RingGroup {
+  id: number
+  title: string
+  email: string
+  ring_type: number
+  description: string
+  receive_on: string
+  extension: Extension[]
+}
+
+const props = defineProps<{
+  tempRingGroup?: RingGroup
+}>()
+
+const emits = defineEmits(['complete'])
+
+const isEdit = computed(() => {
+  return Object.keys(props.tempRingGroup || {}).length > 0
+})
+
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
+
 const formSchema = toTypedSchema(z.object({
   name: z.string().min(1, 'name is required').max(50, 'max'),
   description: z.string().min(1, 'description is required').max(250, 'max'),
@@ -54,31 +79,51 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, errors } = useForm({
+const { handleSubmit, setFieldValue, resetForm } = useForm({
   validationSchema: formSchema,
 })
-const onSubmit = handleSubmit((values) => {
-  // Handle form submission
-  console.log(values)
+
+watch(open, (newValue) => {
+  if (newValue && isEdit.value) {
+    setFieldValue('name', props.tempRingGroup?.title || '')
+    setFieldValue('description', props.tempRingGroup?.description || '')
+    setFieldValue('email', props.tempRingGroup?.email || '')
+    setFieldValue('ring_mode', Number(props.tempRingGroup?.ring_type) || 1)
+    setFieldValue('receive_on', props.tempRingGroup?.receive_on)
+  }
+  else {
+    resetForm()
+  }
 })
 
-const Extensions = [
-  {
-    id: 1,
-    name: 'Extension 1',
-    code: 'EXT123',
-  },
-  {
-    id: 2,
-    name: 'Extension 2',
-    code: 'EXT456',
-  },
-  {
-    id: 3,
-    name: 'Extension 3',
-    code: 'EXT789',
-  },
-]
+const loading = ref(false)
+const onSubmit = handleSubmit((values) => {
+  loading.value = true
+  // // Handle form submission
+  // console.log(values)
+  const payload = {
+    ...values,
+    email: [values.email],
+    extension: values.extension.map((item: { extension: number }) => `SIP/${item.extension}`),
+  }
+  useApi().post('/add-ring-group', payload).then((res) => {
+    showToast({
+      type: 'success',
+      message: res.message,
+    })
+    loading.value = false
+    emits('complete')
+    open.value = false
+  }).catch((err) => {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  }).finally(() => {
+    loading.value = false
+  })
+})
+
 const ringModes = [
   {
     id: 1,
@@ -94,6 +139,21 @@ const ringModes = [
   },
 ]
 
+const receiveOn = [
+  {
+    id: 'desk_phone',
+    name: 'Desk Phone',
+  },
+  {
+    id: 'web_phone',
+    name: 'Web Phone',
+  },
+  {
+    id: 'mobile',
+    name: 'Mobile',
+  },
+]
+
 const addExtensionSheet = ref(false)
 
 const selectedExtensions = ref<Extension[]>([])
@@ -104,7 +164,7 @@ function removeExtension(index: number) {
 </script>
 
 <template>
-  <Dialog>
+  <Dialog v-model:open="open" @update:open="onOpenDialog">
     <DialogTrigger as-child>
       <slot>
         <Button class="h-11">
@@ -116,7 +176,7 @@ function removeExtension(index: number) {
     <DialogContent class="sm:max-w-[600px] [&>button]:hidden">
       <DialogHeader class="gap-y-[17px]">
         <DialogTitle class="text-[16px] font-medium flex justify-between">
-          Add Ring Group
+          {{ isEdit ? 'Edit Ring Group' : 'Add Ring Group' }}
           <DialogClose class="cursor-pointer flex items-center">
             <Icon name="mdi:close" size="20" />
           </DialogClose>
@@ -156,6 +216,7 @@ function removeExtension(index: number) {
           </FormField>
 
           <FormField
+            v-slot="{ errorMessage }"
             v-model="selectedExtensions"
             name="extension"
           >
@@ -164,7 +225,7 @@ function removeExtension(index: number) {
                 Extensions
               </FormLabel>
               <FormControl>
-                <div :class="errors.extension && 'border-red-600'" class="p-4 text-sm text-gray-500 flex items-center border rounded-lg cursor-pointer">
+                <div :class="errorMessage && 'border-red-600'" class="p-4 text-sm text-gray-500 flex items-center border rounded-lg cursor-pointer">
                   <div v-if="!selectedExtensions.length" class="hover:text-primary" @click="addExtensionSheet = true">
                     Select extensions
                   </div>
@@ -241,8 +302,8 @@ function removeExtension(index: number) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectItem v-for="item in ['Desk Phone', 'Web Phone', 'Mobile']" :key="item" :value="item">
-                            {{ item }}
+                          <SelectItem v-for="item in receiveOn" :key="item.id" :value="item.id">
+                            {{ item.name }}
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>
@@ -261,9 +322,9 @@ function removeExtension(index: number) {
                 Close
               </Button>
             </DialogClose>
-            <Button for="form" class="h-11 w-1/2" type="submit" @click="onSubmit">
-              <Icon name="material-symbols:save" size="18" />
-              Save
+            <Button :disabled="loading" for="form" class="h-11 w-1/2" type="submit" @click="onSubmit">
+              <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" />
+              {{ isEdit ? 'Update' : 'Save' }}
             </Button>
           </DialogFooter>
         </div>

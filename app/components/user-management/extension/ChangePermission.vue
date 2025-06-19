@@ -147,7 +147,7 @@ watch(open, async (newValue) => {
             </Button>
           </DialogClose>
 
-          <Button :disabled="loading" class="w-[49%] h-11" type="submit" form="dialogForm" @click="onSubmit">
+          <Button :disabled="loading || submitLoading" class="w-[49%] h-11" type="submit" form="dialogForm" @click="onSubmit">
             <Icon :name="submitLoading ? 'eos-icons:loading' : 'material-symbols:save'" />
             Save
           </Button>

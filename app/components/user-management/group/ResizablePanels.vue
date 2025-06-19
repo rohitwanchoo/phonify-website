@@ -178,6 +178,25 @@ async function deleteGroup(group: { id: number }) {
     })
   }
 }
+
+// const route = useRoute()
+// const id = route.params.id
+
+// TODO: need to integrate extension list by group id
+
+// const { data: extensionByGroupId, status, refresh } = await useLazyAsyncData('extension-list-by-group-id', () =>
+//   useApi().post(`/active-extension-group-list?group_id?group_id=${id}`, {
+//   }), {
+//   transform: (res) => {
+//     return res.data
+//   },
+//   immediate: false,
+// })
+
+// async function selectedGroupId(id: number) {
+//   await navigateTo({ params: { id } })
+//   refresh()
+// }
 </script>
 
 <template>
