@@ -84,47 +84,48 @@ const tabButtonText: Record<string, string> = {
 
 <template>
   <BaseHeader title="Profile" class="text-primary" orientation="vertical" />
-  <div class="grid grid-cols-[75%_25%] gap-2 h-full">
+  
+  <div class="lg:flex gap-2 lg:h-full">
     <!-- Left Side -->
-    <div class="h-full rounded-lg border">
+    <div class="lg:h-full lg:w-[75%] mb-4 md:mb-0 rounded-lg border">
       <Tabs v-model="currentTab" class="h-full" orientation="vertical">
-        <div class="grid grid-cols-[30%_70%] h-full">
+        <div class="flex flex-col lg:flex-row h-full">
           <!-- Sidebar Tabs -->
-          <div>
-            <TabsList class="py-3 px-4 flex justify-start flex-col w-full h-full bg-primary rounded-r-none">
+          <div class="lg:w-[30%]">
+            <TabsList class="lg:py-3 lg:px-4 p-0 flex justify-center items-center h-15 lg:h-full lg:justify-start lg:flex-col w-full bg-primary rounded-b-none lg:rounded-bl-xl  lg:rounded-r-none">
               <TabsTrigger
                 value="account"
-                class="text-left text-white data-[state=active]:text-primary max-h-14 px-4 w-full block mx-auto mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-bl-none rounded-r-none data-[state=active]:text-primary  lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex items-center gap-2">
-                  <Icon name="material-symbols:person" class="text-2xl" />
-                  Edit Profile
+                <div class="flex justify-center lg:justify-start items-center gap-1">
+                  <Icon name="material-symbols:person" class="h-3 hidden sm:block" />
+                 Edit Profile
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="password"
-                class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-none data-[state=active]:text-primary lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex items-center gap-2">
-                  <Icon name="material-symbols:lock" class="text-xl" />
+                <div class="flex justify-center lg:justify-start items-center gap-1">
+                  <Icon name="material-symbols:lock" class="h-3 hidden sm:block" />
                   Change Password
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="voicemail"
-                class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-none data-[state=active]:text-primary  lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex items-center gap-2">
-                  <Icon name="material-symbols:voicemail" class="text-2xl" />
+                <div class="flex justify-center lg:justify-start items-center gap-1">
+                  <Icon name="material-symbols:voicemail" class="h-3 hidden sm:block" />
                   Voicemail
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="aireplies"
-                class="text-white data-[state=active]:text-primary text-left max-h-14 px-4 w-full block mx-auto mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-br-none rounded-l-none data-[state=active]:text-primary lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex items-center gap-2">
-                  <Icon name="icons:voiceai" class="text-lg" />
+                <div class="flex justify-center lg:justify-start items-center gap-1">
+                  <Icon name="icons:voiceai" class="h-3 hidden sm:block" />
                   Voice AI
                 </div>
               </TabsTrigger>
@@ -132,7 +133,7 @@ const tabButtonText: Record<string, string> = {
           </div>
 
           <!-- Tab Content -->
-          <div class="flex flex-col h-full max-h-[calc(100vh-138px)]">
+          <div class="lg:w-[70%] flex flex-col h-full max-h-[calc(100vh-138px)]">
             <div class="flex-1 overflow-auto ">
               <TabsContent value="account">
                 <ProfileEdit />
@@ -173,7 +174,7 @@ const tabButtonText: Record<string, string> = {
     </div>
 
     <!-- Right Side -->
-    <div class="h-full rounded-lg bg-[#f2faf9]">
+    <div class="lg:h-full lg:w-[25%] rounded-lg bg-[#f2faf9]">
       <ProfileDetails :user="user" />
     </div>
   </div>

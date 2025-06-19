@@ -92,7 +92,7 @@ function onSubmit(_values: any) {
       Filter
     </Button>
     <Sheet v-model:open="open">
-      <SheetContent class="min-w-[483px] flex flex-col h-full">
+      <SheetContent class="md:min-w-[483px] flex flex-col h-full">
         <SheetHeader class="bg-[#162D3A]">
           <SheetTitle class="text-white">
             Filter Recycle Rules
@@ -226,7 +226,7 @@ function onSubmit(_values: any) {
                 </FormField>
                 <div>
                   <div class="font-medium text-sm mb-1">Time</div>
-                  <div class="flex gap-4">
+                  <div class="flex flex-col sm:flex-row gap-4">
                     <FormField name="fromTime">
                       <FormItem class="flex-1">
                         <FormControl>
