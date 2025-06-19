@@ -24,11 +24,11 @@ const breadcrumbs = [
       </Button>
     </template>
   </BaseHeader>
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-    <div class="md:col-span-4">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-4">
       <LeadManagementLeadDetails />
     </div>
-    <div class="md:col-span-8">
+    <div class="lg:col-span-8">
       <LeadManagementLeadLeadTabs />
     </div>
   </div>

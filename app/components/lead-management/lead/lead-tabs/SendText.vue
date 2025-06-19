@@ -45,7 +45,7 @@
               <FormControl>
                 <Select v-bind="componentField">
                   <SelectTrigger class="w-full h-11">
-                    <SelectValue placeholder="Select agent" class="text-xs lg:text-sm" />
+                    <SelectValue placeholder="Agent Contact No." class="text-xs lg:text-sm" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="option in agentOptions" :key="option.value" :value="option.value">
@@ -82,7 +82,7 @@
             <FormControl>
               <Textarea
                 v-model="form.values.message"
-                placeholder="Type your message"
+                placeholder="Enter message here..."
                 maxlength="200"
                 rows="4"
                 class="resize-y pr-14 text-xs lg:text-sm"

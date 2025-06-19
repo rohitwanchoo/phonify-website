@@ -10,10 +10,10 @@ function onEdit() {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto rounded-2xl border border-gray-200  shadow-sm bg-white">
+  <div class="rounded-2xl border border-gray-200  shadow-sm bg-white">
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-gray-200 pb-4 p-4">
-      <h2 class="text-lg font-semibold text-gray-800">
+      <h2 class="text-lg lg:text-base xl:text-lg font-semibold text-gray-800">
         Lead Details
       </h2>
       <Button class="bg-white text-black border border-black hover:bg-white" @click="onEdit">
