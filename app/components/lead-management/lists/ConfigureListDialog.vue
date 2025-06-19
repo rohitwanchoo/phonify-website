@@ -155,13 +155,13 @@ function closeDialog() {
       <div class="flex gap-4 mb-6">
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Title</label>
-          <Input v-model="inputValue" placeholder="Enter value" class="text-primary placeholder:text-primary" />
+          <Input v-model="inputValue" placeholder="Enter value" class="text-primary placeholder:text-primary text-xs md:text-sm" />
         </div>
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Campaign</label>
           <Select v-model="selectValue">
             <SelectTrigger class="w-full text-primary">
-              <SelectValue placeholder="Select option" class="text-primary" />
+              <SelectValue placeholder="Select option" class="text-primary text-xs md:text-sm" />
             </SelectTrigger>
             <SelectContent class="w-full text-primary">
               <SelectItem v-for="option in labelOptions" :key="option.value" :value="option.value" class="text-primary">
