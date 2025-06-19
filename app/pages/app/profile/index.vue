@@ -92,10 +92,10 @@ const tabButtonText: Record<string, string> = {
         <div class="flex flex-col lg:flex-row h-full">
           <!-- Sidebar Tabs -->
           <div class="lg:w-[30%]">
-            <TabsList class="lg:py-3 lg:px-4 p-0 flex justify-center items-center lg:justify-start lg:flex-col w-full h-full bg-primary rounded-b-none lg:rounded-bl-xl  lg:rounded-r-none">
+            <TabsList class="lg:py-3 lg:px-4 p-0 flex justify-center items-center h-15 lg:h-full lg:justify-start lg:flex-col w-full bg-primary rounded-b-none lg:rounded-bl-xl  lg:rounded-r-none">
               <TabsTrigger
                 value="account"
-                class="text-white lg:rounded-xl shadow-none rounded-bl-none rounded-r-none text-xs sm:text-sm data-[state=active]:text-primary h-full lg:max-h-14 lg:px-4 lg:w-full block md:mx-auto lg:mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-bl-none rounded-r-none data-[state=active]:text-primary  lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
                 <div class="flex justify-center lg:justify-start items-center gap-1">
                   <Icon name="material-symbols:person" class="h-3 hidden sm:block" />
@@ -104,27 +104,27 @@ const tabButtonText: Record<string, string> = {
               </TabsTrigger>
               <TabsTrigger
                 value="password"
-                class="text-white lg:rounded-xl text-xs sm:text-sm shadow-none rounded-none data-[state=active]:text-primary md:text-left h-full lg:max-h-14 lg:px-4 lg:w-full block md:mx-auto lg:mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-none data-[state=active]:text-primary lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex justify-center lg:justify-start items-center gap-2">
+                <div class="flex justify-center lg:justify-start items-center gap-1">
                   <Icon name="material-symbols:lock" class="h-3 hidden sm:block" />
                   Change Password
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="voicemail"
-                class="text-white lg:rounded-xl text-xs sm:text-sm shadow-none rounded-none data-[state=active]:text-primary h-full lg:max-h-14 px-4 md:w-full block mx-auto lg:mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-none data-[state=active]:text-primary  lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex justify-center lg:justify-start items-center gap-2">
+                <div class="flex justify-center lg:justify-start items-center gap-1">
                   <Icon name="material-symbols:voicemail" class="h-3 hidden sm:block" />
                   Voicemail
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="aireplies"
-                class="text-white lg:rounded-xl shadow-none rounded-br-none rounded-l-none text-xs sm:text-sm data-[state=active]:text-primary h-full md:text-left max-h-14 px-4 md:w-full block mx-auto lg:mb-2"
+                class="text-white whitespace-normal h-full text-wrap lg:rounded-xl text-sm shadow-none rounded-br-none rounded-l-none data-[state=active]:text-primary lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
               >
-                <div class="flex justify-center lg:justify-start items-center gap-2">
+                <div class="flex justify-center lg:justify-start items-center gap-1">
                   <Icon name="icons:voiceai" class="h-3 hidden sm:block" />
                   Voice AI
                 </div>

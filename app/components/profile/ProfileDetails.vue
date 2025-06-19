@@ -36,15 +36,15 @@ const userDetails = computed(() => [
   <div>
     <img src="/images/profile/profile-placeholder.png" class="w-full">
     <div class="relative">
-      <div class="rounded-full absolute -top-17 left-7 size-15 text-lg font-semibold bg-[#00A086] flex justify-center items-center text-white">
+      <div class="rounded-full absolute -top-17 left-7 lg:-top-17 lg:left-7 md:size-10 md:-top-7 size-15 lg:size-16 text-lg font-semibold bg-[#00A086] flex justify-center items-center text-white">
         JD
       </div>
       <div name="details_container" class="flex flex-col p-5 gap-5 w-full overflow-y-auto">
         <div v-for="(detail, index) in userDetails" :key="index">
-          <p class="text-sm text-gray-600 pb-1">
+          <p class="text-sm text-gray-600 pb-1 whitespace-normal text-wrap">
             {{ detail.label }}
           </p>
-          <p class="text-sm text-primary font-medium">
+          <p class="text-sm text-primary font-medium whitespace-normal text-wrap">
             {{ detail.value }}
           </p>
         </div>
