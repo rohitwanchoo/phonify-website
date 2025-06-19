@@ -51,26 +51,9 @@ const emits = defineEmits([
   'completed',
 ])
 
-const isActive = ref('active')
+const isActive = ref('Active')
 const accordion = ref('')
 const accordion2 = ref('')
-const countryCode = [
-  {
-    id: 1,
-    name: 'United States',
-    code: '+1',
-  },
-  {
-    id: 2,
-    name: 'United Kingdom',
-    code: '+44',
-  },
-  {
-    id: 3,
-    name: 'Canada',
-    code: '+1',
-  },
-]
 
 const templates = [
   {
@@ -89,12 +72,12 @@ const templates = [
 
 const CallerIds = [
   {
-    id: 1,
-    name: 'Custom',
+    id: 0,
+    name: 'Area code',
   },
   {
-    id: 2,
-    name: 'Area Code',
+    id: 1,
+    name: 'Custom (Enabled for Custom CLI)',
   },
   {
     id: 3,
@@ -102,32 +85,29 @@ const CallerIds = [
   },
 ]
 
-const dialingModes = [
-  {
-    id: 1,
-    name: 'Super Power Dial',
-  },
-  {
-    id: 2,
-    name: 'Predictive Dial',
-  },
-  {
-    id: 3,
-    name: 'Outbound Dial',
-  },
-]
-
 const selectedCallTime = ref<{ id: number, name: string }>()
 
+// country code list
+const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list', () =>
+  useApi().post('/country-list', {
+
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+})
+
+// call timing list
 const { data: callTimingList, status: callTimingListStatus, refresh: callTimingListRefresh } = await useLazyAsyncData('get-call-timings-campaign', () =>
   useApi().post('/get-call-timings', {
-
   }), {
   transform: (res) => {
     return res.data
   },
   immediate: false,
 })
+
+// email template list
 const { data: emailTemplateList } = await useLazyAsyncData('get-email-template', () =>
   useApi().get('/email-templates', {
 
@@ -135,6 +115,31 @@ const { data: emailTemplateList } = await useLazyAsyncData('get-email-template',
   transform: (res) => {
     return res.data
   },
+})
+
+// dialing mode list
+const { data: dialingModeList } = await useLazyAsyncData('get-dialing-mode-list', () =>
+  useApi().get('/campaign-type', {
+
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+})
+
+// custom caller id list
+const { data: customCallerIdList, refresh: refreshCustomCallerIdList } = await useLazyAsyncData('get-custom-caller-id-list', () =>
+  useApi().post('/did', {
+
+  }), {
+  transform: (res) => {
+    const data = res.data || []
+    return data.map((item: { cli: string, cnam: string, forward_number: string }) => ({
+      ...item,
+      title: `${item.cli}${item?.cnam ? ` - ${item.cnam}` : ''}${item.forward_number ? ` - ${item.forward_number}` : ''}`,
+    }))
+  },
+  immediate: false,
 })
 
 function onEnableTimeBasedCalling(val: boolean) {
@@ -145,25 +150,34 @@ function onEnableTimeBasedCalling(val: boolean) {
 
 const formSchema = toTypedSchema(z.object({
   name: z.string().min(1, 'required').max(50),
-  countryCode: z.string().min(1, 'required').max(10),
+  country_code: z.number().min(1, 'required'),
   description: z.string().min(1, 'required').max(255),
-  callerId: z.number().min(1, 'required'),
-  customCallerId: z.string().min(1, 'required').max(50).optional().superRefine((val, ctx) => {
-    if (values.callerId === 1 && !val) {
+  caller_id: z.number().min(0, 'required'),
+  custom_caller_id: z.string().min(1, 'required').max(50).optional().superRefine((val, ctx) => {
+    if (values.caller_id === 1 && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Custom Caller Is is required when Caller Is is Custom',
       })
     }
   }),
-  dialingMode: z.number().min(1, 'required'),
+  dial_mode: z.string().min(1, 'required'),
   callerGroup: z.string().min(1, 'required').max(50),
 
 }))
 
-const { handleSubmit, values } = useForm({
+const { handleSubmit, values, resetField } = useForm({
   validationSchema: formSchema,
 })
+
+function onSelectCallerId(val: number) {
+  if (val === 1) {
+    refreshCustomCallerIdList()
+  }
+  else {
+    resetField('custom_caller_id')
+  }
+}
 
 // const onSubmit = handleSubmit((values) => {
 //   console.log('Form submitted!', values)
@@ -221,11 +235,11 @@ function onSelectCallTime() {
               </div>
               <div class="bg-[#FEF2F2] rounded-lg">
                 <ToggleGroup v-model:model-value="isActive" type="single">
-                  <ToggleGroupItem value="active" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
+                  <ToggleGroupItem value="Active" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
                     <Icon name="stash:circle-dot" size="30" />
                     Active
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="inactive" class="!bg-[#FEF2F2] data-[state=on]:!bg-red-600 data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-sm" aria-label="Status inactive">
+                  <ToggleGroupItem value="Inactive" class="!bg-[#FEF2F2] data-[state=on]:!bg-red-600 data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-sm" aria-label="Status inactive">
                     Inactive
                   </ToggleGroupItem>
                 </ToggleGroup>
@@ -248,7 +262,7 @@ function onSelectCallTime() {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" name="countryCode">
+                <FormField v-slot="{ componentField }" name="country_code">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Country Code
@@ -260,8 +274,8 @@ function onSelectCallTime() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in countryCode" :key="item.id" :value="item.code">
-                              {{ item.name }} ({{ item.code }})
+                            <SelectItem v-for="item in countyCodeList" :key="item.id" :value="item.phonecode">
+                              {{ item.name }} (+{{ item.phonecode }})
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -299,13 +313,13 @@ function onSelectCallTime() {
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" name="callerId">
+                <FormField v-slot="{ componentField }" name="caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Caller Id
                     </FormLabel>
                     <FormControl>
-                      <Select v-bind="componentField">
+                      <Select v-bind="componentField" @update:model-value="onSelectCallerId">
                         <SelectTrigger class="w-full !h-11">
                           <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Caller Id" />
                         </SelectTrigger>
@@ -323,20 +337,20 @@ function onSelectCallTime() {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" name="customCallerId">
+                <FormField v-slot="{ componentField }" name="custom_caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Custom Caller Id
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
-                        <SelectTrigger :disabled="values.callerId !== 1" class="w-full !h-11">
+                        <SelectTrigger :disabled="values.caller_id !== 1 && customCallerIdList?.length" class="w-full !h-11">
                           <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Custom Caller Id" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="i in 3" :key="i" :value="`custom-${i}`">
-                              Custom ID {{ i }}
+                            <SelectItem v-for="item in customCallerIdList" :key="item.id" :value="item.cli">
+                              {{ item.title }}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -349,7 +363,7 @@ function onSelectCallTime() {
             </div>
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" name="dialingMode">
+                <FormField v-slot="{ componentField }" name="dial_mode">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Dialing Mode
@@ -361,8 +375,8 @@ function onSelectCallTime() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in dialingModes" :key="item.id" :value="item.id">
-                              {{ item.name }}
+                            <SelectItem v-for="item in dialingModeList" :key="item.id" :value="item.title_url">
+                              {{ item.title }}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
