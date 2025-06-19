@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Button from '~/components/ui/button/Button.vue'
 import { Input } from '~/components/ui/input'
+import { updateCrmLabel } from '~/composables/useCrmLabel'
 
 const meta = {
   current_page: 1,
@@ -65,6 +66,24 @@ function openAddDialog() {
   selectedLabel.value = null
   showDialog.value = true
 }
+
+async function handleReorder(updatedList: any[]) {
+  try {
+    await Promise.all(
+      updatedList.map((item, index) =>
+        updateCrmLabel(item.id, {
+          title: item.title,
+          order: index + 1,
+          edit_mode: true,
+        }),
+      ),
+    )
+    await refresh()
+  }
+  catch (error) {
+    console.error('Failed to update label order:', error)
+  }
+}
 </script>
 
 <template>
@@ -89,9 +108,14 @@ function openAddDialog() {
 
   <div class="flex gap-4 justify-between">
     <!-- TABLE -->
-    <div class="w-full">
+    <div class="w-full h-[calc(100vh-145px)] overflow-y-auto">
       <LeadManagementLabelTable :limit="limit" :total-rows="filteredLabel.length" :start="pageStart" :list="filteredLabel || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" @edit="openEditDialog" />
     </div>
-    <LeadManagementLabelDisplayOrder class="hidden lg:block" />
+    <LeadManagementLabelDisplayOrder
+      :label-list="crmLabelsList?.data"
+      :loading="status === 'pending'"
+      class="hidden lg:block"
+      @update-order="handleReorder"
+    />
   </div>
 </template>

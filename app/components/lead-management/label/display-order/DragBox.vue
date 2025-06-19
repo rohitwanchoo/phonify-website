@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
-  item: { id: number, name: string }
+  item: { id: number, title: string }
   index: number
-  items: { id: number, name: string }[]
+  items: { id: number, title: string }[]
 }>()
 
 const emit = defineEmits<{
@@ -147,7 +147,7 @@ function handleTouchEnd() {
       {{ index + 1 }}
     </div>
     <div class="flex-1 text-white text-sm font-medium p-3">
-      {{ item.name }}
+      {{ item.title }}
     </div>
     <div class="pr-1 flex items-center justify-center">
         <Icon name="material-symbols:drag-indicator" size="20" class="text-white font-light" />
