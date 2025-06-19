@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { Extension } from '~/types/extension'
+
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 
@@ -28,11 +30,16 @@ import {
 
 import { Input } from '@/components/ui/input'
 
+const props = defineProps<{
+  selectedExtension?: Extension
+}>()
+
 const emits = defineEmits(['save'])
 
 const formSchema = toTypedSchema(z.object({
-  password: z.string().min(2, 'new password is required').max(10, '10 characters maximum'),
+  password: z.string().min(1, 'new password is required').max(10, '10 characters maximum'),
 }))
+
 const { handleSubmit } = useForm({
   validationSchema: formSchema,
 })
@@ -45,8 +52,31 @@ const { handleSubmit } = useForm({
 const showPassword = ref(false)
 const open = defineModel<boolean>()
 
-const onSubmit = handleSubmit((values) => {
-  emits('save', values)
+const submitLoading = ref(false)
+
+const onSubmit = handleSubmit(async (values) => {
+  submitLoading.value = true
+
+  const payload = {
+    ...values,
+    ext_id: props.selectedExtension?.id,
+  }
+
+  useApi().post('/update-agent-password-by-admin', payload).then((res) => {
+    showToast({
+      message: res.message,
+    })
+    open.value = false
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
+  }).finally(() => {
+    submitLoading.value = false
+  })
+
+  // emits('save', values)
 })
 </script>
 
@@ -89,8 +119,8 @@ const onSubmit = handleSubmit((values) => {
             </Button>
           </DialogClose>
 
-          <Button class="w-[49%] h-11" type="submit" form="dialogForm" @click="onSubmit">
-            <Icon name="material-symbols:save" />
+          <Button :disabled="submitLoading" class="w-[49%] h-11" type="submit" form="dialogForm" @click="onSubmit">
+            <Icon :name="submitLoading ? 'eos-icons:loading' : 'material-symbols:save'" />
             Save
           </Button>
         </DialogFooter>
