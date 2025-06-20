@@ -34,12 +34,14 @@ const onSubmit = handleSubmit((vals) => {
 
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
-    <form class="flex flex-col justify-between md:h-[500px] h-full" @submit.prevent="onSubmit">
-      <div>
-        <div class="space-y-2">
-          <div class="flex flex-col sm:flex-row gap-4">
+    <form @submit.prevent="onSubmit">
+      <div class="flex flex-col justify-between gap-6 md:h-[500px]">
+        <!-- Form fields section -->
+        <div class="flex-1 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Agent Number (From) -->
             <FormField v-slot="{ componentField }" name="agentNumber">
-              <FormItem class="w-full sm:w-1/2">
+              <FormItem class="flex flex-col gap-1">
                 <FormLabel>From</FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
@@ -56,8 +58,9 @@ const onSubmit = handleSubmit((vals) => {
                 <FormMessage />
               </FormItem>
             </FormField>
+            <!-- Recipient Fax Number -->
             <FormField v-slot="{ componentField }" name="faxNumber">
-              <FormItem class="w-full sm:w-1/2">
+              <FormItem class="flex flex-col gap-1">
                 <FormLabel>Recipient Fax Number</FormLabel>
                 <FormControl>
                   <Input v-bind="componentField" type="tel" placeholder="Fax Number" />
@@ -66,16 +69,18 @@ const onSubmit = handleSubmit((vals) => {
               </FormItem>
             </FormField>
           </div>
+          <!-- File Upload (full width) -->
+          <div class="mt-6">
+            <LeadManagementLeadFileUpload />
+          </div>
         </div>
-        <div class="mt-6">
-          <LeadManagementLeadFileUpload />
+        <!-- Button section -->
+        <div>
+          <Button type="submit" :disabled="isSubmitting" class="w-full">
+            <Icon name="material-symbols:fax" class="mr-1" />
+            Send Fax
+          </Button>
         </div>
-      </div>
-      <div class="w-full mt-4">
-        <Button type="submit" :disabled="isSubmitting" class="w-full">
-          <Icon name="material-symbols:fax" class="mr-1" />
-          Send Fax
-        </Button>
       </div>
     </form>
   </div>

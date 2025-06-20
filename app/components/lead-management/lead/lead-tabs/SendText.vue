@@ -49,11 +49,13 @@ const onSubmit = handleSubmit((vals) => {
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col justify-between md:h-[500px]">
-        <div class="space-y-4">
-          <div class="flex flex-col sm:flex-row gap-4 items-stretch">
+      <div class="flex flex-col  justify-between gap-6 md:h-[500px]">
+        <!-- Form fields section -->
+        <div class="flex-1 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Lead Contact -->
             <FormField v-slot="{ componentField }" name="leadContact">
-              <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
+              <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Lead contact No.
                 </FormLabel>
@@ -85,8 +87,9 @@ const onSubmit = handleSubmit((vals) => {
                 <FormMessage />
               </FormItem>
             </FormField>
+            <!-- Agent Contact -->
             <FormField v-slot="{ componentField }" name="agentContact">
-              <FormItem class="w-full sm:w-1/2 flex flex-col gap-1 justify-end">
+              <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Agent contact No.
                 </FormLabel>
@@ -106,6 +109,7 @@ const onSubmit = handleSubmit((vals) => {
               </FormItem>
             </FormField>
           </div>
+          <!-- Template (full width) -->
           <FormField v-slot="{ componentField }" name="template">
             <FormItem>
               <FormLabel>Template</FormLabel>
@@ -124,16 +128,17 @@ const onSubmit = handleSubmit((vals) => {
               <FormMessage />
             </FormItem>
           </FormField>
+          <!-- Message (full width) -->
           <FormField v-slot="{ componentField }" name="message">
             <FormItem>
               <FormLabel>Message</FormLabel>
               <FormControl>
                 <Textarea
                   v-bind="componentField"
-                  placeholder="Type your message"
+                  placeholder="Enter message here..."
                   maxlength="200"
-                  rows="4"
-                  class="resize-y pr-14"
+                  rows="8"
+                  class="resize-y pr-14 min-h-[100px]"
                 />
               </FormControl>
               <div class="flex justify-end mt-1">
@@ -145,7 +150,8 @@ const onSubmit = handleSubmit((vals) => {
             </FormItem>
           </FormField>
         </div>
-        <div class="w-full mt-4">
+        <!-- Button section -->
+        <div>
           <Button type="submit" :disabled="isSubmitting" class="w-full">
             <Icon name="material-symbols:chat" class="mr-1" />
             Send Text
