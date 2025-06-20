@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
+import Action from './Action.vue'
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
@@ -74,6 +75,7 @@ interface Props {
 const sheet = ref(false)
 const selectedCampaign = ref(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
+const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
 
 async function openSheet(id: number) {
   campaignLoadingId.value = id
@@ -225,7 +227,15 @@ const columns = [
           },
         ),
       ),
-      h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
+      h(Action, {
+        onEdit: () => {
+          navigateTo({
+          })
+        },
+        onDelete: () => { },
+        onCopy: () => { },
+        onReset: () => { },
+      }),
     ]),
   }),
 ]

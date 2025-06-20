@@ -1,6 +1,6 @@
 <script setup>
-import Button from '~/components/ui/button/Button.vue'
 import { useRouter } from 'vue-router'
+import Button from '~/components/ui/button/Button.vue'
 
 const router = useRouter()
 
@@ -10,14 +10,14 @@ function onEdit() {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200  shadow-sm bg-white">
+  <div class="rounded-lg border border-gray-200  shadow-sm bg-white">
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-gray-200 pb-4 p-4">
       <h2 class="text-lg lg:text-base xl:text-lg font-semibold text-gray-800">
         Lead Details
       </h2>
       <Button class="bg-white text-black border border-black hover:bg-white" @click="onEdit">
-        <Icon name="material-symbols:edit-square"/>
+        <Icon name="material-symbols:edit-square" />
         Edit
       </Button>
     </div>
