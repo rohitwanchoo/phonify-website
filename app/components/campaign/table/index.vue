@@ -210,7 +210,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3', style: 'position:relative;' }, [
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
       h(
         Button,
         {
@@ -230,29 +230,11 @@ const columns = [
       h(Action, {
         onEdit: () => {
           navigateTo({
-            path: '/app/user-management/campaign/create',
-            query: { id: row.original.id },
           })
         },
-        onDelete: () => {
-          // Call confirm delete logic
-          deleteCampaign(row.original)
-        },
-        onCopy: () => {
-          // Call confirm delete logic
-
-        },
-        // onChangePassword: () => {
-        //   selectedCampaign.value = row.original
-        //   changePasswordModel.value = true
-        // },
-        // onUnlock: () => {
-        //   selectedCampaign.value = row.original
-        //   changePermissionModel.value = true
-        // },
-        onReset: () => {
-          resetCampaign(row.original)
-        },
+        onDelete: () => { },
+        onCopy: () => { },
+        onReset: () => { },
       }),
     ]),
   }),
