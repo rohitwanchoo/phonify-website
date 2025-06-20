@@ -91,7 +91,7 @@ function handleDelete(id: number) {
 </script>
 
 <template>
-  <div class="w-full overflow-x-auto">
+  <div class="w-full overflow-x-auto min-w-[600px]">
     <table class="table-fixed">
       <thead class="bg-gray-50">
         <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">

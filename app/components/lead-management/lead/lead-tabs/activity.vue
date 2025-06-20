@@ -105,7 +105,7 @@ function toggleAudio(id: number) {
         class="border border-[#F4F4F5] rounded-md p-2 gap-4 bg-white"
       >
         <!-- Top Row: Avatar + Details + Actions -->
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <img
               :src="log.user.avatar"
@@ -113,8 +113,8 @@ function toggleAudio(id: number) {
               class="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p class="text-sm text-gray-500">{{ formatDate(log.timestamp) }}</p>
-              <p class="text-sm text-gray-800">
+              <p class="text-xs md:text-sm text-gray-500">{{ formatDate(log.timestamp) }}</p>
+              <p class="text-xs md:text-sm text-gray-800">
                 <span class="font-sm">{{ log.user.name }}</span>
                 <span> ({{ log.user.id }})</span>
                 <span class="text-gray-500"> made a manual call to </span>
@@ -133,7 +133,7 @@ function toggleAudio(id: number) {
                       v-bind="componentField"
                       v-model="selectedCountryCodes[log.id]"
                     >
-                      <SelectTrigger class="min-w-[150px] !h-11">
+                      <SelectTrigger class="min-w-[150px] !h-8">
                         <SelectValue class="text-[12px] placeholder:text-[#ef698180]" placeholder="Select Code" />
                       </SelectTrigger>
                       <SelectContent>
@@ -160,13 +160,13 @@ function toggleAudio(id: number) {
             </template>
   
             <!-- Only show play/close icon if not chat -->
-            <button
+            <span
               v-if="log.icon !== 'material-symbols:chat' && getAudioUrl(log.id)"
               @click="toggleAudio(log.id)"
               class="w-8 h-8 flex items-center justify-center border border-primary rounded-md"
             >
               <Icon :name="visibleAudioId === log.id ? 'material-symbols:close' : 'material-symbols:play-circle'" />
-            </button>
+          </span>
             <!-- Chat icon button if needed -->
             <button
               v-if="log.icon === 'material-symbols:chat'"

@@ -44,7 +44,7 @@ const onSubmit = handleSubmit((vals) => {
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Agent Number" />
+                      <SelectValue placeholder="Agent Number" class="text-xs md:text-sm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in agentOptions" :key="option.value" :value="option.value">

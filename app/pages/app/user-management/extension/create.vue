@@ -37,6 +37,7 @@ const id = route.query.id
 const isEdit = !!id
 
 const countries = await getCountriesAll()
+console.log('countries', countries)
 
 const breadcrumbs = [
   {
@@ -468,8 +469,8 @@ onMounted(() => {
             </FormField>
           </div>
         </div>
-        <div class="flex gap-[16px] w-full">
-          <div v-if="!isEdit" class="w-1/2">
+        <div class="flex flex-col sm:flex-row  gap-[16px] w-full">
+          <div v-if="!isEdit" class="sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="password">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -487,7 +488,7 @@ onMounted(() => {
               </FormItem>
             </FormField>
           </div>
-          <div class="w-1/2">
+          <div class="sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="asterisk_server_id">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -611,7 +612,7 @@ onMounted(() => {
         Security & Access
       </div>
       <div class="p-5 space-y-5">
-        <div class="flex gap-x-2">
+        <div class="flex gap-2 flex-wrap ">
           <div class="flex items-center justify-between bg-[#00A0860D] p-4 rounded text-sm font-normal flex-1">
             <FormField v-slot="{ value, handleChange }" name="enable_2fa">
               <FormItem class="flex items-center justify-between w-full">
@@ -678,8 +679,8 @@ onMounted(() => {
         Contact Information
       </div>
       <div class="p-5 space-y-5">
-        <ul v-auto-animate="{ duration: 150 }" class="flex gap-x-3 items-start">
-          <li class="w-1/2">
+        <ul v-auto-animate="{ duration: 150 }" class="flex flex-col sm:flex-row gap-x-3 items-start">
+          <li class="w-full sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="mobile">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -689,24 +690,28 @@ onMounted(() => {
                   <div class="flex">
                     <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
                       <FormField v-slot="{ componentField: countryCodeComponentField, errorMessage: countryCodeErrorMessage }" name="country_code" class="relative">
-                        <FormItem>
-                          <FormControl>
-                            <Select v-bind="countryCodeComponentField">
-                              <SelectTrigger class="w-min rounded-r-none bg-gray-100  !h-11 overflow-hidden" :class="countryCodeErrorMessage && !errorMessage ? 'border-red-600 border' : 'border-none'">
-                                <SelectValue class="text-sm placeholder:text-[#ef698180] rounded-l-lg " placeholder="Select Country code" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectGroup>
-                                  <SelectItem v-for="item in countries" :key="item?.code" :value="item.dial_code">
-                                    {{ item?.name }} ({{ item?.dial_code }})
-                                  </SelectItem>
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage class="text-sm absolute bottom-0" />
-                        </FormItem>
-                      </FormField>
+  <FormItem>
+    <FormControl>
+      <Select v-bind="countryCodeComponentField">
+        <SelectTrigger class="w-min rounded-r-none bg-gray-100 !h-11 overflow-hidden" :class="countryCodeErrorMessage && !errorMessage ? 'border-red-600 border' : 'border-none'">
+          <SelectValue as-child>
+            <span class="text-sm">
+              {{ values.country_code }} {{ countries.find(c => c.dial_code === values.country_code)?.code || '' }}
+            </span>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem v-for="item in countries" :key="item?.code" :value="item.dial_code">
+              {{ item.name }} ({{ item.dial_code }})
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </FormControl>
+    <FormMessage class="text-sm absolute bottom-0" />
+  </FormItem>
+</FormField>
                       <Input
                         type="tel"
                         maxlength="10"
@@ -723,7 +728,7 @@ onMounted(() => {
             </FormField>
           </li>
 
-          <li class="w-1/2">
+          <li class="w-full sm:w-1/2 mt-2 sm:mt-0">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="cli_setting">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -732,7 +737,7 @@ onMounted(() => {
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select CLI settings" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180] text-wrap" placeholder="Select CLI settings" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -747,7 +752,7 @@ onMounted(() => {
               </FormItem>
             </FormField>
           </li>
-          <li v-if="values.cli_setting === '1'" class="w-1/2">
+          <li v-if="values.cli_setting === '1'" class="w-full sm:w-1/2 mt-2 sm:mt-0">
             <FormField v-slot="{ componentField }" class="" name="cli">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -757,7 +762,7 @@ onMounted(() => {
                   <Select v-bind="componentField">
                     <Skeleton v-if="customCliStatus === 'pending'" class="h-11 w-full" />
                     <SelectTrigger v-else class="w-full !h-11">
-                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Custom CLI" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180] text-wrap" placeholder="Custom CLI" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -782,8 +787,8 @@ onMounted(() => {
         Extension Configuration
       </div>
       <div class="p-5 space-y-5">
-        <div class="flex gap-x-3 items-start">
-          <div class="w-1/2">
+        <div class="flex flex-col sm:flex-row gap-x-3 items-start">
+          <div class="w-full sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="extension_type">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -807,7 +812,7 @@ onMounted(() => {
               </FormItem>
             </FormField>
           </div>
-          <div v-if="!isEdit" class="w-1/2">
+          <div v-if="!isEdit" class="w-full mt-2 sm:mt-0 sm:w-1/2">
             <FormField v-slot="{ componentField }" class="" name="package_id">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -833,8 +838,8 @@ onMounted(() => {
             </FormField>
           </div>
         </div>
-        <div class="flex gap-x-3 items-start">
-          <div class="w-1/2">
+        <div class="flex flex-col md:flex-row gap-x-3 items-start">
+          <div class="w-full md:w-1/2">
             <FormField v-slot="{ componentField }" class="" name="group_id">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -858,7 +863,7 @@ onMounted(() => {
               </FormItem>
             </FormField>
           </div>
-          <div class="w-1/2">
+          <div class="w-full md:w-1/2 mt-2 sm:mt-0">
             <FormField v-slot="{ componentField }" class="" name="timezone">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
@@ -867,7 +872,7 @@ onMounted(() => {
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue class="text-sm placeholder:text-[#ef698180]" />
+                      <SelectValue class="text-sm text-wrap py-2 placeholder:text-[#ef698180]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -892,11 +897,11 @@ onMounted(() => {
         Message Forwarding
       </div>
       <div class="p-5 space-y-5 flex">
-        <div class="w-[30%] flex items-center gap-x-5">
+        <div class="w-full  sm:w-[30%] flex  items-center gap-x-5">
           <div class="text-sm font-normal text-nowrap">
             Forward Incoming SMS To:
           </div>
-          <div class="flex justify-between items-center w-full">
+          <div class="flex justify-between flex-wrap items-center gap-5 w-full">
             <div class="flex items-center gap-x-1">
               <FormField v-slot="{ value, handleChange }" name="receive_sms_on_email">
                 <FormItem class="flex items-center gap-x-1">
