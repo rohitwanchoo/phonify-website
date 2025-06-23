@@ -104,13 +104,13 @@ const onSubmit = handleSubmit(async (values) => {
     const { data, status, refresh } = await useLazyAsyncData('save-call-timings', () =>
       useApi().post('/save-call-timings', {
         body: {
-            name: values.title,
-            day: values.weeks.map((d) => d.day),
-            from: values.weeks.map((f) => f.start),
-            to: values.weeks.map((t) => t.stop),
+          name: values.title,
+          day: values.weeks.map(d => d.day),
+          from: values.weeks.map(f => f.start),
+          to: values.weeks.map(t => t.stop),
         },
       }))
-      resetForm()
+    resetForm()
   }
   catch (error) {
     console.log('error: ', error)
@@ -212,13 +212,13 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <DialogFooter>
-            <DialogClose class="w-1/2">
+            <DialogClose class="w-full sm:w-1/2">
               <Button variant="outline" class="h-11  w-full">
                 <Icon name="mdi:close" />
                 Close
               </Button>
             </DialogClose>
-            <Button for="form" class="h-11 w-1/2" type="submit" @click="onSubmit">
+            <Button for="form" class="h-11 w-full sm:w-1/2" type="submit" @click="onSubmit">
               <Icon name="material-symbols:save" size="18" />
               Save
             </Button>

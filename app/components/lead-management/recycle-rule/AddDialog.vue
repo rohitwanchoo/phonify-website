@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
-import { z } from 'zod'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
-import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input'
 import { Clock } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { computed, ref, watch } from 'vue'
+import { z } from 'zod'
+import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -173,29 +173,29 @@ function onSubmit(_values: any) {
                       }
                     }"
                   >
-                   <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
-  <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
-  <div 
-    v-if="selectedDays.length" 
-    class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
-    style="min-height: 1.5rem;"
-  >
-    <div 
-      v-for="item in selectedDays" 
-      :key="item" 
-      class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
-    >
-      {{ dayOptions.find(opt => opt.value === item)?.label || item }}
-      <button 
-        type="button" 
-        class="ml-1" 
-        @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
-      >
-        <Icon name="lucide:x" class="w-3 h-3" />
-      </button>
-    </div>
-  </div>
-</SelectTrigger>
+                    <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
+                      <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
+                      <div
+                        v-if="selectedDays.length"
+                        class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
+                        style="min-height: 1.5rem;"
+                      >
+                        <div
+                          v-for="item in selectedDays"
+                          :key="item"
+                          class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
+                        >
+                          {{ dayOptions.find(opt => opt.value === item)?.label || item }}
+                          <button
+                            type="button"
+                            class="ml-1"
+                            @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
+                          >
+                            <Icon name="lucide:x" class="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in availableDayOptions" :key="option.value" :value="option.value">
                         {{ option.label }}
@@ -226,17 +226,19 @@ function onSubmit(_values: any) {
             </FormItem>
           </FormField>
           <div>
-            <div class="font-medium text-sm mb-1">Time</div>
-            <div class="flex gap-4">
+            <div class="font-medium text-sm mb-1">
+              Time
+            </div>
+            <div class="flex flex-wrap gap-4">
               <FormField name="fromTime">
                 <FormItem class="flex-1">
                   <FormControl>
                     <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                      <div class="text-sm text-muted-foreground">                   
+                      <div class="text-sm text-muted-foreground">
                         From:
                       </div>
-                      
-                      <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28 " />  
+
+                      <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28 " />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -246,11 +248,11 @@ function onSubmit(_values: any) {
                 <FormItem class="flex-1">
                   <FormControl>
                     <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                      <div class="text-sm text-muted-foreground">                   
+                      <div class="text-sm text-muted-foreground">
                         To:
                       </div>
-                      
-                      <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28 " />  
+
+                      <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28 " />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -273,4 +275,3 @@ function onSubmit(_values: any) {
     </DialogContent>
   </Dialog>
 </template>
-
