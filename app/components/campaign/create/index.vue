@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Campaign } from '~/types/campaign'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useFilter } from 'reka-ui'
 
@@ -51,24 +52,11 @@ const emits = defineEmits([
   'completed',
 ])
 
+const formState = useState<Campaign>('create-campaign-state')
+
 const isActive = ref('Active')
 const accordion = ref('')
 const accordion2 = ref('')
-
-const templates = [
-  {
-    id: 1,
-    name: 'Template 1',
-  },
-  {
-    id: 2,
-    name: 'Template 2',
-  },
-  {
-    id: 3,
-    name: 'Template 3',
-  },
-]
 
 const CallerIds = [
   {
@@ -380,8 +368,8 @@ const formSchema = toTypedSchema(z.object({
   country_code: z.number().min(1, 'required'),
   description: z.string().min(1, 'required').max(255),
   caller_id: z.number().min(0, 'required'),
-  custom_caller_id: z.string().min(1, 'required').max(50).optional().superRefine((val, ctx) => {
-    if (values.caller_id === 1 && !val) {
+  custom_caller_id: z.string().max(50).optional().superRefine((val, ctx) => {
+    if (formState.value.caller_id === 1 && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Custom Caller Is is required when Caller Is is Custom',
@@ -409,26 +397,26 @@ const formSchema = toTypedSchema(z.object({
 
   // if dial_mode is predictive_dial
   call_ratio: z.number().optional().superRefine((val, ctx) => {
-    if (values.dial_mode !== 'super_power_dial' && !val) {
+    if (formState.value.dial_mode !== 'super_power_dial' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         // message: 'Call ratio is required when dialing mode is predictive dial',
-        message: values.dial_mode === 'predictive_dial' ? 'Call ratio is required when dialing mode is predictive dial' : 'Simultaneous Calls is required when dialing mode is super power dial',
+        message: formState.value.dial_mode === 'predictive_dial' ? 'Call ratio is required when dialing mode is predictive dial' : 'Simultaneous Calls is required when dialing mode is super power dial',
       })
     }
   }),
   duration: z.number().optional().superRefine((val, ctx) => {
-    if (values.dial_mode !== 'super_power_dial' && !val) {
+    if (formState.value.dial_mode !== 'super_power_dial' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         // message: 'Duration is required when dialing mode is predictive dial',
-        message: values.dial_mode === 'predictive_dial' ? 'Duration is required when dialing mode is predictive dial' : 'Time interval is required when dialing mode is super power dial',
+        message: formState.value.dial_mode === 'predictive_dial' ? 'Duration is required when dialing mode is predictive dial' : 'Time interval is required when dialing mode is super power dial',
       })
     }
   }),
   automated_duration: z.boolean().optional(),
   no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
-    if (values.dial_mode === 'predictive_dial' && !val) {
+    if (formState.value.dial_mode === 'predictive_dial' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'No agent available action is required when dialing mode is predictive dial',
@@ -437,7 +425,7 @@ const formSchema = toTypedSchema(z.object({
   }),
   amd: z.boolean().optional(),
   amd_drop_action: z.number().optional().superRefine((val, ctx) => {
-    if (values.amd && !val) {
+    if (formState.value.amd && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'AMD drop action is required when AMD is ON',
@@ -446,7 +434,7 @@ const formSchema = toTypedSchema(z.object({
   }),
   audio_message_amd: z.number().optional().superRefine((val, ctx) => {
     // if amd_drop_action is 2 and amd is true then audio_message_amd is required
-    if (values.amd_drop_action === 2 && !val) {
+    if (formState.value.amd_drop_action === 2 && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Audio message AMD is required when AMD drop action is Audio Message',
@@ -455,7 +443,7 @@ const formSchema = toTypedSchema(z.object({
   }),
   voice_message_amd: z.number().optional().superRefine((val, ctx) => {
     // if amd_drop_action is 3 and amd is true then voice_message_amd is required
-    if (values.amd_drop_action === 3 && !val) {
+    if (formState.value.amd_drop_action === 3 && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Voice template AMD is required when AMD drop action is Voice template',
@@ -558,17 +546,18 @@ function onSelectCallerId(val: any) {
 }
 
 const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted!', values)
+  console.log(values)
+  emits('completed')
+  // console.log('Form submitted!', values)
 })
 
-const selectedDisposition = ref<any[]>([])
 const open = ref(false)
 const searchTerm = ref('')
 
 const { contains } = useFilter({ sensitivity: 'base' })
 
 const filteredDispositionList = computed(() => {
-  const options = dispositionList.value.filter((item: { id: number }) => !selectedDisposition.value.includes(item.id))
+  const options = dispositionList.value.filter((item: { id: number }) => !formState.value.disposition_id.includes(item.id))
   return searchTerm.value ? options.filter((option: { title: string }) => contains(option.title, searchTerm.value)) : options
 })
 
@@ -590,8 +579,9 @@ function onSelectDialMode(val: any): void {
 </script>
 
 <template>
+  {{ formState }}
   <!-- {{ values }} -->
-  {{ errors }}
+  <!-- {{ errors }} -->
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
@@ -606,7 +596,7 @@ function onSelectDialMode(val: any): void {
                 status:
               </div>
               <div class="bg-[#FEF2F2] rounded-lg">
-                <ToggleGroup v-model:model-value="isActive" type="single">
+                <ToggleGroup v-model:model-value="formState.status" type="single">
                   <ToggleGroupItem value="Active" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
                     <Icon name="stash:circle-dot" size="30" />
                     Active
@@ -621,7 +611,7 @@ function onSelectDialMode(val: any): void {
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" class="" name="name">
+                <FormField v-slot="{ componentField }" v-model="formState.name" class="" name="name">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Name
@@ -634,7 +624,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="country_code">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.country_code" name="country_code">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Country Code
@@ -660,7 +650,7 @@ function onSelectDialMode(val: any): void {
             </div>
 
             <div class="w-full">
-              <FormField v-slot="{ componentField }" class="" name="description">
+              <FormField v-slot="{ componentField }" v-model="formState.description" class="" name="description">
                 <FormItem>
                   <FormLabel class="font-normal text-sm">
                     Description
@@ -685,7 +675,7 @@ function onSelectDialMode(val: any): void {
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="caller_id">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.caller_id" name="caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Caller Id
@@ -709,7 +699,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="custom_caller_id">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.custom_caller_id" name="custom_caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Custom Caller Id
@@ -738,7 +728,7 @@ function onSelectDialMode(val: any): void {
             </div>
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="dial_mode">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.dial_mode" name="dial_mode">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Dialing Mode
@@ -762,7 +752,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="group_id">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.group_id" name="group_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Caller Group
@@ -790,7 +780,7 @@ function onSelectDialMode(val: any): void {
             <!-- if dialing mode is  predictive dial -->
             <div v-if="values.dial_mode === 'predictive_dial'" class="grid grid-cols-2 gap-4">
               <div class="">
-                <FormField v-slot="{ componentField, errorMessage }" name="call_ratio">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.call_ratio" name="call_ratio">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Call Ratio
@@ -814,7 +804,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="">
-                <FormField v-slot="{ componentField, errorMessage }" name="duration">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.duration" name="duration">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Duration in Sec
@@ -838,7 +828,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="">
-                <FormField v-slot="{ componentField, errorMessage }" name="no_agent_available_action">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.no_agent_available_action" name="no_agent_available_action">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       No Agent available Action
@@ -862,7 +852,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="grid grid-cols-2 pt-2">
-                <FormField v-slot="{ value, handleChange }" name="automated_duration">
+                <FormField v-slot="{ value, handleChange }" v-model="formState.automated_duration" name="automated_duration">
                   <FormItem class="flex flex-col gap-y-3">
                     <FormLabel class="text-sm font-normal">
                       Automated Duration
@@ -883,7 +873,7 @@ function onSelectDialMode(val: any): void {
             <!-- If Dialing mode is outbound_ai -->
             <div v-if="values.dial_mode === 'outbound_ai'" class="grid grid-cols-2 gap-4">
               <div>
-                <FormField v-slot="{ componentField, errorMessage }" name="call_ratio">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.call_ratio" name="call_ratio">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Simultaneous Calls
@@ -907,7 +897,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div>
-                <FormField v-slot="{ componentField, errorMessage }" name="duration">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.duration" name="duration">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Time Interval
@@ -931,7 +921,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div>
-                <FormField v-slot="{ componentField, errorMessage }" name="redirect_to">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to" name="redirect_to">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Redirect To
@@ -956,7 +946,7 @@ function onSelectDialMode(val: any): void {
               </div>
               <!-- If Redirect to is audio message -->
               <div v-if="values.redirect_to === 1">
-                <FormField v-slot="{ componentField, errorMessage }" name="outbound_ai_dropdown_audio_message">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_audio_message" name="outbound_ai_dropdown_audio_message">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Audio Message
@@ -984,7 +974,7 @@ function onSelectDialMode(val: any): void {
               </div>
               <!-- If Redirect to is voice template -->
               <div v-if="values.redirect_to === 2">
-                <FormField v-slot="{ componentField, errorMessage }" name="outbound_ai_dropdown_voice_message">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_voice_message" name="outbound_ai_dropdown_voice_message">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Voice Template
@@ -1012,7 +1002,7 @@ function onSelectDialMode(val: any): void {
               </div>
               <!-- If Redirect to is extension -->
               <div v-if="values.redirect_to === 3">
-                <FormField v-slot="{ componentField, errorMessage }" name="outbound_ai_dropdown_extension">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_extension" name="outbound_ai_dropdown_extension">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Extension
@@ -1040,7 +1030,7 @@ function onSelectDialMode(val: any): void {
               </div>
               <!-- If Redirect to is ring group -->
               <div v-if="values.redirect_to === 4">
-                <FormField v-slot="{ componentField, errorMessage }" name="outbound_ai_dropdown_ring_group">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_ring_group" name="outbound_ai_dropdown_ring_group">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Ring Group
@@ -1068,7 +1058,7 @@ function onSelectDialMode(val: any): void {
               </div>
               <!-- If Redirect to is ivr -->
               <div v-if="values.redirect_to === 5">
-                <FormField v-slot="{ componentField, errorMessage }" name="outbound_ai_dropdown_ivr">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_ivr" name="outbound_ai_dropdown_ivr">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       IVR
@@ -1100,7 +1090,7 @@ function onSelectDialMode(val: any): void {
             <div class="grid grid-cols-2 gap-4">
               <!-- if no_agent_available_action is 2(voice drop) -->
               <div v-if="values.no_agent_available_action === 2">
-                <FormField v-slot="{ componentField, errorMessage }" name="voicedrop_no_agent_available_action">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_no_agent_available_action" name="voicedrop_no_agent_available_action">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Voice Drop Option
@@ -1128,7 +1118,7 @@ function onSelectDialMode(val: any): void {
               </div>
               <!-- if no_agent_available_action is 3(inbound ivr) -->
               <div v-if="values.no_agent_available_action === 3">
-                <FormField v-slot="{ componentField, errorMessage }" name="inbound_ivr_no_agent_available_action">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.inbound_ivr_no_agent_available_action" name="inbound_ivr_no_agent_available_action">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Inbound IVR Option
@@ -1159,7 +1149,7 @@ function onSelectDialMode(val: any): void {
             <!-- AMD section -->
             <div class="grid grid-cols-2 pt-2 gap-4">
               <div v-if="values.dial_mode !== 'super_power_dial'">
-                <FormField v-slot="{ value, handleChange }" name="amd">
+                <FormField v-slot="{ value, handleChange }" v-model="formState.amd" name="amd">
                   <FormItem class="flex flex-col gap-y-3">
                     <FormLabel class="text-sm font-normal">
                       AMD
@@ -1176,7 +1166,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <!-- If AMD is ON -->
-              <FormField v-if="values.amd" v-slot="{ componentField, errorMessage }" name="amd_drop_action">
+              <FormField v-if="values.amd" v-slot="{ componentField, errorMessage }" v-model="formState.amd_drop_action" name="amd_drop_action">
                 <FormItem>
                   <FormLabel class="font-normal text-sm">
                     AMD Drop Action
@@ -1200,7 +1190,7 @@ function onSelectDialMode(val: any): void {
               </FormField>
               <div>
                 <!-- When AMD Drop action is Audio Message -->
-                <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" name="audio_message_amd">
+                <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.audio_message_amd" name="audio_message_amd">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Audion Message AMD
@@ -1227,7 +1217,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
 
                 <!-- When AMD Drop action is voice template -->
-                <FormField v-if="values.amd_drop_action === 3" v-slot="{ componentField, errorMessage }" name="voice_message_amd">
+                <FormField v-if="values.amd_drop_action === 3" v-slot="{ componentField, errorMessage }" v-model="formState.voice_message_amd" name="voice_message_amd">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Voice Template AMD
@@ -1268,7 +1258,7 @@ function onSelectDialMode(val: any): void {
                   </div>
                   <AccordionTrigger>
                     <template #icon>
-                      <FormField v-slot="{ value, handleChange }" name="time_based_calling">
+                      <FormField v-slot="{ value, handleChange }" v-model="formState.time_based_calling" name="time_based_calling">
                         <FormItem class="flex flex-row items-center justify-between">
                           <FormControl>
                             <Switch
@@ -1288,11 +1278,11 @@ function onSelectDialMode(val: any): void {
                 <AccordionContent class="p-5">
                   <Accordion v-model="accordion2" collapsible class="">
                     <AccordionItem value="item-2" class="">
-                      <FormField v-slot="{ errorMessage }" v-model="selectedCallTime" name="call_time">
+                      <FormField v-slot="{ errorMessage }" v-model="formState.call_time" name="call_time">
                         <FormItem>
                           <FormControl>
-                            <AccordionTrigger :class="[selectedCallTime && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
-                              {{ selectedCallTime ? selectedCallTime?.name : 'Select Call Time' }}
+                            <AccordionTrigger :class="[formState.call_time && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
+                              {{ formState.call_time ? formState.call_time?.name : 'Select Call Time' }}
                             </AccordionTrigger>
                           </FormControl>
                           <FormMessage class="text-sm" />
@@ -1305,7 +1295,7 @@ function onSelectDialMode(val: any): void {
                             Create Custom Call Time <Icon name="lucide:plus" />
                           </Button>
                         </CallTimesCreate>
-                        <Command v-model="selectedCallTime" selection-behavior="toggle" class="max-h-[300px] overflow-y-auto" @update:model-value="onSelectCallTime">
+                        <Command v-model="formState.call_time" selection-behavior="toggle" class="max-h-[300px] overflow-y-auto" @update:model-value="onSelectCallTime">
                           <CommandList>
                             <CommandGroup>
                               <template v-if="callTimingListStatus === 'pending'">
@@ -1341,7 +1331,7 @@ function onSelectDialMode(val: any): void {
           <div class="p-5 gap-x-5 w-full flex items-center">
             <div class="w-1/2">
               <!-- <Label class="text-sm font-normal mb-5">Send Email</Label> -->
-              <FormField v-slot="{ componentField, errorMessage }" name="email">
+              <FormField v-slot="{ componentField, errorMessage }" v-model="formState.email" name="email">
                 <FormItem>
                   <FormLabel class="font-normal text-sm">
                     Send Email
@@ -1366,7 +1356,7 @@ function onSelectDialMode(val: any): void {
             </div>
             <div class="w-1/2 flex items-center justify-between">
               <div class="flex flex-col gap-y-3">
-                <FormField v-slot="{ value, handleChange }" name="sms">
+                <FormField v-slot="{ value, handleChange }" v-model="formState.sms" name="sms">
                   <FormItem class="flex flex-col gap-y-3">
                     <FormLabel class="text-sm font-normal">
                       Send SMS
@@ -1383,7 +1373,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="flex flex-col gap-y-3">
-                <FormField v-slot="{ value, handleChange }" name="send_report">
+                <FormField v-slot="{ value, handleChange }" v-model="formState.send_report" name="send_report">
                   <FormItem class="flex flex-col gap-y-3">
                     <FormLabel class="text-sm font-normal">
                       Send Report
@@ -1400,7 +1390,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="flex flex-col gap-y-3">
-                <FormField v-slot="{ value, handleChange }" name="call_transfer">
+                <FormField v-slot="{ value, handleChange }" v-model="formState.call_transfer" name="call_transfer">
                   <FormItem class="flex flex-col gap-y-3">
                     <FormLabel class="text-sm font-normal">
                       Call Transfer
@@ -1429,7 +1419,7 @@ function onSelectDialMode(val: any): void {
           <div class="p-5">
             <div class=" gap-x-5 w-full flex items-start">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="hopper_mode">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.hopper_mode" name="hopper_mode">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Hopper Mode Type
@@ -1453,7 +1443,7 @@ function onSelectDialMode(val: any): void {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" name="voip_configurations">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voip_configurations" name="voip_configurations">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       OutBound Line
@@ -1480,14 +1470,14 @@ function onSelectDialMode(val: any): void {
 
             <div class="mt-5">
               <Label class="text-sm font-normal">Disposition</Label>
-              <FormField v-slot="{ errorMessage }" v-model="selectedDisposition" name="disposition_id">
+              <FormField v-slot="{ errorMessage }" v-model="formState.disposition_id" name="disposition_id">
                 <FormItem>
                   <FormControl>
-                    <Combobox v-model="selectedDisposition" v-model:open="open" :ignore-filter="true">
+                    <Combobox v-model="formState.disposition_id" v-model:open="open" :ignore-filter="true">
                       <ComboboxAnchor as-child>
-                        <TagsInput v-model="selectedDisposition" class="px-2 gap-2 [&_svg]:hidden w-full [&_[data-slot='command-input-wrapper']]:border-none [&_[data-slot='command-input-wrapper']]:px-1" @click="open = true">
+                        <TagsInput v-model="formState.disposition_id" class="px-2 gap-2 [&_svg]:hidden w-full [&_[data-slot='command-input-wrapper']]:border-none [&_[data-slot='command-input-wrapper']]:px-1" @click="open = true">
                           <div class="flex gap-2 flex-wrap items-center ">
-                            <TagsInputItem v-for="item in selectedDisposition" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] py-3 px-[7px] flex item-center justify-between gap-x-2" :value="item">
+                            <TagsInputItem v-for="item in formState.disposition_id" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] py-3 px-[7px] flex item-center justify-between gap-x-2" :value="item">
                               <div>
                                 {{ dispositionList.find((val: { id: any }) => val.id === item).title }}
                               </div>
