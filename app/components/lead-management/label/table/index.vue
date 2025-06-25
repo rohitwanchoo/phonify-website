@@ -79,7 +79,7 @@ async function handleDelete() {
       showToast({ type: 'error', message: res.message || 'Failed to delete label' })
     }
   }
-  catch (err) {
+  catch {
     showToast({ type: 'error', message: 'API error: Unable to delete label' })
   }
   finally {
@@ -91,7 +91,7 @@ export interface crmLabelsList {
   id: number
   title: string
   created_at: string
-  leadStatus: number
+  status: string
   actions?: string
 }
 
@@ -129,7 +129,7 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('leadStatus', {
+  columnHelper.accessor('status', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -138,13 +138,13 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      const isChecked = row.original.leadStatus === 1
+      const isChecked = row.original.status === '1'
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
         'modelValue': isChecked,
         'onUpdate:modelValue': async (val: boolean) => {
-          const newStatus = val ? 1 : 0
-          row.original.leadStatus = newStatus // Optimistically update UI
+          const newStatus = val ? '1' : '0'
+          row.original.status = newStatus // Optimistically update UI
           await updateStatus(row.original.id, newStatus)
         },
       }))
@@ -214,7 +214,7 @@ function deleteConfirmHandler() {
   handleDelete() // now delete safely
 }
 
-async function updateStatus(id: number, newStatus: number) {
+async function updateStatus(id: number, newStatus: string) {
   const label = props.list.find(item => item.id === id)
 
   if (!label)
@@ -231,7 +231,7 @@ async function updateStatus(id: number, newStatus: number) {
       icons: 'fa fa-user', // optional
       heading_type: 'owner',
       values: '', // if any
-      leadStatus: newStatus, // <-- include the new status value if backend expects this key
+      status: newStatus, // <-- include the new status value if backend expects this key
     })
 
     if (res?.success) {
@@ -242,7 +242,7 @@ async function updateStatus(id: number, newStatus: number) {
       showToast({ type: 'error', message: res.message || 'Failed to update status' })
     }
   }
-  catch (err) {
+  catch {
     showToast({ type: 'error', message: 'API error: Unable to update status' })
   }
 }

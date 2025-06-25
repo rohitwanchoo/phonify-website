@@ -3,17 +3,11 @@ import Button from '~/components/ui/button/Button.vue'
 import { Input } from '~/components/ui/input'
 import { updateCrmLabel } from '~/composables/useCrmLabel'
 
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 1,
-  total: 20,
-}
-
 const pageStart = ref(0)
 const limit = ref(10)
 const searchQuery = ref('')
 
+//Api need to change when lead-labels vailable, this is temporary (crm-labels)
 const { data: crmLabelsList, status, refresh } = await useLazyAsyncData('crm-labels', () =>
   useApi().get('/crm-labels', {
   }), {
@@ -22,12 +16,11 @@ const { data: crmLabelsList, status, refresh } = await useLazyAsyncData('crm-lab
 
 function changePage(page: number) {
   pageStart.value = Number((page - 1) * limit.value)
-  return refresh()
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  return refresh()
+  pageStart.value = 0
 }
 
 function fetchLabels() {
@@ -45,6 +38,18 @@ const filteredLabel = computed(() => {
       || item?.created_at?.toLowerCase().includes(query)
     )
   })
+})
+
+// Then paginate the filtered data
+const paginatedList = computed(() => {
+  const start = pageStart.value
+  const end = start + limit.value
+  return filteredLabel.value.slice(start, end)
+})
+
+// Watch search query and reset pagination
+watch(searchQuery, () => {
+  pageStart.value = 0
 })
 
 const selectedLabel = ref<null | {
@@ -80,8 +85,11 @@ async function handleReorder(updatedList: any[]) {
     )
     await refresh()
   }
-  catch (error) {
-    console.error('Failed to update label order:', error)
+  catch {
+    showToast({
+      message: 'Failed to update label order',
+      type: 'error',
+    })
   }
 }
 </script>
@@ -109,7 +117,7 @@ async function handleReorder(updatedList: any[]) {
   <div class="flex gap-4 justify-between">
     <!-- TABLE -->
     <div class="w-full h-[calc(100vh-145px)] overflow-y-auto">
-      <LeadManagementLabelTable :limit="limit" :total-rows="filteredLabel.length" :start="pageStart" :list="filteredLabel || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" @edit="openEditDialog" />
+      <LeadManagementLabelTable :limit="limit" :total-rows="filteredLabel.length" :start="pageStart" :list="paginatedList || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" @edit="openEditDialog" />
     </div>
     <LeadManagementLabelDisplayOrder
       :label-list="crmLabelsList?.data"

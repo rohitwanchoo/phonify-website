@@ -48,7 +48,7 @@ const formSchema = toTypedSchema(z.object({
   ).superRefine((weeks, ctx) => {
     const selected = selectedDays.value
     weeks.forEach((week, index) => {
-      const isSelected = selected[week.day]
+      const isSelected = selected[week.day as keyof typeof selected]
 
       // Only validate if checkbox is selected
       if (isSelected) {
@@ -92,7 +92,7 @@ const { handleSubmit, validate, resetForm } = useForm({
 })
 
 function toggleDay(day: string) {
-  selectedDays.value[day] = !selectedDays.value[day]
+  selectedDays.value[day as keyof typeof selectedDays.value] = !selectedDays.value[day as keyof typeof selectedDays.value]
   // if any day is deselected validate the form
   if (!Object.values(selectedDays.value).includes(true)) {
     validate()
@@ -101,19 +101,25 @@ function toggleDay(day: string) {
 
 const onSubmit = handleSubmit(async (values) => {
   try {
-    const { data, status, refresh } = await useLazyAsyncData('save-call-timings', () =>
-      useApi().post('/save-call-timings', {
-        body: {
-            name: values.title,
-            day: values.weeks.map((d) => d.day),
-            from: values.weeks.map((f) => f.start),
-            to: values.weeks.map((t) => t.stop),
-        },
-      }))
-      resetForm()
+    const response = await useApi().post('/save-call-timings', {
+      body: {
+        name: values.title,
+        day: values.weeks.map(d => d.day),
+        from: values.weeks.map(f => f.start),
+        to: values.weeks.map(t => t.stop),
+      },
+    })
+    resetForm()
+    showToast({
+      message: response.value.message,
+      type: response.value.success,
+    })
   }
   catch (error) {
-    console.log('error: ', error)
+    showToast({
+      message: `${error}`,
+      type: 'error',
+    })
   }
 })
 </script>

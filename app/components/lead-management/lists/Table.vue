@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table'
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
 import { Icon } from '#components'
 import {
   createColumnHelper,
@@ -10,16 +14,17 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+
+// import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
+
 import moment from 'moment'
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -32,70 +37,71 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { valueUpdater } from '@/components/ui/table/utils'
+import { cn } from '@/lib/utils'
 import LeadManagementListsActionsDropdown from './ActionsDropdown.vue'
 
-import { valueUpdater } from '@/components/ui/table/utils'
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
 
-const dummyData = [
-  {
-    listName: 'List 1',
-    campaignName: 'Campaign 1',
-    totalLeads: 5000,
-    createdDate: '2025-04-28T14:45:00',
-    status: 1,
-  },
-  {
-    listName: 'List 2',
-    campaignName: 'Campaign 2',
-    totalLeads: 8901,
-    createdDate: '2025-04-26T11:30:00',
-    status: 0,
-  },
-  {
-    listName: 'List 3',
-    campaignName: 'Campaign 3',
-    totalLeads: 1234,
-    createdDate: '2025-04-20T09:15:00',
-    status: 1,
-  },
-]
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const columnHelper = createColumnHelper<any>()
+export interface leadList {
+  campaign: string
+  list: string
+  list_id: string
+  updated_at: string
+  is_active: number
+  rowListData: number
+}
+
+const columnHelper = createColumnHelper<leadList>()
 
 const columns = [
   columnHelper.display({
     id: 'slNo',
     header: () => h('div', { class: 'text-center w-full' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, props.start + row.index + 1),
   }),
-  columnHelper.accessor('listName', {
+  columnHelper.accessor('list', {
     header: ({ column }) =>
       h('div', { class: 'text-center w-full' }, h(Button, {
         class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.listName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list),
   }),
-  columnHelper.accessor('campaignName', {
+  columnHelper.accessor('campaign', {
     header: ({ column }) =>
       h('div', { class: 'text-center w-full' }, h(Button, {
         class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaignName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaign),
   }),
-  columnHelper.accessor('totalLeads', {
+  columnHelper.accessor('rowListData', {
     header: ({ column }) =>
       h('div', { class: 'text-center w-full' }, h(Button, {
         class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Total Leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.totalLeads),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.rowListData),
   }),
-  columnHelper.accessor('createdDate', {
+  columnHelper.accessor('updated_at', {
     header: ({ column }) =>
       h('div', { class: 'text-center w-full' }, h(Button, {
         class: 'text-center text-sm font-normal w-full',
@@ -103,11 +109,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const date = row.original.createdDate
+      const date = row.original.updated_at
       return h('div', { class: 'text-center font-normal text-sm w-full' }, date ? moment(date).format('DD/MM/YYYY hh:mm A') : '')
     },
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('is_active', {
     header: ({ column }) =>
       h('div', { class: 'text-center w-full' }, h(Button, {
         class: 'text-center text-sm font-normal w-full',
@@ -117,16 +123,16 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === 1,
+        'modelValue': row.original.is_active === 1,
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? 1 : 0
+          row.original.is_active = val ? 1 : 0
         },
       })),
   }),
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center w-full' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
+    cell: () => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
       h(Button, {
         size: 'sm',
         variant: 'outline',
@@ -151,21 +157,10 @@ const columns = [
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
-
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 3,
-  total: 25,
-}
-const loading = false
-function handlePageChange(_page: number) {
-  // Dummy handler for pagination
-  // You can add logic here if needed
-}
+const rowSelection = ref({})
 
 const table = useVueTable({
-  get data() { return dummyData },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
@@ -174,12 +169,35 @@ const table = useVueTable({
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
+    columnPinning: {
+      left: ['status'],
+    },
   },
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
 </script>
 
 <template>
@@ -231,32 +249,32 @@ const table = useVueTable({
     </Table>
   </div>
 
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="String(n)">
+              <SelectItem v-for="n in 15" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
