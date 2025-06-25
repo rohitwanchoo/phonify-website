@@ -1,10 +1,10 @@
 export interface Campaign {
   id: number
-  name: string
-  status: string
+  title: string
+  status: number
   country_code: number
   description: string
-  caller_id: number
+  caller_id: string
   custom_caller_id: string
   dial_mode: string
   group_id: number
@@ -37,6 +37,6 @@ export interface Campaign {
 
 interface CallTime {
   name: string
-  start_time: string
-  end_time: string
+  from_time: string
+  to_time: string
 }

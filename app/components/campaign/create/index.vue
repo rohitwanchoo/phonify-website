@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
 import { toTypedSchema } from '@vee-validate/zod'
+import moment from 'moment'
 import { useFilter } from 'reka-ui'
-
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
@@ -94,11 +94,11 @@ const sendEmailOptions = [
 
 const hooperModes = [
   {
-    id: 0,
+    id: 1,
     name: 'Linear',
   },
   {
-    id: 1,
+    id: 2,
     name: 'Random',
   },
 ]
@@ -364,12 +364,12 @@ function onSelectRedirectTo(val: any) {
 }
 
 const formSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'required').max(50),
+  title: z.string().min(1, 'required').max(50),
   country_code: z.number().min(1, 'required'),
   description: z.string().min(1, 'required').max(255),
-  caller_id: z.number().min(0, 'required'),
+  caller_id: z.string().min(0, 'required'),
   custom_caller_id: z.string().max(50).optional().superRefine((val, ctx) => {
-    if (formState.value.caller_id === 1 && !val) {
+    if (formState.value.caller_id === '1' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Custom Caller Is is required when Caller Is is Custom',
@@ -396,7 +396,7 @@ const formSchema = toTypedSchema(z.object({
   voip_configurations: z.number().min(1, 'required'),
 
   // if dial_mode is predictive_dial
-  call_ratio: z.number().optional().superRefine((val, ctx) => {
+  call_ratio: z.string().optional().superRefine((val, ctx) => {
     if (formState.value.dial_mode !== 'super_power_dial' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -405,7 +405,7 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  duration: z.number().optional().superRefine((val, ctx) => {
+  duration: z.string().optional().superRefine((val, ctx) => {
     if (formState.value.dial_mode !== 'super_power_dial' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -537,7 +537,7 @@ const { handleSubmit, values, resetField, errors, setFieldValue } = useForm({
 })
 
 function onSelectCallerId(val: any) {
-  if (val === 1 && !customCallerIdList.value?.length) {
+  if (val === '1' && !customCallerIdList.value?.length) {
     refreshCustomCallerIdList()
   }
   else {
@@ -545,9 +545,48 @@ function onSelectCallerId(val: any) {
   }
 }
 
-const onSubmit = handleSubmit((values) => {
-  console.log(values)
-  emits('completed')
+const loading = ref(false)
+
+const onSubmit = handleSubmit(async (values) => {
+  loading.value = true
+  const payload = {
+    ...values,
+    amd: formState.value?.amd ? '1' : ' 0',
+    sms: formState.value?.sms ? 1 : 0,
+    send_report: formState.value?.send_report ? 1 : 0,
+    call_transfer: formState.value?.call_transfer ? '1' : '0',
+    automated_duration: formState.value?.automated_duration ? '1' : '0',
+    time_based_calling: formState.value?.time_based_calling ? 1 : 0,
+    status: formState.value.status,
+    is_deleted: 0,
+  }
+  if (payload.call_time) {
+    // Format times as HH:mm
+    payload.call_time_start = moment(formState.value.call_time?.from_time, 'HH:mm:ss').format('HH:mm')
+    payload.call_time_end = moment(formState.value.call_time?.to_time, 'HH:mm:ss').format('HH:mm')
+    delete payload.call_time
+  }
+  // remove undefined keys from payload
+  const cleanedPayload = Object.fromEntries(
+    Object.entries(payload).filter(([_, v]) => v !== undefined),
+  )
+  console.log(cleanedPayload)
+  useApi().post('/add-campaign', cleanedPayload).then((res: any) => {
+    if (res.data.status) {
+      emits('completed')
+    }
+    showToast({
+      message: res.data.message,
+    })
+  }).catch((err: any) => {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  }).finally(() => {
+    loading.value = false
+  })
+  // emits('completed')
   // console.log('Form submitted!', values)
 })
 
@@ -580,8 +619,8 @@ function onSelectDialMode(val: any): void {
 
 <template>
   {{ formState }}
-  <!-- {{ values }} -->
-  <!-- {{ errors }} -->
+  <!-- {{ moment(formState.call_time?.from_time, 'HH:mm:ss').format('HH:mm') }} -->
+  <!-- {{ formState?.call_time }} -->
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
@@ -597,11 +636,11 @@ function onSelectDialMode(val: any): void {
               </div>
               <div class="bg-[#FEF2F2] rounded-lg">
                 <ToggleGroup v-model:model-value="formState.status" type="single">
-                  <ToggleGroupItem value="Active" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
+                  <ToggleGroupItem :value="1" class="!bg-[#FEF2F2] data-[state=on]:!bg-green-600 data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
                     <Icon name="stash:circle-dot" size="30" />
                     Active
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="Inactive" class="!bg-[#FEF2F2] data-[state=on]:!bg-red-600 data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-sm" aria-label="Status inactive">
+                  <ToggleGroupItem :value="0" class="!bg-[#FEF2F2] data-[state=on]:!bg-red-600 data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-sm" aria-label="Status inactive">
                     Inactive
                   </ToggleGroupItem>
                 </ToggleGroup>
@@ -611,7 +650,7 @@ function onSelectDialMode(val: any): void {
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" v-model="formState.name" class="" name="name">
+                <FormField v-slot="{ componentField }" v-model="formState.title" class="" name="title">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Name
@@ -632,7 +671,7 @@ function onSelectDialMode(val: any): void {
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Code" />
+                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Code" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -672,6 +711,8 @@ function onSelectDialMode(val: any): void {
               Caller Details
             </div>
           </div>
+          {{ formState.caller_id }}
+          {{ values.caller_id }}
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
@@ -687,7 +728,7 @@ function onSelectDialMode(val: any): void {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in CallerIds" :key="item.id" :value="item.id">
+                            <SelectItem v-for="item in CallerIds" :key="item.id" :value="String(item.id)">
                               {{ item.name }}
                             </SelectItem>
                           </SelectGroup>
@@ -706,7 +747,7 @@ function onSelectDialMode(val: any): void {
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
-                        <SelectTrigger :class="errorMessage && 'border-red-600'" :disabled="values.caller_id !== 1 " class="w-full !h-11">
+                        <SelectTrigger :class="errorMessage && 'border-red-600'" :disabled="values.caller_id !== '1' " class="w-full !h-11">
                           <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Custom Caller Id" />
                         </SelectTrigger>
                         <SelectContent>
@@ -760,7 +801,7 @@ function onSelectDialMode(val: any): void {
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Caller Group" />
+                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Caller Group" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -792,7 +833,7 @@ function onSelectDialMode(val: any): void {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]" :key="item" :value="item">
+                            <SelectItem v-for="item in [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]" :key="item" :value="String(item)">
                               {{ item }}
                             </SelectItem>
                           </SelectGroup>
@@ -816,7 +857,7 @@ function onSelectDialMode(val: any): void {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in 15" :key="item" :value="item">
+                            <SelectItem v-for="item in 15" :key="item" :value="String(item)">
                               {{ item }}
                             </SelectItem>
                           </SelectGroup>
@@ -885,7 +926,7 @@ function onSelectDialMode(val: any): void {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in Array.from({ length: 30 }, (_, i) => i + 1)" :key="item" :value="item">
+                            <SelectItem v-for="item in Array.from({ length: 30 }, (_, i) => i + 1)" :key="item" :value="String(item)">
                               {{ item }}
                             </SelectItem>
                           </SelectGroup>
@@ -909,7 +950,7 @@ function onSelectDialMode(val: any): void {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in timeIntervals" :key="item.value" :value="item.value">
+                            <SelectItem v-for="item in timeIntervals" :key="item.value" :value="String(item.value)">
                               {{ item.title }}
                             </SelectItem>
                           </SelectGroup>
@@ -1148,7 +1189,7 @@ function onSelectDialMode(val: any): void {
 
             <!-- AMD section -->
             <div class="grid grid-cols-2 pt-2 gap-4">
-              <div v-if="values.dial_mode !== 'super_power_dial'">
+              <div v-if="values.dial_mode && values.dial_mode !== 'super_power_dial'">
                 <FormField v-slot="{ value, handleChange }" v-model="formState.amd" name="amd">
                   <FormItem class="flex flex-col gap-y-3">
                     <FormLabel class="text-sm font-normal">
@@ -1281,8 +1322,8 @@ function onSelectDialMode(val: any): void {
                       <FormField v-slot="{ errorMessage }" v-model="formState.call_time" name="call_time">
                         <FormItem>
                           <FormControl>
-                            <AccordionTrigger :class="[formState.call_time && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
-                              {{ formState.call_time ? formState.call_time?.name : 'Select Call Time' }}
+                            <AccordionTrigger :class="[(formState.call_time && Object.keys(formState.call_time).length) && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
+                              {{ formState.call_time && Object.keys(formState.call_time).length ? formState.call_time.name : 'Select Call Time' }}
                             </AccordionTrigger>
                           </FormControl>
                           <FormMessage class="text-sm" />
@@ -1339,7 +1380,7 @@ function onSelectDialMode(val: any): void {
                   <FormControl>
                     <Select v-bind="componentField">
                       <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                        <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select" />
+                        <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -1451,7 +1492,7 @@ function onSelectDialMode(val: any): void {
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select" />
+                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -1524,9 +1565,9 @@ function onSelectDialMode(val: any): void {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" type="submit" @click="onSubmit">
+      <Button class="w-full h-[52px]" type="submit" :loading="loading" @click="onSubmit">
         Continue
-        <Icon name="lucide:arrow-right" size="20" />
+        <Icon :name="loading ? 'eos-icons:loading' : 'lucide:arrow-right'" size="20" />
       </Button>
     </div>
   </div>

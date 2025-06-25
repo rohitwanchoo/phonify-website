@@ -35,7 +35,7 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   meta?: Meta
   list?: {
-    listName: string
+    list: string
     createdDate: string
     totalLeads: number
   }[]
@@ -64,7 +64,7 @@ function toggleSelected(rowIndex: number) {
 }
 
 // Create column helpers
-const columnHelper = createColumnHelper<typeof props.data[0]>()
+const columnHelper = createColumnHelper<any>()
 
 const columns = [
   // No. column (not sortable)
@@ -85,7 +85,7 @@ const columns = [
         'List Name',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.getValue('listName')),
+    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list),
   }),
 
   // Created Date column (sortable)
@@ -100,7 +100,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
     cell: ({ row }) => {
-      const date = new Date(row.getValue('createdDate'))
+      const date = new Date(row.original.updated_at)
       return h('div', { class: 'text-sm text-center' }, moment(date).format('DD/MM/YYYY h:mmA'))
     },
   }),
@@ -153,7 +153,7 @@ const columns = [
 
 // Create TanStack table instance
 const table = useVueTable({
-  data: props.list || [],
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),

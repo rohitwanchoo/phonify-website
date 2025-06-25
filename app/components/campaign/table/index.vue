@@ -250,7 +250,7 @@ const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
+  // getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),

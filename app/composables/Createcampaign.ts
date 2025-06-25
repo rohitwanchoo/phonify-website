@@ -5,16 +5,16 @@ export function useCreateCampaign() {
   // Form state
   function initialState() {
     return ref({
-      name: '',
-      status: 'Active',
+      title: '',
+      status: 1,
       country_code: 0,
       description: '',
-      caller_id: 0,
+      caller_id: '',
       custom_caller_id: '',
       dial_mode: '',
       group_id: 0,
       time_based_calling: false,
-      call_time: null, // since it's optional object
+      call_time: {}, // since it's optional object
       email: 0,
       sms: false,
       send_report: false,
@@ -22,8 +22,8 @@ export function useCreateCampaign() {
       disposition_id: [],
       hopper_mode: 0,
       voip_configurations: 0,
-      call_ratio: null,
-      duration: null,
+      call_ratio: '',
+      duration: '',
       automated_duration: false,
       no_agent_available_action: null,
       amd: false,
