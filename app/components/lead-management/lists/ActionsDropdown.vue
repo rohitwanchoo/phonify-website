@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Icon } from '#components'
 
 const emits = defineEmits(['edit', 'download', 'delete'])
 </script>

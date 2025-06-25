@@ -1,87 +1,104 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
-import { z } from 'zod'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Clock } from 'lucide-vue-next'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '~/components/ui/button'
+
+const props = defineProps<{
+  recycleRules: Array<Record<string, any>>
+}>()
+
+// Emit event to parent component with filter parameters
+const emit = defineEmits<{
+  applyFilter: [filterParams: Record<string, any>]
+  clearFilter: []
+}>()
 
 const open = defineModel<boolean>('open', { default: false })
 
-const campaignOptions = [
-  { label: 'Campaign 1', value: 'campaign1' },
-  { label: 'Campaign 2', value: 'campaign2' },
-  { label: 'Campaign 3', value: 'campaign3' },
-]
-const listOptions = [
-  { label: 'List 1', value: 'list1' },
-  { label: 'List 2', value: 'list2' },
-  { label: 'List 3', value: 'list3' },
-]
-const dispositionOptions = [
-  { label: 'Sale', value: 'sale' },
-  { label: 'No Answer', value: 'no_answer' },
-  { label: 'Callback', value: 'callback' },
-]
-const dayOptions = [
-  { label: 'Monday', value: 'monday' },
-  { label: 'Tuesday', value: 'tuesday' },
-  { label: 'Wednesday', value: 'wednesday' },
-  { label: 'Thursday', value: 'thursday' },
-  { label: 'Friday', value: 'friday' },
-  { label: 'Saturday', value: 'saturday' },
-  { label: 'Sunday', value: 'sunday' },
-]
-const callTimeOptions = [
-  { label: '≤ 2', value: '2' },
-  { label: '≤ 3', value: '3' },
-  { label: '≤ 4', value: '4' },
-]
+const campaignOptions = props.recycleRules.map(e => ({
+  label: e.campaign,
+  value: e.campaign_id,
+}))
+const listOptions = props.recycleRules.map(e => ({
+  label: e.list,
+  value: e.list_id,
+}))
+const dispositionOptions = props.recycleRules.map(e => ({
+  label: e.disposition,
+  value: e.disposition_id,
+}))
+const dayOptions = props.recycleRules.map(e => ({
+  label: e.day,
+  value: e.day,
+}))
+const callTimeOptions = props.recycleRules.map(e => ({
+  label: e.call_time,
+  value: e.call_time,
+}))
 
-const formSchema = z.object({
-  campaign: z.string().min(1, 'Campaign is required'),
-  list: z.string().min(1, 'List is required'),
-  disposition: z.string().min(1, 'Disposition is required'),
-  day: z.array(z.string()).min(1, 'At least one day is required'),
-  callTime: z.string().min(1, 'Call Time is required'),
-  fromTime: z.string().min(1, 'From time is required'),
-  toTime: z.string().min(1, 'To time is required'),
+// Simple reactive filter values
+const filters = ref({
+  campaign: '',
+  list: '',
+  disposition: '',
+  day: '',
+  callTime: '',
+  fromTime: '',
+  toTime: '',
 })
 
-const form = useForm({
-  validationSchema: toTypedSchema(formSchema),
-  initialValues: {
+function onSubmit() {
+  // Build filter parameters object with only filled values
+  const filterParams: Record<string, any> = {}
+
+  if (filters.value.campaign) {
+    filterParams.campaign_id = filters.value.campaign
+  }
+  if (filters.value.list) {
+    filterParams.list_id = filters.value.list
+  }
+  if (filters.value.disposition) {
+    filterParams.disposition_id = filters.value.disposition
+  }
+  if (filters.value.day) {
+    filterParams.day = filters.value.day
+  }
+  if (filters.value.callTime) {
+    filterParams.call_time = Number(filters.value.callTime)
+  }
+  if (filters.value.fromTime) {
+    filterParams.from_time = filters.value.fromTime
+  }
+  if (filters.value.toTime) {
+    filterParams.to_time = filters.value.toTime
+  }
+
+  // Emit filter parameters to parent component
+  emit('applyFilter', filterParams)
+
+  // Close the sheet after applying filter
+  open.value = false
+}
+
+// Function to clear all filters
+function clearFilters() {
+  filters.value = {
     campaign: '',
     list: '',
     disposition: '',
-    day: [],
+    day: '',
     callTime: '',
     fromTime: '',
     toTime: '',
-  },
-})
-
-const selectedDays = ref<string[]>([])
-const daySelectTemp = ref('')
-
-const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.value)))
-
-watch(selectedDays, (val) => {
-  form.values.day = val ?? []
-})
-watch(() => form.values.day, (val) => {
-  if (JSON.stringify(val ?? []) !== JSON.stringify(selectedDays.value)) {
-    selectedDays.value = val ?? []
   }
-})
 
-function onSubmit(_values: any) {
-  // handle filter submit
+  // Emit clear filter event to parent
+  emit('clearFilter')
+
+  // Close the sheet
+  open.value = false
 }
 </script>
 
@@ -101,170 +118,110 @@ function onSubmit(_values: any) {
         <!-- Scrollable content -->
         <div class="flex-1 overflow-y-auto">
           <div class="mx-auto p-6 space-y-6">
-            <Form :form="form" @submit.prevent="onSubmit">
-              <div class="space-y-4">
-                <FormField name="campaign">
-                  <FormItem>
-                    <FormLabel>Campaign</FormLabel>
-                    <FormControl>
-                      <Select v-model="form.values.campaign">
-                        <SelectTrigger class="w-full">
-                          <SelectValue placeholder="Select campaign" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem v-for="option in campaignOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-                <FormField name="list">
-                  <FormItem>
-                    <FormLabel>List</FormLabel>
-                    <FormControl>
-                      <Select v-model="form.values.list">
-                        <SelectTrigger class="w-full">
-                          <SelectValue placeholder="Select list" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem v-for="option in listOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-                <FormField name="disposition">
-                  <FormItem>
-                    <FormLabel>Disposition</FormLabel>
-                    <FormControl>
-                      <Select v-model="form.values.disposition">
-                        <SelectTrigger class="w-full">
-                          <SelectValue placeholder="Select disposition" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem v-for="option in dispositionOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-                <FormField name="day">
-                  <FormItem>
-                    <FormLabel>Select Day</FormLabel>
-                    <FormControl>
-                      <div class="relative">
-                        <Select
-                          v-model="daySelectTemp"
-                          @update:model-value="(val) => {
-                            const v = String(val)
-                            if (v && !selectedDays.includes(v)) {
-                              selectedDays.push(v)
-                              daySelectTemp = ''
-                            }
-                          }"
-                        >
-                          <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
-                            <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
-                            <div 
-                              v-if="selectedDays.length" 
-                              class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
-                              style="min-height: 1.5rem;"
-                            >
-                              <div 
-                                v-for="item in selectedDays" 
-                                :key="item" 
-                                class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
-                              >
-                                {{ dayOptions.find(opt => opt.value === item)?.label || item }}
-                                <button 
-                                  type="button" 
-                                  class="ml-1" 
-                                  @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
-                                >
-                                  <Icon name="lucide:x" class="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem v-for="option in availableDayOptions" :key="option.value" :value="option.value">
-                              {{ option.label }}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Campaign</label>
+                <Select v-model="filters.campaign">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select campaign" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="option in campaignOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-2">List</label>
+                <Select v-model="filters.list">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select list" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="option in listOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-2">Disposition</label>
+                <Select v-model="filters.disposition">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select disposition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="option in dispositionOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-2">Select Day</label>
+                <Select v-model="filters.day">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="option in dayOptions" :key="option.value" :value="option.value" class="capitalize">
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-2">Call Time</label>
+                <Select v-model="filters.callTime">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select call time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="option in callTimeOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-2">Time Range (Optional)</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
+                      <div class="text-sm text-muted-foreground">
+                        From:
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-                <FormField name="callTime">
-                  <FormItem>
-                    <FormLabel>Call Time</FormLabel>
-                    <FormControl>
-                      <Select v-model="form.values.callTime">
-                        <SelectTrigger class="w-full">
-                          <SelectValue placeholder="Select call time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem v-for="option in callTimeOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-                <div>
-                  <div class="font-medium text-sm mb-1">Time</div>
-                  <div class="flex flex-col sm:flex-row gap-4">
-                    <FormField name="fromTime">
-                      <FormItem class="flex-1">
-                        <FormControl>
-                          <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                            <div class="text-sm text-muted-foreground">
-                              From:
-                            </div>
-                            <Input v-model="form.values.fromTime" type="time" class="border-none shadow-none ml-auto w-28" />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    </FormField>
-                    <FormField name="toTime">
-                      <FormItem class="flex-1">
-                        <FormControl>
-                          <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                            <div class="text-sm text-muted-foreground">
-                              To:
-                            </div>
-                            <Input v-model="form.values.toTime" type="time" class="border-none shadow-none ml-auto w-28" />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    </FormField>
+                      <Input v-model="filters.fromTime" type="time" class="border-none shadow-none ml-auto w-28" />
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
+                      <div class="text-sm text-muted-foreground">
+                        To:
+                      </div>
+                      <Input v-model="filters.toTime" type="time" class="border-none shadow-none ml-auto w-28" />
+                    </div>
                   </div>
                 </div>
               </div>
-              <!-- Remove the old Save button from here -->
-            </Form>
+            </div>
           </div>
         </div>
-        <!-- Sticky footer -->
-        <div class="p-6 bg-white">
-          <Button type="submit" class="w-full" @click="form.submitForm()">
+        <!-- Sticky footer with buttons -->
+        <div class="p-6 bg-white space-y-3">
+          <Button type="button" class="w-full" @click="onSubmit">
             <Icon name="material-symbols:search" class="mr-1" />
-            Search
+            Apply Filter
+          </Button>
+          <Button type="button" variant="outline" class="w-full" @click="clearFilters">
+            <Icon name="material-symbols:clear" class="mr-1" />
+            Clear Filters
           </Button>
         </div>
       </SheetContent>
