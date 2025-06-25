@@ -59,7 +59,7 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedRecycleRule = ref<{
+const selectedRuleForDelete = ref<{
   list_id: number | null
   disposition_id: number | null
 }>({
@@ -68,21 +68,27 @@ const selectedRecycleRule = ref<{
 })
 
 async function handleDelete() {
-  if (!selectedRecycleRule.value.list_id || !selectedRecycleRule.value.disposition_id)
+  if (!selectedRuleForDelete.value.list_id || !selectedRuleForDelete.value.disposition_id)
     return
 
   try {
     const res = await useApi().post('/delete-leads-rule', {
-      body: {
-        list_id: selectedRecycleRule.value.list_id,
-        disposition_id: selectedRecycleRule.value.disposition_id,
-      },
+      list_id: selectedRuleForDelete.value.list_id,
+      disposition_id: selectedRuleForDelete.value.disposition_id
     })
 
-    showToast({
-      message: res.message,
-      type: res.success,
-    })
+    if (res.success === "true") {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
     emits('refresh')
   }
   catch (err) {
@@ -92,7 +98,7 @@ async function handleDelete() {
     })
   }
   finally {
-    selectedRecycleRule.value = {
+    selectedRuleForDelete.value = {
       list_id: null,
       disposition_id: null,
     }
@@ -193,7 +199,7 @@ const columns = [
       }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
       h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle' }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
       h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
-        selectedRecycleRule.value = {
+        selectedRuleForDelete.value = {
           list_id: row.original.list_id,
           disposition_id: row.original.disposition_id,
         }
