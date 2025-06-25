@@ -229,8 +229,7 @@ const columns = [
       ),
       h(Action, {
         onEdit: () => {
-          navigateTo({
-          })
+          navigateTo({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
         },
         onDelete: () => { },
         onCopy: () => { },

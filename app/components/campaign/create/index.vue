@@ -618,9 +618,6 @@ function onSelectDialMode(val: any): void {
 </script>
 
 <template>
-  {{ formState }}
-  <!-- {{ moment(formState.call_time?.from_time, 'HH:mm:ss').format('HH:mm') }} -->
-  <!-- {{ formState?.call_time }} -->
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
