@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 import EditVoipConfigurationDialog from '~/components/configuration/voip-configuration/EditVoipConfigurationDialog.vue'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import {
   Table,
   TableBody,
@@ -97,6 +98,15 @@ const columnHelper = createColumnHelper<any>()
 const editDialogOpen = ref(false)
 const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
+const loading = ref(false)
+
+// Mock pagination meta data
+const meta = ref({
+  current_page: 1,
+  per_page: 10,
+  total: 120,
+  last_page: 12,
+})
 
 function openEditDialog(row: any) {
   editRow.value = row.original
@@ -114,6 +124,12 @@ function closeDropdown() {
 function handleDelete(row: any) {
   // Placeholder for delete logic
   closeDropdown()
+}
+
+function handlePageChange(page: number) {
+  // For now, just update the mock meta
+  meta.value.current_page = page
+  // You can set loading.value = true and simulate data fetching if needed
 }
 
 const columns = [
@@ -239,5 +255,34 @@ const table = useVueTable({
       </TableBody>
     </Table>
     <EditVoipConfigurationDialog v-model:open="editDialogOpen" :row="editRow" />
+  </div>
+  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ meta?.current_page }} to
+        <span>
+          <Select :default-value="meta.per_page">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+        of {{ meta?.total }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <TableServerPagination
+        :total-items="Number(meta?.total)"
+        :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)"
+        :last-page="Number(meta?.last_page)"
+        @page-change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
