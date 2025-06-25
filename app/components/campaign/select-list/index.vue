@@ -25,6 +25,12 @@ function openDialog() {
 function handleContinue() {
   emit('completed')
 }
+const { data: list, status } = await useLazyAsyncData('get-list-create-campaign', () =>
+  useApi().post('/list'), {
+  transform: (res) => {
+    return res.data
+  },
+})
 </script>
 
 <template>
@@ -48,8 +54,8 @@ function handleContinue() {
         </Button>
       </div>
     </div>
-    <!-- daa -->
-    <ListTable :list="dummyData" :meta="meta" />
+    <!-- data -->
+    <ListTable :list="list || []" :loading="status === 'pending'" :meta="meta" />
   </div>
 
   <div class="sticky bg-white bottom-0 right-0 w-full shadow-2xl p-4">
