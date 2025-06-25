@@ -99,7 +99,7 @@ const onSubmit = handleSubmit(async (values) => {
         Add Recyle Rule
       </Button>
     </DialogTrigger>
-    <DialogContent class="max-h-[90vh] h-full overflow-y-auto">
+    <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Add Recycle Rule</DialogTitle>
       </DialogHeader>
@@ -197,7 +197,7 @@ const onSubmit = handleSubmit(async (values) => {
                             class="ml-1 p-0 h-fit bg-accent"
                             @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
                           >
-                            <Icon name="lucide:x" size="12" />
+                            <Icon name="material-symbols:close" size="12" />
                           </Button>
                         </div>
                       </div>

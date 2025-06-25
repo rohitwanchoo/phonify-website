@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -8,9 +14,18 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
+import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -19,53 +34,109 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import TableServerPagination from '@/components/table/ServerPagination.vue'
-import { Icon } from '#components'
 import { valueUpdater } from '@/components/ui/table/utils'
 import EditRecycleRuleDialog from './EditRecycleRuleDialog.vue'
-import type {
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-} from '@tanstack/vue-table'
 
-const dummyData = [
-  { campaignName: 'Campaign 1', listName: 'List #1', disposition: 'Disconnected', day: 'Monday', time: '09:00:00', callTime: 1, recycleStatus: 0 },
-  { campaignName: 'Campaign 2', listName: 'List #2', disposition: 'Not Interested', day: 'Tuesday', time: '10:00:00', callTime: 2, recycleStatus: 1 },
-  { campaignName: 'Campaign 3', listName: 'List #3', disposition: 'Sale', day: 'Wednesday', time: '11:00:00', callTime: 3, recycleStatus: 0 },
-  { campaignName: 'Campaign 4', listName: 'List #4', disposition: 'Callback', day: 'Thursday', time: '12:00:00', callTime: 4, recycleStatus: 1 },
-  { campaignName: 'Campaign 5', listName: 'List #5', disposition: 'No Answer', day: 'Friday', time: '13:00:00', callTime: 5, recycleStatus: 0 },
-  { campaignName: 'Campaign 6', listName: 'List #6', disposition: 'Disconnected', day: 'Saturday', time: '14:00:00', callTime: 6, recycleStatus: 1 },
-  { campaignName: 'Campaign 7', listName: 'List #7', disposition: 'Not Interested', day: 'Sunday', time: '15:00:00', callTime: 7, recycleStatus: 0 },
-  { campaignName: 'Campaign 8', listName: 'List #8', disposition: 'Sale', day: 'Monday', time: '16:00:00', callTime: 8, recycleStatus: 1 },
-  { campaignName: 'Campaign 9', listName: 'List #9', disposition: 'Callback', day: 'Tuesday', time: '17:00:00', callTime: 9, recycleStatus: 0 },
-  { campaignName: 'Campaign 10', listName: 'List #10', disposition: 'No Answer', day: 'Wednesday', time: '18:00:00', callTime: 10, recycleStatus: 1 },
-  { campaignName: 'Campaign 11', listName: 'List #11', disposition: 'Disconnected', day: 'Thursday', time: '19:00:00', callTime: 11, recycleStatus: 0 },
-  { campaignName: 'Campaign 12', listName: 'List #12', disposition: 'Not Interested', day: 'Friday', time: '20:00:00', callTime: 12, recycleStatus: 1 },
-]
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const columnHelper = createColumnHelper<any>()
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const selectedRecycleRule = ref<{
+  list_id: number | null
+  disposition_id: number | null
+}>({
+  list_id: null,
+  disposition_id: null,
+})
+
+async function handleDelete() {
+  if (!selectedRecycleRule.value.list_id || !selectedRecycleRule.value.disposition_id)
+    return
+
+  try {
+    const res = await useApi().post('/delete-leads-rule', {
+      body: {
+        list_id: selectedRecycleRule.value.list_id,
+        disposition_id: selectedRecycleRule.value.disposition_id,
+      },
+    })
+
+    showToast({
+      message: res.message,
+      type: res.success,
+    })
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedRecycleRule.value = {
+      list_id: null,
+      disposition_id: null,
+    }
+  }
+}
+
+export interface recycleRulesList {
+  id: number
+  campaign_id: number
+  campaign_name: string
+  list_id: number
+  disposition_id: number
+  day: string
+  time: string
+  call_time: number
+  is_deleted: 0
+  updated_at: string
+  campaign: string
+  list: string
+  disposition: string
+}
+
+const columnHelper = createColumnHelper<recycleRulesList>()
 const columns = [
   columnHelper.display({
     id: 'slNo',
     header: () => h('div', { class: 'text-center w-full' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, props.start + row.index + 1),
   }),
-  columnHelper.accessor('campaignName', {
+  columnHelper.accessor('campaign', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaignName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaign),
   }),
-  columnHelper.accessor('listName', {
+  columnHelper.accessor('list', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.listName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list),
   }),
   columnHelper.accessor('disposition', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -91,21 +162,21 @@ const columns = [
     }, () => ['Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.time),
   }),
-  columnHelper.accessor('callTime', {
+  columnHelper.accessor('call_time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.callTime),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_time),
   }),
-  columnHelper.accessor('recycleStatus', {
+  columnHelper.accessor('is_deleted', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Recycle Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal te xt-sm w-full' }, row.original.recycleStatus),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal te xt-sm w-full' }, row.original.is_deleted),
   }),
   columnHelper.display({
     id: 'actions',
@@ -117,32 +188,27 @@ const columns = [
         class: 'text-primary h-7 w-7 min-w-0',
         title: 'Edit',
         onClick: () => {
-          selectedRow.value = row.original
-          editDialogOpen.value = true
-        }
+          emits('edit', row.original)
+        },
       }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle', onClick: () => console.log('Recycle', row.original) }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'text-red-600 border-red-600 hover:text-red-600 hover:bg-red-50 h-7 w-7 min-w-0', title: 'Delete', onClick: () => console.log('Delete', row.original) }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle' }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
+        selectedRecycleRule.value = {
+          list_id: row.original.list_id,
+          disposition_id: row.original.disposition_id,
+        }
+        revealDeleteConfirm()
+      } }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
     ]),
   }),
 ]
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
-
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 2,
-  total: 12,
-}
-const loading = false
-function handlePageChange(_page: number) {
-  // Dummy handler for pagination
-}
+const rowSelection = ref({})
 
 const table = useVueTable({
-  get data() { return dummyData },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
@@ -151,15 +217,40 @@ const table = useVueTable({
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
+    columnPinning: {
+      left: ['status'],
+    },
   },
 })
 
-const editDialogOpen = ref(false)
-const selectedRow = ref<any>(null)
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
 </script>
 
 <template>
@@ -181,7 +272,12 @@ const selectedRow = ref<any>(null)
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow
             v-for="row in table.getRowModel().rows"
             :key="row.id"
@@ -211,22 +307,43 @@ const selectedRow = ref<any>(null)
     </Table>
   </div>
 
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-        <span>{{ meta?.per_page }}</span>
-        of {{ meta?.total }} entries
+        Showing {{ current_page }} to
+
+        <span>
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
 
-  <EditRecycleRuleDialog v-model:open="editDialogOpen" />
+  <EditRecycleRuleDialog />
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete Recycle Rule"
+    description="You are about to delete this recycle rule. Do you wish to proceed?"
+  />
 </template>
