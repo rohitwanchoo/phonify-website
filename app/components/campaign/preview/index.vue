@@ -22,9 +22,6 @@ const emit = defineEmits(['goTo'])
       <CampaignPreviewOtherDetails />
       <CampaignPreviewSendDetails />
       <CampaignPreviewAssociatedList @on-edit="emit('goTo', 'select-list')" />
-      <!-- <div @click="emit('goTo', 'select-list')">
-        dfa
-      </div> -->
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
       <Button class="w-full h-[52px] items-center" type="submit" @click="onSubmit">

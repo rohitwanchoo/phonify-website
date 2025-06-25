@@ -5,7 +5,39 @@ export function useCreateCampaign() {
   // Form state
   function initialState() {
     return ref({
-      name: '',
+      title: '',
+      status: 1,
+      country_code: 0,
+      description: '',
+      caller_id: '',
+      custom_caller_id: '',
+      dial_mode: '',
+      group_id: 0,
+      time_based_calling: false,
+      call_time: {}, // since it's optional object
+      email: 0,
+      sms: false,
+      send_report: false,
+      call_transfer: false,
+      disposition_id: [],
+      hopper_mode: 0,
+      voip_configurations: 0,
+      call_ratio: '',
+      duration: '',
+      automated_duration: false,
+      no_agent_available_action: null,
+      amd: false,
+      amd_drop_action: null,
+      audio_message_amd: null,
+      voice_message_amd: null,
+      voicedrop_no_agent_available_action: null,
+      inbound_ivr_no_agent_available_action: null,
+      redirect_to: null,
+      outbound_ai_dropdown_audio_message: null,
+      outbound_ai_dropdown_voice_message: null,
+      outbound_ai_dropdown_extension: null,
+      outbound_ai_dropdown_ring_group: null,
+      outbound_ai_dropdown_ivr: null,
     })
   }
   const formState = useState('create-campaign-state', initialState)
