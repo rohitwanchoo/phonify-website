@@ -615,6 +615,12 @@ function onSelectDialMode(val: any): void {
     setFieldValue('amd', undefined)
   }
 }
+
+watch(() => formState.value?.time_based_calling, (newVal) => {
+  if (newVal) {
+    accordion.value = 'item-1'
+  }
+})
 </script>
 
 <template>
@@ -708,8 +714,6 @@ function onSelectDialMode(val: any): void {
               Caller Details
             </div>
           </div>
-          {{ formState.caller_id }}
-          {{ values.caller_id }}
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
