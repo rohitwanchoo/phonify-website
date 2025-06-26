@@ -11,7 +11,7 @@ import { Input } from '~/components/ui/input'
           <Input placeholder="Search Template" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Nuxt-link to="/app/campaign/new-campaign">
+        <Nuxt-link to="/app/configuration/voice-templates/add">
           <Button>
             <Icon class="!text-white" name="lucide:plus" />
             Add Voice Templates
@@ -21,6 +21,6 @@ import { Input } from '~/components/ui/input'
     </BaseHeader>
   </div>
   <div>
-    table here
+    <ConfigurationVoiceTemplatesTable />
   </div>
 </template>
