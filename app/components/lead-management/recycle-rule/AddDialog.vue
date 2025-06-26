@@ -12,21 +12,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 const open = defineModel<boolean>('open', { default: false })
 
-const campaignOptions = [
-  { label: 'Campaign 1', campaignId: 1 },
-  { label: 'Campaign 2', campaignId: 2 },
-  { label: 'Campaign 3', campaignId: 3 },
-]
-const listOptions = [
-  { label: 'List 1', listId: 1 },
-  { label: 'List 2', listId: 2 },
-  { label: 'List 3', listId: 3 },
-]
-const dispositionOptions = [
-  { label: 'Sale', dispositionValue: 1 },
-  { label: 'No Answer', dispositionValue: 2 },
-  { label: 'Callback', dispositionValue: 3 },
-]
+// campaign list options
+const campaignList = await useApi().get('campaigns')
+const campaignOptions = computed(() => campaignList.data?.map((e: { title: string, id: number }) => ({
+  label: e.title,
+  campaignId: e.id,
+})))
+
+// lead management list options
+const leadList = await useApi().post('list')
+const listOptions = computed(() => leadList.data?.map((e: { list: string, list_id: number }) => ({
+  label: e.list,
+  listId: e.list_id,
+})))
+
+// disposition options
+const dipositionList = await useApi().post('disposition')
+const dispositionOptions = computed(() => dipositionList.data?.map((e: { title: string, id: number }) => ({
+  label: e.title,
+  dispositionValue: e.id,
+})))
+
+// day options
 const dayOptions = [
   { label: 'Monday', day: 'monday' },
   { label: 'Tuesday', day: 'tuesday' },
@@ -36,6 +43,8 @@ const dayOptions = [
   { label: 'Saturday', day: 'saturday' },
   { label: 'Sunday', day: 'sunday' },
 ]
+
+// call time options
 const callTimeOptions = [
   { label: '≤ 2', callTime: 2 },
   { label: '≤ 3', callTime: 3 },
@@ -59,6 +68,8 @@ const { handleSubmit, resetForm } = useForm({
 const selectedDays = ref<string[]>([])
 const daySelectTemp = ref('')
 
+const loading = ref(false)
+
 const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.day)))
 
 const onSubmit = handleSubmit(async (values) => {
@@ -72,21 +83,26 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
+    loading.value = true
     const response = await useApi().post('/add-recycle-rule', {
-      body: payload,
+      ...payload,
     })
     showToast({
-      message: response.value.message,
-      type: response.value.success,
+      message: response.message,
+      type: response.success ? 'success' : 'error',
     })
     resetForm()
     open.value = false
+    loading.value = false
   }
   catch (error) {
     showToast({
       message: `${error}`,
       type: 'error',
     })
+  }
+  finally {
+    loading.value = false
   }
 })
 </script>
@@ -272,7 +288,7 @@ const onSubmit = handleSubmit(async (values) => {
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]">
+          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
             <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
             Save
           </Button>

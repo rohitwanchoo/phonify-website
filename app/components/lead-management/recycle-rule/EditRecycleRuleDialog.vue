@@ -84,7 +84,7 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     const response = await useApi().post('/edit-recycle-rule', {
-      body: payload,
+      ...payload,
     })
     showToast({
       message: response.value.message,
