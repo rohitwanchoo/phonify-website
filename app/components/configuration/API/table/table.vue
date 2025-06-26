@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Icon } from '#components'
+import { ConfigurationAPIActionDropdown, Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import LeadManagementListsActionsDropdown from '@/components/lead-management/lists/ActionsDropdown.vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -22,7 +23,7 @@ const props = withDefaults(defineProps<{
   loading: false,
 })
 
-const emits = defineEmits(['view-activity'])
+const emits = defineEmits(['view-activity', 'edit-row', 'duplicate-row', 'delete-row'])
 
 const router = useRouter()
 
@@ -31,15 +32,7 @@ const columnHelper = createColumnHelper<any>()
 const columns = [
   columnHelper.display({
     id: 'siNo',
-    header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
-      '#',
-      h(Button, {
-        'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
-        'variant': 'ghost',
-        'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-    ]),
+    header: () => h('div', { class: 'inline-flex items-center justify-center w-full' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
   columnHelper.accessor('api_name', {
@@ -102,7 +95,7 @@ const columns = [
     ]),
     cell: ({ row }) =>
       h('span', {
-        class: `inline-flex items-center justify-center px-0 py-1 w-[80px] rounded-full text-xs font-semibold ${
+        class: `inline-flex items-center justify-center px-0 py-1 h-6 w-[80px] rounded-full text-xs  ${
           row.original.status === 'Active' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
         }`,
       }, row.original.status),
@@ -143,25 +136,20 @@ const columns = [
       h(Button, {
         size: 'icon',
         variant: 'outline',
-        class: 'text-primary h-8 w-[60px] min-w-0 flex items-center gap-1 px-2',
+        class: 'text-primary h-8 w-15 min-w-0 flex items-center gap-1 px-2',
         title: 'Edit',
         onClick: () => {
-          emits('edit-row', row.original)
+          // Navigate to API List page
+          router.push('/app/configuration/api/api-list')
         },
       }, [
-        h(Icon, { name: 'material-symbols:edit-square', size: 18 }),
+        h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
         h('span', { class: 'text-xs font-medium' }, 'Edit'),
       ]),
-      h(Button, {
-        size: 'icon',
-        variant: 'ghost',
-        class: 'p-1 hover:bg-gray-100',
-        onClick: () => {
-          emits('row-menu', row.original)
-        },
-      }, [
-        h(Icon, { name: 'lucide:more-vertical', class: 'w-4 h-4 text-gray-600' }),
-      ]),
+      h(ConfigurationAPIActionDropdown, {
+        onDuplicate: () => emits('duplicate-row', row.original),
+        onDelete: () => emits('delete-row', row.original),
+      }),
     ]),
   }),
 ]
