@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import moment from 'moment'
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -92,6 +93,8 @@ const pageStart = ref(0)
 const limit = ref(10)
 const searchQuery = ref('')
 
+const router = useRouter()
+
 // Pagination and filtering logic
 const filteredList = computed(() => {
   if (!dummyLeads)
@@ -138,7 +141,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
           <Input v-model="searchQuery" placeholder="Search API" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button>
+        <Button @click="router.push('/app/configuration/api/api-list?mode=add')">
           <Icon class="!text-white" name="lucide:plus" />
           Add API
         </Button>

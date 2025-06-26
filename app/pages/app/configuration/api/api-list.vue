@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import { ConfigurationAPIInformation } from '#components'
 import { Button } from '@/components/ui/button'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
+const isAddMode = computed(() => route.query.mode === 'add')
 
 const { stepper, formState, resetFormState } = useCreateCampaign()
 
@@ -9,27 +15,42 @@ const breadcrumbs = [
     href: '/app/configuration/api',
   },
   {
-    label: 'Edit API List',
+    label: isAddMode.value ? 'Add API List' : 'Edit API List',
     href: '/app/configuration/api/api-list',
   },
 ]
 </script>
 
 <template>
-  <BaseHeader title="john Doe" :breadcrumbs="breadcrumbs">
-    <template #actions>
-      <Button class="h-8 md:h-11 px-2 md:px-4 ">
-        <Icon name="icons:export" class="text-sm" />
-        Export
-      </Button>
-    </template>
-  </BaseHeader>
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <div class="lg:col-span-4">
-      <LeadManagementLeadDetails />
+  <div class="flex flex-col h-[calc(100vh-110px)] overflow-auto">
+    <!-- Scrollable content -->
+    <div class="flex-1 overflow-y-auto">
+      <BaseHeader :title="isAddMode ? 'Add API List' : 'Edit API List'" :breadcrumbs="breadcrumbs">
+
+      </BaseHeader>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-4">
+        <div class="lg:col-span-12">
+          <ConfigurationAPIInformation />
+        </div>
+        <div class="lg:col-span-12">
+          <ConfigurationAPIParameters />
+        </div>
+      </div>
     </div>
-    <div class="lg:col-span-8">
-      <LeadManagementLeadLeadTabs />
+
+    <!-- Sticky footer button -->
+    <div
+      class="sticky bottom-0 bg-white w-full flex justify-end items-center gap-4 p-4 border-t border-gray-200 z-10 "
+    >
+      <Button
+        type="submit"
+        class="px-8 py-3 h-12 w-full "
+        @click="() => {}"
+      >
+        <Icon name="material-symbols:check" size="20" />
+        Submit
+      </Button>
     </div>
   </div>
 </template>
