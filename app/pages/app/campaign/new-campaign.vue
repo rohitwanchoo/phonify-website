@@ -13,7 +13,7 @@ const breadcrumbs = [
     href: '/app/campaign',
   },
   {
-    label: 'Create New Campaign',
+    label: isEdit.value ? 'Update Campaign' : 'Create New Campaign',
     active: true,
   },
 ]
@@ -79,6 +79,7 @@ onMounted(() => {
         refreshNuxtData('get-call-timings-campaign')
 
       const values = {
+        status: campaignById.value.status,
         title: campaignById.value.title,
         country_code: campaignById.value.country_code,
         description: campaignById.value.description,
@@ -91,9 +92,19 @@ onMounted(() => {
         automated_duration: campaignById.value.automated_duration === '1',
         amd: campaignById.value.amd === '1',
         amd_drop_action: campaignById.value.amd_drop_action,
-        time_based_calling: campaignById.value.time_based_calling,
+        time_based_calling: campaignById.value.time_based_calling === 1,
+        email: Number(campaignById.value.email),
+        sms: campaignById.value.sms === '1',
+        send_report: campaignById.value.send_report === 1,
+        call_transfer: campaignById.value.call_transfer === '1',
+        hopper_mode: campaignById.value.hopper_mode,
+        custom_caller_id: String(campaignById.value.custom_caller_id)
+
       }
-      console.log(values)
+
+      if (values?.caller_id === '1') {
+        refreshNuxtData('get-custom-caller-id-list')
+      }
       formState.value = values
       // formState.value = campaignById.value
       // formState.value.custom_caller_id = String(campaignById.value.custom_caller_id)
@@ -105,7 +116,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- {{ campaignById }} -->
   <BaseHeader title="Create New Campaign" :breadcrumbs="breadcrumbs">
     <template #actions>
       <Button variant="outline" class="h-11">
