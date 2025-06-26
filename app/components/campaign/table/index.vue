@@ -229,8 +229,7 @@ const columns = [
       ),
       h(Action, {
         onEdit: () => {
-          navigateTo({
-          })
+          navigateTo({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
         },
         onDelete: () => { },
         onCopy: () => { },
@@ -250,7 +249,7 @@ const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
+  // getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
