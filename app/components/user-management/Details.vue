@@ -36,7 +36,7 @@ const extensionType = computed(() => {
   <Sheet
     v-model:open="open"
   >
-    <SheetContent class="min-w-[483px]">
+    <SheetContent class="w-full md:min-w-[483px]">
       <SheetHeader class="bg-[#162D3A] ">
         <SheetTitle class="text-white">
           User Details
@@ -45,7 +45,7 @@ const extensionType = computed(() => {
       <div class="overflow-y-auto">
         <div class=" mx-auto p-6 space-y-6 overflow-y-auto">
           <!-- Grid Layout for Details -->
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Dialing Mode -->
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
@@ -70,7 +70,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="mdi:email-outline" />
@@ -93,7 +93,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="mdi:flag-outline" />
@@ -116,7 +116,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="mdi:lock-outline" />
@@ -139,7 +139,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="material-symbols:person-add-outline" />
@@ -163,7 +163,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="material-symbols:voice-chat-outline" />
@@ -186,7 +186,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="material-symbols:language" />
@@ -209,7 +209,7 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="material-symbols:settings-outline" />

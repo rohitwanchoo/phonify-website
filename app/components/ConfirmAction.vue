@@ -46,13 +46,13 @@ const open = defineModel<boolean>()
           {{ description }}
         </AlertDialogDescription>
       </AlertDialogHeader>
-      <AlertDialogFooter class="justify-between">
+      <AlertDialogFooter class="flex flex-col gap-2 sm:flex-row sm:justify-between">
         <slot name="actions">
-          <AlertDialogCancel class="w-[49%] h-11 font-normal text-primary " @click="props.cancel?.()">
+          <AlertDialogCancel class="w-full sm:w-[49%] h-11 font-normal text-primary" @click="props.cancel?.()">
             <Icon name="material-symbols:close" />
             <span class="text-[#6D7076]">Close</span>
           </AlertDialogCancel>
-          <Button class="w-[49%] h-11 font-normal bg-red-600 hover:bg-red-600/80" @click="() => { open = false; props.confirm?.() }">
+          <Button class="w-full sm:w-[49%] h-11 font-normal bg-red-600 hover:bg-red-600/80" @click="() => { open = false; props.confirm?.() }">
             <Icon name="material-symbols:delete" />
             Delete
           </Button>

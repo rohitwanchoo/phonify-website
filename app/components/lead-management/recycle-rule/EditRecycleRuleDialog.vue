@@ -54,7 +54,7 @@ const formSchema = toTypedSchema(z.object({
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
-    initialValues: {
+  initialValues: {
     campaign: 101,
     list: 202,
     disposition: 5,
@@ -79,7 +79,7 @@ const onSubmit = handleSubmit(async (values) => {
     day: values.day,
     time: values.fromTime, // or `${values.fromTime}-${values.toTime}`
     call_time: Number(values.callTime),
-    is_deleted: 0
+    is_deleted: 0,
   }
 
   try {
@@ -244,7 +244,9 @@ const onSubmit = handleSubmit(async (values) => {
               <FormField v-slot="{ componentField }" name="fromTime">
                 <FormItem class="flex flex-col flex-1">
                   <FormControl>
-                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
+                    <div
+                      class="flex items-center justify-between border border-gray-300 rounded-md px-2"
+                    >
                       <div class="text-sm text-muted-foreground">
                         From:
                       </div>
