@@ -99,8 +99,8 @@ function markTouched(field: string) {
   </Breadcrumb>
   <BaseHeader title="Add Voice Templates" />
 
-  <form class="w-full relative h-full border border-gray-200 rounded-xl p-6 flex flex-col gap-4 pb-4" @submit.prevent="onSubmit">
-    <div class="flex items-center justify-between">
+  <form class="w-full relative h-full border border-gray-200 rounded-xl py-6 flex flex-col gap-4 pb-4" @submit.prevent="onSubmit">
+    <div class="flex items-center justify-between px-6">
       <h2 class="text-lg font-semibold text-primary">
         Voice Template details
       </h2>
@@ -110,7 +110,7 @@ function markTouched(field: string) {
       </Button>
     </div>
     <Separator />
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 px-6">
       <!-- Language Dropdown -->
       <div class="w-full">
         <label class="text-sm font-medium text-primary">Language</label>
@@ -185,7 +185,7 @@ function markTouched(field: string) {
       <div class="relative">
         <label class="text-sm font-medium text-primary flex justify-between items-center">
           <span>Speed</span>
-          <span class="text-sm font-light">x {{ (Array.isArray(speed) ? speed[0] : speed).toFixed(2) }}</span>
+          <span class="text-sm font-light">Value: x {{ (Array.isArray(speed) ? speed[0] : speed).toFixed(2) }}</span>
         </label>
         <div
           class="[&_[data-slot=slider-range]]:bg-[#00A086]
@@ -232,7 +232,7 @@ function markTouched(field: string) {
       </div>
     </div>
     <!-- Template Preview -->
-    <div class="flex flex-col gap-2 mt-4 relative">
+    <div class="flex flex-col gap-2 mt-4 relative px-6">
       <label class="text-sm font-medium text-primary">Template Preview</label>
       <Textarea
         v-model="values.templatePreview"
