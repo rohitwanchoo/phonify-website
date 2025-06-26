@@ -4,7 +4,6 @@ import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@t
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import LeadManagementListsActionsDropdown from '@/components/lead-management/lists/ActionsDropdown.vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
