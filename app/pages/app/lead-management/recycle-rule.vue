@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import AddDialog from '@/components/lead-management/recycle-rule/AddDialog.vue'
-import FilterSheet from '@/components/lead-management/recycle-rule/FilterSheet.vue'
 import { Input } from '~/components/ui/input'
 
 const showDialog = ref(false)
@@ -97,14 +95,14 @@ async function handleClearFilter() {
         <Input v-model="searchQuery" placeholder="Search List" class="pr-10" />
         <Icon class="absolute top-[9px] right-2" name="material-symbols:search" size="20" />
       </div>
-      <FilterSheet
+      <LeadManagementRecycleRuleFilter
         v-if="recycleRules?.data"
         v-model:open="showSheet"
         :recycle-rules="recycleRules?.data"
         @apply-filter="handleApplyFilter"
         @clear-filter="handleClearFilter"
       />
-      <AddDialog v-model:open="showDialog" :initial-data="selectedRecycleRule" />
+      <LeadManagementRecycleRuleAdd v-model:open="showDialog" :initial-data="selectedRecycleRule" />
     </template>
   </BaseHeader>
   <!-- TABLE -->
