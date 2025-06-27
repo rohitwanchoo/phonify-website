@@ -128,6 +128,8 @@ const mockData = [
 const columnHelper = createColumnHelper<any>()
 
 const selectedRows = ref<number[]>([])
+const approveDialogOpen = ref(false)
+const declineDialogOpen = ref(false)
 
 // Keep selectedRows in sync with mockData (e.g., if data changes)
 watch(
@@ -272,7 +274,9 @@ const columns = [
         size: 'sm',
         variant: 'outline',
         class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600 hover:text-green-600',
-        onClick: () => { /* Approve logic */ },
+        onClick: () => {
+          approveDialogOpen.value = true
+        },
       }, [
         h(Icon, { name: 'material-symbols:check', class: 'text-green-600' }),
         'Approve',
@@ -281,7 +285,9 @@ const columns = [
         size: 'sm',
         variant: 'outline',
         class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600 hover:text-red-600',
-        onClick: () => { /* Decline logic */ },
+        onClick: () => {
+          declineDialogOpen.value = true
+        },
       }, [
         h(Icon, { name: 'material-symbols:close', class: 'text-red-600' }),
         'Decline',
@@ -353,6 +359,12 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableBody>
     </Table>
+    <ConfigurationIpSettingsApproveDialog 
+      v-model:open="approveDialogOpen" 
+    />
+    <ConfigurationIpSettingsDeclineDialog 
+      v-model:open="declineDialogOpen" 
+    />
   </div>
   <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
