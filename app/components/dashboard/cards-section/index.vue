@@ -1,58 +1,74 @@
 <script setup lang="ts">
+interface Counts {
+  users: number
+  phoneNumbers: number
+  campaigns: number
+  leads: number
+  lists: number
+  callbacks: number
+  smsReceived: number
+  smsSent: number
+  voicemailReceived: number
+  unreadVoicemail: number
+}
+
+const props = defineProps<{
+  counts: Counts
+}>()
 // import DashCard from '@/components/cards/dash-sec-one-cards/index.vue'
 
-const cardData = [
+const cardData = computed(() => [
   {
     image: '/images/dashboard/users.png',
     title: 'Users',
-    value: 567,
+    value: props.counts.users,
   },
   {
     image: '/images/dashboard/phone.png',
     title: 'Phone Numbers',
-    value: 32,
+    value: props.counts.phoneNumbers,
   },
   {
     image: '/images/dashboard/campaigns.png',
     title: 'Campaigns',
-    value: 45,
+    value: props.counts.campaigns,
   },
   {
     image: '/images/dashboard/leads.png',
     title: 'Leads',
-    value: 324,
+    value: props.counts.leads,
   },
   {
     image: '/images/dashboard/lists.png',
     title: 'Lists',
-    value: 31,
+    value: props.counts.lists,
   },
   {
     image: '/images/dashboard/callback.png',
     title: 'Call Back',
-    value: 5763,
+    value: props.counts.callbacks,
   },
   {
     image: '/images/dashboard/smsrecieve.png',
-    title: 'SMS Recieved',
-    value: 23123,
+    title: 'SMS Received',
+    value: props.counts.smsReceived,
   },
   {
     image: '/images/dashboard/smssent.png',
-    title: 'SMS Sent  ',
-    value: 412214,
+    title: 'SMS Sent',
+    value: props.counts.smsSent,
   },
   {
     image: '/images/dashboard/voicemail.png',
-    title: 'Voicemail Recieved',
-    value: 1232,
+    title: 'Voicemail Received',
+    value: props.counts.voicemailReceived,
   },
   {
     image: '/images/dashboard/Unread.png',
     title: 'Unread Voicemail',
-    value: 322,
+    value: props.counts.unreadVoicemail,
   },
-]
+])
 </script>
 
 <template>
