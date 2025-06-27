@@ -35,7 +35,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
-import EditRecycleRuleDialog from './EditRecycleRuleDialog.vue'
 
 const props = withDefaults(defineProps<{
   loading: boolean
@@ -46,7 +45,8 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -67,6 +67,32 @@ const selectedRuleForDelete = ref<{
   disposition_id: null,
 })
 
+// controls dialog visibility
+const isEditDialogOpen = ref(false)
+// stores the row to edit
+const selectedRowData = ref<recycleRulesList | null>(null)
+
+export interface recycleRulesList {
+  id: number
+  campaign_id: number
+  campaign_name: string
+  list_id: number
+  disposition_id: number
+  day: string
+  time: string
+  call_time: number
+  is_deleted: 0
+  updated_at: string
+  campaign: string
+  list: string
+  disposition: string
+}
+
+function onEdit(row: recycleRulesList) {
+  selectedRowData.value = row
+  isEditDialogOpen.value = true
+}
+
 async function handleDelete() {
   if (!selectedRuleForDelete.value.list_id || !selectedRuleForDelete.value.disposition_id)
     return
@@ -74,10 +100,10 @@ async function handleDelete() {
   try {
     const res = await useApi().post('/delete-leads-rule', {
       list_id: selectedRuleForDelete.value.list_id,
-      disposition_id: selectedRuleForDelete.value.disposition_id
+      disposition_id: selectedRuleForDelete.value.disposition_id,
     })
 
-    if (res.success === "true") {
+    if (res.success === 'true') {
       showToast({
         message: res.message,
         type: 'success',
@@ -105,20 +131,19 @@ async function handleDelete() {
   }
 }
 
-export interface recycleRulesList {
-  id: number
-  campaign_id: number
-  campaign_name: string
-  list_id: number
-  disposition_id: number
-  day: string
-  time: string
-  call_time: number
-  is_deleted: 0
-  updated_at: string
-  campaign: string
-  list: string
-  disposition: string
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
 }
 
 const columnHelper = createColumnHelper<recycleRulesList>()
@@ -194,11 +219,13 @@ const columns = [
         class: 'text-primary h-7 w-7 min-w-0',
         title: 'Edit',
         onClick: () => {
-          emits('edit', row.original)
+          onEdit(row.original)
         },
       }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle' }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
+      h(Button, { size: 'icon', variant: 'outline', class: 'text-primary h-7 w-7 min-w-0', title: 'Recycle', onClick: () => {
+        refreshNuxtData('recycle-rule')
+      } }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', title: 'Delete', onClick: () => {
         selectedRuleForDelete.value = {
           list_id: row.original.list_id,
           disposition_id: row.original.disposition_id,
@@ -242,21 +269,6 @@ const table = useVueTable({
     },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-
-function changeLimit(val: number | null) {
-  if (val !== null) {
-    emits('changeLimit', val)
-  }
-}
-
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
-}
 </script>
 
 <template>
@@ -317,7 +329,6 @@ function deleteConfirmHandler() {
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing {{ current_page }} to
-
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
@@ -330,7 +341,6 @@ function deleteConfirmHandler() {
             </SelectContent>
           </Select>
         </span>
-
         of {{ totalRows }} entries
       </div>
     </div>
@@ -343,7 +353,8 @@ function deleteConfirmHandler() {
     </div>
   </div>
 
-  <EditRecycleRuleDialog />
+  <!-- EDIT RECYCLE RULE -->
+  <LeadManagementRecycleRuleEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
