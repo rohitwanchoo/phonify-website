@@ -114,11 +114,9 @@ function markTouched(field: string) {
       <!-- Language Dropdown -->
       <div class="w-full">
         <label class="text-sm font-medium text-primary">Language</label>
-        <Select v-model="values.language" @blur="markTouched('language')">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select language">
-              {{ values.language || 'Select language' }}
-            </SelectValue>
+        <Select v-model="values.language" @update:model-value="val => setFieldValue('language', val)" @blur="markTouched('language')">
+          <SelectTrigger class="w-full !h-11">
+            <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select language" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="lang in languages" :key="lang" :value="lang">
@@ -133,11 +131,9 @@ function markTouched(field: string) {
       <!-- Voice Name Dropdown -->
       <div class="w-full">
         <label class="text-sm font-medium text-primary">Voice Name</label>
-        <Select v-model="values.voiceName" @blur="markTouched('voiceName')">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select voice">
-              {{ values.voiceName || 'Select voice' }}
-            </SelectValue>
+        <Select v-model="values.voiceName" @update:model-value="val => setFieldValue('voiceName', val)" @blur="markTouched('voiceName')">
+          <SelectTrigger class="w-full !h-11">
+            <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select voice" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="voice in voices" :key="voice" :value="voice">
@@ -238,7 +234,7 @@ function markTouched(field: string) {
         v-model="values.templatePreview"
         placeholder="Preview your template here..."
         rows="4"
-        class="h-[130px] max-h-[190px]"
+        class="xl:h-[130px] h-[50px] max-h-[190px]"
         maxlength="200"
         @blur="markTouched('templatePreview')"
       />

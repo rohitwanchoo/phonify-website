@@ -150,7 +150,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-xs xl:text-sm truncate max-w-[30vw] xl:max-w-[50vw] mx-auto' }, row.original.message),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-xs truncate max-w-[30vw] xl:max-w-[40vw] mx-auto' }, row.original.message),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>
