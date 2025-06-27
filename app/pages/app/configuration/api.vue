@@ -1,3 +1,0 @@
-<template>
-    api
-</template>
