@@ -53,8 +53,10 @@ const emits = defineEmits([
 ])
 
 const formState = useState<Campaign>('create-campaign-state')
+const route = useRoute()
+const id = route.query.id
 
-const isActive = ref('Active')
+const isEdit = computed(() => !!id)
 const accordion = ref('')
 const accordion2 = ref('')
 
@@ -367,7 +369,7 @@ const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'required').max(50),
   country_code: z.number().min(1, 'required'),
   description: z.string().min(1, 'required').max(255),
-  caller_id: z.string().min(0, 'required'),
+  caller_id: z.string().min(1, 'required'),
   custom_caller_id: z.string().max(50).optional().superRefine((val, ctx) => {
     if (formState.value.caller_id === '1' && !val) {
       ctx.addIssue({
@@ -548,6 +550,10 @@ function onSelectCallerId(val: any) {
 const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+  if (isEdit.value) {
+    emits('completed')
+    return
+  }
   loading.value = true
   const payload = {
     ...values,
@@ -558,7 +564,10 @@ const onSubmit = handleSubmit(async (values) => {
     automated_duration: formState.value?.automated_duration ? '1' : '0',
     time_based_calling: formState.value?.time_based_calling ? 1 : 0,
     status: formState.value.status,
+
+    // TODO: need info about below
     is_deleted: 0,
+   
   }
   if (payload.call_time) {
     // Format times as HH:mm
@@ -596,7 +605,7 @@ const searchTerm = ref('')
 const { contains } = useFilter({ sensitivity: 'base' })
 
 const filteredDispositionList = computed(() => {
-  const options = dispositionList.value.filter((item: { id: number }) => !formState.value.disposition_id.includes(item.id))
+  const options = dispositionList.value.filter((item: { id: number }) => !formState.value?.disposition_id?.includes(item.id))
   return searchTerm.value ? options.filter((option: { title: string }) => contains(option.title, searchTerm.value)) : options
 })
 
@@ -615,12 +624,15 @@ function onSelectDialMode(val: any): void {
     setFieldValue('amd', undefined)
   }
 }
+
+watch(() => formState.value?.time_based_calling, (newVal) => {
+  if (newVal && isEdit.value) {
+    accordion.value = 'item-1'
+  }
+})
 </script>
 
 <template>
-  {{ formState }}
-  <!-- {{ moment(formState.call_time?.from_time, 'HH:mm:ss').format('HH:mm') }} -->
-  <!-- {{ formState?.call_time }} -->
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
@@ -711,8 +723,6 @@ function onSelectDialMode(val: any): void {
               Caller Details
             </div>
           </div>
-          {{ formState.caller_id }}
-          {{ values.caller_id }}
           <div class="p-5 space-y-5 w-full">
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
@@ -1520,7 +1530,7 @@ function onSelectDialMode(val: any): void {
                           <div class="flex gap-2 flex-wrap items-center ">
                             <TagsInputItem v-for="item in formState.disposition_id" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] py-3 px-[7px] flex item-center justify-between gap-x-2" :value="item">
                               <div>
-                                {{ dispositionList.find((val: { id: any }) => val.id === item).title }}
+                                {{ dispositionList?.find((val: { id: any }) => val.id === item).title }}
                               </div>
                               <TagsInputItemDelete class="mr-0">
                                 <Icon name="lucide:x" />

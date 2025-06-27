@@ -1,3 +1,3 @@
 <template>
-    <BaseHeader title="Email Templates" />
+  <BaseHeader title="Email Templates" />
 </template>

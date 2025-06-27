@@ -102,6 +102,7 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm()
     open.value = false
     loading.value = false
+    refreshNuxtData('recycle-rule')
   }
   catch (error) {
     showToast({
@@ -263,7 +264,9 @@ const onSubmit = handleSubmit(async (values) => {
               <FormField v-slot="{ componentField }" name="fromTime">
                 <FormItem class="flex flex-col flex-1">
                   <FormControl>
-                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
+                    <div
+                      class="flex items-center justify-between border border-gray-300 rounded-md px-2"
+                    >
                       <div class="text-sm text-muted-foreground">
                         From:
                       </div>

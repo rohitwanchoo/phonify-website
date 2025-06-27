@@ -75,7 +75,7 @@ const data = {
       { title: 'Email Templates', url: '/app/configuration/email-templates' },
       { title: 'Voice Templates', url: '/app/configuration/voice-templates' },
       { title: 'IP Settings', url: '/app/configuration/ip-settings' },
-      { title: 'Notification Settings', url: '/app/configuration/notification-settings' },
+      { title: 'Company Settings', url: '/app/configuration/company-settings' },
       { title: 'SMTP Settings', url: '/app/configuration/smtp-settings' },
       { title: 'Custom Field Values', url: '/app/configuration/custom-field-values' },
       { title: 'Allowed IPs', url: '/app/configuration/allowed-ips' },
