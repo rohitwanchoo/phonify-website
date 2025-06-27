@@ -2,7 +2,6 @@
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import approveImage from '~/assets/svg/approve.svg'
-import background from '~/assets/svg/approve-bg.jpg'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -12,8 +11,8 @@ const onSubmit = () => {
 </script>
 
 <template>
-  <Dialog v-model:open="open" :style="{ backgroundImage: `url(${background})` }">
-    <DialogContent>
+  <Dialog v-model:open="open">
+    <DialogContent class="bg-[url('/images/dialog-background/approve-bg.jpg')] bg-cover bg-center">
      <div>
         <img class="h-[98px] w-[98px] mx-auto mt-10" :src="approveImage" alt="approval Image">
         <div class="text-center mt-4">
@@ -41,7 +40,7 @@ const onSubmit = () => {
             </div>
             <div class="flex justify-between items-center h-10 bg-[#F2FAF9] p-3 border border-[#00A0861A] rounded-sm mb-2">
                 <p class="text-sm text-muted-foreground">
-                    Type
+                    Location
                 </p>
                 <p class="text-sm text-primary">
                    California, USA
