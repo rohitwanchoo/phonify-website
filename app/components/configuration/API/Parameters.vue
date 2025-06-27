@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import EditLabel from './Edit-label.vue'
+import EditLabel from './EditLabel.vue'
 
 const rows = ref([
   { id: 1, apiName: '', apiType: '' },
