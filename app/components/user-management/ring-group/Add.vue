@@ -258,7 +258,7 @@ function removeExtension(index: number) {
             </FormItem>
           </FormField>
 
-          <div class="grid grid-cols-2 gap-x-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-2">
             <div>
               <FormField
                 v-slot="{ componentField }"
@@ -292,7 +292,7 @@ function removeExtension(index: number) {
                 name="receive_on"
               >
                 <FormItem>
-                  <FormLabel class="text-sm font-normal">
+                  <FormLabel class="text-sm font-normal mt-4 md:mt-0">
                     Receive On
                   </FormLabel>
                   <FormControl>
@@ -316,13 +316,13 @@ function removeExtension(index: number) {
           </div>
 
           <DialogFooter>
-            <DialogClose class="w-1/2">
+            <DialogClose class="sm:w-1/2">
               <Button variant="outline" class="h-11  w-full">
                 <Icon name="mdi:close" />
                 Close
               </Button>
             </DialogClose>
-            <Button :disabled="loading" for="form" class="h-11 w-1/2" type="submit" @click="onSubmit">
+            <Button :disabled="loading" for="form" class="h-11 sm:w-1/2" type="submit" @click="onSubmit">
               <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" />
               {{ isEdit ? 'Update' : 'Save' }}
             </Button>

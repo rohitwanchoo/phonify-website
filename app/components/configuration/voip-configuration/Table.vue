@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
+import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -99,6 +99,7 @@ const editDialogOpen = ref(false)
 const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
 const loading = ref(false)
+const sorting = ref([])
 
 // Mock pagination meta data
 const meta = ref({
@@ -149,6 +150,7 @@ const columns = [
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.name),
+    sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('host', {
     header: ({ column }) =>
@@ -161,6 +163,7 @@ const columns = [
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.host),
+    sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('username', {
     header: ({ column }) =>
@@ -173,10 +176,20 @@ const columns = [
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.username),
+    sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('password', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Password'),
+    header: ({ column }) =>
+      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
+        'Password',
+        h(Button, {
+          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
+          variant: 'ghost',
+          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
+      ]),
     cell: ({ row }) => h('div', { class: 'text-center font-mono text-sm' }, row.original.password),
+    sortingFn: 'alphanumeric',
   }),
   columnHelper.display({
     id: 'actions',
@@ -222,6 +235,18 @@ const table = useVueTable({
   get data() { return mockData },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  onSortingChange: (updaterOrValue) => {
+    if (typeof updaterOrValue === 'function') {
+      sorting.value = updaterOrValue(sorting.value)
+    }
+    else {
+      sorting.value = updaterOrValue
+    }
+  },
+  state: {
+    get sorting() { return sorting.value },
+  },
 })
 </script>
 
