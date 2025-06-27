@@ -4,17 +4,11 @@ import { Button } from '~/components/ui/button'
 import ListTable from './table.vue'
 
 const emit = defineEmits(['completed'])
+const route = useRoute()
+const campaign_id = route.query.id
+const isEdit = computed(() => !!campaign_id)
 
-const dummyData = ref([
-  { listName: 'List 1', createdDate: '2024-05-10T10:00:00', totalLeads: 1200 },
-  { listName: 'List 2', createdDate: '2024-04-22T14:30:00', totalLeads: 850 },
-  { listName: 'List 3', createdDate: '2024-03-15T09:15:00', totalLeads: 420 },
-  { listName: 'List 4', createdDate: '2024-02-28T16:45:00', totalLeads: 100 },
-  { listName: 'List 5', createdDate: '2024-05-10T10:00:00', totalLeads: 1200 },
-  { listName: 'List 6', createdDate: '2024-04-22T14:30:00', totalLeads: 850 },
-  { listName: 'List 7', createdDate: '2024-03-15T09:15:00', totalLeads: 420 },
-  { listName: 'List 8', createdDate: '2024-02-28T16:45:00', totalLeads: 100 },
-])
+const selectedRows =ref<number[]>([])
 
 const dialogRef = ref()
 
@@ -25,12 +19,33 @@ function openDialog() {
 function handleContinue() {
   emit('completed')
 }
-const { data: list, status } = await useLazyAsyncData('get-list-create-campaign', () =>
-  useApi().post('/list'), {
+const { data: campaignList, status: campaignListStatus, refresh:refreshCampaignList } = await useLazyAsyncData('get-list-update-campaign', () =>
+  useApi().post('/campaign-list', { campaign_id }), {
+  transform: (res) => {
+    return res.data
+  },
+  immediate: false
+})
+const { data: list, status: listStatus, refresh: listRefresh } = await useLazyAsyncData('get-list-create-campaign', () =>
+  useApi().post('/list', { campaign_id }), {
   transform: (res) => {
     return res.data
   },
 })
+const tableList = computed(() => isEdit.value ? campaignList : list)
+const loading = computed(() => campaignListStatus.value === 'pending' || listStatus.value === 'pending')
+
+function setSelectedRow(){
+  if(isEdit.value){
+    refreshCampaignList().then(()=> {
+      selectedRows.value = campaignList.value.map((val) => val.list_id)
+    })
+  }
+   
+}
+onMounted(()=>{
+  setSelectedRow()
+})  
 </script>
 
 <template>
@@ -55,7 +70,7 @@ const { data: list, status } = await useLazyAsyncData('get-list-create-campaign'
       </div>
     </div>
     <!-- data -->
-    <ListTable :list="list || []" :loading="status === 'pending'" :meta="meta" />
+    <ListTable :list="list || []" :is-edit="isEdit" v-model:selected-rows="selectedRows" :loading="loading" :meta="meta" />
   </div>
 
   <div class="sticky bg-white bottom-0 right-0 w-full shadow-2xl p-4">

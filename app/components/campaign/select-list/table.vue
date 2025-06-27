@@ -30,15 +30,24 @@ import {
 import { cn } from '@/lib/utils'
 
 // Define props with defaults
+interface List {
+  id: number
+  list: string
+  createdDate: string
+  totalLeads: number
+  rowLeadReport: number
+  l_title: string
+  updated_at: any
+  list_id: number
+
+}
+
 const props = withDefaults(defineProps<{
   enableSelect?: boolean
   loading?: boolean
+  isEdit?: boolean
   meta?: Meta
-  list?: {
-    list: string
-    createdDate: string
-    totalLeads: number
-  }[]
+  list?: List[]
 }>(), {
   enableSelect: true,
   data: () => [],
@@ -54,17 +63,20 @@ interface Meta {
 }
 
 // Track selected rows
-const selectedRows = ref<Record<number, boolean>>({})
+const selectedRows = defineModel<number[]>('selectedRows', { default: [] })
 
-function toggleSelected(rowIndex: number) {
-  selectedRows.value = {
-    ...selectedRows.value,
-    [rowIndex]: !selectedRows.value[rowIndex],
+function toggleSelected(id: number) {
+  const index = selectedRows.value.indexOf(id)
+  if (index === -1) {
+    selectedRows.value.push(id)
+  }
+  else {
+    selectedRows.value.splice(index, 1)
   }
 }
 
 // Create column helpers
-const columnHelper = createColumnHelper<any>()
+const columnHelper = createColumnHelper<List>()
 
 const columns = [
   // No. column (not sortable)
@@ -75,7 +87,7 @@ const columns = [
   }),
 
   // List Name column (sortable)
-  columnHelper.accessor('listName', {
+  columnHelper.accessor('list', {
     header: ({ column }) =>
       h(Button, {
         variant: 'ghost',
@@ -116,7 +128,7 @@ const columns = [
         'Total Leads',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.getValue('totalLeads')),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.rowLeadReport),
   }),
 
   // Action column
@@ -130,21 +142,21 @@ const columns = [
         class: 'h-10 w-10 text-white bg-primary',
       }, h(Eye, { class: 'h-6 w-6' })),
       props.enableSelect && h(Button, {
-        variant: selectedRows.value[row.index] ? 'default' : 'outline',
+        variant: selectedRows.value.includes(row.original.list_id) ? 'default' : 'outline',
         size: 'sm',
         class: cn('h-10 w-28 flex items-center justify-center gap-1', {
-          'bg-green-600 text-white hover:bg-green-700 cursor-pointer': selectedRows.value[row.index],
-          'text-primary border-primary cursor-pointer': !selectedRows.value[row.index],
+          'bg-green-600 text-white hover:bg-green-700 cursor-pointer': selectedRows.value.includes(row.original.list_id),
+          'text-primary border-primary cursor-pointer': !selectedRows.value.includes(row.original.list_id),
         }),
-        onClick: () => toggleSelected(row.index),
+        onClick: () => toggleSelected(row.original.list_id),
       }, () => [
         h(Check, {
           class: cn('h-4 w-4', {
-            'text-white': selectedRows.value[row.index],
-            'text-primary': !selectedRows.value[row.index],
+            'text-white': selectedRows.value.includes(row.original.list_id),
+            'text-primary': !selectedRows.value.includes(row.original.list_id),
           }),
         }),
-        selectedRows.value[row.index] ? 'Selected' : 'Select',
+        selectedRows.value.includes(row.original.list_id) ? 'Selected' : 'Select',
       ]),
 
     ]),
