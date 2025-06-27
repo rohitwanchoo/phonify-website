@@ -2,7 +2,7 @@
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { computed, h, ref } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import {
@@ -129,6 +129,14 @@ const columnHelper = createColumnHelper<any>()
 
 const selectedRows = ref<number[]>([])
 
+// Keep selectedRows in sync with mockData (e.g., if data changes)
+watch(
+  () => mockData.map(row => row.id),
+  (ids) => {
+    selectedRows.value = selectedRows.value.filter(id => ids.includes(id))
+  },
+)
+
 const allSelected = computed({
   get() {
     return mockData.length > 0 && selectedRows.value.length === mockData.length
@@ -159,14 +167,21 @@ const columns = [
     id: 'select',
     header: () =>
       h(Checkbox, {
-        'checked': allSelected.value,
-        'onUpdate:checked': (val: boolean) => { allSelected.value = val },
-        'class': 'mx-auto  border-primary rounded-none',
+        'modelValue': allSelected.value,
+        'indeterminate': selectedRows.value.length > 0 && selectedRows.value.length < mockData.length,
+        'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
+          if (typeof val === 'boolean')
+            allSelected.value = val
+        },
+        'class': 'mx-auto border-primary rounded-none',
       }),
     cell: ({ row }) =>
       h(Checkbox, {
-        'checked': selectedRows.value.includes(row.original.id),
-        'onUpdate:checked': () => toggleRowSelection(row.original.id),
+        'modelValue': selectedRows.value.includes(row.original.id),
+        'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
+          if (typeof val === 'boolean')
+            toggleRowSelection(row.original.id)
+        },
         'class': 'mx-auto border-primary rounded-none',
       }),
     size: 40,
@@ -256,7 +271,7 @@ const columns = [
       h(Button, {
         size: 'sm',
         variant: 'outline',
-        class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600',
+        class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600 hover:text-green-600',
         onClick: () => { /* Approve logic */ },
       }, [
         h(Icon, { name: 'material-symbols:check', class: 'text-green-600' }),
@@ -265,7 +280,7 @@ const columns = [
       h(Button, {
         size: 'sm',
         variant: 'outline',
-        class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600',
+        class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600 hover:text-red-600',
         onClick: () => { /* Decline logic */ },
       }, [
         h(Icon, { name: 'material-symbols:close', class: 'text-red-600' }),
@@ -317,7 +332,7 @@ function handlePageChange(page: number) {
           <TableHead
             v-for="header in headerGroup.headers"
             :key="header.id"
-            class="bg-gray-50"
+            class="bg-gray-50 text-center"
           >
             <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
           </TableHead>
