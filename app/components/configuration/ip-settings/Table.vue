@@ -130,6 +130,8 @@ const columnHelper = createColumnHelper<any>()
 const selectedRows = ref<number[]>([])
 const approveDialogOpen = ref(false)
 const declineDialogOpen = ref(false)
+const selectedRowData = ref<any>(null)
+
 
 // Keep selectedRows in sync with mockData (e.g., if data changes)
 watch(
@@ -267,33 +269,35 @@ const columns = [
     sortingFn: 'alphanumeric',
   }),
   columnHelper.display({
-    id: 'actions',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-    cell: ({ row }) => h('div', { class: 'flex items-center gap-2 justify-center' }, [
-      h(Button, {
-        size: 'sm',
-        variant: 'outline',
-        class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600 hover:text-green-600',
-        onClick: () => {
-          approveDialogOpen.value = true
-        },
-      }, [
-        h(Icon, { name: 'material-symbols:check', class: 'text-green-600' }),
-        'Approve',
-      ]),
-      h(Button, {
-        size: 'sm',
-        variant: 'outline',
-        class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600 hover:text-red-600',
-        onClick: () => {
-          declineDialogOpen.value = true
-        },
-      }, [
-        h(Icon, { name: 'material-symbols:close', class: 'text-red-600' }),
-        'Decline',
-      ]),
+  id: 'actions',
+  header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+  cell: ({ row }) => h('div', { class: 'flex items-center gap-2 justify-center' }, [
+    h(Button, {
+      size: 'sm',
+      variant: 'outline',
+      class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600 hover:text-green-600',
+      onClick: () => {
+        selectedRowData.value = row.original // Set the row data
+        approveDialogOpen.value = true
+      },
+    }, [
+      h(Icon, { name: 'material-symbols:check', class: 'text-green-600' }),
+      'Approve',
     ]),
-  }),
+    h(Button, {
+      size: 'sm',
+      variant: 'outline',
+      class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600 hover:text-red-600',
+      onClick: () => {
+        selectedRowData.value = row.original // Set the row data
+        declineDialogOpen.value = true
+      },
+    }, [
+      h(Icon, { name: 'material-symbols:close', class: 'text-red-600' }),
+      'Decline',
+    ]),
+  ]),
+}),
 ]
 
 const table = useVueTable({
@@ -359,12 +363,14 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableBody>
     </Table>
-    <ConfigurationIpSettingsApproveDialog 
-      v-model:open="approveDialogOpen" 
-    />
-    <ConfigurationIpSettingsDeclineDialog 
-      v-model:open="declineDialogOpen" 
-    />
+   <ConfigurationIpSettingsApproveDialog 
+  v-model:open="approveDialogOpen" 
+  :row-data="selectedRowData"
+/>
+<ConfigurationIpSettingsDeclineDialog 
+  v-model:open="declineDialogOpen" 
+  :row-data="selectedRowData"
+/>
   </div>
   <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
