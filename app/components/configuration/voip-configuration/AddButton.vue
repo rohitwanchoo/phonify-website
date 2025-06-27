@@ -122,7 +122,7 @@ function handleReset() {
         </div>
         <DialogFooter>
           <Button
-            class="w-[50%]  hover:bg-red-50 h-10"
+            class="w-[50%] h-10"
             variant="outline"
             type="button"
             @click="handleReset"
