@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ConfigurationAPIActionDropdown, Icon } from '#components'
+import ConfigurationAPIActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
+import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
