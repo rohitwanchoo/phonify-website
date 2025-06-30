@@ -4,7 +4,7 @@ import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, use
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import EditVoipConfigurationDialog from '~/components/configuration/voip-configuration/EditVoipConfigurationDialog.vue'
+
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
@@ -223,12 +223,10 @@ const columns = [
         size: 'sm',
         variant: 'outline',
         class: 'flex items-center gap-2 border-primary text-primary',
-        onClick: () => {
-          // Listen action placeholder
-        },
+        onClick: () => openEditDialog(row),
       }, [
-        h(Icon, { name: 'material-symbols:edit-square-outline', filled: true, class: 'text-base text-primary' }),
-        'Listen',
+        h(Icon, { name: 'material-symbols:edit-square', filled: true, class: 'text-base text-primary' }),
+        'Edit',
       ]),
       h(DropdownMenu, {
         'open': dropdownOpen.value === row.index,
@@ -305,7 +303,7 @@ const table = useVueTable({
         </TableRow>
       </TableBody>
     </Table>
-    <EditVoipConfigurationDialog v-model:open="editDialogOpen" :row="editRow" />
+    <ConfigurationAllowedIpsEditDialog v-model:open="editDialogOpen" :row="editRow" />
   </div>
   <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">

@@ -12,12 +12,7 @@ import { Input } from '~/components/ui/input'
           <Input placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Nuxt-link to="/app/campaign/new-campaign">
-          <Button>
-            <Icon class="!text-white" name="lucide:plus" />
-            Add IPs
-          </Button>
-        </Nuxt-link>
+        <ConfigurationAllowedIpsAddDialog />
       </template>
     </BaseHeader>
 
