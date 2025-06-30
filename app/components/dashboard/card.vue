@@ -2,7 +2,7 @@
 defineProps<{
   image: string
   title: string
-  value: string | number
+  value: 'loading' | number
 }>()
 </script>
 
@@ -20,7 +20,12 @@ defineProps<{
     </div>
     <div class="mt-2">
       <h1 class="text-2xl font-extrabold">
-        {{ formatWithCommas(value) }}
+        <div v-if="value === 'loading'">
+          <Icon name="eos-icons:loading" />
+        </div>
+        <div v-else>
+          {{ formatWithCommas(value) }}
+        </div>
       </h1>
     </div>
   </div>

@@ -3,6 +3,102 @@ import * as echarts from 'echarts/core'
 import { Separator } from '@/components/ui/separator'
 import usaJson from '~/assets/map/USA.json'
 
+
+interface ApiDataItem {
+  state_code: string;
+  rowCount: number;
+}
+
+const props = defineProps<{
+  apiData?: ApiDataItem[];
+}>();
+
+const states =
+  [
+    { name: 'Alabama', value: 0, state_code: 'AL' },
+    { name: 'Alaska', value: 0, state_code: 'AK' },
+    { name: 'Arizona', value: 0, state_code: 'AZ' },
+    { name: 'Arkansas', value: 0, state_code: 'AR' },
+    { name: 'California', value: 0, state_code: 'CA' },
+    { name: 'Colorado', value: 0, state_code: 'CO' },
+    { name: 'Connecticut', value: 0, state_code: 'CT' },
+    { name: 'Delaware', value: 0, state_code: 'DE' },
+    { name: 'District of Columbia', value: 0, state_code: 'DC' },
+    { name: 'Florida', value: 0, state_code: 'FL' },
+    { name: 'Georgia', value: 0, state_code: 'GA' },
+    { name: 'Hawaii', value: 0, state_code: 'HI' },
+    { name: 'Idaho', value: 0, state_code: 'ID' },
+    { name: 'Illinois', value: 0, state_code: 'IL' },
+    { name: 'Indiana', value: 0, state_code: 'IN' },
+    { name: 'Iowa', value: 0, state_code: 'IA' },
+    { name: 'Kansas', value: 0, state_code: 'KS' },
+    { name: 'Kentucky', value: 0, state_code: 'KY' },
+    { name: 'Louisiana', value: 0, state_code: 'LA' },
+    { name: 'Maine', value: 0, state_code: 'ME' },
+    { name: 'Maryland', value: 0, state_code: 'MD' },
+    { name: 'Massachusetts', value: 0, state_code: 'MA' },
+    { name: 'Michigan', value: 0, state_code: 'MI' },
+    { name: 'Minnesota', value: 0, state_code: 'MN' },
+    { name: 'Mississippi', value: 0, state_code: 'MS' },
+    { name: 'Missouri', value: 0, state_code: 'MO' },
+    { name: 'Montana', value: 0, state_code: 'MT' },
+    { name: 'Nebraska', value: 0, state_code: 'NE' },
+    { name: 'Nevada', value: 0, state_code: 'NV' },
+    { name: 'New Hampshire', value: 0, state_code: 'NH' },
+    { name: 'New Jersey', value: 0, state_code: 'NJ' },
+    { name: 'New Mexico', value: 0, state_code: 'NM' },
+    { name: 'New York', value: 0, state_code: 'NY' },
+    { name: 'North Carolina', value: 0, state_code: 'NC' },
+    { name: 'North Dakota', value: 0, state_code: 'ND' },
+    { name: 'Ohio', value: 0, state_code: 'OH' },
+    { name: 'Oklahoma', value: 0, state_code: 'OK' },
+    { name: 'Oregon', value: 0, state_code: 'OR' },
+    { name: 'Pennsylvania', value: 0, state_code: 'PA' },
+    { name: 'Rhode Island', value: 0, state_code: 'RI' },
+    { name: 'South Carolina', value: 0, state_code: 'SC' },
+    { name: 'South Dakota', value: 0, state_code: 'SD' },
+    { name: 'Tennessee', value: 0, state_code: 'TN' },
+    { name: 'Texas', value: 0, state_code: 'TX' },
+    { name: 'Utah', value: 0, state_code: 'UT' },
+    { name: 'Vermont', value: 0, state_code: 'VT' },
+    { name: 'Virginia', value: 0, state_code: 'VA' },
+    { name: 'Washington', value: 0, state_code: 'WA' },
+    { name: 'West Virginia', value: 0, state_code: 'WV' },
+    { name: 'Wisconsin', value: 0, state_code: 'WI' },
+    { name: 'Wyoming', value: 0, state_code: 'WY' },
+    { name: 'Puerto Rico', value: 0, state_code: 'PR' },
+  ]
+
+const data = computed(() => {
+  const stateCounts: Record<string, number> = {}
+
+  props.apiData?.forEach(({ state_code, rowCount }) => {
+    stateCounts[state_code] = (stateCounts[state_code] || 0) + rowCount
+  })
+
+  return states.map((item: MapDataItem) => ({
+    ...item,
+    value: stateCounts[item.state_code] || 0,
+  }))
+})
+
+// const apIdata
+// = [
+  
+// ]
+
+interface StateData {
+  state_code: string
+  rowCount: number
+}
+
+interface MapDataItem {
+  name: string
+  value: number
+  state_code: string
+}
+
+
 echarts.registerMap('USA', usaJson as any, {
   'Alaska': {
     left: -131,
@@ -21,7 +117,11 @@ echarts.registerMap('USA', usaJson as any, {
   },
 })
 
-const option: ECOption = {
+const minValue = computed(() => Math.min(...data.value.map(d => d.value)))
+const maxValue = computed(() => Math.max(...data.value.map(d => d.value)))
+
+
+const option = computed((): ECOption => ({
   tooltip: {
     trigger: 'item',
     showDelay: 0,
@@ -30,8 +130,8 @@ const option: ECOption = {
   },
   visualMap: {
     left: 'right',
-    min: 500000,
-    max: 38000000,
+    min: minValue.value,
+    max: maxValue.value,
     inRange: {
       color: [
         '#162D3A',
@@ -45,7 +145,7 @@ const option: ECOption = {
         '#4E85A2',
         '#5590AF',
         '#5C9BBC',
-      ],
+      ].reverse(),
     },
     text: ['High', 'Low'],
     calculable: true,
@@ -75,63 +175,10 @@ const option: ECOption = {
           show: true,
         },
       },
-      data: [
-        { name: 'Alabama', value: 4822023 },
-        { name: 'Alaska', value: 731449 },
-        { name: 'Arizona', value: 6553255 },
-        { name: 'Arkansas', value: 2949131 },
-        { name: 'California', value: 38041430 },
-        { name: 'Colorado', value: 5187582 },
-        { name: 'Connecticut', value: 3590347 },
-        { name: 'Delaware', value: 917092 },
-        { name: 'District of Columbia', value: 632323 },
-        { name: 'Florida', value: 19317568 },
-        { name: 'Georgia', value: 9919945 },
-        { name: 'Hawaii', value: 1392313 },
-        { name: 'Idaho', value: 1595728 },
-        { name: 'Illinois', value: 12875255 },
-        { name: 'Indiana', value: 6537334 },
-        { name: 'Iowa', value: 3074186 },
-        { name: 'Kansas', value: 2885905 },
-        { name: 'Kentucky', value: 4380415 },
-        { name: 'Louisiana', value: 4601893 },
-        { name: 'Maine', value: 1329192 },
-        { name: 'Maryland', value: 5884563 },
-        { name: 'Massachusetts', value: 6646144 },
-        { name: 'Michigan', value: 9883360 },
-        { name: 'Minnesota', value: 5379139 },
-        { name: 'Mississippi', value: 2984926 },
-        { name: 'Missouri', value: 6021988 },
-        { name: 'Montana', value: 1005141 },
-        { name: 'Nebraska', value: 1855525 },
-        { name: 'Nevada', value: 2758931 },
-        { name: 'New Hampshire', value: 1320718 },
-        { name: 'New Jersey', value: 8864590 },
-        { name: 'New Mexico', value: 2085538 },
-        { name: 'New York', value: 19570261 },
-        { name: 'North Carolina', value: 9752073 },
-        { name: 'North Dakota', value: 699628 },
-        { name: 'Ohio', value: 11544225 },
-        { name: 'Oklahoma', value: 3814820 },
-        { name: 'Oregon', value: 3899353 },
-        { name: 'Pennsylvania', value: 12763536 },
-        { name: 'Rhode Island', value: 1050292 },
-        { name: 'South Carolina', value: 4723723 },
-        { name: 'South Dakota', value: 833354 },
-        { name: 'Tennessee', value: 6456243 },
-        { name: 'Texas', value: 26059203 },
-        { name: 'Utah', value: 2855287 },
-        { name: 'Vermont', value: 626011 },
-        { name: 'Virginia', value: 8185867 },
-        { name: 'Washington', value: 6897012 },
-        { name: 'West Virginia', value: 1855413 },
-        { name: 'Wisconsin', value: 5726398 },
-        { name: 'Wyoming', value: 576412 },
-        { name: 'Puerto Rico', value: 3667084 },
-      ],
+      data: data.value,
     },
   ],
-}
+}))
 </script>
 
 <template>
@@ -140,7 +187,7 @@ const option: ECOption = {
       State Wise Call Report Map
     </div>
     <Separator class="my-6" />
-
-    <VChart :option="option" class="bg-[url('/images/dashboard/map/bg.png')]" />
+    
+    <VChart :option="option" :key="JSON.stringify(apiData)" class="bg-[url('/images/dashboard/map/bg.png')]" />
   </div>
 </template>

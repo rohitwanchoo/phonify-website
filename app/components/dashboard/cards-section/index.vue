@@ -1,15 +1,15 @@
 <script setup lang="ts">
 interface Counts {
-  users: number
-  phoneNumbers: number
-  campaigns: number
-  leads: number
-  lists: number
-  callbacks: number
-  smsReceived: number
-  smsSent: number
-  voicemailReceived: number
-  unreadVoicemail: number
+  users: number | string
+  phoneNumbers: number | string
+  campaigns: number | string
+  leads: number | string
+  lists: number | string
+  callbacks: number | string
+  smsReceived: number | string
+  smsSent: number | string
+  voicemailReceived: number | string
+  unreadVoicemail: number | string
 }
 
 const props = defineProps<{

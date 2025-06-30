@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DateRange } from 'reka-ui'
+import { XIcon } from 'lucide-vue-next'
 
 import moment from 'moment'
 
@@ -15,8 +16,13 @@ import {
 
 import { Separator } from '@/components/ui/separator'
 
-const emits = defineEmits<{ onDatePickerChange: DateRange }>()
-
+const props = withDefaults(defineProps<{
+  totalAgents?: number | 'loading'
+}>(), {
+  totalAgents: 0,
+})
+// const emits = defineEmits<{ onDatePickerChange: any }>()
+const emits = defineEmits(['onDatePickerUpdate', 'onUserSelect'])
 interface AreaChartItem {
   label: string
   in: number
@@ -44,38 +50,11 @@ const { data: users } = await useLazyAsyncData('dashboard-user-list', () =>
 })
 
 const range = ref([
-  {
-    startTime: '2025-06-21 00:00:00',
-    endTime: '2025-06-21 23:59:59',
-  },
-  {
-    startTime: '2025-06-22 00:00:00',
-    endTime: '2025-06-22 23:59:59',
-  },
-  {
-    startTime: '2025-06-23 00:00:00',
-    endTime: '2025-06-23 23:59:59',
-  },
-  {
-    startTime: '2025-06-24 00:00:00',
-    endTime: '2025-06-24 23:59:59',
-  },
-  {
-    startTime: '2025-06-25 00:00:00',
-    endTime: '2025-06-25 23:59:59',
-  },
-  {
-    startTime: '2025-06-26 00:00:00',
-    endTime: '2025-06-26 23:59:59',
-  },
-  {
-    startTime: '2025-06-27 00:00:00',
-    endTime: '2025-06-27 23:59:59',
-  },
 ])
 const { data: chartData, refresh: refreshChartData } = await useLazyAsyncData('dashboard-chart-data', () =>
   useApi().post('/cdr-count-range', { range: range.value }), {
   transform: res => res.data,
+  immediate: false,
 })
 
 function getCurrentWeekRange() {
@@ -219,14 +198,14 @@ const data = [
   },
 ]
 
-const dateValue = ref<DateRange>()
-function onDatePickerUpdate(val: DateRange) {
-  emits('onDatePickerChange', val)
+const dateValue = ref<any>()
+function onDatePickerChange(val: any) {
+  emits('onDatePickerUpdate', val)
 }
 
 function clearDate() {
-  debugger
-  dateValue.value = undefined
+  emits('onDatePickerUpdate', { start: moment().startOf('day').format('YYYY-MM-DD HH:mm:ss'), end: moment().format('YYYY-MM-DD HH:mm:ss') })
+  dateValue.value = null
 }
 onMounted(() => {
   weeklyFilter()
@@ -236,12 +215,15 @@ onMounted(() => {
 <template>
   <div class="border rounded-lg p-5">
     <div class="flex item-center justify-between gap-[20px]">
-      <Select v-model="selectedUser">
+      <Select v-model="selectedUser" @update:model-value="(val) => emits('onUserSelect', val)">
         <SelectTrigger class="w-[180px]">
           <SelectValue placeholder="Select User" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
+            <SelectItem value="all">
+              All Users
+            </SelectItem>
             <SelectItem v-for="user in users" :key="user.id" :value="user.id">
               {{ `${user.first_name} ${user.last_name}` }}
             </SelectItem>
@@ -261,9 +243,12 @@ onMounted(() => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <div class="border-1 rounded-lg h-[36px] border-gray-200 hover:bg-accent">
-          <BaseDateRangePicker v-model:model-value="dateValue" @update:model-value="onDatePickerUpdate"  />
-          <XIcon v-if="dateValue?.start && dateValue?.end" @click="clearDate" />
+        <div class="border-1 rounded-lg h-[36px] border-gray-200 hover:bg-accent flex">
+          <BaseDateRangePicker v-model:model-value="dateValue" @update:model-value="onDatePickerChange" />
+          <XIcon v-if="dateValue?.start && dateValue?.end" class="w-4 mr-2 h-full cursor-pointer" @click="clearDate" />
+          <!-- <div class="w-2">
+            X
+           </div> -->
         </div>
       </div>
     </div>
@@ -292,8 +277,11 @@ onMounted(() => {
           <div>
             Total Agents Logged In
           </div>
-          <div>
-            43
+          <div v-if="totalAgents === 'loading'">
+            <Icon name="eos-icons:loading" />
+          </div>
+          <div v-else>
+            {{ totalAgents }}
           </div>
         </div>
       </div>

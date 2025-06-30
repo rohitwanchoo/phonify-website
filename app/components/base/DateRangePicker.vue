@@ -40,13 +40,13 @@ const value = defineModel<DateRange>({
         )"
       >
         <CalendarIcon class="mr-2 h-4 w-4" />
-        <template v-if="value.start">
-          <template v-if="value.end">
+        <template v-if="value?.start">
+          <template v-if="value?.end">
             {{ df.format(value.start.toDate(getLocalTimeZone())) }} - {{ df.format(value.end.toDate(getLocalTimeZone())) }}
           </template>
 
           <template v-else>
-            {{ df.format(value.start.toDate(getLocalTimeZone())) }}
+            {{ df.format(value?.start.toDate(getLocalTimeZone())) }}
           </template>
 
         </template>
