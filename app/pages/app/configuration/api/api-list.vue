@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ConfigurationAPIInformation } from '#components'
+import ConfigurationAPIInformation from '@/components/configuration/API/Information.vue'
+import ConfigurationAPIParameters from '@/components/configuration/API/Parameters.vue'
 import { Button } from '@/components/ui/button'
 import { useRoute } from 'vue-router'
 
