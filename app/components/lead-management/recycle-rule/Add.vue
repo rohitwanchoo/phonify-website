@@ -8,25 +8,40 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 
 const open = defineModel<boolean>('open', { default: false })
 
-const campaignOptions = [
-  { label: 'Campaign 1', campaignId: 101 },
-  { label: 'Campaign 2', campaignId: 2 },
-  { label: 'Campaign 3', campaignId: 3 },
-]
-const listOptions = [
-  { label: 'List 1', listId: 202 },
-  { label: 'List 2', listId: 2 },
-  { label: 'List 3', listId: 3 },
-]
-const dispositionOptions = [
-  { label: 'Sale', dispositionValue: 5 },
-  { label: 'No Answer', dispositionValue: 2 },
-  { label: 'Callback', dispositionValue: 3 },
-]
+// campaign list options
+const { data: campaignList, refresh: campaignRefresh } = await useLazyAsyncData('campaigns', () =>
+  useApi().get('/campaigns'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+// lead management list options
+const { data: leadList, refresh: leadListRefresh } = await useLazyAsyncData('list', () =>
+  useApi().post('list'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+// disposition options
+const { data: dispositionList, refresh: dispositionRefresh } = await useLazyAsyncData('disposition', () =>
+  useApi().post('disposition'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+function onDialogOpen(val: boolean) {
+  if(val){
+    campaignRefresh()
+    leadListRefresh()
+    dispositionRefresh()
+  }
+}
+
+// day options
 const dayOptions = [
   { label: 'Monday', day: 'monday' },
   { label: 'Tuesday', day: 'tuesday' },
@@ -36,8 +51,10 @@ const dayOptions = [
   { label: 'Saturday', day: 'saturday' },
   { label: 'Sunday', day: 'sunday' },
 ]
+
+// call time options
 const callTimeOptions = [
-  { label: '≤ 2', callTime: 600 },
+  { label: '≤ 2', callTime: 2 },
   { label: '≤ 3', callTime: 3 },
   { label: '≤ 4', callTime: 4 },
 ]
@@ -54,44 +71,38 @@ const formSchema = toTypedSchema(z.object({
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
-  initialValues: {
-    campaign: 101,
-    list: 202,
-    disposition: 5,
-    day: ['tuesday'],
-    callTime: 600,
-    fromTime: '09:00',
-    toTime: '17:00',
-  },
 })
 
 const selectedDays = ref<string[]>([])
 const daySelectTemp = ref('')
 
+const loading = ref(false)
+
 const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.day)))
 
 const onSubmit = handleSubmit(async (values) => {
   const payload = {
-    recycle_rule_id: 1,
     campaign_id: values.campaign,
     list_id: values.list,
-    disposition: values.disposition,
+    disposition: [values.disposition],
     day: values.day,
     time: values.fromTime, // or `${values.fromTime}-${values.toTime}`
     call_time: Number(values.callTime),
-    is_deleted: 0,
   }
 
   try {
-    const response = await useApi().post('/edit-recycle-rule', {
-      body: payload,
+    loading.value = true
+    const response = await useApi().post('/add-recycle-rule', {
+      ...payload,
     })
     showToast({
-      message: response.value.message,
-      type: response.value.success,
+      message: response.message,
+      type: response.success ? 'success' : 'error',
     })
     resetForm()
     open.value = false
+    loading.value = false
+    refreshNuxtData('recycle-rule')
   }
   catch (error) {
     showToast({
@@ -99,14 +110,23 @@ const onSubmit = handleSubmit(async (values) => {
       type: 'error',
     })
   }
+  finally {
+    loading.value = false
+  }
 })
 </script>
 
 <template>
-  <Dialog v-model:open="open">
+  <Dialog v-model:open="open" @update:open="onDialogOpen">
+    <DialogTrigger as-child>
+      <Button>
+        <Icon class="!text-white" name="lucide:plus" />
+        Add Recyle Rule
+      </Button>
+    </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Edit Recycle Rule</DialogTitle>
+        <DialogTitle>Add Recycle Rule</DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
@@ -123,8 +143,8 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in campaignOptions" :key="option.campaignId" :value="option.campaignId">
-                      {{ option.label }}
+                    <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
+                      {{ option.title }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -141,8 +161,8 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select list" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in listOptions" :key="option.listId" :value="option.listId">
-                      {{ option.label }}
+                    <SelectItem v-for="option in leadList" :key="option.list_id" :value="option.list_id">
+                      {{ option.list }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -159,8 +179,8 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select disposition" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in dispositionOptions" :key="option.dispositionValue" :value="option.dispositionValue">
-                      {{ option.label }}
+                    <SelectItem v-for="option in dispositionList" :key="option.id" :value="option.id">
+                      {{ option.title }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -202,7 +222,7 @@ const onSubmit = handleSubmit(async (values) => {
                             class="ml-1 p-0 h-fit bg-accent"
                             @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
                           >
-                            <Icon name="lucide:x" size="12" />
+                            <Icon name="material-symbols:close" size="12" />
                           </Button>
                         </div>
                       </div>
@@ -279,7 +299,7 @@ const onSubmit = handleSubmit(async (values) => {
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]">
+          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
             <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
             Save
           </Button>
