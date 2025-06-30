@@ -32,6 +32,8 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
+const props = defineProps<Props>()
+
 const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
 
 export interface Payment {
@@ -41,43 +43,47 @@ export interface Payment {
   email: string
 }
 
-const data: Payment[] = [
-  {
-    name: 'John Doe',
-    phone: '(319) 555-0115',
-    userStatus: 'Active',
-    email: 'ken99@yahoo.com',
-  },
-  {
-    name: 'Jane Doe',
-    phone: '(212) 555-0176',
-    userStatus: 'Inactive',
-    email: 'Abe45@gmail.com',
-  },
-  {
-    name: 'wade wilson',
-    phone: '(212) 555-0176',
-    userStatus: 'Active',
-    email: 'Monserrat44@gmail.com',
-  },
-  {
-    name: 'Bobby Brown',
-    phone: '(212) 555-0176',
-    userStatus: 'Active',
-    email: 'Silas22@gmail.com',
-  },
-  {
-    name: 'Mason Miller',
-    phone: '(212) 555-0176',
-    userStatus: 'Active',
-    email: 'carmella@hotmail.com',
-  },
-]
+interface Props {
+  list: Payment[]
+  loading?: boolean
+}
+
+// const data: Payment[] = [
+//   {
+//     name: 'John Doe',
+//     phone: '(319) 555-0115',
+//     userStatus: 'Active',
+//     email: 'ken99@yahoo.com',
+//   },
+//   {
+//     name: 'Jane Doe',
+//     phone: '(212) 555-0176',
+//     userStatus: 'Inactive',
+//     email: 'Abe45@gmail.com',
+//   },
+//   {
+//     name: 'wade wilson',
+//     phone: '(212) 555-0176',
+//     userStatus: 'Active',
+//     email: 'Monserrat44@gmail.com',
+//   },
+//   {
+//     name: 'Bobby Brown',
+//     phone: '(212) 555-0176',
+//     userStatus: 'Active',
+//     email: 'Silas22@gmail.com',
+//   },
+//   {
+//     name: 'Mason Miller',
+//     phone: '(212) 555-0176',
+//     userStatus: 'Active',
+//     email: 'carmella@hotmail.com',
+//   },
+// ]
 
 const columnHelper = createColumnHelper<Payment>()
 
 const columns = [
-
 
   columnHelper.accessor('phone', {
     header: () => h('div', { class: 'text-center' }, 'Phone'),
@@ -108,7 +114,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  data,
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
@@ -149,26 +155,25 @@ const table = useVueTable({
           <TableHeader>
             <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
               <TableHead
-                v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
-                :class="cn(
-                  { 'sticky bg-background/95': header.column.getIsPinned() },
-                  header.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-                )"
+                v-for="header in headerGroup.headers" :key="header.id"
+                class="bg-gray-50"
               >
                 <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <template v-if="table.getRowModel().rows?.length">
+            <TableRow v-if="loading">
+              <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+                <BaseSkelton v-for="i in 6" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+              </TableCell>
+            </TableRow>
+            <template v-else-if="table.getRowModel().rows?.length">
               <template v-for="row in table.getRowModel().rows" :key="row.id">
                 <TableRow :data-state="row.getIsSelected() && 'selected'">
                   <TableCell
-                    v-for="cell in row.getVisibleCells()" :key="cell.id" :data-pinned="cell.column.getIsPinned()"
-                    :class="cn(
-                      { 'sticky bg-background/95': cell.column.getIsPinned() },
-                      cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-                    )"
+                    v-for="cell in row.getVisibleCells()" :key="cell.id"
+                    class="p-[12px]"
                   >
                     <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                   </TableCell>
@@ -182,10 +187,7 @@ const table = useVueTable({
             </template>
 
             <TableRow v-else>
-              <TableCell
-                :colspan="columns.length"
-                class="h-24 text-center"
-              >
+              <TableCell :colspan="columns.length" class="h-24 text-center">
                 No results.
               </TableCell>
             </TableRow>
