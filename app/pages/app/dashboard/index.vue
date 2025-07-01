@@ -5,57 +5,9 @@ definePageMeta({
   middleware: 'auth',
 })
 
-const { data: userCount, status: userCountStatus } = await useLazyAsyncData('dashboard-user-count', () =>
-  useApi().post('/user-count'), {
-  transform: res => res.data,
-})
-
-const { data: phoneNumbersCounts, status: phoneNumbersCountsStatus } = await useLazyAsyncData('dashboard-phone-number', () =>
-  useApi().get('/count-dids'), {
-  transform: res => res.data[0],
-})
-
-const { data: campaignsCount, status: campaignsCountStatus } = await useLazyAsyncData('dashboard-campaign', () =>
-  useApi().post('/campaigns-count'), {
-  transform: res => res.data,
-})
-
-const { data: leadsCount, status: leadsCountStatus } = await useLazyAsyncData('dashboard-leads', () =>
-  useApi().post('/lead-count'), {
-  transform: res => res.data,
-})
-
-const { data: listCount, status: listCountStatus } = await useLazyAsyncData('dashboard-list-count', () =>
-  useApi().get('/count-lists'), {
-  transform: res => res.data[0],
-})
-
-const { data: callbackCount, status: callbackCountStatus } = await useLazyAsyncData('dashboard-callback-count', () =>
-  useApi().post('/callback'), {
-  transform: res => res.data || 0,
-
-})
-
 const dateFilter = ref<{ startTime: string, endTime: string, userId?: number[] }>({
   startTime: moment().startOf('day').format('YYYY-MM-DD HH:mm:ss'),
   endTime: moment().format('YYYY-MM-DD HH:mm:ss'),
-})
-
-const { data: smsCount, refresh: refreshSmsCount, status: smsCountStatus } = await useLazyAsyncData('dashboard-sms-count', () =>
-  useApi().post('/sms-count', dateFilter.value), {
-  transform: res => res.data,
-})
-
-const { data: voicemailCount, refresh: refreshVoiceMailCount, status: voicemailCountStatus } = await useLazyAsyncData('dashboard-voicemail-count', () =>
-  useApi().post('/voicemail-count', dateFilter.value), {
-  transform: res => res.data,
-})
-
-// Inbound/Outbound Call Summary
-// TODO: integrate after api error fix
-const { data: callCount, refresh: refreshCallCount, status: callCountStaus } = await useLazyAsyncData('inbound-outbound-call-summery', () =>
-  useApi().post('/cdr-call-count', { ...dateFilter.value }), {
-  transform: res => res.data,
 })
 
 // state wise call report
@@ -86,26 +38,29 @@ function setStateWiseCalls() {
   refreshStateWiseCalls()
 }
 
+const { data: dashboardData, status: dashboardDataStatus, refresh: refreshDashboardData } = await useLazyAsyncData('dashboard-data', () =>
+  useApi().post('/dashboard', dateFilter.value), {
+  transform: res => res.data,
+})
+
 const counts = computed(() => ({
-  users: userCountStatus.value === 'pending' ? 'loading' : userCount.value || 0,
-  phoneNumbers: phoneNumbersCountsStatus.value === 'pending' ? 'loading' : phoneNumbersCounts.value || 0,
-  campaigns: campaignsCountStatus.value === 'pending' ? 'loading' : campaignsCount.value || 0,
-  leads: leadsCountStatus.value === 'pending' ? 'loading' : leadsCount.value || 0,
-  lists: listCountStatus.value === 'pending' ? 'loading' : listCount.value || 0,
-  callbacks: callbackCountStatus.value === 'pending' ? 'loading' : callbackCount.value || 0,
-  smsReceived: smsCountStatus.value === 'pending' ? 'loading' : smsCount.value?.incoming || 0,
-  smsSent: smsCountStatus.value === 'pending' ? 'loading' : smsCount.value?.outgoing || 0,
-  voicemailReceived: voicemailCountStatus.value === 'pending' ? 'loading' : voicemailCount.value?.read || 0,
-  unreadVoicemail: voicemailCountStatus.value === 'pending' ? 'loading' : voicemailCount.value?.unread || 0,
+  users: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value.totalUsers || 0,
+  phoneNumbers: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value.totalDids || 0,
+  campaigns: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value.totalCampaigns || 0,
+  leads: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value.totalLeads || 0,
+  lists: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value.totalList || 0,
+  callbacks: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value.totalCallbacks || 0,
+  smsReceived: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value?.incomingSms || 0,
+  smsSent: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value?.outgoingSms || 0,
+  voicemailReceived: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value?.receivedVoicemail || 0,
+  unreadVoicemail: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value?.unreadVoicemail || 0,
 }))
 
 function onDatePickerChange(val: { start: Date, end: Date }) {
   dateFilter.value.startTime = moment(val.start).format('YYYY-MM-DD HH:mm:ss')
   dateFilter.value.endTime = moment(val.end).format('YYYY-MM-DD HH:mm:ss')
   if (dateFilter.value.startTime && dateFilter.value.endTime) {
-    refreshSmsCount()
-    refreshVoiceMailCount()
-    refreshCallCount()
+    refreshDashboardData()
     setStateWiseCalls()
     refreshAgentWiseCall()
   }
@@ -116,9 +71,7 @@ function onUserSelect(val: any) {
   if (val === 'all')
     delete dateFilter?.value?.userId
 
-  refreshSmsCount()
-  refreshVoiceMailCount()
-  refreshCallCount()
+  refreshDashboardData()
   setStateWiseCalls()
   refreshAgentWiseCall()
 }
