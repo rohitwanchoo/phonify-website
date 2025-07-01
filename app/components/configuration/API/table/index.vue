@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
+import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -35,29 +35,33 @@ const columns = [
     header: () => h('div', { class: 'inline-flex items-center justify-center w-full' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('api_name', {
+  columnHelper.accessor('title', { // Changed from api_name to title to match data
+    id: 'api_name',
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
       'API Name',
       h(Button, {
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('campaign_name', {
+  columnHelper.accessor('campaign', { // Changed from campaign_name to campaign to match data
+    id: 'campaign_name',
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
       'Campaign Name',
       h(Button, {
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign),
+    sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('url', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
@@ -66,10 +70,11 @@ const columns = [
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.url),
+    sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('method', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
@@ -78,36 +83,40 @@ const columns = [
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.method),
+    sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('is_deleted', { // Changed from status to is_deleted to match data
+    id: 'status',
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
       'Status',
       h(Button, {
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) =>
       h('span', {
-        class: `inline-flex items-center justify-center px-0 py-1 h-6 w-[80px] rounded-full text-xs  ${
-          row.original.status != '0' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+        class: `inline-flex items-center justify-center px-0 py-1 h-6 w-[80px] rounded-full text-xs ${
+          row.original.is_deleted !== '0' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
         }`,
       }, row.original.is_deleted === '0' ? 'Inactive' : 'Active'),
+    sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('api_template', {
+  columnHelper.accessor('is_default', { // Changed from api_template to is_default to match data
+    id: 'api_template',
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
       'API Template',
       h(Button, {
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) =>
@@ -116,18 +125,21 @@ const columns = [
           row.original.is_default === '1' ? 'text-green-600' : 'text-red-600'
         }`,
       }, row.original.is_default === '1' ? 'Yes' : 'No'),
+    sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('date_created', {
+  columnHelper.accessor('updated_at', { // Changed from date_created to updated_at to match data
+    id: 'date_created',
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
       'Date Created',
       h(Button, {
         'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
         'variant': 'ghost',
         'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.updated_at),
+    sortingFn: 'datetime',
   }),
   columnHelper.display({
     id: 'actions',
@@ -139,7 +151,6 @@ const columns = [
         class: 'text-primary h-8 w-15 min-w-0 flex items-center gap-1 px-2',
         title: 'Edit',
         onClick: () => {
-          // Navigate to API List page
           router.push('/app/configuration/api/api-list')
         },
       }, [
@@ -158,6 +169,7 @@ const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
 })
 </script>
 

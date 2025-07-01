@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
 import ConfigurationAPIInformation from '@/components/configuration/API/Information.vue'
 import ConfigurationAPIParameters from '@/components/configuration/API/Parameters.vue'
 import { Button } from '@/components/ui/button'
-import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
@@ -26,9 +26,7 @@ const breadcrumbs = [
   <div class="flex flex-col h-[calc(100vh-110px)] overflow-auto">
     <!-- Scrollable content -->
     <div class="flex-1 overflow-y-auto">
-      <BaseHeader :title="isAddMode ? 'Add API List' : 'Edit API List'" :breadcrumbs="breadcrumbs">
-
-      </BaseHeader>
+      <BaseHeader :title="isAddMode ? 'Add API List' : 'Edit API List'" :breadcrumbs="breadcrumbs" />
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-4">
         <div class="lg:col-span-12">
