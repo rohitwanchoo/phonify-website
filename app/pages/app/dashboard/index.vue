@@ -54,7 +54,7 @@ const { data: voicemailCount, refresh: refreshVoiceMailCount, status: voicemailC
 // Inbound/Outbound Call Summary
 // TODO: integrate after api error fix
 const { data: callCount, refresh: refreshCallCount, status: callCountStaus } = await useLazyAsyncData('inbound-outbound-call-summery', () =>
-  useApi().post('/cdr-call-count', { ...dateFilter.value, type: 'call', route: 'dashboard' }), {
+  useApi().post('/cdr-call-count', { ...dateFilter.value }), {
   transform: res => res.data,
 })
 
