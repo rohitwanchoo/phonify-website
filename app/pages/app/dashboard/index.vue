@@ -71,6 +71,13 @@ const { data: agentWiseCallCount, refresh: refreshAgentWiseCall, status: agentWi
   transform: res => res.data.totalAgent,
 })
 
+// scheduled Meetings
+// TODO: not getting data here
+const { data: scheduledMeetings, refresh: refreshscheduledMeetings, status: scheduledMeetingStatus } = await useLazyAsyncData('get-scheduled-meeting', () =>
+  useApi().post('/callback', dateFilter.value), {
+  transform: res => res.data,
+})
+
 const totalAgentCount = computed(() => {
   return agentWiseCallStatus.value === 'pending' ? 'loading' : agentWiseCallCount.value
 })
