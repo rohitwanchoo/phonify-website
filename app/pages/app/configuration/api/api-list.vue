@@ -2,7 +2,7 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField, useForm } from 'vee-validate'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import * as z from 'zod'
 
@@ -76,7 +76,7 @@ const formSchema = toTypedSchema(z.object({
 }))
 
 // Form initialization
-const { handleSubmit, resetForm, values } = useForm({
+const { handleSubmit, resetForm, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
     name: '',
@@ -93,14 +93,19 @@ const { handleSubmit, resetForm, values } = useForm({
   },
 })
 
+// Sync selected dispositions with form values
+watch(selectedDispositions, (newVal) => {
+  setFieldValue('disposition', newVal)
+}, { deep: true })
+
 // Get the parameters field
 const { value: parameters } = useField('parameters')
 
 // Campaign options
 const campaignOptions = [
-  { id: 1, name: 'Campaign 1' },
-  { id: 2, name: 'Campaign 2' },
-  { id: 3, name: 'Campaign 3' },
+  { id: 101, name: 'Campaign 1' },
+  { id: 102, name: 'Campaign 2' },
+  { id: 103, name: 'Campaign 3' },
 ]
 
 // API Type options
@@ -113,11 +118,37 @@ const apiTypeOptions = [
 // Parameters table state
 const showAddDialog = ref(false)
 
-// Form submission
+// Form submission with transformation
 const onSubmit = handleSubmit((values) => {
-  console.log('Form submission:', values)
-  // Handle form submission logic here
+  const transformedData = {
+    title: values.name,
+    url: values.url,
+    method: values.method,
+    campaign_id: campaignOptions.find(c => c.name === values.campaign)?.id || 0,
+    is_default: values.api_template ? 1 : 0,
+    parameter: values.parameters?.map(param => ({
+      type: 'query', // Default type, can be modified if needed
+      parameter: param.apiName,
+      value: '', // Empty value as it's not in your form
+    })) || [],
+    disposition: values.disposition,
+  }
+
+  console.log('Transformed form submission:', transformedData)
+  // Submit transformedData to your API instead of the raw values
 })
+
+// Add disposition to selected list
+function addDisposition(id: number) {
+  if (!selectedDispositions.value.includes(id)) {
+    selectedDispositions.value = [...selectedDispositions.value, id]
+  }
+}
+
+// Remove disposition from selected list
+function removeDisposition(id: number) {
+  selectedDispositions.value = selectedDispositions.value.filter(d => d !== id)
+}
 
 // Parameter management
 function removeParameter(idx: number) {
@@ -232,23 +263,15 @@ function handleSaved(newParameter: any) {
                   </FormItem>
                 </FormField>
 
-                <!-- Disposition (Updated to multi-select) -->
-                <FormField v-slot="{ componentField }" name="disposition">
+                <!-- Disposition -->
+                <FormField name="disposition">
                   <FormItem class="flex flex-col gap-1 md:col-span-2">
                     <FormLabel class="font-medium text-gray-700">
                       Disposition
                     </FormLabel>
                     <FormControl>
                       <div class="relative">
-                        <Select
-                          v-bind="componentField"
-                          @update:model-value="(val) => {
-                            const v = Number(val)
-                            if (v && !selectedDispositions.includes(v)) {
-                              selectedDispositions.push(v)
-                            }
-                          }"
-                        >
+                        <Select @update:model-value="addDisposition">
                           <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
                             <span v-if="!selectedDispositions.length" class="text-muted-foreground">Select disposition</span>
                             <div
@@ -265,7 +288,7 @@ function handleSaved(newParameter: any) {
                                 <Button
                                   variant="outline"
                                   class="ml-1 p-0 h-fit bg-accent"
-                                  @click.stop="selectedDispositions.splice(selectedDispositions.indexOf(id), 1)"
+                                  @click.stop="removeDisposition(id)"
                                 >
                                   <Icon name="material-symbols:close" size="12" />
                                 </Button>
