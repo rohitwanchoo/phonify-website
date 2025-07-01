@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import ConfigurationAPIActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import ConfigurationAPIActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -45,7 +45,7 @@ const columns = [
         'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.api_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
   columnHelper.accessor('campaign_name', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
@@ -57,7 +57,7 @@ const columns = [
         'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign),
   }),
   columnHelper.accessor('url', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
@@ -96,9 +96,9 @@ const columns = [
     cell: ({ row }) =>
       h('span', {
         class: `inline-flex items-center justify-center px-0 py-1 h-6 w-[80px] rounded-full text-xs  ${
-          row.original.status === 'Active' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+          row.original.status != '0' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
         }`,
-      }, row.original.status),
+      }, row.original.is_deleted === '0' ? 'Inactive' : 'Active'),
   }),
   columnHelper.accessor('api_template', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
@@ -113,9 +113,9 @@ const columns = [
     cell: ({ row }) =>
       h('span', {
         class: `text-sm font-medium ${
-          row.original.api_template === 'Yes' ? 'text-green-600' : 'text-red-600'
+          row.original.is_default === '1' ? 'text-green-600' : 'text-red-600'
         }`,
-      }, row.original.api_template),
+      }, row.original.is_default === '1' ? 'Yes' : 'No'),
   }),
   columnHelper.accessor('date_created', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
@@ -127,7 +127,7 @@ const columns = [
         'onClick': () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.date_created),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.updated_at),
   }),
   columnHelper.display({
     id: 'actions',

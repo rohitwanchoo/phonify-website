@@ -5,90 +5,9 @@ import { useRouter } from 'vue-router'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import ConfigurationAPITable from '@/components/configuration/api/table/index.vue'
 
-// Dummy data for testing
-const dummyLeads = [
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 1',
-    url: 'https://phonify.com/site/demo',
-    method: 'GET',
-    status: 'Active',
-    api_template: 'Yes',
-    date_created: '28/04/2025 02:45 PM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 1',
-    url: 'https://phonify.com/site/demo',
-    method: 'POST',
-    status: 'Active',
-    api_template: 'No',
-    date_created: '29/04/2025 09:10 AM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 3',
-    url: 'https://phonify.com/site/demo',
-    method: 'PUT',
-    status: 'Inactive',
-    api_template: 'Yes',
-    date_created: '30/04/2025 11:30 AM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 2',
-    url: 'https://phonify.com/site/demo',
-    method: 'DELETE',
-    status: 'Active',
-    api_template: 'No',
-    date_created: '01/05/2025 04:05 PM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 1',
-    url: 'https://phonify.com/site/demo',
-    method: 'GET',
-    status: 'Active',
-    api_template: 'Yes',
-    date_created: '02/05/2025 08:20 AM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 3',
-    url: 'https://phonify.com/site/demo',
-    method: 'POST',
-    status: 'Inactive',
-    api_template: 'No',
-    date_created: '03/05/2025 06:55 PM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 2',
-    url: 'https://phonify.com/site/demo',
-    method: 'GET',
-    status: 'Active',
-    api_template: 'Yes',
-    date_created: '04/05/2025 12:00 PM',
-  },
-  {
-    api_name: 'API#',
-    campaign_name: 'Campaign 1',
-    url: 'https://phonify.com/site/demo',
-    method: 'POST',
-    status: 'Active',
-    api_template: 'No',
-    date_created: '05/05/2025 10:40 AM',
-  },
-]
-
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 1,
-  total: 4,
-}
+const campaignList = ref<any>(null)
+const loading = ref(false)
 
 const pageStart = ref(0)
 const limit = ref(10)
@@ -96,19 +15,35 @@ const searchQuery = ref('')
 
 const router = useRouter()
 
-// Pagination and filtering logic
+// Original API call remains exactly as you provided
+const { data, success, message } = await useLazyAsyncData('campaigns-list', async () => {
+  const response = await useApi().post('api-data', {
+    params: {
+    },
+  })
+  return response
+})
+
+watch(data, (newData) => {
+  if (newData) {
+    campaignList.value = newData
+  }
+}, { immediate: true })
+
+// Client-side filtering based on API data
 const filteredList = computed(() => {
-  if (!dummyLeads)
+  if (!campaignList.value?.data)
     return []
   const query = searchQuery.value.toLowerCase()
-  return dummyLeads.filter(item =>
-    item.api_name?.toLowerCase().includes(query)
-    || item.campaign_name?.toLowerCase().includes(query)
+  return campaignList.value.data.filter((item: any) =>
+    item.title?.toLowerCase().includes(query)
+    || item.campaign?.toLowerCase().includes(query)
     || item.method?.toLowerCase().includes(query)
-    || item.status?.toLowerCase().includes(query),
+    || (item.is_deleted === '0' ? 'inactive' : 'active').includes(query),
   )
 })
 
+// Client-side pagination
 const paginatedList = computed(() => {
   const start = pageStart.value
   const end = start + limit.value
@@ -153,8 +88,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
     <div>
       <ConfigurationAPITable
         :list="paginatedList"
-        :meta="meta"
-        :loading="false"
+        :loading="!campaignList"
       />
     </div>
     <div v-if="totalRows" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
