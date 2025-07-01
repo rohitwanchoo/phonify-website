@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const infoRows = [
   { label: 'Type', value: 'System' },
@@ -9,6 +12,10 @@ const infoRows = [
   { label: 'Sender Email', value: 'demomail@phonify.com' },
   { label: 'Sender Name', value: 'Phonify Pvt Ltd' },
 ]
+
+function goToAddSmtp() {
+  router.push('/app/configuration/smtp-settings/add-smtp')
+}
 </script>
 
 <template>
@@ -20,6 +27,7 @@ const infoRows = [
       <Button
         class="inline-flex items-center gap-2 border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 mt-2 lg hover:bg-white hover:text-gray-700"
         type="button"
+        @click="goToAddSmtp"
       >
         <Icon name="icons:update-email" size="15" />
         Update System Email Setting
