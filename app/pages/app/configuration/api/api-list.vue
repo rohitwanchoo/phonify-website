@@ -1,14 +1,39 @@
 <script setup lang="ts">
+import { Icon } from '#components'
+import { toTypedSchema } from '@vee-validate/zod'
+import { useField, useForm } from 'vee-validate'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import ConfigurationAPIInformation from '@/components/configuration/API/Information.vue'
-import ConfigurationAPIParameters from '@/components/configuration/API/Parameters.vue'
+import * as z from 'zod'
+
 import { Button } from '@/components/ui/button'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 const route = useRoute()
-
-const isAddMode = computed(() => route.query.mode === 'add')
-
-const { stepper, formState, resetFormState } = useCreateCampaign()
+const isAddMode = computed(() => !route.params.id && !route.query.id)
 
 const breadcrumbs = [
   {
@@ -20,6 +45,100 @@ const breadcrumbs = [
     href: '/app/configuration/api/api-list',
   },
 ]
+
+// Dummy disposition options
+const dispositionOptions = [
+  { id: 1, title: 'Interested' },
+  { id: 2, title: 'Not Interested' },
+  { id: 3, title: 'Call Back' },
+  { id: 4, title: 'Wrong Number' },
+  { id: 5, title: 'Sale Completed' },
+]
+
+const selectedDispositions = ref<number[]>([])
+
+const availableDispositionOptions = computed(() =>
+  dispositionOptions.filter(opt => !selectedDispositions.value.includes(opt.id)),
+)
+
+// Form Schema
+const formSchema = toTypedSchema(z.object({
+  name: z.string().min(1, 'Name is required'),
+  url: z.string().min(1, 'URL is required'),
+  method: z.string().min(1, 'Method is required'),
+  campaign: z.string().min(1, 'Campaign is required'),
+  disposition: z.array(z.number()).min(1, 'At least one disposition is required'),
+  api_template: z.boolean(),
+  parameters: z.array(z.object({
+    apiName: z.string().min(1, 'API Name is required'),
+    apiType: z.string().min(1, 'API Type is required'),
+  })).optional(),
+}))
+
+// Form initialization
+const { handleSubmit, resetForm, values } = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    name: '',
+    url: '',
+    method: '',
+    campaign: '',
+    disposition: [],
+    api_template: false,
+    parameters: [
+      { id: 1, apiName: '', apiType: '' },
+      { id: 2, apiName: '', apiType: '' },
+      { id: 3, apiName: '', apiType: '' },
+    ],
+  },
+})
+
+// Get the parameters field
+const { value: parameters } = useField('parameters')
+
+// Campaign options
+const campaignOptions = [
+  { id: 1, name: 'Campaign 1' },
+  { id: 2, name: 'Campaign 2' },
+  { id: 3, name: 'Campaign 3' },
+]
+
+// API Type options
+const apiTypeOptions = [
+  { label: 'Data parameter #', value: 'Type A' },
+  { label: 'Data parameter 1', value: 'Type B' },
+  { label: 'Data parameter #', value: 'Type C' },
+]
+
+// Parameters table state
+const showAddDialog = ref(false)
+
+// Form submission
+const onSubmit = handleSubmit((values) => {
+  console.log('Form submission:', values)
+  // Handle form submission logic here
+})
+
+// Parameter management
+function removeParameter(idx: number) {
+  parameters.value.splice(idx, 1)
+}
+
+function addParameter() {
+  showAddDialog.value = true
+}
+
+function closeAddDialog() {
+  showAddDialog.value = false
+}
+
+function handleSaved(newParameter: any) {
+  parameters.value.push({
+    id: parameters.value.length + 1,
+    ...newParameter,
+  })
+  closeAddDialog()
+}
 </script>
 
 <template>
@@ -28,28 +147,271 @@ const breadcrumbs = [
     <div class="flex-1 overflow-y-auto">
       <BaseHeader :title="isAddMode ? 'Add API List' : 'Edit API List'" :breadcrumbs="breadcrumbs" />
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-4">
-        <div class="lg:col-span-12">
-          <ConfigurationAPIInformation />
-        </div>
-        <div class="lg:col-span-12">
-          <ConfigurationAPIParameters />
-        </div>
-      </div>
-    </div>
+      <form @submit.prevent="onSubmit">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-4">
+          <!-- API Information Section -->
+          <div class="lg:col-span-12">
+            <div class="border rounded-xl p-4 bg-white">
+              <!-- Header -->
+              <div class="flex items-center justify-between mb-2">
+                <h2 class="text-lg">
+                  API Information
+                </h2>
+                <Button class="h-8 md:h-11 px-2 md:px-4" type="button" @click="resetForm">
+                  <Icon name="material-symbols:refresh" class="text-base text-white" />
+                  Reset
+                </Button>
+              </div>
 
-    <!-- Sticky footer button -->
-    <div
-      class="sticky bottom-0 bg-white w-full flex justify-end items-center gap-4 p-4 border-t border-gray-200 z-10 "
-    >
-      <Button
-        type="submit"
-        class="px-8 py-3 h-12 w-full "
-        @click="() => {}"
-      >
-        <Icon name="material-symbols:check" size="20" />
-        Submit
-      </Button>
+              <div class="-mx-4 border-b border-gray-200 mb-4" />
+
+              <!-- Form Fields Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Name -->
+                <FormField v-slot="{ componentField }" name="name">
+                  <FormItem class="flex flex-col gap-1 w-full">
+                    <FormLabel class="font-medium text-gray-700">
+                      Name
+                    </FormLabel>
+                    <FormControl>
+                      <Input class="py-5" v-bind="componentField" placeholder="Enter name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- URL -->
+                <FormField v-slot="{ componentField }" name="url">
+                  <FormItem class="flex flex-col gap-1 w-full">
+                    <FormLabel class="font-medium text-gray-700">
+                      URL
+                    </FormLabel>
+                    <FormControl>
+                      <Input class="py-5" v-bind="componentField" placeholder="Enter URL" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- Method -->
+                <FormField v-slot="{ componentField }" name="method">
+                  <FormItem class="flex flex-col gap-1 w-full ">
+                    <FormLabel class="font-medium text-gray-700">
+                      Method
+                    </FormLabel>
+                    <FormControl>
+                      <Input class="py-5" v-bind="componentField" placeholder="Enter method" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- Campaign -->
+                <FormField v-slot="{ componentField }" name="campaign">
+                  <FormItem class="flex flex-col gap-1 w-full">
+                    <FormLabel class="font-medium text-gray-700">
+                      Campaign
+                    </FormLabel>
+                    <FormControl>
+                      <Select v-bind="componentField">
+                        <SelectTrigger class="w-full py-5">
+                          <SelectValue placeholder="Select campaign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem
+                            v-for="item in campaignOptions"
+                            :key="item.id"
+                            :value="item.name"
+                          >
+                            {{ item.name }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- Disposition (Updated to multi-select) -->
+                <FormField v-slot="{ componentField }" name="disposition">
+                  <FormItem class="flex flex-col gap-1 md:col-span-2">
+                    <FormLabel class="font-medium text-gray-700">
+                      Disposition
+                    </FormLabel>
+                    <FormControl>
+                      <div class="relative">
+                        <Select
+                          v-bind="componentField"
+                          @update:model-value="(val) => {
+                            const v = Number(val)
+                            if (v && !selectedDispositions.includes(v)) {
+                              selectedDispositions.push(v)
+                            }
+                          }"
+                        >
+                          <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
+                            <span v-if="!selectedDispositions.length" class="text-muted-foreground">Select disposition</span>
+                            <div
+                              v-if="selectedDispositions.length"
+                              class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
+                              style="min-height: 1.5rem;"
+                            >
+                              <div
+                                v-for="id in selectedDispositions"
+                                :key="id"
+                                class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
+                              >
+                                {{ dispositionOptions.find(opt => opt.id === id)?.title || id }}
+                                <Button
+                                  variant="outline"
+                                  class="ml-1 p-0 h-fit bg-accent"
+                                  @click.stop="selectedDispositions.splice(selectedDispositions.indexOf(id), 1)"
+                                >
+                                  <Icon name="material-symbols:close" size="12" />
+                                </Button>
+                              </div>
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem
+                              v-for="option in availableDispositionOptions"
+                              :key="option.id"
+                              :value="option.id"
+                            >
+                              {{ option.title }}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- API Template Toggle (Full width) -->
+                <div class="md:col-span-2">
+                  <div class="bg-[#00A0860D] p-4 rounded-lg">
+                    <FormField v-slot="{ value, handleChange }" name="api_template">
+                      <FormItem class="flex items-center justify-between text-sm">
+                        <FormLabel class="font-medium text-gray-700">
+                          Set API Template
+                        </FormLabel>
+                        <FormControl>
+                          <Switch
+                            :model-value="value"
+                            class="data-[state=checked]:bg-green-600"
+                            @update:model-value="handleChange"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    </FormField>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parameters Section -->
+          <div class="lg:col-span-12">
+            <div class="border rounded-xl bg-white">
+              <div class="flex items-center justify-between px-4 pt-4">
+                <h2 class="text-lg font-normal">
+                  Parameters
+                </h2>
+                <Button
+                  class="bg-black text-white h-8 md:h-11 px-2 md:px-4 flex items-center gap-1"
+                  type="button"
+                  @click="addParameter"
+                >
+                  <Icon class="!text-white" name="lucide:plus" />
+                  Add Parameter
+                </Button>
+              </div>
+              <div class="my-2 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead class="bg-gray-50 text-center w-10 text-sm font-normal text-gray-500">
+                        #
+                      </TableHead>
+                      <TableHead class="bg-gray-50 py-4">
+                        <div class="inline-flex items-center justify-center gap-0.5 w-full text-sm font-normal text-gray-500">
+                          API Name
+                          <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead class="bg-gray-50">
+                        <div class="inline-flex items-center justify-center gap-0.5 w-full text-sm font-normal text-gray-500">
+                          API Type
+                          <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead class="bg-gray-50 text-center w-20 text-sm font-normal text-gray-500">
+                        Action
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow v-for="(row, idx) in parameters" :key="row.id">
+                      <TableCell class="text-center">
+                        {{ idx + 1 }}
+                      </TableCell>
+                      <TableCell class="p-3">
+                        <Input
+                          v-model="row.apiName"
+                          class="h-9 py-5 w-50 md:w-full"
+                          placeholder="parameter #"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select v-model="row.apiType">
+                          <SelectTrigger class="h-9 w-50 md:w-full py-5">
+                            <SelectValue placeholder="Data parameter #" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem v-for="opt in apiTypeOptions" :key="opt.value" :value="opt.value">
+                              {{ opt.label }}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell class="text-center">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          class="border-red-600 text-red-600 hover:text-red-600/80 flex items-center gap-1 px-2 py-5 w-21"
+                          @click="removeParameter(idx)"
+                        >
+                          <Icon name="material-symbols:delete" />
+                          <span class="text-xs font-normal">Remove</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              <ConfigurationAPIAddParameter
+                :open="showAddDialog"
+                @close="closeAddDialog"
+                @saved="handleSaved"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky footer button -->
+        <div
+          class="sticky bottom-0 bg-white w-full flex justify-end items-center gap-4 p-4 border-t border-gray-200 z-10"
+        >
+          <Button
+            type="submit"
+            class="px-8 py-3 h-12 w-full"
+          >
+            <Icon name="material-symbols:check" size="20" />
+            Submit
+          </Button>
+        </div>
+      </form>
     </div>
   </div>
 </template>

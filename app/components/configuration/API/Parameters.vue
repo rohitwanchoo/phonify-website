@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '#components'
+import { ConfigurationAPIAddParameter, Icon } from '#components'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import EditLabel from './EditLabel.vue'
 
 const rows = ref([
   { id: 1, apiName: '', apiType: '' },
@@ -126,7 +125,7 @@ function handleSaved() {
         </TableBody>
       </Table>
     </div>
-    <EditLabel
+    <ConfigurationAPIAddParameter
       :open="showAddDialog"
       @close="closeAddDialog"
       @saved="handleSaved"

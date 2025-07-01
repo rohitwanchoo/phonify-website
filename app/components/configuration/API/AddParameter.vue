@@ -7,11 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import Button from '~/components/ui/button/Button.vue'
 import Input from '~/components/ui/input/Input.vue'
 import Label from '~/components/ui/label/Label.vue'
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const props = defineProps<{
   initialData?: {
@@ -97,7 +97,7 @@ async function handleSubmit() {
     <DialogContent class="max-w-md w-full sm:max-w-lg p-4 sm:p-8 overflow-y-auto">
       <DialogHeader class="pb-4 border-b border-[#0000000D]">
         <DialogTitle class="flex text-[#121E3D] font-normal">
-          Edit Label
+          Add Parameter
         </DialogTitle>
       </DialogHeader>
 
@@ -121,8 +121,8 @@ async function handleSubmit() {
       <div class="mt-2">
         <Label class="mb-1 text-xs text-[#162D3A]">Number of Rows</Label>
         <ToggleGroup
-          type="single"
           v-model="selectedRow"
+          type="single"
           class="flex gap-1 flex-nowrap mt-2 w-full"
         >
           <ToggleGroupItem
