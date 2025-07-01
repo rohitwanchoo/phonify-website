@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+
+// list voice template
+const { data: voiceTemplateList, refresh: voiceTemplateRefresh, status: voiceTemplateStatus } = await useLazyAsyncData('voice-template-list', () =>
+  useApi().get('/voice-templete'), {
+  transform: res => res.data,
+})
+
+const loading = computed(() => voiceTemplateStatus.value === 'pending')
 </script>
 
 <template>
@@ -21,6 +29,6 @@ import { Input } from '~/components/ui/input'
     </BaseHeader>
   </div>
   <div>
-    <ConfigurationVoiceTemplatesTable />
+    <ConfigurationVoiceTemplatesTable :loading="loading" :list="voiceTemplateList" />
   </div>
 </template>

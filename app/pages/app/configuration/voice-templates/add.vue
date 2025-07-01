@@ -12,6 +12,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+
+} from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -59,24 +68,6 @@ const onSubmit = handleSubmit((vals) => {
 // Use ref for sliders and sync with form on change
 const speed = ref([1])
 const pitch = ref([0])
-
-watch(speed, val => setFieldValue('speed', Array.isArray(val) ? val[0] : val))
-watch(() => values.speed, (val) => {
-  if (Array.isArray(speed.value) ? speed.value[0] !== val : speed.value !== val)
-    speed.value = [val]
-})
-
-watch(pitch, val => setFieldValue('pitch', Array.isArray(val) ? val[0] : val))
-watch(() => values.pitch, (val) => {
-  if (Array.isArray(pitch.value) ? pitch.value[0] !== val : pitch.value !== val)
-    pitch.value = [val]
-})
-
-const touched = ref<{ [key: string]: boolean }>({})
-
-function markTouched(field: string) {
-  touched.value[field] = true
-}
 </script>
 
 <template>
@@ -113,69 +104,112 @@ function markTouched(field: string) {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 px-6">
       <!-- Language Dropdown -->
       <div class="w-full">
-        <label class="text-sm font-medium text-primary">Language</label>
-        <Select v-model="values.language" @update:model-value="val => setFieldValue('language', val)" @blur="markTouched('language')">
-          <SelectTrigger class="w-full !h-11">
-            <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="lang in languages" :key="lang" :value="lang">
-              {{ lang }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <div v-if="touched.language && errors.language" class="text-xs text-red-500 mt-1">
-          {{ errors.language }}
-        </div>
+        <FormField v-slot="{ componentField, errorMessage }" name="language">
+          <FormItem>
+            <FormLabel>Language</FormLabel>
+            <FormControl>
+              <Select v-bind="componentField">
+                <SelectTrigger class="w-full !h-11" :class="errorMessage && 'border-red-600'">
+                  <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="lang in languages" :key="lang" :value="lang">
+                    {{ lang }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
       </div>
       <!-- Voice Name Dropdown -->
       <div class="w-full">
-        <label class="text-sm font-medium text-primary">Voice Name</label>
-        <Select v-model="values.voiceName" @update:model-value="val => setFieldValue('voiceName', val)" @blur="markTouched('voiceName')">
-          <SelectTrigger class="w-full !h-11">
-            <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select voice" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="voice in voices" :key="voice" :value="voice">
-              {{ voice }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <div v-if="touched.voiceName && errors.voiceName" class="text-xs text-red-500 mt-1">
-          {{ errors.voiceName }}
-        </div>
+        <FormField v-slot="{ componentField, errorMessage }" name="voiceName">
+          <FormItem>
+            <FormLabel>Voice Name</FormLabel>
+            <FormControl>
+              <Select v-bind="componentField">
+                <SelectTrigger class="w-full !h-11" :class="errorMessage && 'border-red-600'">
+                  <SelectValue
+                    class="text-sm placeholder:text-[#ef698180]"
+                    placeholder="Select voice"
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="voice in voices" :key="voice" :value="voice">
+                    {{ voice }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
       </div>
       <!-- Template Name -->
       <div>
-        <label class="text-sm font-medium text-primary">Template Name</label>
-        <Input v-model="values.templateName" placeholder="Enter template name" @blur="markTouched('templateName')" />
-        <div v-if="touched.templateName && errors.templateName" class="text-xs text-red-500 mt-1">
-          {{ errors.templateName }}
-        </div>
+        <FormField v-slot="{ componentField }" name="templateName">
+          <FormItem>
+            <FormLabel>Template Name</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                placeholder="Enter template name"
+                class="h-11"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
       </div>
       <!-- Labels -->
       <div>
-        <label class="text-sm font-medium text-primary">Labels</label>
-        <Input v-model="values.labels" placeholder="Enter labels" @blur="markTouched('labels')" />
-        <div v-if="touched.labels && errors.labels" class="text-xs text-red-500 mt-1">
-          {{ errors.labels }}
-        </div>
+        <FormField v-slot="{ componentField }" name="labels">
+          <FormItem>
+            <FormLabel>Labels</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                placeholder="Enter labels"
+                class="h-11"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
       </div>
       <!-- Sender Details -->
       <div>
-        <label class="text-sm font-medium text-primary">Sender Details</label>
-        <Input v-model="values.senderDetails" placeholder="Enter sender details" @blur="markTouched('senderDetails')" />
-        <div v-if="touched.senderDetails && errors.senderDetails" class="text-xs text-red-500 mt-1">
-          {{ errors.senderDetails }}
-        </div>
+        <FormField v-slot="{ componentField }" name="senderDetails">
+          <FormItem>
+            <FormLabel>Sender Details</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                placeholder="Enter sender details"
+                class="h-11"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
       </div>
       <!-- Custom Placeholders -->
       <div>
-        <label class="text-sm font-medium text-primary">Custom Placeholders</label>
-        <Input v-model="values.customPlaceholders" placeholder="Enter custom placeholders" @blur="markTouched('customPlaceholders')" />
-        <div v-if="touched.customPlaceholders && errors.customPlaceholders" class="text-xs text-red-500 mt-1">
-          {{ errors.customPlaceholders }}
-        </div>
+        <FormField v-slot="{ componentField }" name="customPlaceholders">
+          <FormItem>
+            <FormLabel>Custom Placeholders</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                placeholder="Enter custom placeholders"
+                class="h-11"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
       </div>
       <!-- Speed Slider -->
       <div class="relative">
@@ -194,11 +228,7 @@ function markTouched(field: string) {
             :max="2"
             :step="0.01"
             class="mt-2"
-            @blur="markTouched('speed')"
           />
-        </div>
-        <div v-if="touched.speed && errors.speed" class="text-xs text-red-500 mt-1">
-          {{ errors.speed }}
         </div>
       </div>
       <!-- Pitch Slider -->
@@ -218,31 +248,30 @@ function markTouched(field: string) {
             :max="12"
             :step="1"
             class="mt-2"
-            @blur="markTouched('pitch')"
           />
-        </div>
-
-        <div v-if="touched.pitch && errors.pitch" class="text-xs text-red-500 mt-1">
-          {{ errors.pitch }}
         </div>
       </div>
     </div>
     <!-- Template Preview -->
     <div class="flex flex-col gap-2 mt-4 relative px-6">
-      <label class="text-sm font-medium text-primary">Template Preview</label>
-      <Textarea
-        v-model="values.templatePreview"
-        placeholder="Preview your template here..."
-        rows="4"
-        class="xl:h-[130px] h-[50px] max-h-[190px]"
-        maxlength="200"
-        @blur="markTouched('templatePreview')"
-      />
-      <div v-if="touched.templatePreview && errors.templatePreview" class="text-xs text-red-500 mt-1">
-        {{ errors.templatePreview }}
-      </div>
+      <FormField v-slot="{ componentField }" name="templatePreview">
+        <FormItem>
+          <FormLabel>Template Preview</FormLabel>
+          <FormControl>
+            <Textarea
+              v-bind="componentField"
+              placeholder="Preview your template here..."
+              rows="4"
+              maxlength="200"
+              class="xl:h-[130px] h-[50px] max-h-[190px]"
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+
       <div class="text-xs text-muted-foreground select-none text-right mt-1">
-        {{ values.templatePreview.length }}/200 Characters
+        {{ values.templatePreview?.length || 0 }}/200 Characters
       </div>
     </div>
     <!-- Submit Button (sticky to bottom of form div) -->
