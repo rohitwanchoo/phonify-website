@@ -1,21 +1,28 @@
 <script setup lang="ts">
+import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 
 const dialogOpen = ref(false)
+const loading = ref(false)
+
+function onDialogOpen(val: boolean) {
+  if (val)
+    resetForm()
+}
 
 const formSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  url: z.string().min(1, 'URL is required').max(200, 'URL too long'),
-  host: z.string().min(1, 'Host is required').max(100, 'Host too long'),
-  username: z.string().min(1, 'Username is required').max(100, 'Username too long'),
-  password: z.string().min(1, 'Password is required').max(100, 'Password too long'),
+  name: z.string().min(1, 'Name is required').max(100),
+  url: z.string().min(1, 'URL is required').max(200),
+  host: z.string().min(1, 'Host is required').max(100),
+  username: z.string().min(1, 'Username is required').max(100),
+  password: z.string().min(1, 'Password is required').max(100),
   dialPrefix: z.string().optional(),
 }))
 
@@ -31,106 +38,116 @@ const { handleSubmit, resetForm } = useForm({
   },
 })
 
-const onSubmit = handleSubmit((values) => {
-  // Save logic here
-  dialogOpen.value = false
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    loading.value = true
+    const response = await useApi().put('/voip-configuration', {
+      name: values.name,
+      url: values.url,
+      host: values.host,
+      username: values.username,
+      secret: values.password,
+      dialPrefix: values.dialPrefix || '',
+    })
+    showToast({
+      message: response.message || 'Saved successfully',
+      type: 'success',
+    })
+    refreshNuxtData('voip-configurations')
+    dialogOpen.value = false
+    resetForm()
+  }
+  catch (error) {
+    showToast({
+      message: error?.response?._data?.message || 'Failed to save configuration',
+      type: 'error',
+    })
+  }
+  finally {
+    loading.value = false
+  }
 })
-
-function handleReset() {
-  resetForm()
-}
 </script>
 
 <template>
-  <Dialog v-model:open="dialogOpen">
-    <Button @click="dialogOpen = true">
-      <Icon class="!text-white" name="lucide:plus" />
-      Add VoIP Configuration
-    </Button>
+  <Dialog v-model:open="dialogOpen" @update:open="onDialogOpen">
+    <DialogTrigger as-child>
+      <Button>
+        <Icon class="!text-white" name="lucide:plus" />
+        Add VoIP Configuration
+      </Button>
+    </DialogTrigger>
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
         <DialogTitle>Add VoIP Configuration</DialogTitle>
       </DialogHeader>
-      <form class="space-y-4" @submit.prevent="onSubmit">
-        <div class="py-4 space-y-4">
-          <FormField v-slot="{ componentField }" name="name">
-            <FormItem>
-              <p class="text-primary">
-                Name
-              </p>
-              <FormControl>
-                <Input placeholder="Enter name" v-bind="componentField" />
-              </FormControl>
-              <FormMessage class="ml-2 text-xs" />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="url">
-            <FormItem>
-              <p class="text-primary">
-                URL
-              </p>
-              <FormControl>
-                <Input placeholder="Enter URL" v-bind="componentField" />
-              </FormControl>
-              <FormMessage class="ml-2 text-xs" />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="host">
-            <FormItem>
-              <p class="text-primary">
-                Host
-              </p>
-              <FormControl>
-                <Input placeholder="Enter host" v-bind="componentField" />
-              </FormControl>
-              <FormMessage class="ml-2 text-xs" />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="username">
-            <FormItem>
-              <p class="text-primary">
-                Username
-              </p>
-              <FormControl>
-                <Input placeholder="Enter username" v-bind="componentField" />
-              </FormControl>
-              <FormMessage class="ml-2 text-xs" />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="password">
-            <FormItem>
-              <p class="text-primary">
-                Password
-              </p>
-              <FormControl>
-                <Input type="password" placeholder="Enter password" v-bind="componentField" />
-              </FormControl>
-              <FormMessage class="ml-2 text-xs" />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="dialPrefix">
-            <FormItem>
-              <p class="text-primary">
-                Dial Prefix (if any)
-              </p>
-              <FormControl>
-                <Input placeholder="Enter dial prefix" v-bind="componentField" />
-              </FormControl>
-              <FormMessage class="ml-2 text-xs" />
-            </FormItem>
-          </FormField>
-        </div>
-        <DialogFooter>
-          <Button
-            class="w-[50%] h-10"
-            variant="outline"
-            type="button"
-            @click="handleReset"
-          >
+      <form class="space-y-4 py-4" @submit.prevent="onSubmit">
+        <FormField v-slot="{ componentField }" name="name">
+          <FormItem>
+            <p class="text-primary">
+              Name
+            </p>
+            <FormControl><Input placeholder="Enter name" v-bind="componentField" /></FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="url">
+          <FormItem>
+            <p class="text-primary">
+              URL
+            </p>
+            <FormControl><Input placeholder="Enter URL" v-bind="componentField" /></FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="host">
+          <FormItem>
+            <p class="text-primary">
+              Host
+            </p>
+            <FormControl><Input placeholder="Enter host" v-bind="componentField" /></FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="username">
+          <FormItem>
+            <p class="text-primary">
+              Username
+            </p>
+            <FormControl><Input placeholder="Enter username" v-bind="componentField" /></FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="password">
+          <FormItem>
+            <p class="text-primary">
+              Password
+            </p>
+            <FormControl><Input type="text" placeholder="Enter password" v-bind="componentField" /></FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="dialPrefix">
+          <FormItem>
+            <p class="text-primary">
+              Dial Prefix (if any)
+            </p>
+            <FormControl><Input placeholder="Enter dial prefix" v-bind="componentField" /></FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <DialogFooter class="pt-4">
+          <Button type="button" class="w-[50%]" variant="outline" @click="resetForm">
             <Icon name="material-symbols:autorenew" />
             Reset
           </Button>
-          <Button class="w-[50%] h-10" type="submit">
+          <Button type="submit" class="w-[50%]" :disabled="loading" :loading="loading">
             <Icon name="material-symbols:save" />
             Save
           </Button>

@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { useLazyAsyncData } from '#app'
 import { Input } from '~/components/ui/input'
+
+const { data: voipData, pending, refresh } = await useLazyAsyncData('voip-configurations', () =>
+  useApi().get('/voip-configurations'), // GET request
+{
+  transform: res => res.data, // only extract the "data" array
+})
 </script>
 
 <template>
@@ -12,7 +19,8 @@ import { Input } from '~/components/ui/input'
       <ConfigurationVoipConfigurationAddButton />
     </template>
   </BaseHeader>
+
   <div>
-    <ConfigurationVoipConfigurationTable />
+    <ConfigurationVoipConfigurationTable :list="voipData || []" :loading="pending" />
   </div>
 </template>

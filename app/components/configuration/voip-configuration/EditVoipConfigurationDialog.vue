@@ -47,7 +47,7 @@ watch(
       name: row?.name || '',
       host: row?.host || '',
       username: row?.username || '',
-      password: row?.password || '',
+      password: row?.secret || '',
       dialPrefix: row?.dialPrefix || '',
     })
   },
@@ -111,7 +111,7 @@ function handleReset() {
                 Password
               </p>
               <FormControl>
-                <Input type="password" v-bind="componentField" />
+                <Input type="text" v-bind="componentField" />
               </FormControl>
               <FormMessage class="ml-2 text-xs" />
             </FormItem>
