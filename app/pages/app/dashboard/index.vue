@@ -79,6 +79,10 @@ function onUserSelect(val: any) {
 onMounted(() => {
   setStateWiseCalls()
 })
+const { data: callCount, refresh: refreshCallCount, status: callCountStaus } = await useLazyAsyncData('inbound-outbound-call-summery', () =>
+  useApi().post('/cdr-call-count', { ...dateFilter.value }), {
+  transform: res => res.data,
+})
 </script>
 
 <template>
