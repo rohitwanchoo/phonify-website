@@ -56,11 +56,18 @@ const counts = computed(() => ({
   unreadVoicemail: dashboardDataStatus.value === 'pending' ? 'loading' : dashboardData.value?.unreadVoicemail || 0,
 }))
 
+const { data: callCount, refresh: refreshCallCount, status: callCountStaus } = await useLazyAsyncData('inbound-outbound-call-summery', () =>
+  useApi().post('/cdr-call-count', { ...dateFilter.value, route: 'OUT', type: 'dialer',
+  }), {
+  transform: res => res.data,
+})
+
 function onDatePickerChange(val: { start: Date, end: Date }) {
   dateFilter.value.startTime = moment(val.start).format('YYYY-MM-DD HH:mm:ss')
   dateFilter.value.endTime = moment(val.end).format('YYYY-MM-DD HH:mm:ss')
   if (dateFilter.value.startTime && dateFilter.value.endTime) {
     refreshDashboardData()
+    refreshCallCount()
     setStateWiseCalls()
     refreshAgentWiseCall()
   }
@@ -72,16 +79,13 @@ function onUserSelect(val: any) {
     delete dateFilter?.value?.userId
 
   refreshDashboardData()
+  refreshCallCount()
   setStateWiseCalls()
   refreshAgentWiseCall()
 }
 
 onMounted(() => {
   setStateWiseCalls()
-})
-const { data: callCount, refresh: refreshCallCount, status: callCountStaus } = await useLazyAsyncData('inbound-outbound-call-summery', () =>
-  useApi().post('/cdr-call-count', { ...dateFilter.value }), {
-  transform: res => res.data,
 })
 </script>
 
