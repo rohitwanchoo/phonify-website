@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ConfigurationAPIAddParameter, Icon } from '#components'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
