@@ -27,6 +27,28 @@ export function showToast(options: ToastOptions) {
   })
 }
 
+interface ErrorResponse {
+  errors: {
+    [field: string]: string[] | string // Messages can be either an array or a single string
+  }
+}
+
+type SetFieldErrorFunction = (field: string, message: string) => void
+
+export function handleFieldErrors(
+  errorResponse: ErrorResponse,
+  setFieldError: SetFieldErrorFunction,
+): void {
+  const { errors } = errorResponse
+
+  Object.entries(errors).forEach(([field, messages]) => {
+    const message = Array.isArray(messages) ? messages.join(' ') : messages
+    if (message) {
+      setFieldError(field, message)
+    }
+  })
+}
+
 /**
  * Formats a phone number into US format
  * @param number - The phone number string to format
