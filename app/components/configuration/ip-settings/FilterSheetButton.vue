@@ -1,76 +1,66 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
-import * as z from 'zod'
 import { Button } from '~/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '~/components/ui/sheet'
 
 // Define emits
 const emit = defineEmits<{
-  applyFilter: [filterParams: Record<string, any>]
+  applyFilter: []
   clearFilter: []
 }>()
 
 // Sheet open state
-const open = defineModel<boolean>('open', { default: false })
+const open = ref(false)
+const formValues = defineModel<Record<string, any>>('formValues', {
+  default: {
+    ipAddress: '',
+    server: '',
+    status: '',
+    fromWeb: '',
+  },
+})
 
 // Dummy data for dropdown options
 const serverOptions = [
-  { label: 'US East Server', value: 'us-east' },
-  { label: 'US West Server', value: 'us-west' },
-  { label: 'Europe Server', value: 'eu' },
-  { label: 'Asia Server', value: 'asia' },
+  { label: 'All', value: 'null' },
 ]
 
 const statusOptions = [
-  { label: 'Approved', value: 'approved' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Rejected', value: 'rejected' },
-  { label: 'Under Review', value: 'under_review' },
+  { value: '0', label: 'Pending' },
+  { value: '1', label: 'Approved' },
+  { value: '-1', label: 'Rejected' },
 ]
 
 const fromWebOptions = [
-  { label: 'Website Form', value: 'website' },
-  { label: 'API Submission', value: 'api' },
-  { label: 'Admin Panel', value: 'admin' },
-  { label: 'Mobile App', value: 'mobile' },
+  { label: 'All', value: null },
+  { label: 'Yes', value: '1' },
+  { label: 'No', value: '0' },
 ]
 
 // Form validation schema
-const formSchema = toTypedSchema(
-  z.object({
-    ipAddress: z.string().optional(),
-    server: z.string().optional(),
-    status: z.string().optional(),
-    fromWeb: z.string().optional(),
-  }),
-)
 
-// Form setup
-const { handleSubmit, resetForm } = useForm({
-  validationSchema: formSchema,
-})
+// const filterValues = defineModel({default :{
+//   ipAddress: '',
+//   server: '',
+//   status: '',
+//   fromWeb: '',
+// } })
 
 // Submit handler
-const onSubmit = handleSubmit((values) => {
+function onSubmit() {
   // Build filter parameters object with only filled values
-  const filterParams: Record<string, any> = {}
 
-  if (values.ipAddress)
-    filterParams.ipAddress = values.ipAddress
-  if (values.server)
-    filterParams.server = values.server
-  if (values.status)
-    filterParams.status = values.status
-  if (values.fromWeb)
-    filterParams.fromWeb = values.fromWeb
-
-  emit('applyFilter', filterParams)
+  emit('applyFilter')
   open.value = false
-})
+}
+
+// const formValues = ref({
+//   ipAddress: '',
+//   server: '',
+//   status: '',
+//   fromWeb: '',
+// })
 
 // Clear filters
 function clearFilters() {
@@ -96,101 +86,89 @@ function clearFilters() {
 
       <!-- Scrollable content -->
       <div class="flex-1 overflow-y-auto">
-        <div class="mx-auto p-6 space-y-6">
-          <form id="filterForm" class="space-y-4">
-            <!-- IP Address Field -->
-            <FormField v-slot="{ componentField }" name="ipAddress">
-              <FormItem>
-                <FormLabel>IP Address</FormLabel>
-                <FormControl>
+        <div class="mx-auto space-y-6">
+          <div class="flex-1 overflow-y-auto">
+            <div class="mx-auto p-6 space-y-6">
+              <div class="space-y-4">
+                <!-- IP Address Field -->
+                <div>
+                  <label class="text-sm font-medium text-primary">IP Address</label>
                   <Input
+                    v-model="formValues.ipAddress"
                     type="text"
+                    class="h-11"
                     placeholder="Enter IP address"
-                    v-bind="componentField"
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+                </div>
 
-            <!-- Server Dropdown -->
-            <FormField v-slot="{ componentField }" name="server">
-              <FormItem>
-                <FormLabel>Server</FormLabel>
-                <Select v-bind="componentField">
-                  <FormControl>
-                    <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Select server" />
+                <!-- Server Dropdown -->
+                <div>
+                  <label class="text-sm font-medium text-primary">Server</label>
+                  <Select v-model="formValues.server">
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue class="text-black" placeholder="Select server" />
                     </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="option in serverOptions"
-                      :key="option.value"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+                    <SelectContent>
+                      <SelectItem :value="null">
+                        All
+                      </SelectItem>
+                      <!-- <SelectItem
+                        v-for="option in serverOptions"
+                        :key="option.label"
+                        :value="option.value"
+                      >
+                        {{ option.label }}
+                      </SelectItem> -->
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <!-- Status Dropdown -->
-            <FormField v-slot="{ componentField }" name="status">
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select v-bind="componentField">
-                  <FormControl>
-                    <SelectTrigger class="w-full">
+                <!-- Status Dropdown -->
+                <div>
+                  <label class="text-sm font-medium text-primary">Status</label>
+                  <Select v-model="formValues.status">
+                    <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="option in statusOptions"
-                      :key="option.value"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="option in statusOptions"
+                        :key="option.value"
+                        :value="option.value"
+                      >
+                        {{ option.label }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <!-- From Web Dropdown -->
-            <FormField v-slot="{ componentField }" name="fromWeb">
-              <FormItem>
-                <FormLabel>From Web</FormLabel>
-                <Select v-bind="componentField">
-                  <FormControl>
-                    <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Select source" />
+                <!-- From Web Dropdown -->
+                <div>
+                  <label class="text-sm font-medium text-primary">From Web</label>
+                  <Select v-model="formValues.fromWeb">
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue class="text-black" placeholder="Select source" />
                     </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="option in fromWebOptions"
-                      :key="option.value"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </form>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="option in fromWebOptions"
+                        :key="option.label"
+                        :value="option.value"
+                      >
+                        {{ option.label }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Sticky footer with buttons -->
       <div class="p-6 bg-white space-y-3">
-        <Button type="submit" form="filterForm" class="w-full h-12 text-md" @click="onSubmit">
+        <Button class="w-full h-12 text-md" @click="onSubmit">
           <Icon name="material-symbols:search" class="text-md" />
           Search
         </Button>
