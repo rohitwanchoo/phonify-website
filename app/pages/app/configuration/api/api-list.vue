@@ -162,6 +162,7 @@ const onSubmit = handleSubmit(async (values) => {
         message: res.message,
       })
       resetForm() // Reset the form fields on success
+      selectedDispositions.value = [] // Clear selected dispositions
     }
   }
   catch (err: any) {
@@ -190,6 +191,12 @@ function removeDisposition(id: number) {
 // Parameter management
 function removeParameter(idx: number) {
   parameters.value.splice(idx, 1)
+}
+
+// Wrap resetForm to also clear selectedDispositions
+function handleResetForm() {
+  resetForm()
+  selectedDispositions.value = []
 }
 
 function addParameter() {
@@ -225,7 +232,7 @@ function handleSaved(newParameter: any) {
                 <h2 class="text-lg">
                   API Information
                 </h2>
-                <Button class="h-8 md:h-11 px-2 md:px-4" type="button" @click="resetForm">
+                <Button class="h-8 md:h-11 px-2 md:px-4" type="button" @click="handleResetForm">
                   <Icon name="material-symbols:refresh" class="text-base text-white" />
                   Reset
                 </Button>
