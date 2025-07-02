@@ -341,7 +341,7 @@ function handleSaved(newParameter: any) {
                                 :key="id"
                                 class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
                               >
-                                {{ (dispositionList.value || []).find(opt => opt.id === id)?.title || id }}
+                                {{ (dispositionList || []).find(opt => opt.id === id)?.title || id }}
                                 <Button
                                   variant="outline"
                                   class="ml-1 p-0 h-fit bg-accent"
