@@ -22,7 +22,7 @@ const formSchema = toTypedSchema(z.object({
   url: z.string().min(1, 'URL is required').max(200),
   host: z.string().min(1, 'Host is required').max(100),
   username: z.string().min(1, 'Username is required').max(100),
-  password: z.string().min(1, 'Password is required').max(100),
+  secret: z.string().min(1, 'Password is required').max(100),
   dialPrefix: z.string().optional(),
 }))
 
@@ -33,7 +33,7 @@ const { handleSubmit, resetForm } = useForm({
     url: '',
     host: '',
     username: '',
-    password: '',
+    secret: '',
     dialPrefix: '',
   },
 })
@@ -41,14 +41,7 @@ const { handleSubmit, resetForm } = useForm({
 const onSubmit = handleSubmit(async (values) => {
   try {
     loading.value = true
-    const response = await useApi().put('/voip-configuration', {
-      name: values.name,
-      url: values.url,
-      host: values.host,
-      username: values.username,
-      secret: values.password,
-      dialPrefix: values.dialPrefix || '',
-    })
+    const response = await useApi().put('/voip-configuration', values)
     showToast({
       message: response.message || 'Saved successfully',
       type: 'success',
@@ -87,7 +80,7 @@ const onSubmit = handleSubmit(async (values) => {
             <p class="text-primary">
               Name
             </p>
-            <FormControl><Input placeholder="Enter name" v-bind="componentField" /></FormControl>
+            <FormControl><Input placeholder="Enter name" class="h-11" v-bind="componentField" /></FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>
@@ -97,7 +90,7 @@ const onSubmit = handleSubmit(async (values) => {
             <p class="text-primary">
               URL
             </p>
-            <FormControl><Input placeholder="Enter URL" v-bind="componentField" /></FormControl>
+            <FormControl><Input placeholder="Enter URL" class="h-11" v-bind="componentField" /></FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>
@@ -107,7 +100,7 @@ const onSubmit = handleSubmit(async (values) => {
             <p class="text-primary">
               Host
             </p>
-            <FormControl><Input placeholder="Enter host" v-bind="componentField" /></FormControl>
+            <FormControl><Input placeholder="Enter host" class="h-11" v-bind="componentField" /></FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>
@@ -117,17 +110,17 @@ const onSubmit = handleSubmit(async (values) => {
             <p class="text-primary">
               Username
             </p>
-            <FormControl><Input placeholder="Enter username" v-bind="componentField" /></FormControl>
+            <FormControl><Input placeholder="Enter username" class="h-11" v-bind="componentField" /></FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="password">
+        <FormField v-slot="{ componentField }" name="secret">
           <FormItem>
             <p class="text-primary">
               Password
             </p>
-            <FormControl><Input type="text" placeholder="Enter password" v-bind="componentField" /></FormControl>
+            <FormControl><Input type="text" placeholder="Enter password" class="h-11" v-bind="componentField" /></FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>
@@ -137,7 +130,7 @@ const onSubmit = handleSubmit(async (values) => {
             <p class="text-primary">
               Dial Prefix (if any)
             </p>
-            <FormControl><Input placeholder="Enter dial prefix" v-bind="componentField" /></FormControl>
+            <FormControl><Input placeholder="Enter dial prefix" class="h-11" v-bind="componentField" /></FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>

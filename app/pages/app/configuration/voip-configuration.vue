@@ -2,7 +2,7 @@
 import { useLazyAsyncData } from '#app'
 import { Input } from '~/components/ui/input'
 
-const { data: voipData, pending, refresh } = await useLazyAsyncData('voip-configurations', () =>
+const { data: voipData, status, refresh } = await useLazyAsyncData('voip-configurations', () =>
   useApi().get('/voip-configurations'), // GET request
 {
   transform: res => res.data, // only extract the "data" array
@@ -16,11 +16,11 @@ const { data: voipData, pending, refresh } = await useLazyAsyncData('voip-config
         <Input placeholder="Search Config." />
         <Icon class="absolute top-[9px] right-2" name="lucide:search" />
       </div>
-      <ConfigurationVoipConfigurationAddButton />
+      <ConfigurationVoipConfigurationCreate />
     </template>
   </BaseHeader>
 
   <div>
-    <ConfigurationVoipConfigurationTable :list="voipData || []" :loading="pending" />
+    <ConfigurationVoipConfigurationTable :list="voipData || []" :loading="status === 'pending'" />
   </div>
 </template>
