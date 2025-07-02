@@ -1,11 +1,20 @@
 <script setup lang="ts">
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  ExpandedState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
 import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { createColumnHelper, FlexRender, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { useDraggable, useWindowSize } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
+import moment from 'moment'
 import { computed, h, ref, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
-import moment from 'moment'
+import { Separator } from '~/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -14,97 +23,62 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
+import { valueUpdater } from '~/components/ui/table/utils'
 
- interface IpList {
-  approval_status: number;
-  approvedBy: string;
-  client_id: number;
-  created_at: string; // ISO 8601 format
-  from_web: number;
-  ip_location: string | null;
-  last_login_at: string; // "YYYY-MM-DD HH:mm:ss" format
-  last_login_user: number;
-  server_ip: string;
-  updated_at: string; // ISO 8601 format
-  updated_by: number | null;
-  user: string;
-  whitelist_ip: string;
-  
+const props = defineProps<Props>()
 
- }
+const el = useTemplateRef<HTMLElement>('el')
+
+const { x, y, style } = useDraggable(el, {
+  initialValue: { x: 40, y: 40 },
+})
+
+interface IpList {
+  approval_status: number
+  approvedBy: string
+  client_id: number
+  created_at: string // ISO 8601 format
+  from_web: number
+  ip_location: string | null
+  last_login_at: string // "YYYY-MM-DD HH:mm:ss" format
+  last_login_user: number
+  server_ip: string
+  updated_at: string // ISO 8601 format
+  updated_by: number | null
+  user: string
+  whitelist_ip: string
+
+}
 
 interface Props {
   list: IpList[]
   loading?: boolean
 }
 
-const props = defineProps<Props>()
-
 const columnHelper = createColumnHelper<IpList>()
 
-const selectedRows = ref<number[]>([])
 const approveDialogOpen = ref(false)
 const declineDialogOpen = ref(false)
-const selectedRowData = ref<any>(null)
-
-
-// Keep selectedRows in sync with mockData (e.g., if data changes)
-// watch(
-//   () => mockData.map(row => row.id),
-//   (ids) => {
-//     selectedRows.value = selectedRows.value.filter(id => ids.includes(id))
-//   },
-// )
-
-// const allSelected = computed({
-//   get() {
-//     return mockData.length > 0 && selectedRows.value.length === mockData.length
-//   },
-//   set(val: boolean) {
-//     if (val) {
-//       selectedRows.value = mockData.map(row => row.id)
-//     }
-//     else {
-//       selectedRows.value = []
-//     }
-//   },
-// })
-
-function toggleRowSelection(id: number) {
-  if (selectedRows.value.includes(id)) {
-    selectedRows.value = selectedRows.value.filter(rowId => rowId !== id)
-  }
-  else {
-    selectedRows.value.push(id)
-  }
-}
-
-const sorting = ref([])
+const selectedRowData = ref<IpList[]>()
 
 const columns = [
-  // columnHelper.display({
-  //   id: 'select',
-  //   header: () =>
-  //     h(Checkbox, {
-  //       'modelValue': allSelected.value,
-  //       'indeterminate': selectedRows.value.length > 0 && selectedRows.value.length < mockData.length,
-  //       'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
-  //         if (typeof val === 'boolean')
-  //           allSelected.value = val
-  //       },
-  //       'class': 'mx-auto border-primary rounded-none',
-  //     }),
-  //   cell: ({ row }) =>
-  //     h(Checkbox, {
-  //       'modelValue': selectedRows.value.includes(row.original.created_at),
-  //       'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
-  //         if (typeof val === 'boolean')
-  //           toggleRowSelection(row.original.created_at)
-  //       },
-  //       'class': 'mx-auto border-primary rounded-none',
-  //     }),
-  //   size: 40,
-  // }),
+
+  {
+    id: 'select',
+    header: ({ table }) => h(Checkbox, {
+      'modelValue': table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'),
+      'onUpdate:modelValue': value => table.toggleAllPageRowsSelected(!!value),
+      'ariaLabel': 'Select all',
+    }),
+    cell: ({ row }) => h(Checkbox, {
+      'modelValue': row.getIsSelected(),
+      'onUpdate:modelValue': value => row.toggleSelected(!!value),
+      'ariaLabel': 'Select row',
+    }),
+    enableSorting: false,
+    enableHiding: false,
+  },
+
   columnHelper.accessor('whitelist_ip', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
@@ -154,7 +128,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-      // 06/09/2025 10:00 AM
+    // 06/09/2025 10:00 AM
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.created_at).format('MM/DD/YYYY HH:mm A')),
     sortingFn: 'alphanumeric',
   }),
@@ -185,54 +159,72 @@ const columns = [
     sortingFn: 'alphanumeric',
   }),
   columnHelper.display({
-  id: 'actions',
-  header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-  cell: ({ row }) => h('div', { class: 'flex items-center gap-2 justify-center' }, [
-    h(Button, {
-      size: 'sm',
-      variant: 'outline',
-      class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600 hover:text-green-600',
-      onClick: () => {
-        selectedRowData.value = row.original // Set the row data
-        approveDialogOpen.value = true
-      },
-    }, [
-      h(Icon, { name: 'material-symbols:check', class: 'text-green-600' }),
-      'Approve',
+    id: 'actions',
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+    cell: ({ row }) => h('div', { class: 'flex items-center gap-2 justify-center' }, [
+      h(Button, {
+        size: 'sm',
+        variant: 'outline',
+        class: 'flex items-center gap-1 border-green-600 bg-green-50 text-green-600 hover:text-green-600',
+        onClick: () => {
+          selectedRowData.value = [row.original]// Set the row data
+          approveDialogOpen.value = true
+        },
+      }, [
+        h(Icon, { name: 'material-symbols:check', class: 'text-green-600' }),
+        'Approve',
+      ]),
+      h(Button, {
+        size: 'sm',
+        variant: 'outline',
+        class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600 hover:text-red-600',
+        onClick: () => {
+          selectedRowData.value = [row.original] // Set the row data
+          declineDialogOpen.value = true
+        },
+      }, [
+        h(Icon, { name: 'material-symbols:close', class: 'text-red-600' }),
+        'Decline',
+      ]),
     ]),
-    h(Button, {
-      size: 'sm',
-      variant: 'outline',
-      class: 'flex items-center gap-2 border-red-600 bg-red-50 text-red-600 hover:text-red-600',
-      onClick: () => {
-        selectedRowData.value = row.original // Set the row data
-        declineDialogOpen.value = true
-      },
-    }, [
-      h(Icon, { name: 'material-symbols:close', class: 'text-red-600' }),
-      'Decline',
-    ]),
-  ]),
-}),
+  }),
 ]
+
+const sorting = ref<SortingState>([])
+const columnFilters = ref<ColumnFiltersState>([])
+const columnVisibility = ref<VisibilityState>({})
+const rowSelection = ref({})
+const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getExpandedRowModel: getExpandedRowModel(),
+  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
   state: {
     get sorting() { return sorting.value },
-  },
-  onSortingChange: (updaterOrValue) => {
-    if (typeof updaterOrValue === 'function') {
-      sorting.value = updaterOrValue(sorting.value)
-    }
-    else {
-      sorting.value = updaterOrValue
-    }
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
+    get expanded() { return expanded.value },
   },
 })
+
+const selectedIps = ref<any>([])
+
+watch(rowSelection, (newVal: Record<string, boolean>) => {
+  selectedIps.value = Object.keys(newVal) // Get the selected keys
+    .filter(key => newVal[key]) // Filter keys with a true value
+    .map(key => props.list[key]) // Map keys to items in props.list
+}, { deep: true })
 
 // Mock pagination meta data
 const meta = ref({
@@ -247,10 +239,29 @@ function handlePageChange(page: number) {
   meta.value.current_page = page
   // You can set loading.value = true and simulate data fetching if needed
 }
+
+function onClickBulkApprove() {
+  selectedRowData.value = selectedIps.value
+  approveDialogOpen.value = true
+}
+
+function onClickBulkDecline() {
+  selectedRowData.value = selectedIps.value
+  declineDialogOpen.value = true
+}
+
+function clearSelected() {
+  rowSelection.value = {}
+  selectedIps.value = []
+}
+onMounted(() => {
+  x.value = useWindowSize().width.value / 3
+  y.value = useWindowSize().height.value - 230
+})
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg my-6 overflow-hidden relative">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -283,14 +294,14 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableBody>
     </Table>
-   <ConfigurationIpSettingsApproveDialog 
-  v-model:open="approveDialogOpen" 
-  :row-data="selectedRowData"
-/>
-<ConfigurationIpSettingsDeclineDialog 
-  v-model:open="declineDialogOpen" 
-  :row-data="selectedRowData"
-/>
+    <ConfigurationIpSettingsApproveDialog
+      v-model:open="approveDialogOpen"
+      :row-data="selectedRowData"
+    />
+    <ConfigurationIpSettingsDeclineDialog
+      v-model:open="declineDialogOpen"
+      :row-data="selectedRowData"
+    />
   </div>
   <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
@@ -319,6 +330,29 @@ function handlePageChange(page: number) {
         :last-page="Number(meta?.last_page)"
         @page-change="handlePageChange"
       />
+    </div>
+    <!-- Drag select -->
+  </div>
+  <div v-if="selectedIps.length" ref="el" :style="style" class=" z-10 fixed flex items-center center gap-x-3 bg-white border px-3 py-4 rounded-xl shadow-2xs">
+    <div class="flex items-center gap-x-3">
+      <Icon name="lucide:grip-vertical" class="cursor-grab" />
+      <div class="font-semibold">
+        {{ selectedIps.length }} <span class="text-[#162D3A99] font-normal">Selected</span>
+      </div>
+    </div>
+    <Separator orientation="vertical" />
+    <div class="flex items-center center gap-x-3">
+      <Button variant="outline" class="border-green-300 text-green-600 bg-green-50 hover:bg-green-50 hover:text-green-400" @click="onClickBulkApprove()">
+        <Icon name="lucide:check" />
+        Approve
+      </Button>
+      <Button variant="outline" class="border-red-300 text-red-600 bg-red-50 hover:bg-red-50 hover:text-red-500 " @click="onClickBulkDecline()">
+        <Icon name="lucide:x" />
+        Decline
+      </Button>
+      <Button variant="outline" size="icon" @click="clearSelected()">
+        <Icon name="lucide:x" size="20" />
+      </Button>
     </div>
   </div>
 </template>

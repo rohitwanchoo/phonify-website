@@ -14,7 +14,7 @@ const emit = defineEmits<{
 const open = ref(false)
 const formValues = defineModel<Record<string, any>>('formValues', {
   default: {
-    ipAddress: '',
+    whitelistIp: '',
     server: '',
     status: '',
     fromWeb: '',
@@ -41,7 +41,7 @@ const fromWebOptions = [
 // Form validation schema
 
 // const filterValues = defineModel({default :{
-//   ipAddress: '',
+//   whitelistIp: '',
 //   server: '',
 //   status: '',
 //   fromWeb: '',
@@ -56,7 +56,7 @@ function onSubmit() {
 }
 
 // const formValues = ref({
-//   ipAddress: '',
+//   whitelistIp: '',
 //   server: '',
 //   status: '',
 //   fromWeb: '',
@@ -94,7 +94,7 @@ function clearFilters() {
                 <div>
                   <label class="text-sm font-medium text-primary">IP Address</label>
                   <Input
-                    v-model="formValues.ipAddress"
+                    v-model="formValues.whitelistIp"
                     type="text"
                     class="h-11"
                     placeholder="Enter IP address"
