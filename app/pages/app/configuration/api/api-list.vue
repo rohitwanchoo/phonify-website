@@ -485,7 +485,7 @@ function handleSaved(newParameter: any) {
                   No parameters selected.
                 </div>
               </div>
-              <ConfigurationAPIAddParameter
+              <ConfigurationApiAddParameter
                 :open="showAddDialog"
                 @close="closeAddDialog"
                 @add-parameter="handleAddParameter"

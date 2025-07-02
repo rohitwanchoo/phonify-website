@@ -86,7 +86,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
 
     <!-- TABLE -->
     <div>
-      <ConfigurationAPITable
+      <ConfigurationApiTable
         :list="paginatedList"
         :loading="!campaignList"
       />

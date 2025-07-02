@@ -4,8 +4,8 @@ import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, use
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import ConfigurationAPIActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import { Button } from '@/components/ui/button'
+import ConfigurationApiActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import {
   Table,
   TableBody,
@@ -157,7 +157,7 @@ const columns = [
         h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
         h('span', { class: 'text-xs font-medium' }, 'Edit'),
       ]),
-      h(ConfigurationAPIActionDropdown, {
+      h(ConfigurationApiActionDropdown, {
         onDuplicate: () => emits('duplicate-row', row.original),
         onDelete: () => emits('delete-row', row.original),
       }),
