@@ -46,19 +46,22 @@ const breadcrumbs = [
   },
 ]
 
-// Dummy disposition options
-const dispositionOptions = [
-  { id: 1, title: 'Interested' },
-  { id: 2, title: 'Not Interested' },
-  { id: 3, title: 'Call Back' },
-  { id: 4, title: 'Wrong Number' },
-  { id: 5, title: 'Sale Completed' },
-]
+// Use dispositionList from API
+const { data: dispositionList } = await useLazyAsyncData('get-disposition-list', () =>
+  useApi().post('/disposition', {}), {
+  transform: res => res.data,
+})
 
+// Use campaignList from API
+const { data: campaignsList } = await useLazyAsyncData('campaign-list', () =>
+  useApi().post('/campaign', {}), {
+  transform: res => res.data,
+})
+
+// Use computed for available options based on API data
 const selectedDispositions = ref<number[]>([])
-
 const availableDispositionOptions = computed(() =>
-  dispositionOptions.filter(opt => !selectedDispositions.value.includes(opt.id)),
+  (dispositionList.value || []).filter(opt => !selectedDispositions.value.includes(opt.id)),
 )
 
 // Form Schema
@@ -97,13 +100,6 @@ watch(selectedDispositions, (newVal) => {
 // Get the parameters field
 const { value: parameters } = useField('parameters')
 
-// Campaign options
-const campaignOptions = [
-  { id: 101, name: 'Campaign 1' },
-  { id: 102, name: 'Campaign 2' },
-  { id: 103, name: 'Campaign 3' },
-]
-
 // API Type options
 const apiTypeOptions = [
   { label: 'Data parameter #', value: 'Type A' },
@@ -141,7 +137,8 @@ const onSubmit = handleSubmit((values) => {
     title: values.name,
     url: values.url,
     method: values.method,
-    campaign_id: campaignOptions.find(c => c.name === values.campaign)?.id || 0,
+    // Use campaignsList instead of campaignOptions
+    campaign_id: (campaignsList?.value || []).find(c => c.title === values.campaign)?.id || 0,
     is_default: values.api_template ? 1 : 0,
     parameter: values.parameters?.map(param => ({
       type: 'query', // Default type, can be modified if needed
@@ -280,11 +277,11 @@ function handleSaved(newParameter: any) {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem
-                            v-for="item in campaignOptions"
+                            v-for="item in campaignsList || []"
                             :key="item.id"
-                            :value="item.name"
+                            :value="item.title"
                           >
-                            {{ item.name }}
+                            {{ item.title }}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -314,7 +311,7 @@ function handleSaved(newParameter: any) {
                                 :key="id"
                                 class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
                               >
-                                {{ dispositionOptions.find(opt => opt.id === id)?.title || id }}
+                                {{ (dispositionList.value || []).find(opt => opt.id === id)?.title || id }}
                                 <Button
                                   variant="outline"
                                   class="ml-1 p-0 h-fit bg-accent"
