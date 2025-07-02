@@ -10,7 +10,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import Button from '~/components/ui/button/Button.vue'
-import Input from '~/components/ui/input/Input.vue'
 import Label from '~/components/ui/label/Label.vue'
 
 const props = defineProps<{
@@ -24,71 +23,25 @@ const props = defineProps<{
   open: boolean
 }>()
 
-const emit = defineEmits(['close', 'saved'])
+const emit = defineEmits(['close', 'saved', 'add-parameter'])
 
-const labelName = ref('')
-const isSubmitting = ref(false)
+const selectedType = ref('parameter_constant') // default to first option
 const selectedRow = ref('1')
 
-const labelOptions = [
-  { label: 'Label 1', value: 'Label 1' },
-  { label: 'Label 2', value: 'Label 2' },
-  { label: 'Label 3', value: 'Label 3' },
+// Type options
+const typeOptions = [
+  { label: 'Parameter & Constant', value: 'parameter_constant' },
+  { label: 'Parameter and Label', value: 'parameter_label' },
 ]
 
-// Fill form when editing
-watch(() => props.initialData, (val) => {
-  labelName.value = val?.title ?? ''
-}, { immediate: true })
-
-const isEditMode = computed(() => !!props.initialData?.id)
+// Remove labelName and labelOptions logic
 
 async function handleSubmit() {
-  if (!labelName.value.trim()) {
-    showToast({ type: 'error', message: 'Label name is required' })
-    return
-  }
-
-  isSubmitting.value = true
-
-  const payload = {
-    title: labelName.value,
-    edit_mode: true,
-    data_type: 'text',
-    required: false,
-    merchant_required: false,
-    number_length: 0,
-    heading_type: '',
-    values: '',
-  }
-
-  try {
-    let res
-
-    if (isEditMode.value) {
-      // EDIT
-      res = await useApi().post(`/crm-update-label/${props.initialData?.id}`, payload)
-    }
-    else {
-      // CREATE
-      res = await useApi().put('/crm-add-label', payload)
-    }
-
-    if (res?.success) {
-      showToast({ type: 'success', message: res.message })
-      emit('saved')
-      emit('close')
-    }
-    else {
-      showToast({ type: 'error', message: res.message || 'Operation failed' })
-    }
-  }
-  catch {
-    showToast({ type: 'error', message: 'Something went wrong' })
-  }
-  finally {
-    isSubmitting.value = false
-  }
+  emit('add-parameter', {
+    type: selectedType.value,
+    rows: Number(selectedRow.value),
+  })
+  emit('close')
 }
 </script>
 
@@ -102,15 +55,15 @@ async function handleSubmit() {
       </DialogHeader>
 
       <div>
-        <Label for="labelName" class="mb-1 text-xs text-[#162D3A]">
+        <Label for="typeSelect" class="mb-1 text-xs text-[#162D3A]">
           Type
         </Label>
-        <Select v-model="labelName">
-          <SelectTrigger id="labelName" class="h-11 w-full">
-            <SelectValue placeholder="parameter & label" />
+        <Select v-model="selectedType">
+          <SelectTrigger id="typeSelect" class="h-11 w-full">
+            <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="option in labelOptions" :key="option.value" :value="option.value">
+            <SelectItem v-for="option in typeOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </SelectItem>
           </SelectContent>
@@ -143,7 +96,7 @@ async function handleSubmit() {
             Close
           </DialogClose>
         </Button>
-        <Button class="flex-1 h-11" :disabled="isSubmitting" @click="handleSubmit">
+        <Button class="flex-1 h-11" @click="handleSubmit">
           <Icon name="material-symbols:save" size="20" />
           Save
         </Button>

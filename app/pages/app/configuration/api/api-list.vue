@@ -81,15 +81,11 @@ const { handleSubmit, resetForm, setFieldValue } = useForm({
   initialValues: {
     name: '',
     url: '',
-    method: '',
+    method: 'GET', // Set default to GET
     campaign: '',
     disposition: [],
     api_template: false,
-    parameters: [
-      { id: 1, apiName: '', apiType: '' },
-      { id: 2, apiName: '', apiType: '' },
-      { id: 3, apiName: '', apiType: '' },
-    ],
+    parameters: [], // <-- Start with no parameters
   },
 })
 
@@ -115,8 +111,29 @@ const apiTypeOptions = [
   { label: 'Data parameter #', value: 'Type C' },
 ]
 
+// Method options for dropdown
+const methodOptions = [
+  { label: 'GET', value: 'GET' },
+  { label: 'POST', value: 'POST' },
+]
+
 // Parameters table state
 const showAddDialog = ref(false)
+
+// --- Add this: handle add-parameter event ---
+function handleAddParameter({ type, rows }: { type: string, rows: number }) {
+  for (let i = 0; i < rows; i++) {
+    parameters.value.push({
+      id: parameters.value.length + 1,
+      apiName: '',
+      apiType: '',
+      dataFieldType: type === 'parameter_constant' ? 'textbox' : 'dropdown',
+    })
+  }
+  showAddDialog.value = false
+  // Show toast
+  showToast({ type: 'success', message: `${rows} row(s) added successfully.` })
+}
 
 // Form submission with transformation
 const onSubmit = handleSubmit((values) => {
@@ -173,7 +190,7 @@ function handleSaved(newParameter: any) {
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-110px)] overflow-auto">
+  <div class="flex flex-col h-[calc(100vh-110px)] overflow-auto ">
     <!-- Scrollable content -->
     <div class="flex-1 overflow-y-auto">
       <BaseHeader :title="isAddMode ? 'Add API List' : 'Edit API List'" :breadcrumbs="breadcrumbs" />
@@ -231,7 +248,20 @@ function handleSaved(newParameter: any) {
                       Method
                     </FormLabel>
                     <FormControl>
-                      <Input class="py-5" v-bind="componentField" placeholder="Enter method" />
+                      <Select v-bind="componentField">
+                        <SelectTrigger class="w-full py-5">
+                          <SelectValue placeholder="Select method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem
+                            v-for="option in methodOptions"
+                            :key="option.value"
+                            :value="option.value"
+                          >
+                            {{ option.label }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -335,7 +365,7 @@ function handleSaved(newParameter: any) {
           </div>
 
           <!-- Parameters Section -->
-          <div class="lg:col-span-12">
+          <div class="lg:col-span-12 ">
             <div class="border rounded-xl bg-white">
               <div class="flex items-center justify-between px-4 pt-4">
                 <h2 class="text-lg font-normal">
@@ -351,7 +381,7 @@ function handleSaved(newParameter: any) {
                 </Button>
               </div>
               <div class="my-2 overflow-hidden">
-                <Table>
+                <Table v-if="parameters.length > 0">
                   <TableHeader>
                     <TableRow>
                       <TableHead class="bg-gray-50 text-center w-10 text-sm font-normal text-gray-500">
@@ -359,13 +389,13 @@ function handleSaved(newParameter: any) {
                       </TableHead>
                       <TableHead class="bg-gray-50 py-4">
                         <div class="inline-flex items-center justify-center gap-0.5 w-full text-sm font-normal text-gray-500">
-                          API Name
+                          Parameter
                           <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
                         </div>
                       </TableHead>
                       <TableHead class="bg-gray-50">
                         <div class="inline-flex items-center justify-center gap-0.5 w-full text-sm font-normal text-gray-500">
-                          API Type
+                          Data
                           <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
                         </div>
                       </TableHead>
@@ -387,16 +417,26 @@ function handleSaved(newParameter: any) {
                         />
                       </TableCell>
                       <TableCell>
-                        <Select v-model="row.apiType">
-                          <SelectTrigger class="h-9 w-50 md:w-full py-5">
-                            <SelectValue placeholder="Data parameter #" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem v-for="opt in apiTypeOptions" :key="opt.value" :value="opt.value">
-                              {{ opt.label }}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <!-- Render textbox or dropdown based on dataFieldType -->
+                        <template v-if="row.dataFieldType === 'textbox'">
+                          <Input
+                            v-model="row.apiType"
+                            class="h-9 py-5 w-50 md:w-full"
+                            placeholder="Enter value"
+                          />
+                        </template>
+                        <template v-else>
+                          <Select v-model="row.apiType">
+                            <SelectTrigger class="h-9 w-50 md:w-full py-5">
+                              <SelectValue placeholder="Select label" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem v-for="opt in apiTypeOptions" :key="opt.value" :value="opt.value">
+                                {{ opt.label }}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </template>
                       </TableCell>
                       <TableCell class="text-center">
                         <Button
@@ -412,11 +452,14 @@ function handleSaved(newParameter: any) {
                     </TableRow>
                   </TableBody>
                 </Table>
+                <div v-else class="text-center text-gray-400 py-8">
+                  No parameters selected.
+                </div>
               </div>
               <ConfigurationAPIAddParameter
                 :open="showAddDialog"
                 @close="closeAddDialog"
-                @saved="handleSaved"
+                @add-parameter="handleAddParameter"
               />
             </div>
           </div>
