@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { DateRange } from 'reka-ui'
-import { XIcon } from 'lucide-vue-next'
+import { MoreHorizontal, XIcon } from 'lucide-vue-next'
 
 import moment from 'moment'
+
+import { ref } from 'vue'
 
 import {
   Select,
@@ -246,9 +248,6 @@ onMounted(() => {
         <div class="border-1 rounded-lg h-[36px] border-gray-200 hover:bg-accent flex">
           <BaseDateRangePicker v-model:model-value="dateValue" @update:model-value="onDatePickerChange" />
           <XIcon v-if="dateValue?.start && dateValue?.end" class="w-4 mr-2 h-full cursor-pointer" @click="clearDate" />
-          <!-- <div class="w-2">
-            X
-           </div> -->
         </div>
       </div>
     </div>

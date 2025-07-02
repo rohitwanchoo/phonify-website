@@ -5,6 +5,7 @@ import { ChevronsUpDown } from 'lucide-vue-next'
 import { computed, h, ref, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
+import moment from 'moment'
 import {
   Table,
   TableBody,
@@ -14,118 +15,32 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
-const mockData = [
-  {
-    id: 1,
-    ip: '49.36.189.247',
-    user: 'John Doe',
-    server: '3.234.106.186',
-    time: '06/09/2025 10:00 AM',
-    location: 'California, USA',
-    fromWeb: 'YES',
-  },
-  {
-    id: 2,
-    ip: '49.36.189.248',
-    user: 'Jane Smith',
-    server: '3.234.106.187',
-    time: '06/10/2025 11:00 AM',
-    location: 'Texas, USA',
-    fromWeb: 'NO',
-  },
-  {
-    id: 3,
-    ip: '49.36.189.249',
-    user: 'Alice Johnson',
-    server: '3.234.106.188',
-    time: '06/11/2025 09:30 AM',
-    location: 'New York, USA',
-    fromWeb: 'YES',
-  },
-  {
-    id: 4,
-    ip: '49.36.189.250',
-    user: 'Bob Lee',
-    server: '3.234.106.189',
-    time: '06/12/2025 08:45 AM',
-    location: 'Florida, USA',
-    fromWeb: 'NO',
-  },
-  {
-    id: 5,
-    ip: '49.36.189.251',
-    user: 'Charlie Kim',
-    server: '3.234.106.190',
-    time: '06/13/2025 12:00 PM',
-    location: 'Nevada, USA',
-    fromWeb: 'YES',
-  },
-  {
-    id: 6,
-    ip: '49.36.189.252',
-    user: 'Diana Ross',
-    server: '3.234.106.191',
-    time: '06/14/2025 01:15 PM',
-    location: 'Washington, USA',
-    fromWeb: 'NO',
-  },
-  {
-    id: 7,
-    ip: '49.36.189.253',
-    user: 'Ethan Hunt',
-    server: '3.234.106.192',
-    time: '06/15/2025 02:30 PM',
-    location: 'Oregon, USA',
-    fromWeb: 'YES',
-  },
-  {
-    id: 8,
-    ip: '49.36.189.254',
-    user: 'Fiona Gallagher',
-    server: '3.234.106.193',
-    time: '06/16/2025 03:45 PM',
-    location: 'Illinois, USA',
-    fromWeb: 'NO',
-  },
-  {
-    id: 9,
-    ip: '49.36.189.255',
-    user: 'George Martin',
-    server: '3.234.106.194',
-    time: '06/17/2025 04:00 PM',
-    location: 'Georgia, USA',
-    fromWeb: 'YES',
-  },
-  {
-    id: 10,
-    ip: '49.36.189.256',
-    user: 'Hannah Brown',
-    server: '3.234.106.195',
-    time: '06/18/2025 05:15 PM',
-    location: 'Ohio, USA',
-    fromWeb: 'NO',
-  },
-  {
-    id: 11,
-    ip: '49.36.189.257',
-    user: 'Ian Wright',
-    server: '3.234.106.196',
-    time: '06/19/2025 06:30 PM',
-    location: 'Michigan, USA',
-    fromWeb: 'YES',
-  },
-  {
-    id: 12,
-    ip: '49.36.189.258',
-    user: 'Julia Roberts',
-    server: '3.234.106.197',
-    time: '06/20/2025 07:45 PM',
-    location: 'Arizona, USA',
-    fromWeb: 'NO',
-  },
-]
+ interface IpList {
+  approval_status: number;
+  approvedBy: string;
+  client_id: number;
+  created_at: string; // ISO 8601 format
+  from_web: number;
+  ip_location: string | null;
+  last_login_at: string; // "YYYY-MM-DD HH:mm:ss" format
+  last_login_user: number;
+  server_ip: string;
+  updated_at: string; // ISO 8601 format
+  updated_by: number | null;
+  user: string;
+  whitelist_ip: string;
+  
 
-const columnHelper = createColumnHelper<any>()
+ }
+
+interface Props {
+  list: IpList[]
+  loading?: boolean
+}
+
+const props = defineProps<Props>()
+
+const columnHelper = createColumnHelper<IpList>()
 
 const selectedRows = ref<number[]>([])
 const approveDialogOpen = ref(false)
@@ -134,26 +49,26 @@ const selectedRowData = ref<any>(null)
 
 
 // Keep selectedRows in sync with mockData (e.g., if data changes)
-watch(
-  () => mockData.map(row => row.id),
-  (ids) => {
-    selectedRows.value = selectedRows.value.filter(id => ids.includes(id))
-  },
-)
+// watch(
+//   () => mockData.map(row => row.id),
+//   (ids) => {
+//     selectedRows.value = selectedRows.value.filter(id => ids.includes(id))
+//   },
+// )
 
-const allSelected = computed({
-  get() {
-    return mockData.length > 0 && selectedRows.value.length === mockData.length
-  },
-  set(val: boolean) {
-    if (val) {
-      selectedRows.value = mockData.map(row => row.id)
-    }
-    else {
-      selectedRows.value = []
-    }
-  },
-})
+// const allSelected = computed({
+//   get() {
+//     return mockData.length > 0 && selectedRows.value.length === mockData.length
+//   },
+//   set(val: boolean) {
+//     if (val) {
+//       selectedRows.value = mockData.map(row => row.id)
+//     }
+//     else {
+//       selectedRows.value = []
+//     }
+//   },
+// })
 
 function toggleRowSelection(id: number) {
   if (selectedRows.value.includes(id)) {
@@ -167,30 +82,30 @@ function toggleRowSelection(id: number) {
 const sorting = ref([])
 
 const columns = [
-  columnHelper.display({
-    id: 'select',
-    header: () =>
-      h(Checkbox, {
-        'modelValue': allSelected.value,
-        'indeterminate': selectedRows.value.length > 0 && selectedRows.value.length < mockData.length,
-        'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
-          if (typeof val === 'boolean')
-            allSelected.value = val
-        },
-        'class': 'mx-auto border-primary rounded-none',
-      }),
-    cell: ({ row }) =>
-      h(Checkbox, {
-        'modelValue': selectedRows.value.includes(row.original.id),
-        'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
-          if (typeof val === 'boolean')
-            toggleRowSelection(row.original.id)
-        },
-        'class': 'mx-auto border-primary rounded-none',
-      }),
-    size: 40,
-  }),
-  columnHelper.accessor('ip', {
+  // columnHelper.display({
+  //   id: 'select',
+  //   header: () =>
+  //     h(Checkbox, {
+  //       'modelValue': allSelected.value,
+  //       'indeterminate': selectedRows.value.length > 0 && selectedRows.value.length < mockData.length,
+  //       'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
+  //         if (typeof val === 'boolean')
+  //           allSelected.value = val
+  //       },
+  //       'class': 'mx-auto border-primary rounded-none',
+  //     }),
+  //   cell: ({ row }) =>
+  //     h(Checkbox, {
+  //       'modelValue': selectedRows.value.includes(row.original.created_at),
+  //       'onUpdate:modelValue': (val: boolean | 'indeterminate') => {
+  //         if (typeof val === 'boolean')
+  //           toggleRowSelection(row.original.created_at)
+  //       },
+  //       'class': 'mx-auto border-primary rounded-none',
+  //     }),
+  //   size: 40,
+  // }),
+  columnHelper.accessor('whitelist_ip', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'IP Address',
@@ -200,7 +115,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.whitelist_ip),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('user', {
@@ -213,10 +128,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.user),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.user || '-'),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('server', {
+  columnHelper.accessor('server_ip', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Server',
@@ -226,10 +141,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.server),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.server_ip),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('time', {
+  columnHelper.accessor('created_at', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Time',
@@ -239,10 +154,11 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.time),
+      // 06/09/2025 10:00 AM
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.created_at).format('MM/DD/YYYY HH:mm A')),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('location', {
+  columnHelper.accessor('ip_location', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Location',
@@ -252,10 +168,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.location),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip_location || '-'),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('fromWeb', {
+  columnHelper.accessor('from_web', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'From Web',
@@ -265,7 +181,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.fromWeb),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.from_web ? 'YES' : 'NO'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.display({
@@ -301,7 +217,7 @@ const columns = [
 ]
 
 const table = useVueTable({
-  get data() { return mockData },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -325,7 +241,6 @@ const meta = ref({
   total: 120,
   last_page: 12,
 })
-const loading = ref(false)
 
 function handlePageChange(page: number) {
   // For now, just update the mock meta
@@ -349,7 +264,12 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-center">
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
