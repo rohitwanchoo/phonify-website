@@ -372,7 +372,7 @@ function handleSaved(newParameter: any) {
                   Parameters
                 </h2>
                 <Button
-                  class="bg-black text-white h-8 md:h-11 px-2 md:px-4 flex items-center gap-1"
+                  class="bg-primary text-white h-8 md:h-11 px-2 md:px-4 flex items-center gap-1"
                   type="button"
                   @click="addParameter"
                 >
