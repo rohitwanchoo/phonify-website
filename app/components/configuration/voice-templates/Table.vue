@@ -18,76 +18,24 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
-const mockData = [
-  {
-    templateName: 'Template #1',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: true,
-  },
-  {
-    templateName: 'Template #2',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: false,
-  },
-  {
-    templateName: 'Template #3',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: true,
-  },
-  {
-    templateName: 'Template #4',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: false,
-  },
-  {
-    templateName: 'Template #5',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: true,
-  },
-  {
-    templateName: 'Template #6',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: false,
-  },
-  {
-    templateName: 'Template #7',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: true,
-  },
-  {
-    templateName: 'Template #8',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: false,
-  },
-  {
-    templateName: 'Template #9',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: true,
-  },
-  {
-    templateName: 'Template #10',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: false,
-  },
-  {
-    templateName: 'Template #11',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: true,
-  },
-  {
-    templateName: 'Template #12',
-    message: 'Hello {First Name} , According to our records, your business is in fact eligible for $50000 Capital at this time. For more information please press 1 now. If you think we have reached out in error, or simply not interested, please press 2 now. and you will be removed from our client list. Thank you and have a great day.',
-    status: false,
-  },
-]
+const props = defineProps<Props>()
 
-const router = useRouter()
-const columnHelper = createColumnHelper<any>()
+interface VoiceTemplate {
+  templete_name: string
+  templete_desc: string
+  status: boolean
+}
+
+interface Props {
+  list: VoiceTemplate[]
+  loading?: boolean
+}
+
+const columnHelper = createColumnHelper<VoiceTemplate>()
 
 const editDialogOpen = ref(false)
 const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
-const loading = ref(false)
 const sorting = ref([])
 
 // Mock pagination meta data
@@ -128,7 +76,7 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('templateName', {
+  columnHelper.accessor('templete_name', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Template Name',
@@ -138,9 +86,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.templateName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.templete_name),
   }),
-  columnHelper.accessor('message', {
+  columnHelper.accessor('templete_desc', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Message',
@@ -150,7 +98,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-xs truncate max-w-[30vw] xl:max-w-[40vw] mx-auto' }, row.original.message),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-xs truncate max-w-[30vw] xl:max-w-[40vw] mx-auto' }, row.original.templete_desc),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>
@@ -232,7 +180,7 @@ const columns = [
 ]
 
 const table = useVueTable({
-  get data() { return mockData },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -265,7 +213,12 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id" class="align-middle">
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-center align-middle">
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
