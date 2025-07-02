@@ -77,8 +77,6 @@ async function deleteMethod(_original: callTimingList) {
   })
 }
 
-const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
-
 export interface callTimingList {
   id: number
   day: string
