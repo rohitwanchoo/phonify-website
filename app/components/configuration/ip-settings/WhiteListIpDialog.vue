@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import type { MaskInputOptions } from 'maska'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import * as z from 'zod'
+import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 
 const showWhitelistDialog = ref(false)
 
@@ -24,7 +25,7 @@ const formSchema = toTypedSchema(
   z.object({
     ipAddress: z.string().min(1, 'IP Address is required').ip({ version: 'v4', message: 'Invalid IPv4 address' }),
     server: z.string().min(1, 'Server is required'),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm } = useForm({
@@ -102,14 +103,14 @@ function onCancel() {
             <Button
               type="button"
               variant="outline"
-              @click="onCancel"
               class="w-[50%]"
+              @click="onCancel"
             >
-            <Icon class="" name="material-symbols:close" />
+              <Icon class="" name="material-symbols:close" />
               Cancel
             </Button>
             <Button type="submit" class="w-[50%]">
-                <Icon class="!text-white" name="material-symbols:language" />
+              <Icon class="!text-white" name="material-symbols:language" />
               Whitelist IP
             </Button>
           </div>
