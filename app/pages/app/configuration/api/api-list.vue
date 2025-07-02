@@ -3,7 +3,7 @@ import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField, useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table'
 
 const route = useRoute()
+const router = useRouter()
 const isAddMode = computed(() => !route.params.id && !route.query.id)
 
 const breadcrumbs = [
@@ -70,31 +71,32 @@ const availableDispositionOptions = computed(() =>
   (dispositionList.value || []).filter(opt => !selectedDispositions.value.includes(opt.id)),
 )
 
-// Form Schema
+// Form Schema (align field names with API)
 const formSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'Name is required'),
+  title: z.string().min(1, 'Name is required'),
   url: z.string().min(1, 'URL is required'),
   method: z.string().min(1, 'Method is required'),
-  campaign: z.string().min(1, 'Campaign is required'),
+  campaign_id: z.number().min(1, 'Campaign is required'),
   disposition: z.array(z.number()).min(1, 'At least one disposition is required'),
-  api_template: z.boolean(),
-  parameters: z.array(z.object({
-    apiName: z.string().min(1, 'API Name is required'),
-    apiType: z.string().min(1, 'API Type is required'),
+  is_default: z.boolean(),
+  parameter: z.array(z.object({
+    parameter: z.string().min(1, 'API Name is required'),
+    type: z.string().min(1, 'API Type is required'),
+    value: z.string().optional(),
   })).optional(),
 }))
 
-// Form initialization
+// Form initialization (align initialValues)
 const { handleSubmit, resetForm, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    name: '',
+    title: '',
     url: '',
-    method: 'GET', // Set default to GET
-    campaign: '',
+    method: 'GET',
+    campaign_id: 0,
     disposition: [],
-    api_template: false,
-    parameters: [], // <-- Start with no parameters
+    is_default: false,
+    parameter: [],
   },
 })
 
@@ -103,8 +105,14 @@ watch(selectedDispositions, (newVal) => {
   setFieldValue('disposition', newVal)
 }, { deep: true })
 
-// Get the parameters field
-const { value: parameters } = useField('parameters')
+// Sync campaign selection to campaign_id
+function handleCampaignChange(selectedTitle: string) {
+  const campaign = (campaignsList?.value || []).find(c => c.title === selectedTitle)
+  setFieldValue('campaign_id', campaign ? campaign.id : 0)
+}
+
+// Get the parameter field
+const { value: parameter } = useField('parameter')
 
 // API Type options (now from crmLabelsList)
 const apiTypeOptions = computed(() =>
@@ -123,46 +131,41 @@ const methodOptions = [
 // Parameters table state
 const showAddDialog = ref(false)
 
-// --- Add this: handle add-parameter event ---
+// Add parameter rows
 function handleAddParameter({ type, rows }: { type: string, rows: number }) {
   for (let i = 0; i < rows; i++) {
-    parameters.value.push({
-      id: parameters.value.length + 1,
-      apiName: '',
-      apiType: '',
+    parameter.value.push({
+      parameter: '',
+      type: '',
+      value: '',
       dataFieldType: type === 'parameter_constant' ? 'textbox' : 'dropdown',
     })
   }
   showAddDialog.value = false
-  // Show toast
   showToast({ type: 'success', message: `${rows} row(s) added successfully.` })
 }
 
-// Form submission with transformation
+// Form submission (use form values directly)
 const onSubmit = handleSubmit(async (values) => {
-  const transformedData = {
-    title: values.name,
-    url: values.url,
-    method: values.method,
-    // Use campaignsList instead of campaignOptions
-    campaign_id: (campaignsList?.value || []).find(c => c.title === values.campaign)?.id || 0,
-    is_default: values.api_template ? 1 : 0,
-    parameter: values.parameters?.map(param => ({
-      type: 'query', // Default type, can be modified if needed
-      parameter: param.apiName,
-      value: '', // Empty value as it's not in your form
-    })) || [],
-    disposition: values.disposition,
+  // Convert is_default boolean to 1/0 as per API
+  const payload = {
+    ...values,
+    is_default: values.is_default ? 1 : 0,
+    parameter: (values.parameter || []).map(param => ({
+      type: 'query',
+      parameter: param.parameter,
+      value: param.value || '',
+    })),
   }
-
   try {
-    const res = await useApi().post('/add-api', transformedData)
+    const res = await useApi().post('/add-api', payload)
     if (res.success) {
       showToast({
         message: res.message,
       })
-      resetForm() // Reset the form fields on success
-      selectedDispositions.value = [] // Clear selected dispositions
+      resetForm()
+      selectedDispositions.value = []
+      router.push('/app/configuration/api') // Redirect after success
     }
   }
   catch (err: any) {
@@ -170,9 +173,6 @@ const onSubmit = handleSubmit(async (values) => {
       type: 'error',
       message: err.message,
     })
-  }
-  finally {
-    // Optionally do something here
   }
 })
 
@@ -190,7 +190,7 @@ function removeDisposition(id: number) {
 
 // Parameter management
 function removeParameter(idx: number) {
-  parameters.value.splice(idx, 1)
+  parameter.value.splice(idx, 1)
 }
 
 // Wrap resetForm to also clear selectedDispositions
@@ -208,8 +208,7 @@ function closeAddDialog() {
 }
 
 function handleSaved(newParameter: any) {
-  parameters.value.push({
-    id: parameters.value.length + 1,
+  parameter.value.push({
     ...newParameter,
   })
   closeAddDialog()
@@ -243,7 +242,7 @@ function handleSaved(newParameter: any) {
               <!-- Form Fields Grid -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Name -->
-                <FormField v-slot="{ componentField }" name="name">
+                <FormField v-slot="{ componentField }" name="title">
                   <FormItem class="flex flex-col gap-1 w-full">
                     <FormLabel class="font-medium text-gray-700">
                       Name
@@ -295,13 +294,16 @@ function handleSaved(newParameter: any) {
                 </FormField>
 
                 <!-- Campaign -->
-                <FormField v-slot="{ componentField }" name="campaign">
+                <FormField v-slot="{ componentField }" name="campaign_id">
                   <FormItem class="flex flex-col gap-1 w-full">
                     <FormLabel class="font-medium text-gray-700">
                       Campaign
                     </FormLabel>
                     <FormControl>
-                      <Select v-bind="componentField">
+                      <Select
+                        :model-value="(campaignsList?.value || []).find(c => c.id === componentField.value)?.title"
+                        @update:model-value="handleCampaignChange"
+                      >
                         <SelectTrigger class="w-full py-5">
                           <SelectValue placeholder="Select campaign" />
                         </SelectTrigger>
@@ -371,7 +373,7 @@ function handleSaved(newParameter: any) {
                 <!-- API Template Toggle (Full width) -->
                 <div class="md:col-span-2">
                   <div class="bg-[#00A0860D] p-4 rounded-lg">
-                    <FormField v-slot="{ value, handleChange }" name="api_template">
+                    <FormField v-slot="{ value, handleChange }" name="is_default">
                       <FormItem class="flex items-center justify-between text-sm">
                         <FormLabel class="font-medium text-gray-700">
                           Set API Template
@@ -408,7 +410,7 @@ function handleSaved(newParameter: any) {
                 </Button>
               </div>
               <div class="my-2 overflow-hidden">
-                <Table v-if="parameters.length > 0">
+                <Table v-if="parameter.length > 0">
                   <TableHeader>
                     <TableRow>
                       <TableHead class="bg-gray-50 text-center w-10 text-sm font-normal text-gray-500">
@@ -432,13 +434,13 @@ function handleSaved(newParameter: any) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow v-for="(row, idx) in parameters" :key="row.id">
+                    <TableRow v-for="(row, idx) in parameter" :key="idx">
                       <TableCell class="text-center">
                         {{ idx + 1 }}
                       </TableCell>
                       <TableCell class="p-3">
                         <Input
-                          v-model="row.apiName"
+                          v-model="row.parameter"
                           class="h-9 py-5 w-50 md:w-full"
                           placeholder="parameter #"
                         />
@@ -447,13 +449,13 @@ function handleSaved(newParameter: any) {
                         <!-- Render textbox or dropdown based on dataFieldType -->
                         <template v-if="row.dataFieldType === 'textbox'">
                           <Input
-                            v-model="row.apiType"
+                            v-model="row.type"
                             class="h-9 py-5 w-50 md:w-full"
                             placeholder="Enter value"
                           />
                         </template>
                         <template v-else>
-                          <Select v-model="row.apiType">
+                          <Select v-model="row.type">
                             <SelectTrigger class="h-9 w-50 md:w-full py-5">
                               <SelectValue placeholder="Select label" />
                             </SelectTrigger>
