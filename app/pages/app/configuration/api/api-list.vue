@@ -58,6 +58,12 @@ const { data: campaignsList } = await useLazyAsyncData('campaign-list', () =>
   transform: res => res.data,
 })
 
+const { data: crmLabelsList } = await useLazyAsyncData('crm-labels', () =>
+  useApi().get('/crm-labels', {
+  }), {
+  transform: res => res.data,
+})
+
 // Use computed for available options based on API data
 const selectedDispositions = ref<number[]>([])
 const availableDispositionOptions = computed(() =>
@@ -100,12 +106,13 @@ watch(selectedDispositions, (newVal) => {
 // Get the parameters field
 const { value: parameters } = useField('parameters')
 
-// API Type options
-const apiTypeOptions = [
-  { label: 'Data parameter #', value: 'Type A' },
-  { label: 'Data parameter 1', value: 'Type B' },
-  { label: 'Data parameter #', value: 'Type C' },
-]
+// API Type options (now from crmLabelsList)
+const apiTypeOptions = computed(() =>
+  (crmLabelsList.value || []).map(label => ({
+    label: label.title,
+    value: label.title,
+  })),
+)
 
 // Method options for dropdown
 const methodOptions = [
@@ -132,7 +139,7 @@ function handleAddParameter({ type, rows }: { type: string, rows: number }) {
 }
 
 // Form submission with transformation
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit(async (values) => {
   const transformedData = {
     title: values.name,
     url: values.url,
@@ -148,8 +155,24 @@ const onSubmit = handleSubmit((values) => {
     disposition: values.disposition,
   }
 
-  console.log('Transformed form submission:', transformedData)
-  // Submit transformedData to your API instead of the raw values
+  try {
+    const res = await useApi().post('/add-api', transformedData)
+    if (res.success) {
+      showToast({
+        message: res.message,
+      })
+      resetForm() // Reset the form fields on success
+    }
+  }
+  catch (err: any) {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  }
+  finally {
+    // Optionally do something here
+  }
 })
 
 // Add disposition to selected list
