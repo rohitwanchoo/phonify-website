@@ -7,6 +7,13 @@ import { h, ref } from 'vue'
 import EditVoipConfigurationDialog from '~/components/configuration/voip-configuration/EditVoipConfigurationDialog.vue'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 
 const props = defineProps<{ list: any[] }>()
@@ -18,12 +25,25 @@ const dropdownOpen = ref<number | null>(null)
 const loading = ref(false)
 const sorting = ref([])
 
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  total: props.list.length,
-  last_page: Math.ceil(props.list.length / 10),
+// Pagination variables
+const pageStart = ref(0)
+const limit = ref(10)
+const searchQuery = ref('')
+
+// Computed property for paginated data
+const paginatedList = computed(() => {
+  const start = pageStart.value
+  const end = start + limit.value
+  return props.list.slice(start, end)
 })
+
+// Meta data for pagination
+const meta = computed(() => ({
+  current_page: Math.floor(pageStart.value / limit.value) + 1,
+  per_page: limit.value,
+  total: props.list.length,
+  last_page: Math.ceil(props.list.length / limit.value),
+}))
 
 const {
   isRevealed: showDeleteConfirm,
@@ -68,19 +88,25 @@ async function handleDeleteConfirm() {
   }
   finally {
     selectedIdForDelete.value = null
-    deleteConfirm() // ✅ This closes the confirmation dialog
+    deleteConfirm()
   }
 }
 
+// Pagination functions
 function handlePageChange(page: number) {
-  meta.value.current_page = page
+  pageStart.value = (page - 1) * limit.value
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  pageStart.value = 0
 }
 
 const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1 + pageStart.value),
   }),
   columnHelper.accessor('name', {
     header: ({ column }) => h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
@@ -165,7 +191,7 @@ const columns = [
 
 const table = useVueTable({
   get data() {
-    return props.list || []
+    return paginatedList.value || []
   },
   columns,
   getCoreRowModel: getCoreRowModel(),
@@ -211,4 +237,35 @@ const table = useVueTable({
     title="Delete VoIP Configuration"
     description="You are about to delete this configuration. Do you wish to proceed?"
   />
+
+  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ meta.current_page }} to
+        <span>
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+        of {{ meta.total }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <!-- Pagination Controls -->
+      <TableServerPagination
+        :total-items="Number(meta.total)"
+        :current-page="Number(meta.current_page)"
+        :items-per-page="Number(meta.per_page)"
+        :last-page="Number(meta.last_page)"
+        @page-change="handlePageChange"
+      />
+    </div>
+  </div>
 </template>

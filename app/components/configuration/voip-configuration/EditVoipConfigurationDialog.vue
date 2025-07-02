@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import * as z from 'zod'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
@@ -18,9 +18,10 @@ const dialogOpen = computed({
   get: () => props.open,
   set: val => emit('update:open', val),
 })
-
+const loading = ref(false)
 // Validation schema (only required fields)
 const formSchema = toTypedSchema(z.object({
+  id: z.number().optional(),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   host: z.string().min(1, 'Host is required').max(100, 'Host too long'),
   username: z.string().min(1, 'Username is required').max(100, 'Username too long'),
@@ -31,6 +32,7 @@ const formSchema = toTypedSchema(z.object({
 const { handleSubmit, resetForm, setValues, values } = useForm({
   validationSchema: formSchema,
   initialValues: {
+    id: null,
     name: '',
     host: '',
     username: '',
@@ -40,28 +42,52 @@ const { handleSubmit, resetForm, setValues, values } = useForm({
 })
 
 // Watch for row prop changes and update form values
-watch(
-  () => props.row,
-  (row) => {
-    setValues({
-      name: row?.name || '',
-      host: row?.host || '',
-      username: row?.username || '',
-      password: row?.secret || '',
-      dialPrefix: row?.dialPrefix || '',
+
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    loading.value = true
+
+    const id = values.id
+    const response = await useApi().post(`/voip-configuration/${id}`, {
+      name: values.name,
+      host: values.host,
+      username: values.username,
+      secret: values.password,
+      dialPrefix: values.dialPrefix || '',
     })
-  },
-  { immediate: true },
-)
 
-const onSubmit = handleSubmit((values) => {
-  // Save logic here
-  dialogOpen.value = false
+    showToast({
+      message: response.message || 'Configuration updated successfully',
+      type: 'success',
+    })
+
+    refreshNuxtData('voip-configurations')
+    dialogOpen.value = false
+  }
+  catch (error) {
+    showToast({
+      message: error?.response?._data?.message || 'Failed to update configuration',
+      type: 'error',
+    })
+  }
+  finally {
+    loading.value = false
+  }
 })
-
-function handleReset() {
-  resetForm()
-}
+watch(dialogOpen, (newVal) => {
+  if (newVal && props.row) {
+    resetForm({
+      values: {
+        id: props.row.id || null,
+        name: props.row.name || '',
+        host: props.row.host || '',
+        username: props.row.username || '',
+        password: props.row.secret || '',
+        dialPrefix: props.row.dialPrefix || '',
+      },
+    })
+  }
+})
 </script>
 
 <template>
@@ -138,7 +164,7 @@ function handleReset() {
             <Icon name="material-symbols:autorenew" />
             Reset
           </Button>
-          <Button class="w-[50%] h-10" type="submit">
+          <Button class="w-[50%] h-10" type="submit" :disabled="loading">
             <Icon name="material-symbols:save" />
             Save
           </Button>
