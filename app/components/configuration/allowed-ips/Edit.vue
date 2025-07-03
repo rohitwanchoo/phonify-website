@@ -1,35 +1,15 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
+import { Icon } from '#components'
 import { useForm } from 'vee-validate'
-import { computed, watch } from 'vue'
-import * as z from 'zod'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
 const props = defineProps<{
   open: boolean
-  row: any
+  selectedId: number
 }>()
 
 const emit = defineEmits(['update:open'])
@@ -41,68 +21,91 @@ const dialogOpen = computed({
 
 // Define status options for dropdown
 const statusOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
+  { value: '1', label: 'Active' },
+  { value: '0', label: 'Inactive' },
 ]
 
 // Define primary options for dropdown
 const primaryOptions = [
-  { value: 'true', label: 'Yes' },
-  { value: 'false', label: 'No' },
+  { value: '1', label: 'Yes' },
+  { value: '0', label: 'No' },
 ]
 
-// Validation schema
-const formSchema = toTypedSchema(
-  z.object({
-    ip: z.string().min(1, 'IP is required').ip('Please enter a valid IP address'),
-    label: z.string().min(1, 'Label is required').max(50),
-    status: z.string().min(1, 'Status is required'),
-    isPrimary: z.string().min(1, 'Primary status is required'),
-  }),
-)
+const { data: allowedIp, refresh: allowedIpRefresh } = await useLazyAsyncData('allowed-ip', () =>
+  useApi().get(`/allowed-ip/${props.selectedId}`), {
+  transform: res => res.data,
+  immediate: false,
+})
 
-const { handleSubmit, resetForm, setValues } = useForm({
-  validationSchema: formSchema,
+const { handleSubmit, resetForm, setFieldValue } = useForm({
   initialValues: {
-    ip: '',
-    label: '',
-    status: '',
-    isPrimary: '',
+    ip_address: allowedIp?.value?.ip_address || '',
+    label: allowedIp?.value?.label || '',
+    status: allowedIp?.value?.status || '',
+    is_primary: allowedIp?.value?.is_primary || '',
   },
 })
 
 // Watch for row changes and update form
-watch(
-  () => props.row,
-  (row) => {
-    if (row) {
-      setValues({
-        ip: row.ip || '',
-        label: row.label || '',
-        status: row.status ? 'active' : 'inactive',
-        isPrimary: row.isPrimary ? 'true' : 'false',
+watch(dialogOpen, async (newVal) => {
+  if (newVal) {
+    await Promise.all([
+      allowedIpRefresh(),
+    ])
+    // Set initial values
+    if (allowedIp.value) {
+      setFieldValue('ip_address', allowedIp?.value?.ip_address || '')
+      setFieldValue('label', allowedIp?.value?.label || '')
+      setFieldValue('status', allowedIp?.value?.status || '')
+      setFieldValue('is_primary', allowedIp?.value?.is_primary || '')
+      resetForm({
+        values: {
+          ip_address: allowedIp?.value?.ip_address || '',
+          label: allowedIp?.value?.label || '',
+          status: allowedIp?.value?.status || '',
+          is_primary: allowedIp?.value?.is_primary || '',
+        },
       })
     }
-  },
-  { immediate: true },
-)
+  }
+})
 
-const onSubmit = handleSubmit((values) => {
+const loading = ref(false)
+
+const onSubmit = handleSubmit(async (values) => {
   // Prepare data for submission
   const formData = {
-    ip: values.ip,
+    ip_address: values.ip_address,
     label: values.label,
-    status: values.status === 'active',
-    isPrimary: values.isPrimary === 'true',
+    status: values.status,
+    is_primary: values.is_primary,
   }
 
-  console.log('Form submitted:', formData)
-  // TODO: Add your submission logic here
-  dialogOpen.value = false
+  try {
+    loading.value = true
+
+    const response = await useApi().post(`/allowed-ip/${allowedIp?.value?.id}`, {
+      ...formData,
+    })
+    showToast({
+      message: response.message,
+      type: 'success',
+    })
+    handleClose()
+    refreshNuxtData('allowed-ips')
+  }
+  catch (error: any) {
+    showToast({
+      message: `${error.message}`,
+      type: 'error',
+    })
+  }
+  finally {
+    loading.value = false
+  }
 })
 
 function handleClose() {
-  resetForm()
   dialogOpen.value = false
 }
 </script>
@@ -112,13 +115,13 @@ function handleClose() {
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
         <DialogTitle>
-          {{ row ? 'Edit' : 'Add' }} VoIP Configuration
+          VoIP Configuration
         </DialogTitle>
       </DialogHeader>
       <form class="space-y-4" @submit.prevent="onSubmit">
         <div class="py-4 space-y-4">
           <!-- IP Address Field -->
-          <FormField v-slot="{ componentField }" name="ip">
+          <FormField v-slot="{ componentField }" name="ip_address">
             <FormItem>
               <FormLabel>IP Address</FormLabel>
               <FormControl>
@@ -170,7 +173,7 @@ function handleClose() {
           </FormField>
 
           <!-- Is Primary Dropdown -->
-          <FormField v-slot="{ componentField }" name="isPrimary">
+          <FormField v-slot="{ componentField }" name="is_primary">
             <FormItem>
               <FormLabel>Is Primary</FormLabel>
               <Select v-bind="componentField">
@@ -194,7 +197,7 @@ function handleClose() {
           </FormField>
         </div>
 
-        <DialogFooter>
+        <DialogFooter class="flex gap-2 items-center">
           <Button
             class="w-[50%] h-10"
             variant="outline"
@@ -204,7 +207,12 @@ function handleClose() {
             <Icon name="material-symbols:close" />
             Close
           </Button>
-          <Button class="w-[50%] h-10" type="submit">
+          <Button
+            class="w-[50%] h-10"
+            type="submit"
+            :loading="loading"
+            :disabled="loading"
+          >
             <Icon name="material-symbols:save" />
             Save
           </Button>

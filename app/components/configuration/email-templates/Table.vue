@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { ConfigurationAllowedIpsAction, Icon } from '#components'
+import { ConfigurationEmailTemplatesAction, Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -60,39 +60,78 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedAllowedIpForDelete = ref<{
+const selectedEmailTemplateForDelete = ref<{
   id: number | null
 }>({
   id: null,
 })
 
 // stores the row to edit
-const selectedRowData = ref<allowedIpList | null>(null)
+const selectedRowData = ref<emailTemplateList | null>(null)
 
-const isEditDialogOpen = ref(false)
-
-export interface allowedIpList {
+export interface emailTemplateList {
   id: number
-  ip_address: string
-  label: string
-  is_primary: string
+  template_name: string
+  template_html: string
+  subject: string
+  lead_status: string
   status: string
+  send_bcc: string
   created_at: string
   updated_at: string
+  actions?: string
 }
 
-function onEdit(row: allowedIpList) {
+const sheet = ref(false)
+
+async function updateStatus(id: number, status: string) {
+  try {
+    const res = await useApi().post('/status-update-email-template', {
+      listId: id,
+      status,
+    })
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('email-templates')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+}
+
+function onEdit(row: emailTemplateList) {
   selectedRowData.value = row
-  isEditDialogOpen.value = true
+  // Navigate to the add page with the row ID as a query parameter
+  navigateTo({
+    path: '/app/configuration/email-templates/add',
+    query: {
+      id: row.id,
+      mode: 'edit',
+    },
+  })
 }
 
 async function handleDelete() {
-  if (!selectedAllowedIpForDelete.value.id)
+  if (!selectedEmailTemplateForDelete.value.id)
     return
 
   try {
-    const res = await useApi().get(`/delete-allowed-ip/${selectedAllowedIpForDelete.value.id}`, {
-      id: selectedAllowedIpForDelete.value.id,
+    const res = await useApi().delete(`/email-template/${selectedEmailTemplateForDelete.value.id}`, {
+      id: selectedEmailTemplateForDelete.value.id,
     })
 
     if (res.success === true) {
@@ -100,6 +139,7 @@ async function handleDelete() {
         message: res.message,
         type: 'success',
       })
+      refreshNuxtData('email-templates')
     }
     else {
       showToast({
@@ -116,7 +156,7 @@ async function handleDelete() {
     })
   }
   finally {
-    selectedAllowedIpForDelete.value = {
+    selectedEmailTemplateForDelete.value = {
       id: null,
     }
   }
@@ -137,91 +177,74 @@ function deleteConfirmHandler() {
   handleDelete() // now delete safely
 }
 
-const columnHelper = createColumnHelper<allowedIpList>()
+const columnHelper = createColumnHelper<emailTemplateList>()
 const columns = [
   columnHelper.display({
-    id: 'siNo',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    id: 'slNo',
+    header: () => h('div', { class: 'text-center w-full' }, '#'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, props.start + row.index + 1),
   }),
-  columnHelper.accessor('ip_address', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'IP',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip_address),
+  columnHelper.accessor('template_name', {
+    header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
+      class: 'text-center text-sm font-normal w-full',
+      variant: 'ghost',
+      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+    }, () => ['Template Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.template_name),
   }),
-  columnHelper.accessor('label', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'Label',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.label),
-  }),
-  columnHelper.accessor('is_primary', {
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Is Primary', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) =>
-      h('div', {
-        class: 'text-center font-normal leading-[9px] text-sm',
-        style: { color: row.original.is_primary === '1' ? 'green' : 'red' },
-      }, row.original.is_primary === '1' ? 'Yes' : 'No'),
+  columnHelper.accessor('template_html', {
+    header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
+      class: 'text-center text-sm font-normal w-full',
+      variant: 'ghost',
+      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+    }, () => ['Template HTML', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-[40vw] truncate' }, row.original.template_html),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
+      h('div', { class: 'text-center w-full' }, h(Button, {
+        class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
         'modelValue': row.original.status === '1',
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? '1' : '0'
+          updateStatus(row.original.id, val ? '1' : '0')
         },
       })),
   }),
   columnHelper.display({
     id: 'actions',
-    header: () => h('div', { class: 'text-center w-full' }, 'Action'),
-    cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
-      h(Button, {
-        variant: 'outline',
-        class: 'px-2',
-        title: 'Edit',
-        onClick: () => {
-          onEdit(row.original)
-        },
-      }, [
-        h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
-        h('span', { class: 'text-xs font-normal' }, 'Edit'),
-      ]),
-      h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(ConfigurationAllowedIpsAction, {
-        onDelete: () => {
-          selectedAllowedIpForDelete.value.id = row?.original.id
-          revealDeleteConfirm()
-        },
-      })),
-    ]),
+    header: () => h('div', { class: 'text-center' }, 'Actions'),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+        h(Button, {
+          variant: 'outline',
+          class: 'px-2',
+          onClick: () => {
+            selectedRowData.value = row.original
+            sheet.value = true
+          },
+        }, [
+          h(Icon, { name: 'material-symbols:visibility', size: '16' }),
+          h('span', { class: 'text-xs font-normal' }, 'View'),
+        ]),
+        h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(ConfigurationEmailTemplatesAction, {
+          onEdit: () => {
+            onEdit(row?.original)
+          },
+          onDelete: () => {
+            selectedEmailTemplateForDelete.value.id = row?.original.id
+            revealDeleteConfirm()
+          },
+        })),
+      ])
+    },
   }),
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
@@ -251,21 +274,28 @@ const table = useVueTable({
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
+    columnPinning: {
+      left: ['slNo', 'template_name', 'template_html', 'status'],
+    },
   },
 })
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg my-6 overflow-x-auto">
     <Table>
       <TableHeader>
-        <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="align-middle">
+        <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
             v-for="header in headerGroup.headers"
             :key="header.id"
-            class="bg-gray-50 align-middle"
+            class="bg-gray-50"
           >
-            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
+            <FlexRender
+              v-if="!header.isPlaceholder"
+              :render="header.column.columnDef.header"
+              :props="header.getContext()"
+            />
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -304,6 +334,7 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
+
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
@@ -332,14 +363,14 @@ const table = useVueTable({
     </div>
   </div>
 
-  <ConfigurationAllowedIpsEdit v-model:open="isEditDialogOpen" :selected-id="selectedRowData?.id" />
+  <ConfigurationEmailTemplatesView v-model:open="sheet" :template-html="selectedRowData?.template_html || ''" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
     :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
-    title="Delete Allowed IP"
-    description="You are about to delete this allowed ip. Do you wish to proceed?"
+    title="Delete Email Template"
+    description="You are about to delete this email template. Do you wish to proceed?"
   />
 </template>

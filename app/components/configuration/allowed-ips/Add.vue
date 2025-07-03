@@ -26,61 +26,82 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 
-const dialogOpen = ref(false)
+const open = ref(false)
 
 // Define status options for dropdown
 const statusOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
+  { value: '1', label: 'Active' },
+  { value: '0', label: 'Inactive' },
 ]
 
 // Define primary options for dropdown
 const primaryOptions = [
-  { value: 'true', label: 'Yes' },
-  { value: 'false', label: 'No' },
+  { value: '1', label: 'Yes' },
+  { value: '0', label: 'No' },
 ]
 
 // Validation schema
 const formSchema = toTypedSchema(
   z.object({
-    ip: z.string().min(1, 'IP is required').ip('Please enter a valid IP address'),
+    ip_address: z.string().min(1, 'IP is required').ip('Please enter a valid IP address'),
     label: z.string().min(1, 'Label is required').max(50),
     status: z.string().min(1, 'Status is required'),
-    isPrimary: z.string().min(1, 'Primary status is required'),
+    is_primary: z.string().min(1, 'Primary status is required'),
   }),
 )
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, setFieldError } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    ip: '',
+    ip_address: '',
     label: '',
     status: '',
-    isPrimary: '',
+    is_primary: '',
   },
 })
 
-const onSubmit = handleSubmit((values) => {
-  // Prepare data for submission
-  const formData = {
-    ip: values.ip,
+const loading = ref(false)
+
+const onSubmit = handleSubmit(async (values) => {
+  const payload = {
+    ip_address: values.ip_address,
     label: values.label,
-    status: values.status === 'active',
-    isPrimary: values.isPrimary === 'true',
+    status: values.status,
+    is_primary: values.is_primary,
   }
 
-  console.log('Form submitted:', formData)
-  // TODO: Add your submission logic here
-  dialogOpen.value = false
+  try {
+    loading.value = true
+    const response = await useApi().put('/allowed-ip', {
+      ...payload,
+    })
+    showToast({
+      message: response.message,
+      type: response.success ? 'success' : 'error',
+    })
+    resetForm()
+    open.value = false
+    refreshNuxtData('allowed-ips')
+  }
+   catch (error: any) {
+    handleFieldErrors(error?.data, setFieldError)
+    showToast({
+      message: `${error?.message}`,
+      type: 'error',
+    })
+  }
+  finally {
+    loading.value = false
+  }
 })
 
 function handleClose() {
   resetForm()
-  dialogOpen.value = false
+  open.value = false
 }
 
 function openDialog() {
-  dialogOpen.value = true
+  open.value = true
 }
 </script>
 
@@ -93,7 +114,7 @@ function openDialog() {
     </Button>
 
     <!-- Dialog -->
-    <Dialog v-model:open="dialogOpen">
+    <Dialog v-model:open="open">
       <DialogContent class="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add VoIP Configuration</DialogTitle>
@@ -101,7 +122,7 @@ function openDialog() {
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="py-4 space-y-4">
             <!-- IP Address Field -->
-            <FormField v-slot="{ componentField }" name="ip">
+            <FormField v-slot="{ componentField }" name="ip_address">
               <FormItem>
                 <FormLabel>IP Address</FormLabel>
                 <FormControl>
@@ -153,7 +174,7 @@ function openDialog() {
             </FormField>
 
             <!-- Is Primary Dropdown -->
-            <FormField v-slot="{ componentField }" name="isPrimary">
+            <FormField v-slot="{ componentField }" name="is_primary">
               <FormItem>
                 <FormLabel>Is Primary</FormLabel>
                 <Select v-bind="componentField">
@@ -187,7 +208,12 @@ function openDialog() {
               <Icon name="material-symbols:close" />
               Close
             </Button>
-            <Button class="w-[50%] h-10" type="submit">
+            <Button
+              class="w-[50%] h-10"
+              type="submit"
+              :loading="loading"
+              :disabled="loading"
+            >
               <Icon name="material-symbols:save" />
               Save
             </Button>
