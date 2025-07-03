@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import ConfirmAction from '@/components/ConfirmAction.vue'
 
 const campaignList = ref<any>(null)
 const loading = ref(false)
@@ -66,6 +67,47 @@ watch(searchQuery, () => {
 const totalRows = computed(() => filteredList.value.length)
 const currentPage = computed(() => Math.floor(pageStart.value / limit.value) + 1)
 const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
+
+const showDeleteConfirm = ref(false)
+const selectedApiIdForDelete = ref<number | null>(null)
+
+function handleDeleteClick(row: any) {
+  selectedApiIdForDelete.value = row.id
+  showDeleteConfirm.value = true
+}
+
+async function handleDeleteConfirm() {
+  try {
+    const res = await useApi().post('delete-api', {
+      api_id: selectedApiIdForDelete.value,
+    })
+    if (res.success) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('campaigns-list')
+    } else {
+      showToast({
+        message: res.message || 'Failed to delete API.',
+        type: 'error',
+      })
+    }
+  } catch (err: any) {
+    showToast({
+      message: err.message || 'Failed to delete API.',
+      type: 'error',
+    })
+  } finally {
+    showDeleteConfirm.value = false
+    selectedApiIdForDelete.value = null
+  }
+}
+
+function handleDeleteCancel() {
+  showDeleteConfirm.value = false
+  selectedApiIdForDelete.value = null
+}
 </script>
 
 <template>
@@ -89,6 +131,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
       <ConfigurationApiTable
         :list="paginatedList"
         :loading="!campaignList"
+        @delete-row="handleDeleteClick"
       />
     </div>
     <div v-if="totalRows" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
@@ -113,5 +156,13 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
         />
       </div>
     </div>
+
+    <ConfirmAction
+      v-model="showDeleteConfirm"
+      :confirm="handleDeleteConfirm"
+      :cancel="handleDeleteCancel"
+      title="Delete API"
+      description="You are about to delete this API. Do you wish to proceed?"
+    />
   </div>
 </template>
