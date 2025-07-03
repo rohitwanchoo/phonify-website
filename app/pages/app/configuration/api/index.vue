@@ -7,7 +7,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import ConfirmAction from '@/components/ConfirmAction.vue'
 
-const campaignList = ref<any>(null)
+
 const loading = ref(false)
 
 const pageStart = ref(0)
@@ -17,19 +17,13 @@ const searchQuery = ref('')
 const router = useRouter()
 
 // Original API call remains exactly as you provided
-const { data, success, message } = await useLazyAsyncData('campaigns-list', async () => {
+const { data:campaignList, success, message, status,refresh } = await useLazyAsyncData('campaigns-list', async () => {
   const response = await useApi().post('api-data', {
     params: {
     },
   })
   return response
 })
-
-watch(data, (newData) => {
-  if (newData) {
-    campaignList.value = newData
-  }
-}, { immediate: true })
 
 // Client-side filtering based on API data
 const filteredList = computed(() => {
@@ -88,7 +82,7 @@ function handleDuplicateClick(row: any) {
         message: `${res.message} (New List ID: ${res.list_id})`,
         type: 'success',
       })
-      refreshNuxtData('campaigns-list')
+      refresh()
     } else {
       showToast({
         message: res.message || 'Failed to duplicate API.',
@@ -119,7 +113,7 @@ async function handleDeleteConfirm() {
         message: res.message,
         type: 'success',
       })
-      refreshNuxtData('campaigns-list')
+      refresh()
     } else {
       showToast({
         message: res.message || 'Failed to delete API.',
@@ -163,7 +157,7 @@ function handleDeleteCancel() {
     <div>
       <ConfigurationApiTable
         :list="paginatedList"
-        :loading="!campaignList"
+        :loading="status === 'pending'"
         @delete-row="handleDeleteClick"
         @duplicate-row="handleDuplicateClick"
         @edit-row="handleEditClick"

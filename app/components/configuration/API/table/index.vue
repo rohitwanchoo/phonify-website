@@ -187,9 +187,16 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-if="loading">
-          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
-            Loading...
+        <TableRow v-if="props.loading">
+          <TableCell :colspan="columns.length" class="px-3 py-4">
+            <div class="space-y-2">
+              <BaseSkelton
+                v-for="i in 10"
+                :key="i"
+                class="h-8 w-full"
+                rounded="rounded-md"
+              />
+            </div>
           </TableCell>
         </TableRow>
         <template v-else-if="table.getRowModel().rows?.length">
