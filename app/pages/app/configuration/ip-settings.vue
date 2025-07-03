@@ -11,7 +11,7 @@ const { data: ipSettingList, refresh: refreshIpSettingList, status: ipSettingSta
       ...filter.value,
     },
   }), {
-  transform: res => res.data.slice(0, 10),
+  transform: res => res.data.slice(0, 10) || [],
 })
 const filterValues = ref({})
 
@@ -33,13 +33,13 @@ async function applyFilter() {
         <Input placeholder="Search List" />
         <Icon class="absolute top-[9px] right-2" name="lucide:search" />
       </div>
-      <ConfigurationIpSettingsFilterSheetButton v-model:form-values="filterValues" @apply-filter="applyFilter" />
+      <ConfigurationIpSettingsFilterSheet v-model:form-values="filterValues" @apply-filter="applyFilter" />
       <ConfigurationIpSettingsWhiteListIpDialog />
     </template>
   </BaseHeader>
 
   <!-- TABLE -->
   <div>
-    <ConfigurationIpSettingsTable :list="ipSettingList" :loading="ipSettingStatus === 'pending'" />
+    <ConfigurationIpSettingsTable :list="ipSettingList || []" :loading="ipSettingStatus === 'pending'" />
   </div>
 </template>
