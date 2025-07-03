@@ -34,7 +34,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const isAddMode = computed(() => !route.params.id && !route.query.id)
+const isAddMode = computed(() => !route.query.id)
 
 const breadcrumbs = [
   {
@@ -157,15 +157,25 @@ const onSubmit = handleSubmit(async (values) => {
       value: param.value || '',
     })),
   }
+
   try {
-    const res = await useApi().post('/add-api', payload)
+    let res
+    if (isAddMode.value) {
+      res = await useApi().post('/add-api', payload)
+    } else {
+      // Edit mode: add api_id to payload and call /edit-api
+      res = await useApi().post('/edit-api', {
+        ...payload,
+        api_id: route.query.id,
+      })
+    }
     if (res.success) {
       showToast({
         message: res.message,
       })
       resetForm()
       selectedDispositions.value = []
-      router.push('/app/configuration/api') // Redirect after success
+      router.push('/app/configuration/api')
     }
   }
   catch (err: any) {

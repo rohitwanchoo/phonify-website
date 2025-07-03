@@ -24,7 +24,6 @@ const props = withDefaults(defineProps<{
 })
 
 const emits = defineEmits(['view-activity', 'edit-row', 'duplicate-row', 'delete-row'])
-
 const router = useRouter()
 
 const columnHelper = createColumnHelper<any>()
@@ -151,7 +150,7 @@ const columns = [
         class: 'text-primary h-8 w-15 min-w-0 flex items-center gap-1 px-2',
         title: 'Edit',
         onClick: () => {
-          router.push('/app/configuration/api/api-list')
+          emits('edit-row', row.original)
         },
       }, [
         h(Icon, { name: 'material-symbols:edit-square', size: 14 }),

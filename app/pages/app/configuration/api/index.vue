@@ -70,10 +70,43 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
 
 const showDeleteConfirm = ref(false)
 const selectedApiIdForDelete = ref<number | null>(null)
+const selectedApiIdForDuplicate = ref<number | null>(null)
 
 function handleDeleteClick(row: any) {
   selectedApiIdForDelete.value = row.id
   showDeleteConfirm.value = true
+}
+
+function handleDuplicateClick(row: any) {
+  selectedApiIdForDuplicate.value = row.id
+  // Call the duplicate API
+  useApi().post('copy-api', {
+    api_id: selectedApiIdForDuplicate.value,
+  }).then((res: any) => {
+    if (res.success) {
+      showToast({
+        message: `${res.message} (New List ID: ${res.list_id})`,
+        type: 'success',
+      })
+      refreshNuxtData('campaigns-list')
+    } else {
+      showToast({
+        message: res.message || 'Failed to duplicate API.',
+        type: 'error',
+      })
+    }
+  }).catch((err: any) => {
+    showToast({
+      message: err.message || 'Failed to duplicate API.',
+      type: 'error',
+    })
+  })
+}
+
+// Add this function
+function handleEditClick(row: any) {
+  router.push({ path: '/app/configuration/api/api-list', query: { id: row.id } })
+
 }
 
 async function handleDeleteConfirm() {
@@ -119,7 +152,7 @@ function handleDeleteCancel() {
           <Input v-model="searchQuery" placeholder="Search API" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button @click="router.push('/app/configuration/api/api-list?')">
+        <Button @click="router.push('/app/configuration/api/api-list')">
           <Icon class="!text-white" name="lucide:plus" />
           Add API
         </Button>
@@ -132,6 +165,8 @@ function handleDeleteCancel() {
         :list="paginatedList"
         :loading="!campaignList"
         @delete-row="handleDeleteClick"
+        @duplicate-row="handleDuplicateClick"
+        @edit-row="handleEditClick"
       />
     </div>
     <div v-if="totalRows" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
