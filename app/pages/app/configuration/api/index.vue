@@ -105,7 +105,7 @@ function handleDuplicateClick(row: any) {
 
 // Add this function
 function handleEditClick(row: any) {
-  router.push({ path: '/app/configuration/api/api-list', query: { id: row.id } })
+  router.push({ path: '/app/configuration/api/create', query: { id: row.id } })
 
 }
 
@@ -152,7 +152,7 @@ function handleDeleteCancel() {
           <Input v-model="searchQuery" placeholder="Search API" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button @click="router.push('/app/configuration/api/api-list')">
+        <Button @click="router.push('/app/configuration/api/create')">
           <Icon class="!text-white" name="lucide:plus" />
           Add API
         </Button>

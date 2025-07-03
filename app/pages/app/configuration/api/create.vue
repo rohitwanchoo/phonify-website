@@ -43,7 +43,7 @@ const breadcrumbs = [
   },
   {
     label: isAddMode.value ? 'Add API List' : 'Edit API List',
-    href: '/app/configuration/api/api-list',
+    href: '/app/configuration/api/create',
   },
 ]
 
