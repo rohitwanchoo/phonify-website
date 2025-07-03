@@ -74,7 +74,7 @@ async function handleDeleteConfirm() {
   try {
     const res = await useApi().get(`/delete-voip-configuration/${selectedIdForDelete.value}`)
 
-    if (res.success === 'true') {
+    if (res.success === true) {
       showToast({ message: res.message, type: 'success' })
     }
     else {
