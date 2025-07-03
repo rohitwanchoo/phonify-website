@@ -62,6 +62,11 @@ const { data: callCount, refresh: refreshCallCount, status: callCountStaus } = a
   transform: res => res.data,
 })
 
+const { data: dispositionsData, refresh: refreshDispositions, status: dispositionsStatus } = await useLazyAsyncData('dispositions-wise-call', () =>
+  useApi().post('/disposition-wise-call', { ...dateFilter.value }), {
+  transform: res => res.data,
+})
+
 function onDatePickerChange(val: { start: Date, end: Date }) {
   dateFilter.value.startTime = moment(val.start).format('YYYY-MM-DD HH:mm:ss')
   dateFilter.value.endTime = moment(val.end).format('YYYY-MM-DD HH:mm:ss')
@@ -70,6 +75,7 @@ function onDatePickerChange(val: { start: Date, end: Date }) {
     refreshCallCount()
     setStateWiseCalls()
     refreshAgentWiseCall()
+    refreshDispositions()
   }
 }
 
@@ -82,6 +88,7 @@ function onUserSelect(val: any) {
   refreshCallCount()
   setStateWiseCalls()
   refreshAgentWiseCall()
+  refreshDispositions()
 }
 
 onMounted(() => {

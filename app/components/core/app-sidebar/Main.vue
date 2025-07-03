@@ -61,6 +61,15 @@ const data = {
     ] },
     { title: 'Call Times', url: '/app/call-times', icon: 'icons:do-not-call' },
   ],
+  'Payment & Subscriptions': [
+    { title: 'Billing', url: '/app/billing', icon: 'icons:billing', items: [
+      { title: 'Invoice', url: '/app/billing/invoice' },
+      { title: 'Recharge', url: '/app/billing/recharge' },
+      { title: 'Wallet Transactions', url: '/app/billing/wallet-transactions' },
+      { title: 'Payment Methods', url: '/app/billing/payment-methods' },
+    ] },
+    { title: 'Subscriptions', url: '/app/subscriptions', icon: 'icons:subscriptions' },
+  ],
   'User & Access Management': [
     { title: 'User Management', url: '/user-management', icon: 'icons:user-management', items: [
       { title: 'Extension', url: '/app/user-management/extension' },

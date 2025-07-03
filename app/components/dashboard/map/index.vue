@@ -1,20 +1,43 @@
 <script setup lang="ts">
+import { useElementSize } from '@vueuse/core'
 import * as echarts from 'echarts/core'
+
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+
+import { Input } from '@/components/ui/input'
+
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import usaJson from '~/assets/map/USA.json'
-
-
-interface ApiDataItem {
-  state_code: string;
-  rowCount: number;
-}
+import DispositionChart from './DispositionChart.vue'
 
 const props = defineProps<{
-  apiData?: ApiDataItem[];
-}>();
+  apiData?: ApiDataItem[]
+}>()
 
-const states =
-  [
+interface ApiDataItem {
+  state_code: string
+  rowCount: number
+}
+
+const states
+  = [
     { name: 'Alabama', value: 0, state_code: 'AL' },
     { name: 'Alaska', value: 0, state_code: 'AK' },
     { name: 'Arizona', value: 0, state_code: 'AZ' },
@@ -84,7 +107,7 @@ const data = computed(() => {
 
 // const apIdata
 // = [
-  
+
 // ]
 
 interface StateData {
@@ -97,7 +120,6 @@ interface MapDataItem {
   value: number
   state_code: string
 }
-
 
 echarts.registerMap('USA', usaJson as any, {
   'Alaska': {
@@ -119,7 +141,6 @@ echarts.registerMap('USA', usaJson as any, {
 
 const minValue = computed(() => Math.min(...data.value.map(d => d.value)))
 const maxValue = computed(() => Math.max(...data.value.map(d => d.value)))
-
 
 const option = computed((): ECOption => ({
   tooltip: {
@@ -179,15 +200,37 @@ const option = computed((): ECOption => ({
     },
   ],
 }))
+
+const selectedTab = ref('map')
 </script>
 
 <template>
-  <div class="h-full w-full border rounded-lg p-6 overflow-hidden">
-    <div>
-      State Wise Call Report Map
+  <div class="h-full w-full border rounded-lg overflow-hidden">
+    <div class="p-5 flex justify-between items-center">
+      Call Report Map
+      <div class="w-[50%]">
+        <ToggleGroup v-model:model-value="selectedTab" type="single" class="w-[100%] bg-gray-100">
+          <ToggleGroupItem value="map" class="!bg-gray-100 data-[state=on]:!bg-primary data-[state=on]:text-white font-normal gap-x-0 data-[state=on]:rounded-lg text-sm" aria-label="Status active">
+            Site Wise
+          </ToggleGroupItem>
+          <ToggleGroupItem value="pei" class="!bg-gray-100 data-[state=on]:!bg-primary data-[state=on]:rounded-lg font-normal data-[state=on]:text-white text-sm" aria-label="Status inactive">
+            Disposition Wise
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
     </div>
-    <Separator class="my-6" />
-    
-    <VChart :option="option" :key="JSON.stringify(apiData)" class="bg-[url('/images/dashboard/map/bg.png')]" />
+    <Separator class="" />
+    <Tabs v-model="selectedTab" default-value="map" class="h-max">
+      <TabsContent value="map" class="h-[500px]">
+        <Card class="rounded-0 border-none h-max w-full p-0 shadow-none">
+          <VChart :key="JSON.stringify(apiData)" :option="option" class="bg-[url('/images/dashboard/map/bg.png')]" style="height: 500px; width: 100%;" />
+        </Card>
+      </TabsContent>
+      <TabsContent value="pei">
+        <Card class="rounded-0 border-none h-max w-full py-6 shadow-none">
+          <DispositionChart />
+        </Card>
+      </TabsContent>
+    </Tabs>
   </div>
 </template>
