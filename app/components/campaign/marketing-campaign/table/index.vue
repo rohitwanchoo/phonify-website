@@ -90,7 +90,7 @@ const columns = [
         title: 'Edit',
         onClick: () => {
           // Replace this with your actual edit route logic
-          router.push({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
+          router.push({ path: '', query: { id: row.original.id } })
         },
       }, [
         h(Icon, { name: 'material-symbols:edit-square', size: 14 }),

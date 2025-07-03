@@ -141,7 +141,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
           <Input v-model="searchQuery" placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button @click="router.push('/app/configuration/api/api-list?mode=add')">
+        <Button>
           <Icon class="!text-white" name="lucide:plus" />
           Add Campaign
         </Button>
