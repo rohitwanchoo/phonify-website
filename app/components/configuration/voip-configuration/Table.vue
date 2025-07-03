@@ -16,7 +16,7 @@ import {
 } from '~/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 
-const props = defineProps<{ list: any[] }>()
+const props = defineProps<{ list: any[], loading?: boolean }>()
 
 const columnHelper = createColumnHelper<any>()
 const editDialogOpen = ref(false)
@@ -214,13 +214,29 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <template v-if="props.loading">
+          <TableRow>
+            <TableCell :colspan="columns.length" class="px-3 py-4">
+              <div class="space-y-2">
+                <BaseSkelton
+                  v-for="i in 10"
+                  :key="i"
+                  class="h-8 w-full"
+                  rounded="rounded-md"
+                />
+              </div>
+            </TableCell>
+          </TableRow>
+        </template>
+
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-center">
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </TableCell>
           </TableRow>
         </template>
+
         <TableRow v-else>
           <TableCell :colspan="columns.length" class="text-center h-24">
             No results.

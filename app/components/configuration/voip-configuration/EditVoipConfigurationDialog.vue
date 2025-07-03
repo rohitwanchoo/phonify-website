@@ -21,40 +21,29 @@ const dialogOpen = computed({
 const loading = ref(false)
 // Validation schema (only required fields)
 const formSchema = toTypedSchema(z.object({
-  id: z.number().optional(),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   host: z.string().min(1, 'Host is required').max(100, 'Host too long'),
   username: z.string().min(1, 'Username is required').max(100, 'Username too long'),
-  password: z.string().min(1, 'Password is required').max(100, 'Password too long'),
+  secret: z.string().min(1, 'Password is required').max(100, 'Password too long'),
   dialPrefix: z.string().optional(),
 }))
 
-const { handleSubmit, resetForm, setValues, values } = useForm({
+const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    id: null,
     name: '',
     host: '',
     username: '',
-    password: '',
+    secret: '',
     dialPrefix: '',
   },
 })
 
-// Watch for row prop changes and update form values
-
 const onSubmit = handleSubmit(async (values) => {
   try {
     loading.value = true
-
-    const id = values.id
-    const response = await useApi().post(`/voip-configuration/${id}`, {
-      name: values.name,
-      host: values.host,
-      username: values.username,
-      secret: values.password,
-      dialPrefix: values.dialPrefix || '',
-    })
+    const id = props.row.id || null
+    const response = await useApi().post(`/voip-configuration/${id}`, values)
 
     showToast({
       message: response.message || 'Configuration updated successfully',
@@ -82,7 +71,7 @@ watch(dialogOpen, (newVal) => {
         name: props.row.name || '',
         host: props.row.host || '',
         username: props.row.username || '',
-        password: props.row.secret || '',
+        secret: props.row.secret || '',
         dialPrefix: props.row.dialPrefix || '',
       },
     })
@@ -131,7 +120,7 @@ watch(dialogOpen, (newVal) => {
               <FormMessage class="ml-2 text-xs" />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="password">
+          <FormField v-slot="{ componentField }" name="secret">
             <FormItem>
               <p class="text-primary">
                 Password

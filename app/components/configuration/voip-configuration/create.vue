@@ -23,10 +23,10 @@ const formSchema = toTypedSchema(z.object({
   host: z.string().min(1, 'Host is required').max(100),
   username: z.string().min(1, 'Username is required').max(100),
   secret: z.string().min(1, 'Password is required').max(100),
-  dialPrefix: z.string().optional(),
+  prefix: z.string().optional(),
 }))
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, setFieldError } = useForm({
   validationSchema: formSchema,
   initialValues: {
     name: '',
@@ -34,7 +34,7 @@ const { handleSubmit, resetForm } = useForm({
     host: '',
     username: '',
     secret: '',
-    dialPrefix: '',
+    prefix: '',
   },
 })
 
@@ -50,9 +50,10 @@ const onSubmit = handleSubmit(async (values) => {
     dialogOpen.value = false
     resetForm()
   }
-  catch (error) {
+  catch (error: any) {
+    handleFieldErrors(error?.data, setFieldError)
     showToast({
-      message: error?.response?._data?.message || 'Failed to save configuration',
+      message: error?._data?.message || 'Failed to save configuration',
       type: 'error',
     })
   }
@@ -125,7 +126,7 @@ const onSubmit = handleSubmit(async (values) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="dialPrefix">
+        <FormField v-slot="{ componentField }" name="prefix">
           <FormItem>
             <p class="text-primary">
               Dial Prefix (if any)
