@@ -1,6 +1,4 @@
 <script setup lang="ts">
-const donutData = ref([35, 25, 20, 15, 5]) // Percentages
-
 const { data: posts } = useNuxtData('dispositions-wise-call')
 
 const data = computed(() => {
