@@ -165,7 +165,7 @@ const columns = [
         variant: 'outline',
         class: 'flex items-center gap-2 border-primary text-primary',
         onClick: () => openEditDialog(row),
-      }, [h(Icon, { name: 'material-symbols:edit-square-outline', filled: true, class: 'text-primary' }), 'Edit']),
+      }, [h(Icon, { name: 'material-symbols:edit-square', filled: true, class: 'text-primary' }), 'Edit']),
       h(DropdownMenu, {
         'open': dropdownOpen.value === row.index,
         'onUpdate:open': (val: boolean) => val ? openDropdown(row.index) : closeDropdown(),
