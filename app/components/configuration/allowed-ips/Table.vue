@@ -1,14 +1,32 @@
 <script setup lang="ts">
-import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
-import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
+import { ConfigurationAllowedIpsAction, Icon } from '#components'
+import {
+  createColumnHelper,
+  FlexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useVueTable,
+} from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
+import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-import { Button } from '~/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Switch } from '~/components/ui/switch'
+import TableServerPagination from '@/components/table/ServerPagination.vue'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -16,131 +34,117 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '~/components/ui/table'
+} from '@/components/ui/table'
+import { valueUpdater } from '@/components/ui/table/utils'
 
-const mockData = [
-  {
-    ip: '47.31.96.248',
-    label: 'Emmethaven',
-    isPrimary: true,
-    status: true,
-  },
-  {
-    ip: '192.168.1.1',
-    label: 'Schillerbury',
-    isPrimary: false,
-    status: false,
-  },
-  {
-    ip: '10.0.0.1',
-    label: 'Northport',
-    isPrimary: false,
-    status: true,
-  },
-  {
-    ip: '172.16.0.1',
-    label: 'Southtown',
-    isPrimary: true,
-    status: false,
-  },
-  {
-    ip: '203.0.113.5',
-    label: 'Westfield',
-    isPrimary: false,
-    status: true,
-  },
-  {
-    ip: '198.51.100.10',
-    label: 'Eastville',
-    isPrimary: true,
-    status: false,
-  },
-  {
-    ip: '45.67.89.123',
-    label: 'Central City',
-    isPrimary: true,
-    status: true,
-  },
-  {
-    ip: '67.89.123.45',
-    label: 'Riverside',
-    isPrimary: false,
-    status: false,
-  },
-  {
-    ip: '89.123.45.67',
-    label: 'Mountain View',
-    isPrimary: false,
-    status: true,
-  },
-  {
-    ip: '123.45.67.89',
-    label: 'Lakeside',
-    isPrimary: true,
-    status: false,
-  },
-  {
-    ip: '34.56.78.90',
-    label: 'Oceanview',
-    isPrimary: false,
-    status: true,
-  },
-  {
-    ip: '56.78.90.12',
-    label: 'Sunnyvale',
-    isPrimary: true,
-    status: false,
-  },
-]
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 
-const router = useRouter()
-const columnHelper = createColumnHelper<any>()
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const editDialogOpen = ref(false)
-const editRow = ref<any>(null)
-const dropdownOpen = ref<number | null>(null)
-const loading = ref(false)
-const sorting = ref([])
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
 
-// Mock pagination meta data
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  total: 120,
-  last_page: 12,
+const selectedAllowedIpForDelete = ref<{
+  id: number | null
+}>({
+  id: null,
 })
 
-function openEditDialog(row: any) {
-  editRow.value = row.original
-  editDialogOpen.value = true
+// stores the row to edit
+const selectedRowData = ref<allowedIpList | null>(null)
+
+const isEditDialogOpen = ref(false)
+
+export interface allowedIpList {
+  id: number
+  ip_address: string
+  label: string
+  is_primary: string
+  status: string
+  created_at: string
+  updated_at: string
 }
 
-function openDropdown(rowIdx: number) {
-  dropdownOpen.value = rowIdx
+function onEdit(row: allowedIpList) {
+  selectedRowData.value = row
+  isEditDialogOpen.value = true
 }
 
-function closeDropdown() {
-  dropdownOpen.value = null
-}
+async function handleDelete() {
+  if (!selectedAllowedIpForDelete.value.id)
+    return
 
-function handleDelete(row: any) {
-  // Placeholder for delete logic
-  closeDropdown()
+  try {
+    const res = await useApi().get(`/delete-allowed-ip/${selectedAllowedIpForDelete.value.id}`, {
+      id: selectedAllowedIpForDelete.value.id,
+    })
+
+    if (res.success === true) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedAllowedIpForDelete.value = {
+      id: null,
+    }
+  }
 }
 
 function handlePageChange(page: number) {
-  // For now, just update the mock meta
-  meta.value.current_page = page
-  // You can set loading.value = true and simulate data fetching if needed
+  emits('pageNavigation', page)
 }
 
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
+
+const columnHelper = createColumnHelper<allowedIpList>()
 const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('ip', {
+  columnHelper.accessor('ip_address', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'IP',
@@ -150,7 +154,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip_address),
   }),
   columnHelper.accessor('label', {
     header: ({ column }) =>
@@ -164,7 +168,7 @@ const columns = [
       ]),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.label),
   }),
-  columnHelper.accessor('isPrimary', {
+  columnHelper.accessor('is_primary', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -174,19 +178,8 @@ const columns = [
     cell: ({ row }) =>
       h('div', {
         class: 'text-center font-normal leading-[9px] text-sm',
-        style: { color: row.original.isPrimary ? 'green' : 'red' },
-      }, row.original.isPrimary ? 'Yes' : 'No'),
-    sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.original.isPrimary
-      const valueB = rowB.original.isPrimary
-      if (valueA === valueB)
-        return 0
-      if (valueA && !valueB)
-        return -1
-      if (!valueA && valueB)
-        return 1
-      return 0
-    },
+        style: { color: row.original.is_primary === '1' ? 'green' : 'red' },
+      }, row.original.is_primary === '1' ? 'Yes' : 'No'),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>
@@ -198,78 +191,66 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === true || row.original.status === 1,
+        'modelValue': row.original.status === '1',
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? 1 : 0
+          row.original.status = val ? '1' : '0'
         },
       })),
-    sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.original.status === 1 || rowA.original.status === true
-      const valueB = rowB.original.status === 1 || rowB.original.status === true
-      if (valueA === valueB)
-        return 0
-      if (valueA && !valueB)
-        return -1
-      if (!valueA && valueB)
-        return 1
-      return 0
-    },
   }),
   columnHelper.display({
     id: 'actions',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-    cell: ({ row }) => h('div', { class: 'flex items-center gap-2 justify-center' }, [
+    header: () => h('div', { class: 'text-center w-full' }, 'Action'),
+    cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
       h(Button, {
-        size: 'sm',
         variant: 'outline',
-        class: 'flex items-center gap-2 border-primary text-primary',
-        onClick: () => openEditDialog(row),
-      }, [
-        h(Icon, { name: 'material-symbols:edit-square', filled: true, class: 'text-base text-primary' }),
-        'Edit',
-      ]),
-      h(DropdownMenu, {
-        'open': dropdownOpen.value === row.index,
-        'onUpdate:open': (val: boolean) => {
-          if (val)
-            openDropdown(row.index)
-          else closeDropdown()
+        class: 'px-2',
+        title: 'Edit',
+        onClick: () => {
+          onEdit(row.original)
         },
-      }, {
-        default: () => [
-          h(DropdownMenuTrigger, { as: 'span', class: 'flex items-center justify-center h-full cursor-pointer' }, [
-            h(MoreVertical, { class: 'h-5 w-5' }),
-          ]),
-          h(DropdownMenuContent, { align: 'end', class: 'min-w-[120px]' }, [
-            h(DropdownMenuItem, {
-              class: 'text-red-600 cursor-pointer flex items-center gap-2',
-              onClick: () => handleDelete(row),
-            }, [
-              h(Icon, { name: 'material-symbols:delete-outline', class: 'text-base' }),
-              'Delete',
-            ]),
-          ]),
-        ],
-      }),
+      }, [
+        h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
+        h('span', { class: 'text-xs font-normal' }, 'Edit'),
+      ]),
+      h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(ConfigurationAllowedIpsAction, {
+        onDelete: () => {
+          selectedAllowedIpForDelete.value.id = row?.original.id
+          revealDeleteConfirm()
+        },
+      })),
     ]),
   }),
 ]
 
+const sorting = ref<SortingState>([])
+const columnFilters = ref<ColumnFiltersState>([])
+const columnVisibility = ref<VisibilityState>({})
+const rowSelection = ref({})
+
 const table = useVueTable({
-  get data() { return mockData },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
-  onSortingChange: (updaterOrValue) => {
-    if (typeof updaterOrValue === 'function') {
-      sorting.value = updaterOrValue(sorting.value)
-    }
-    else {
-      sorting.value = updaterOrValue
-    }
-  },
+  getFilteredRowModel: getFilteredRowModel(),
+  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
   },
 })
 </script>
@@ -289,28 +270,46 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
-          <TableRow v-for="row in table.getRowModel().rows" :key="row.id" class="align-middle">
-            <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-center align-middle">
-              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            :data-state="row.getIsSelected() && 'selected'"
+          >
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="p-[12px]"
+            >
+              <FlexRender
+                :render="cell.column.columnDef.cell"
+                :props="cell.getContext()"
+              />
             </TableCell>
           </TableRow>
         </template>
         <TableRow v-else>
-          <TableCell :colspan="columns.length" class="text-center h-24 align-middle">
+          <TableCell
+            :colspan="columns.length"
+            class="h-24 text-center"
+          >
             No results.
           </TableCell>
         </TableRow>
       </TableBody>
     </Table>
-    <ConfigurationAllowedIpsEditDialog v-model:open="editDialogOpen" :row="editRow" />
   </div>
-  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="meta.per_page">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -321,17 +320,26 @@ const table = useVueTable({
             </SelectContent>
           </Select>
         </span>
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
+      <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)"
-        :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)"
-        :last-page="Number(meta?.last_page)"
-        @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
+
+  <ConfigurationAllowedIpsEdit v-model:open="isEditDialogOpen" :selected-id="selectedRowData?.id" />
+
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete Allowed IP"
+    description="You are about to delete this allowed ip. Do you wish to proceed?"
+  />
 </template>
