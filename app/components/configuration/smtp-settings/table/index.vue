@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
 import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
+import { createColumnHelper, FlexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h } from 'vue'
 import { useRouter } from 'vue-router'
@@ -16,15 +21,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+import { valueUpdater } from '@/components/ui/table/utils'
+
 const props = withDefaults(defineProps<{
-  list: any[]
+  list?: any[]
   loading?: boolean
 }>(), {
   list: () => [],
   loading: false,
 })
 
-const emits = defineEmits(['view-activity', 'edit-row', 'duplicate-row', 'delete-row', 'update-status'])
+const emits = defineEmits(['duplicateRow', 'deleteRow', 'updateStatus'])
 const router = useRouter()
 
 const columnHelper = createColumnHelper<any>()
@@ -35,7 +42,8 @@ const columns = [
     header: () => h('div', { class: 'text-center' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('type', {
+
+  columnHelper.accessor('sender_type', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Type',
       h(Button, {
@@ -44,9 +52,10 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.type),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender_type),
   }),
-  columnHelper.accessor('sender', {
+
+  columnHelper.accessor('from_name', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Sender',
       h(Button, {
@@ -55,8 +64,9 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.from_name),
   }),
+
   columnHelper.accessor('mail_driver', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Mail Driver',
@@ -68,7 +78,8 @@ const columns = [
     ]),
     cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_driver),
   }),
-  columnHelper.accessor('host', {
+
+  columnHelper.accessor('mail_host', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Host',
       h(Button, {
@@ -77,9 +88,10 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.host),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_host),
   }),
-  columnHelper.accessor('port', {
+
+  columnHelper.accessor('mail_port', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Port',
       h(Button, {
@@ -88,9 +100,10 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.port),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_port),
   }),
-  columnHelper.accessor('username', {
+
+  columnHelper.accessor('mail_username', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Username',
       h(Button, {
@@ -99,9 +112,10 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.username),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_username),
   }),
-  columnHelper.accessor('encryption', {
+
+  columnHelper.accessor('mail_encryption', {
     header: ({ column }) => h('div', { class: 'text-center flex items-center justify-center gap-1' }, [
       'Encryption',
       h(Button, {
@@ -110,7 +124,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.encryption),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_encryption),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>
@@ -122,29 +136,19 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === true || row.original.status === 1,
+        'modelValue': row.original.status === 1,
         'onUpdate:modelValue': (val: boolean) => {
-          emits('update-status', { row: row.original, value: val })
+          emits('updateStatus', { row: row.original, value: val })
         },
       })),
-    sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.original.status === 1 || rowA.original.status === true
-      const valueB = rowB.original.status === 1 || rowB.original.status === true
-      if (valueA === valueB)
-        return 0
-      if (valueA && !valueB)
-        return -1
-      if (!valueA && valueB)
-        return 1
-      return 0
-    },
+
   }),
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Action'),
     cell: ({ row }) =>
       h('div', {
-        class: 'flex items-center justify-center gap-2 sticky right-0 bg-white z-10',
+        class: 'flex items-center justify-center gap-2 sticky right-0 z-10',
       }, [
         h(Button, {
           size: 'icon',
@@ -159,18 +163,44 @@ const columns = [
           h('span', { class: 'text-xs font-medium' }, 'Edit'),
         ]),
         h(ConfigurationSmtpSettingsActionDropdown, {
-          onDuplicate: () => emits('duplicate-row', row.original),
-          onDelete: () => emits('delete-row', row.original),
+          onDuplicate: () => emits('duplicateRow', row.original),
+          onDelete: () => emits('deleteRow', row.original),
         }),
       ]),
     meta: { sticky: 'right' },
   }),
 ]
 
+const sorting = ref<SortingState>([])
+const columnFilters = ref<ColumnFiltersState>([])
+const columnVisibility = ref<VisibilityState>({})
+const rowSelection = ref({})
+
 const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  // initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  // pageCount: last_page.value,
+  // rowCount: total.value,
+  state: {
+    // pagination: {
+    //   // pageIndex: current_page.value,
+    //   // pageSize: per_page.value,
+    // },
+    get sorting() { return sorting.value },
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
+  },
 })
 </script>
 
@@ -183,7 +213,7 @@ const table = useVueTable({
             v-for="header in headerGroup.headers"
             :key="header.id"
             class="bg-gray-50"
-            :class="header.column.id === 'actions' ? 'sticky right-0 z-10 bg-white' : ''"
+            :class="header.column.id === 'actions' ? 'sticky right-0 z-10 !bg-white' : ''"
           >
             <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
           </TableHead>
@@ -192,7 +222,7 @@ const table = useVueTable({
       <TableBody>
         <TableRow v-if="loading">
           <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
-            Loading...
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
         </TableRow>
         <template v-else-if="table.getRowModel().rows?.length">
