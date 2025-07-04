@@ -40,7 +40,6 @@ const list = [
         Generate PDF
       </Button>
     </template>
-    loading
   </BaseHeader>
 
   <div class="border rounded-lg">
