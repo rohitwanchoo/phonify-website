@@ -162,7 +162,8 @@ const onSubmit = handleSubmit(async (values) => {
     let res
     if (isAddMode.value) {
       res = await useApi().post('/add-api', payload)
-    } else {
+    }
+    else {
       // Edit mode: add api_id to payload and call /edit-api
       res = await useApi().post('/edit-api', {
         ...payload,
