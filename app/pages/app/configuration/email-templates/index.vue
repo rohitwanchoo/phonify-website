@@ -66,7 +66,7 @@ function changeLimit(val: number) {
   <!-- HEADER -->
   <BaseHeader title="Email Template List">
     <template #actions>
-      <div class="relative">
+      <div class="relative mt-4">
         <Input v-model="searchQuery" placeholder="Search Template" class="pr-10" />
         <Icon class="absolute top-[9px] right-2" name="material-symbols:search" size="20" />
       </div>

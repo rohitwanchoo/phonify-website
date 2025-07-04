@@ -127,18 +127,18 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex justify-start items-start gap-6">
-    <div class="h-[calc(100vh-190px)] flex-1 bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 flex flex-col justify-start items-start overflow-hidden">
+  <div class="flex flex-col xl:flex-row gap-6 h-full">
+    <!-- Details Section -->
+    <div class="relative flex-1 bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 flex flex-col overflow-hidden min-h-[400px]">
       <!-- Header -->
-      <div class="w-full px-5 py-3 border-b border-zinc-100 flex justify-start items-center">
-        <div class="justify-center text-slate-800 text-base font-medium">
+      <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
+        <div class="justify-center text-slate-800 mt-1 text-base font-medium">
           Template Details
         </div>
       </div>
-
       <!-- Form Content -->
-      <form class="relative w-full overflow-x-auto" @submit="onSubmit">
-        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5">
+      <form class="relative w-full overflow-x-auto flex-1" @submit="onSubmit">
+        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5 pb-28">
           <!-- Template Name and Lead Placeholders Row -->
           <div class="w-full flex justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_name" class="flex-1 w-full">
@@ -267,33 +267,35 @@ const onSubmit = handleSubmit(async (values) => {
             </FormField>
           </div>
         </div>
-
-        <!-- Footer with Save Button -->
-        <div class="sticky bottom-0 w-full p-5 rounded-b-lg bg-white shadow-md inline-flex justify-start items-start gap-4">
-          <Button
-            v-if="Object.keys(emailTemplate).length > 0"
-            type="button"
-            class="flex-1"
-            :loading="loading"
-            :disabled="loading"
-            @click="$emit('edit', values)"
-          >
-            <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-            Update
-          </Button>
-          <Button
-            v-if="!emailTemplate?.id"
-            type="submit"
-            class="flex-1"
-            :loading="loading"
-            :disabled="loading"
-          >
-            <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-            Save
-          </Button>
-        </div>
       </form>
+      <!-- Fixed Save/Update Button at the bottom of details section (outside form) -->
+      <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
+        <Button
+          v-if="Object.keys(emailTemplate).length > 0"
+          type="button"
+          class="flex-1"
+          :loading="loading"
+          :disabled="loading"
+          @click="$emit('edit', values)"
+        >
+          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+          Update
+        </Button>
+        <Button
+          v-if="!emailTemplate?.id"
+          type="submit"
+          class="flex-1"
+          :loading="loading"
+          :disabled="loading"
+        >
+          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+          Save
+        </Button>
+      </div>
     </div>
-    <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
+
+    <div class="overflow-auto">
+      <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
+    </div>
   </div>
 </template>
