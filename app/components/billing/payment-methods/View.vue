@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import type { Extension } from '~/types/extension'
-import { toTypedSchema } from '@vee-validate/zod'
-
-import { useForm } from 'vee-validate'
-import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,17 +13,8 @@ import {
 
 import { Separator } from '@/components/ui/separator'
 
-interface RingGroup {
-  id: number
-  title: string
-  email: string
-  ring_type: number
-  description: string
-  receive_on: string
-  extension: Extension[]
-}
-
 defineProps<Props>()
+const emits = defineEmits(['remove', 'edit'])
 const open = defineModel('open', {
   type: Boolean,
   default: false,
@@ -90,12 +75,12 @@ interface Props {
       </div>
       <DialogFooter>
         <DialogClose class="sm:w-1/2">
-          <Button variant="outline" class="h-11 border-red-600 hover:text-red-600 text-red-600 w-full">
+          <Button variant="outline" class="h-11 border-red-600 hover:text-red-600 text-red-600 w-full" @click="emits('remove')">
             <Icon name="mdi:trash-can" />
             Remove
           </Button>
         </DialogClose>
-        <Button class="h-11 sm:w-1/2" type="submit" @click="onSubmit">
+        <Button class="h-11 sm:w-1/2" type="submit" @click="emits('edit')">
           <Icon name="mdi:pencil" />
           Edit
         </Button>
