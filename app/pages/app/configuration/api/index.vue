@@ -1,14 +1,9 @@
 <script setup lang="ts">
-import moment from 'moment'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import ConfirmAction from '@/components/ConfirmAction.vue'
-
-
-const loading = ref(false)
 
 const pageStart = ref(0)
 const limit = ref(10)
@@ -17,10 +12,9 @@ const searchQuery = ref('')
 const router = useRouter()
 
 // Original API call remains exactly as you provided
-const { data:campaignList, success, message, status,refresh } = await useLazyAsyncData('campaigns-list', async () => {
+const { data: campaignList, status, refresh } = await useLazyAsyncData('campaigns-list', async () => {
   const response = await useApi().post('api-data', {
-    params: {
-    },
+    params: {},
   })
   return response
 })
@@ -33,8 +27,7 @@ const filteredList = computed(() => {
   return campaignList.value.data.filter((item: any) =>
     item.title?.toLowerCase().includes(query)
     || item.campaign?.toLowerCase().includes(query)
-    || item.method?.toLowerCase().includes(query)
-    || (item.is_deleted === '0' ? 'inactive' : 'active').includes(query),
+    || item.method?.toLowerCase().includes(query),
   )
 })
 
@@ -61,80 +54,6 @@ watch(searchQuery, () => {
 const totalRows = computed(() => filteredList.value.length)
 const currentPage = computed(() => Math.floor(pageStart.value / limit.value) + 1)
 const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
-
-const showDeleteConfirm = ref(false)
-const selectedApiIdForDelete = ref<number | null>(null)
-const selectedApiIdForDuplicate = ref<number | null>(null)
-
-function handleDeleteClick(row: any) {
-  selectedApiIdForDelete.value = row.id
-  showDeleteConfirm.value = true
-}
-
-function handleDuplicateClick(row: any) {
-  selectedApiIdForDuplicate.value = row.id
-  // Call the duplicate API
-  useApi().post('copy-api', {
-    api_id: selectedApiIdForDuplicate.value,
-  }).then((res: any) => {
-    if (res.success) {
-      showToast({
-        message: `${res.message} (New List ID: ${res.list_id})`,
-        type: 'success',
-      })
-      refresh()
-    } else {
-      showToast({
-        message: res.message || 'Failed to duplicate API.',
-        type: 'error',
-      })
-    }
-  }).catch((err: any) => {
-    showToast({
-      message: err.message || 'Failed to duplicate API.',
-      type: 'error',
-    })
-  })
-}
-
-// Add this function
-function handleEditClick(row: any) {
-  router.push({ path: '/app/configuration/api/create', query: { id: row.id } })
-
-}
-
-async function handleDeleteConfirm() {
-  try {
-    const res = await useApi().post('delete-api', {
-      api_id: selectedApiIdForDelete.value,
-    })
-    if (res.success) {
-      showToast({
-        message: res.message,
-        type: 'success',
-      })
-      refresh()
-    } else {
-      showToast({
-        message: res.message || 'Failed to delete API.',
-        type: 'error',
-      })
-    }
-  } catch (err: any) {
-    showToast({
-      message: err.message || 'Failed to delete API.',
-      type: 'error',
-    })
-  } finally {
-    showDeleteConfirm.value = false
-    selectedApiIdForDelete.value = null
-  }
-}
-
-function handleDeleteCancel() {
-  showDeleteConfirm.value = false
-  selectedApiIdForDelete.value = null
-}
 </script>
 
 <template>
@@ -146,10 +65,12 @@ function handleDeleteCancel() {
           <Input v-model="searchQuery" placeholder="Search API" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button @click="router.push('/app/configuration/api/create')">
-          <Icon class="!text-white" name="lucide:plus" />
-          Add API
-        </Button>
+        <NuxtLink to="/app/configuration/api/create">
+          <Button>
+            <Icon class="!text-white" name="lucide:plus" />
+            Add API
+          </Button>
+        </NuxtLink>
       </template>
     </BaseHeader>
 
@@ -158,9 +79,7 @@ function handleDeleteCancel() {
       <ConfigurationApiTable
         :list="paginatedList"
         :loading="status === 'pending'"
-        @delete-row="handleDeleteClick"
-        @duplicate-row="handleDuplicateClick"
-        @edit-row="handleEditClick"
+        :refresh="refresh"
       />
     </div>
     <div v-if="totalRows" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
@@ -185,13 +104,5 @@ function handleDeleteCancel() {
         />
       </div>
     </div>
-
-    <ConfirmAction
-      v-model="showDeleteConfirm"
-      :confirm="handleDeleteConfirm"
-      :cancel="handleDeleteCancel"
-      title="Delete API"
-      description="You are about to delete this API. Do you wish to proceed?"
-    />
   </div>
 </template>
