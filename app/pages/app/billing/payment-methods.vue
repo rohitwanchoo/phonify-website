@@ -12,7 +12,7 @@ const cardImage = {
 }
 
 // get payment methods from api
-const { data: paymentMethods, status: paymentMethodsStatus } = await useLazyAsyncData('get-payment-methods', () =>
+const { data: paymentMethods, status: paymentMethodsStatus, refresh: refreshPaymentMethods } = await useLazyAsyncData('get-payment-methods', () =>
   useApi().get('/stripe/get-customer-payment-method'), {
   transform: res => res.data[0].data,
 })
@@ -21,7 +21,7 @@ const { data: paymentMethods, status: paymentMethodsStatus } = await useLazyAsyn
 <template>
   <BaseHeader title="Payment Methods / Cards">
     <template #actions>
-      <BillingPaymentMethodsAdd />
+      <BillingPaymentMethodsAdd @complete="refreshPaymentMethods" />
     </template>
   </BaseHeader>
   <div class="mt-2 space-y-3">
@@ -32,6 +32,7 @@ const { data: paymentMethods, status: paymentMethodsStatus } = await useLazyAsyn
       <BillingPaymentMethodsCard
         :data="card"
         :type="cardImage[card?.card?.brand as keyof typeof cardImage]"
+        @complete="refreshPaymentMethods"
       />
     </div>
   </div>

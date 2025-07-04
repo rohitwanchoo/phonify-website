@@ -2,10 +2,10 @@
 import moment from 'moment'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import ConfigurationApiTable from '@/components/configuration/api/table/index.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import ConfigurationApiTable from '@/components/configuration/api/table/index.vue'
 
 // Dummy data for testing
 const dummyLeads = [
