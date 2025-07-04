@@ -1,3 +1,4 @@
 <template>
-    hello recharge
+  <BaseHeader title="Recharge" />
+  <BillingRechargeDetails />
 </template>
