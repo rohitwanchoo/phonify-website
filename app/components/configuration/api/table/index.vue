@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ConfigurationAPIActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
+import ConfigurationApiActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
@@ -146,7 +146,7 @@ const columns = [
         h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
         h('span', { class: 'text-xs font-medium' }, 'Edit'),
       ]),
-      h(ConfigurationAPIActionDropdown, {
+      h(ConfigurationApiActionDropdown, {
         onDuplicate: () => emits('duplicate-row', row.original),
         onDelete: () => emits('delete-row', row.original),
       }),

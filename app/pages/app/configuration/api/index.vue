@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import ConfigurationAPITable from '@/components/configuration/api/table/index.vue'
+import ConfigurationApiTable from '@/components/configuration/api/table/index.vue'
 
 // Dummy data for testing
 const dummyLeads = [
@@ -151,7 +151,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
 
     <!-- TABLE -->
     <div>
-      <ConfigurationAPITable
+      <ConfigurationApiTable
         :list="paginatedList"
         :meta="meta"
         :loading="false"
