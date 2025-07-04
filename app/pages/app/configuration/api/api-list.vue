@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import ConfigurationApiInformation from '@/components/configuration/API/Information.vue'
-import ConfigurationApiParameters from '@/components/configuration/API/Parameters.vue'
+import ConfigurationApiInformation from '@/components/configuration/api/Information.vue'
+import ConfigurationApiParameters from '@/components/configuration/api/Parameters.vue'
 import { Button } from '@/components/ui/button'
 
 const route = useRoute()
