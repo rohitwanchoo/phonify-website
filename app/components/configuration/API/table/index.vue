@@ -2,10 +2,11 @@
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { h, ref } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ConfigurationApiActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import ConfirmAction from '@/components/ConfirmAction.vue'
+import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -31,6 +32,36 @@ const showDeleteConfirm = ref(false)
 const selectedApiIdForDelete = ref<number | null>(null)
 const selectedApiIdForDuplicate = ref<number | null>(null)
 
+// Pagination state
+const pageStart = ref(0)
+const limit = ref(10)
+
+// Paginated list
+const paginatedList = computed(() => {
+  const start = pageStart.value
+  const end = start + limit.value
+  return props.list.slice(start, end)
+})
+
+// Pagination metadata
+const totalRows = computed(() => props.list.length)
+const currentPage = computed(() => Math.floor(pageStart.value / limit.value) + 1)
+const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
+
+function changePage(page: number) {
+  pageStart.value = Number((page - 1) * limit.value)
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  pageStart.value = 0
+}
+
+watch(() => props.list, () => {
+  pageStart.value = 0
+})
+
+// Action handlers
 function handleEditClick(row: any) {
   router.push({ path: '/app/configuration/api/create', query: { id: row.id } })
 }
@@ -239,7 +270,7 @@ const columns = [
 ]
 
 const table = useVueTable({
-  get data() { return props.list || [] },
+  get data() { return paginatedList.value || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -288,6 +319,29 @@ const table = useVueTable({
           </TableRow>
         </TableBody>
       </Table>
+    </div>
+
+    <div v-if="totalRows" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+      <div class="flex-1 text-xs text-primary">
+        <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+          Showing {{ currentPage }} to
+          <span>
+            <select v-model="limit" class="border rounded px-2 py-1 text-xs" @change="changeLimit(Number($event.target.value))">
+              <option v-for="n in [10, 15, 20, 50]" :key="n" :value="n">{{ n }}</option>
+            </select>
+          </span>
+          of {{ totalRows }} entries
+        </div>
+      </div>
+      <div class="space-x-2">
+        <TableServerPagination
+          :total-items="Number(totalRows)"
+          :current-page="Number(currentPage)"
+          :items-per-page="Number(limit)"
+          :last-page="Number(lastPage)"
+          @page-change="changePage"
+        />
+      </div>
     </div>
 
     <ConfirmAction
