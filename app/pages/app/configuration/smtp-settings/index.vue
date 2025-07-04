@@ -2,7 +2,7 @@
 import moment from 'moment'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import ConfigurationSmtpSettingsTable from '@/components/configuration/smtp-settings/Table/index.vue'
+import ConfigurationSmtpSettingsTable from '@/components/configuration/smtp-settings/table/index.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
