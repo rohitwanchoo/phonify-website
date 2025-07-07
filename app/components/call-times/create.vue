@@ -50,6 +50,18 @@ const selectedDays = ref({
   saturday: false,
 })
 
+function resetSelectedDays() {
+  selectedDays.value = {
+    sunday: false,
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
+    saturday: false,
+  }
+}
+
 const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'required').max(50),
   description: z.string().min(1, 'required').max(100),
@@ -101,7 +113,7 @@ const initialValues = ref({
   ],
 })
 
-const { handleSubmit, validate, resetForm, values } = useForm({
+const { handleSubmit, validate, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: initialValues.value,
 })
@@ -154,7 +166,7 @@ const { data: departmentList } = await useLazyAsyncData('department-list-call-ti
 
 <template>
   <!-- reset form when dialog close -->
-  <Dialog v-model:open="open" @update:open="(val) => { if (val) resetForm() }">
+  <Dialog v-model:open="open" @update:open="(val) => { if (!val) { resetForm(); resetSelectedDays(); } }">
     <DialogTrigger as-child>
       <slot>
         <Button class="">
