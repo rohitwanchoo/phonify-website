@@ -122,10 +122,10 @@ const open = ref(false)
 const onSubmit = handleSubmit(async (values) => {
   try {
     const filteredWeeks = values.weeks.filter(
-      w => w.start && w.stop, // or use: w.start !== '' && w.stop !== ''
+      w => w.start && w.stop,
     )
     const response = await useApi().post('/save-call-timings', {
-      data: { name: values.title, description: values.description, department: values.department, day: filteredWeeks.map(d => d.day), from: filteredWeeks.map(f => toFullTime(f.start)), to: filteredWeeks.map(t => toFullTime(t.stop)), dept_id: 1 },
+      data: { name: values.title, description: values.description, dept_id: values.department, day: filteredWeeks.map(d => d.day), from: filteredWeeks.map(f => toFullTime(f.start)), to: filteredWeeks.map(t => toFullTime(t.stop)) },
     })
     resetForm()
     showToast({
