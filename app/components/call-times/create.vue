@@ -142,8 +142,10 @@ const open = defineModel('open', {
 })
 
 const idEdit = computed(() => props.data?.id || 0)
+const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+  loading.value = true
   try {
     const filteredWeeks = values.weeks.filter(
       w => w.start && w.stop,
@@ -162,6 +164,7 @@ const onSubmit = handleSubmit(async (values) => {
     const response = await useApi().post('/save-call-timings', {
       data,
     })
+    loading.value = false
     resetForm()
     showToast({
       message: response.message || 'Call time created',
@@ -357,8 +360,8 @@ function onModelOpen(val: boolean) {
                 Close
               </Button>
             </DialogClose>
-            <Button for="form" class="h-11 w-full sm:w-1/2" type="submit" @click="onSubmit">
-              <Icon name="material-symbols:save" size="18" />
+            <Button for="form" :disabled="loading" class="h-11 w-full sm:w-1/2" type="submit" @click="onSubmit">
+              <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save' " size="18" />
               Save
             </Button>
           </DialogFooter>
