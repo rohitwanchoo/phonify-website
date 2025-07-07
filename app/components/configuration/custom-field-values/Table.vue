@@ -2,7 +2,7 @@
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
-import { h, ref } from 'vue'
+import { h, ref, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import {
@@ -14,85 +14,27 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
-const mockData = [
-  {
-    id: 1,
-    title: 'Facebook',
-    titleLink: 'http://facebook.com/admin/dashboard',
-    status: 'active',
+const props = defineProps<{
+  list?: any
+  loading?: boolean
+  refresh: () => void
+}>()
+watch(
+  () => props.list,
+  (newVal) => {
+    if (newVal && (Array.isArray(newVal) ? newVal.length : newVal?.data?.length)) {
+      console.log('Table.vue props.list changed:', newVal)
+    }
   },
-  {
-    id: 2,
-    title: 'Affiliate Link',
-    titleLink: 'http://affiliate.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 3,
-    title: 'Twitter',
-    titleLink: 'http://twitter.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 4,
-    title: 'LinkedIn',
-    titleLink: 'http://linkedin.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 5,
-    title: 'Instagram',
-    titleLink: 'http://instagram.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 6,
-    title: 'Google',
-    titleLink: 'http://google.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 7,
-    title: 'YouTube',
-    titleLink: 'http://youtube.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 8,
-    title: 'Amazon',
-    titleLink: 'http://amazon.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 9,
-    title: 'Netflix',
-    titleLink: 'http://netflix.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 10,
-    title: 'Spotify',
-    titleLink: 'http://spotify.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 11,
-    title: 'Reddit',
-    titleLink: 'http://reddit.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 12,
-    title: 'Discord',
-    titleLink: 'http://discord.com/admin/dashboard',
-    status: 'inactive',
-  },
-]
+  { immediate: true },
+)
 
 const columnHelper = createColumnHelper<any>()
 const editDialogOpen = ref(false)
 const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
+const showDeleteConfirm = ref(false)
+const selectedRowForDelete = ref<any>(null)
 
 function openEditDialog(row: any) {
   editRow.value = row.original
@@ -108,18 +50,20 @@ function closeDropdown() {
 }
 
 function handleDelete(row: any) {
-  // Placeholder for delete logic
+  selectedRowForDelete.value = row.original
+  showDeleteConfirm.value = true
   closeDropdown()
 }
 
 const sorting = ref([])
 
 const columns = [
-  columnHelper.accessor('id', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
+  columnHelper.display({
+    id: 'siNo',
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Sl. No'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('title', {
+  columnHelper.accessor('title_match', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Title',
@@ -129,10 +73,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title_match),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('titleLink', {
+  columnHelper.accessor('title_links', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Title Links',
@@ -142,10 +86,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.titleLink),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title_links),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('is_deleted', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Status',
@@ -156,10 +100,10 @@ const columns = [
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
     cell: ({ row }) => h('div', {
-      class: `inline-flex items-center w-22 justify-center rounded-full px-3 py-1 text-sm flex justify-center items-center  text-white ${
-        row.original.status === 'active' ? 'bg-green-600' : 'bg-red-600'
+      class: `inline-flex items-center w-22 justify-center rounded-full px-3 py-1 text-sm flex justify-center items-center text-white ${
+        row.original.is_deleted === 0 ? 'bg-green-600' : 'bg-red-600'
       }`,
-    }, row.original.status === 'active' ? 'Active' : 'Inactive'),
+    }, row.original.is_deleted === 0 ? 'Active' : 'Inactive'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.display({
@@ -210,7 +154,7 @@ const columns = [
 ]
 
 const table = useVueTable({
-  get data() { return mockData },
+  get data() { return props.list },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -239,6 +183,27 @@ const loading = ref(false)
 function handlePageChange(page: number) {
   meta.value.current_page = page
 }
+
+async function handleDeleteConfirm() {
+  if (!selectedRowForDelete.value)
+    return
+  const id = selectedRowForDelete.value.id // Use the id from the selected row
+  const res = await useLazyAsyncData('field-label-delete', async () => {
+    const response = await useApi().get(`/delete-custom-field-value/${id}`, {})
+    return response
+  })
+  showToast({
+    message: res.data.value?.message || (res.data.value?.success ? 'Deleted successfully.' : 'Failed to delete.'),
+    type: res.data.value?.success ? 'success' : 'error',
+  })
+  if (res.data.value?.success) {
+    if (typeof props.refresh === 'function') {
+      props.refresh()
+    }
+  }
+  showDeleteConfirm.value = false
+  selectedRowForDelete.value = null
+}
 </script>
 
 <template>
@@ -256,7 +221,19 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="props.loading">
+          <TableCell :colspan="columns.length" class="px-3 py-4">
+            <div class="space-y-2">
+              <BaseSkelton
+                v-for="i in 10"
+                :key="i"
+                class="h-8 w-full"
+                rounded="rounded-md"
+              />
+            </div>
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-center">
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
@@ -305,4 +282,11 @@ function handlePageChange(page: number) {
       />
     </div>
   </div>
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="handleDeleteConfirm"
+    :cancel="() => { showDeleteConfirm.value = false; selectedRowForDelete.value = null }"
+    title="Delete Custom Field Value"
+    description="You are about to delete this custom field value. Do you wish to proceed?"
+  />
 </template>

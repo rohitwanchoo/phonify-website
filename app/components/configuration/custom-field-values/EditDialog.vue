@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
+import { computed, watch } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,20 +27,27 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  refresh: {
+    type: Function,
+    required: true,
+  },
 })
 
 const emits = defineEmits(['update:open'])
 
-// Field label options
-const fieldLabelOptions = [
-  { label: 'Facebook', value: 'Facebook' },
-  { label: 'Twitter', value: 'Twitter' },
-  { label: 'LinkedIn', value: 'LinkedIn' },
-  { label: 'Instagram', value: 'Instagram' },
-  { label: 'Google', value: 'Google' },
-  { label: 'YouTube', value: 'YouTube' },
-  { label: 'Affiliate Link', value: 'Affiliate Link' },
-]
+// Fetch field label options from API
+const { data: fieldLabelList } = await useLazyAsyncData('field-label-list', async () => {
+  const response = await useApi().get('/custom-field-labels', {})
+  return response
+})
+
+// Map API data to dropdown options
+const fieldLabelOptions = computed(() =>
+  ((fieldLabelList.value?.data || []) as any[]).map((item: any) => ({
+    label: item.title,
+    value: item.title,
+  })),
+)
 
 // Form validation schema
 const formSchema = toTypedSchema(
@@ -53,18 +61,42 @@ const { handleSubmit, resetForm, isSubmitting, setFieldValue } = useForm({
   validationSchema: formSchema,
 })
 
-// Watch for rowData changes and set form values
+// Pre-fill form when rowData changes
 watch(() => props.rowData, (newVal) => {
-  if (newVal) {
-    setFieldValue('fieldLabel', newVal.title)
-    setFieldValue('link', newVal.titleLink)
+  if (newVal?.id) {
+    setFieldValue('fieldLabel', newVal.title_match)
+    setFieldValue('link', newVal.title_links)
   }
 }, { immediate: true })
 
-const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted:', values)
-  // Here you would typically update the row data
-  emits('update:open', false)
+// Submit handler for editing
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    const res = await useLazyAsyncData('custom-field-edit', async () => {
+      return await useApi().post(`/custom-field-value/${props.rowData.id}`, {
+        title_match: values.fieldLabel,
+        title_links: values.link,
+        // Include any other required fields from your API
+      })
+    })
+
+    showToast({
+      message: res.data.value?.message
+        || (res.data.value?.success ? 'Updated successfully' : 'Update failed'),
+      type: res.data.value?.success ? 'success' : 'error',
+    })
+
+    if (res.data.value?.success) {
+      emits('update:open', false)
+      props.refresh() // Refresh parent table
+    }
+  }
+  catch (error) {
+    showToast({
+      message: 'An error occurred while updating',
+      type: 'error',
+    })
+  }
 })
 
 function onOpenChange(open: boolean) {
@@ -79,7 +111,7 @@ function onOpenChange(open: boolean) {
   <Dialog :open="open" @update:open="onOpenChange">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Edit Custom Value</DialogTitle>
+        <DialogTitle>Edit Custom Field Value</DialogTitle>
       </DialogHeader>
       <Separator />
 
@@ -87,11 +119,11 @@ function onOpenChange(open: boolean) {
         <!-- Field Label Dropdown -->
         <FormField v-slot="{ componentField }" name="fieldLabel">
           <FormItem>
-            <FormLabel>Custom Field Label</FormLabel>
+            <FormLabel>Field Label</FormLabel>
             <Select v-bind="componentField">
               <FormControl>
                 <SelectTrigger class="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Select field label" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -111,11 +143,11 @@ function onOpenChange(open: boolean) {
         <!-- Link Input -->
         <FormField v-slot="{ componentField }" name="link">
           <FormItem>
-            <FormLabel>Links</FormLabel>
+            <FormLabel>Link URL</FormLabel>
             <FormControl>
               <Input
                 type="text"
-                placeholder="Enter URL"
+                placeholder="https://example.com"
                 v-bind="componentField"
               />
             </FormControl>
@@ -127,12 +159,12 @@ function onOpenChange(open: boolean) {
           <Button variant="outline" class="flex-1 h-11" as-child>
             <DialogClose @click="resetForm">
               <Icon name="material-symbols:close" size="20" />
-              Close
+              Cancel
             </DialogClose>
           </Button>
           <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting">
             <Icon name="material-symbols:save" size="20" />
-            Save
+            Update
           </Button>
         </DialogFooter>
       </form>
