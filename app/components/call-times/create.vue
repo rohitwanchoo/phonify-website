@@ -38,6 +38,13 @@ import {
 import { Separator } from '@/components/ui/separator'
 import Textarea from '../ui/textarea/Textarea.vue'
 
+type Days = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'default'
+
+interface Props {
+  data?: any
+}
+const props = defineProps<Props>()
+
 const emits = defineEmits(['complete'])
 
 const selectedDays = ref({
@@ -113,7 +120,7 @@ const initialValues = ref({
   ],
 })
 
-const { handleSubmit, validate, resetForm } = useForm({
+const { handleSubmit, validate, resetForm, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: initialValues.value,
 })
@@ -129,15 +136,31 @@ function toggleDay(day: string) {
 function toFullTime(t: string) {
   return moment(t, 'HH:mm').format('HH:mm:ss')
 }
-const open = ref(false)
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
+
+const idEdit = computed(() => props.data?.id || 0)
 
 const onSubmit = handleSubmit(async (values) => {
   try {
     const filteredWeeks = values.weeks.filter(
       w => w.start && w.stop,
     )
+    const data = {
+      name: values.title,
+      description: values.description,
+      dept_id: values.department,
+      day: filteredWeeks.map(d => d.day),
+      from: filteredWeeks.map(f => toFullTime(f.start)),
+      to: filteredWeeks.map(t => toFullTime(t.stop)),
+    }
+    if (idEdit.value) {
+      (data as any).id = props.data.id
+    }
     const response = await useApi().post('/save-call-timings', {
-      data: { name: values.title, description: values.description, dept_id: values.department, day: filteredWeeks.map(d => d.day), from: filteredWeeks.map(f => toFullTime(f.start)), to: filteredWeeks.map(t => toFullTime(t.stop)) },
+      data,
     })
     resetForm()
     showToast({
@@ -162,11 +185,40 @@ const { data: departmentList } = await useLazyAsyncData('department-list-call-ti
     return res.data
   },
 })
+
+watch(() => open.value, (val) => {
+  if (val && idEdit.value) {
+    setFieldValue('title', props.data.name)
+    setFieldValue('department', props.data.department_id)
+    setFieldValue('description', props.data.description)
+    if (props.data.day) {
+      const dayKey = props.data.day.toLowerCase() as Days
+      if (dayKey in selectedDays.value) {
+        selectedDays.value[dayKey] = true
+
+        // Find the corresponding week entry and update it
+        const weekIndex = initialValues.value.weeks.findIndex(w => w.day === dayKey)
+        if (weekIndex !== -1) {
+          setFieldValue(`weeks.${weekIndex}.start` as const, props.data.from_time.substring(0, 5)) // Remove seconds if present
+          setFieldValue(`weeks.${weekIndex}.stop` as const, props.data.to_time.substring(0, 5))
+        }
+      }
+    }
+    // setFieldValue('weeks', props.data.weeks.map((w: any) => ({ day: w.day, start: w.from, stop: w.to })))
+  }
+})
+
+function onModelOpen(val: boolean) {
+  if (!val) {
+    resetForm()
+    resetSelectedDays()
+  }
+}
 </script>
 
 <template>
   <!-- reset form when dialog close -->
-  <Dialog v-model:open="open" @update:open="(val) => { if (!val) { resetForm(); resetSelectedDays(); } }">
+  <Dialog v-model:open="open" @update:open="onModelOpen">
     <DialogTrigger as-child>
       <slot>
         <Button class="">
@@ -178,7 +230,7 @@ const { data: departmentList } = await useLazyAsyncData('department-list-call-ti
     <DialogContent class="sm:max-w-[715px] max-h-screen overflow-y-auto [&>button]:hidden">
       <DialogHeader class="gap-y-[17px]">
         <DialogTitle class="text-[16px] font-medium flex items-center justify-between">
-          Create Call Time
+          {{ idEdit ? 'Edit Call Time' : 'Create Call Time' }}
           <DialogClose class="cursor-pointer">
             <Icon name="mdi:close" size="20" />
           </DialogClose>
@@ -228,7 +280,7 @@ const { data: departmentList } = await useLazyAsyncData('department-list-call-ti
               </FormLabel>
               <FormControl>
                 <Select :default-value="10" v-bind="componentField">
-                  <SelectTrigger :class="errorMessage ? 'border-red-600' : ''" class="w-1/2 gap-x-1 px-2">
+                  <SelectTrigger :class="errorMessage ? 'border-red-600' : ''" class="w-1/2 gap-x-1 px-2 h-11">
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
                   <SelectContent>

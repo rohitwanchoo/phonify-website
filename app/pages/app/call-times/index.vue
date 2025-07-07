@@ -59,6 +59,18 @@ const filteredCallTimes = computed(() => {
     )
   })
 })
+
+const open = ref(false)
+const editRowData = ref({})
+function onEdit(original: any) {
+  editRowData.value = original
+  open.value = true
+}
+watch(() => open.value, (val) => {
+  if (!val) {
+    editRowData.value = {}
+  }
+})
 </script>
 
 <template>
@@ -71,14 +83,14 @@ const filteredCallTimes = computed(() => {
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
         <div>
-          <CallTimesCreate @complete="refresh" />
+          <CallTimesCreate v-model:open="open" :data="editRowData" @complete="refresh" />
         </div>
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :limit="limit" :total-rows="filteredCallTimes.length" :start="pageStart" :list="filteredCallTimes || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+      <CallTimesTable :limit="limit" :total-rows="filteredCallTimes.length" :start="pageStart" :list="filteredCallTimes || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" />
     </div>
   </div>
 </template>
