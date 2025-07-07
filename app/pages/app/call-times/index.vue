@@ -47,18 +47,18 @@ function changeLimit(val: number) {
 }
 
 const filteredCallTimes = computed(() => {
-  if (!callTimingList.value?.data) return []
+  if (!callTimingList.value?.data)
+    return []
 
-  return callTimingList.value.data.filter((item: { name: string; day: string; description: string }) => {
+  return callTimingList.value.data.filter((item: { name: string, day: string, description: string }) => {
     const query = searchQuery.value.toLowerCase()
     return (
-      item.name?.toLowerCase().includes(query) ||
-      item.day?.toLowerCase().includes(query) ||
-      item.description?.toLowerCase().includes(query)
+      item.name?.toLowerCase().includes(query)
+      || item.day?.toLowerCase().includes(query)
+      || item.description?.toLowerCase().includes(query)
     )
   })
 })
-
 </script>
 
 <template>
@@ -71,7 +71,7 @@ const filteredCallTimes = computed(() => {
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
         <div>
-          <CallTimesCreate />
+          <CallTimesCreate @complete="refresh" />
         </div>
       </template>
     </BaseHeader>
