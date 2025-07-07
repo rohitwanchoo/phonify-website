@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
+import moment from 'moment'
 import { FieldArray, useForm } from 'vee-validate'
 import { ref, watch } from 'vue'
 import * as z from 'zod'
@@ -8,7 +9,16 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
 import { Separator } from '@/components/ui/separator'
+import Textarea from '@/components/ui/textarea/Textarea.vue'
 
 type Days = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'default'
 
@@ -138,14 +148,22 @@ function toggleDay(day: Days) {
   }
 }
 
+function toFullTime(t: string) {
+  return moment(t, 'HH:mm').format('HH:mm:ss')
+}
+const departmentList = useNuxtData('department-list-call-times')
+
 const onSubmit = handleSubmit(async (values) => {
+  const filteredWeeks = values.weeks.filter(
+    w => w.start && w.stop,
+  )
   try {
     const payload = {
       id: props?.editData?.id,
       name: props?.editData?.name,
       day: values.weeks.map(d => d.day),
-      from: values.weeks.map(f => f.start),
-      to: values.weeks.map(t => t.stop),
+      from: filteredWeeks.map(f => toFullTime(f.start)),
+      to: filteredWeeks.map(t => toFullTime(t.stop)),
     }
 
     const { data, status } = await useLazyAsyncData(() =>
@@ -192,6 +210,45 @@ const onSubmit = handleSubmit(async (values) => {
               </FormLabel>
               <FormControl>
                 <Input placeholder="Enter call time name" v-bind="componentField" class="h-11" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField
+            v-slot="{ componentField }"
+            name="description"
+          >
+            <FormItem>
+              <FormLabel class="text-xs font-normal">
+                Description
+              </FormLabel>
+              <FormControl>
+                <Textarea placeholder="Enter Description" v-bind="componentField" class="h-11" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField
+            v-slot="{ componentField, errorMessage }"
+            name="department"
+          >
+            <FormItem>
+              <FormLabel class="text-xs font-normal">
+                Department
+              </FormLabel>
+              <FormControl>
+                <Select :default-value="10" v-bind="componentField">
+                  <SelectTrigger :class="errorMessage ? 'border-red-600' : ''" class="w-1/2 gap-x-1 px-2 h-11">
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="item in departmentList.data.value" :key="item.id" :value="item.id">
+                      {{ item.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
