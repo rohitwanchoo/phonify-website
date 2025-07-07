@@ -206,7 +206,7 @@ const { data: customCallerIdList, refresh: refreshCustomCallerIdList, status: cu
     const data = res.data || []
     return data.map((item: { cli: string, cnam: string, forward_number: string }) => ({
       ...item,
-      title: `${item.cli}${item?.cnam ? ` - ${item.cnam}` : ''}${item.forward_number ? ` - ${item.forward_number}` : ''}`,
+      title: `${formatNumber(item?.cli)}${item?.cnam ? ` - ${item.cnam}` : ''}${item.forward_number ? ` - ${item.forward_number}` : ''}`,
     }))
   },
   immediate: false,
@@ -567,7 +567,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     // TODO: need info about below
     is_deleted: 0,
-   
+
   }
   if (payload.call_time) {
     // Format times as HH:mm
