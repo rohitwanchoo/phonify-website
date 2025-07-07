@@ -60,7 +60,7 @@ const { data: chartData, refresh: refreshChartData } = await useLazyAsyncData('d
 })
 
 function getCurrentWeekRange() {
-  const startOfWeek = moment().startOf('week').add(1, 'day') // Monday
+  const startOfWeek = moment().subtract(6, 'days') // Get date from 7 days ago
   const days: { startTime: string, endTime: string }[] = []
 
   for (let i = 0; i < 7; i++) {
