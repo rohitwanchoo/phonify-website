@@ -51,7 +51,7 @@ function isActive(url: string) {
 
 <template>
   <SidebarGroup>
-    <div v-for="heading in Object.keys(items)">
+    <div v-for="heading in Object.keys(items)" :key="heading">
       <SidebarGroupLabel class="uppercase">
         {{ heading }}
       </SidebarGroupLabel>
@@ -61,7 +61,7 @@ function isActive(url: string) {
           <Collapsible
             v-if="item.items"
             as-child
-            :default-open="item.items.some(sub => isActive(sub.url))"
+            :default-open="item.items.some((sub: MenuItem) => isActive(sub.url))"
             class="group/collapsible"
           >
             <SidebarMenuItem>
