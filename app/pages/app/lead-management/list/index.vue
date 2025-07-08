@@ -5,11 +5,10 @@ const pageStart = ref(0)
 const limit = ref(10)
 const searchQuery = ref('')
 
-const { data: leadList, status, refresh } = await useAsyncData('lead-management-list', () =>
+const { data: leadList, status, refresh } = await useLazyAsyncData('lead-management-list', () =>
   useApi().post('/list'), {
-    transform: res => res,
-  }
-)
+  transform: res => res,
+})
 
 function changePage(page: number) {
   pageStart.value = Number((page - 1) * limit.value)
@@ -58,6 +57,6 @@ watch(searchQuery, () => {
   </BaseHeader>
   <!-- TABLE -->
   <div>
-    <LeadManagementListsTable :limit="limit" :total-rows="filteredList.length" :start="pageStart" :list="paginatedList || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
+    <LeadManagementListsTable :loading="status === 'pending'" :limit="limit" :total-rows="filteredList.length" :start="pageStart" :list="paginatedList || []" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
   </div>
 </template>
