@@ -14,10 +14,16 @@ const props = defineProps<{
     day?: string
     from_time?: string
     to_time?: string
+    description?: string
+    department_id?: number
   }
 }>()
 
 const open = defineModel<boolean>()
+const departments = useNuxtData('department-list-call-times')
+const department = computed(() => {
+  return departments.data.value.find((item: any) => item.id === props.schedule.department_id)
+})
 </script>
 
 <template>
@@ -51,6 +57,18 @@ const open = defineModel<boolean>()
               <div class="text-[16px] font-medium text-[#16A34A]">
                 {{ schedule?.status || 'Inactive' }}
               </div>
+            </div>
+            <div>
+              <span class="text-sm font-normal">Department</span>
+              <div class="text-[16px] font-medium">
+                {{ department.name }}
+              </div>
+            </div>
+          </div>
+          <div>
+            <span class="text-sm font-normal">Description</span>
+            <div class="text-[16px] font-medium">
+              {{ schedule.description }}
             </div>
           </div>
 

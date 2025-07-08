@@ -77,7 +77,7 @@ function clearFilters() {
   </Button>
 
   <Sheet v-model:open="open">
-    <SheetContent class="md:min-w-[483px] flex flex-col h-full">
+    <SheetContent class="w-full md:min-w-[483px] flex flex-col h-full">
       <SheetHeader class="bg-[#162D3A]">
         <SheetTitle class="text-white">
           Filter Ip Approval List

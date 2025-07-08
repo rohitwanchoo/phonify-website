@@ -47,18 +47,30 @@ function changeLimit(val: number) {
 }
 
 const filteredCallTimes = computed(() => {
-  if (!callTimingList.value?.data) return []
+  if (!callTimingList.value?.data)
+    return []
 
-  return callTimingList.value.data.filter((item: { name: string; day: string; description: string }) => {
+  return callTimingList.value.data.filter((item: { name: string, day: string, description: string }) => {
     const query = searchQuery.value.toLowerCase()
     return (
-      item.name?.toLowerCase().includes(query) ||
-      item.day?.toLowerCase().includes(query) ||
-      item.description?.toLowerCase().includes(query)
+      item.name?.toLowerCase().includes(query)
+      || item.day?.toLowerCase().includes(query)
+      || item.description?.toLowerCase().includes(query)
     )
   })
 })
 
+const open = ref(false)
+const editRowData = ref({})
+function onEdit(original: any) {
+  editRowData.value = original
+  open.value = true
+}
+watch(() => open.value, (val) => {
+  if (!val) {
+    editRowData.value = {}
+  }
+})
 </script>
 
 <template>
@@ -71,14 +83,14 @@ const filteredCallTimes = computed(() => {
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
         <div>
-          <CallTimesCreate />
+          <CallTimesCreate v-model:open="open" :data="editRowData" @complete="refresh" />
         </div>
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :limit="limit" :total-rows="filteredCallTimes.length" :start="pageStart" :list="filteredCallTimes || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+      <CallTimesTable :limit="limit" :total-rows="filteredCallTimes.length" :start="pageStart" :list="filteredCallTimes || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" />
     </div>
   </div>
 </template>

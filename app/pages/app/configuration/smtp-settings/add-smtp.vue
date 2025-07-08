@@ -109,172 +109,174 @@ const breadcrumbs = ref([
   <Verified v-model:open="showVerifiedDialog" @close="showVerifiedDialog = false" />
   <Failed v-model:open="showFailedDialog" @close="showFailedDialog = false" />
 
-  <form class="w-full  relative h-[calc(100vh-190px)] border border-gray-200 rounded-xl py-6 flex flex-col gap-4 pb-4 overflow-y-auto" @submit.prevent="onSubmit">
-    <div class="flex items-center justify-between px-6">
-      <h2 class="text-lg font-semibold text-primary">
-        SMTP Details
-      </h2>
+  <form class="w-full relative h-[calc(100vh-190px)] border border-gray-200 rounded-xl flex flex-col overflow-hidden" @submit.prevent="onSubmit">
+    <!-- Scrollable area: includes heading, separator, and fields -->
+    <div class="overflow-y-auto flex-1 pb-40">
+      <div class="flex items-center justify-between px-6 pt-6">
+        <h2 class="text-lg font-semibold text-primary">
+          SMTP Details
+        </h2>
+      </div>
+      <Separator class="my-2" />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 px-6 pt-2">
+        <!-- DRIVER NAME -->
+        <FormField v-slot="{ componentField }" name="mail_driver">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Driver Name
+            </FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger class="w-full !h-11">
+                  <SelectValue placeholder="Select Driver Name" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem v-for="item in driverOptions" :key="item.value" :value="item.value">
+                  {{ item.title }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- HOST NAME -->
+        <FormField v-slot="{ componentField }" name="mail_host">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Host Name
+            </FormLabel>
+            <FormControl>
+              <Input class="py-5" placeholder="Enter Host Name" v-bind="componentField" />
+            </FormControl>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- USERNAME -->
+        <FormField v-slot="{ componentField }" name="mail_username">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Username
+            </FormLabel>
+            <FormControl>
+              <Input class="py-5" placeholder="Enter Username" v-bind="componentField" />
+            </FormControl>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- PASSWORD -->
+        <FormField v-slot="{ componentField }" name="mail_password">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Password
+            </FormLabel>
+            <FormControl>
+              <Input class="py-5" type="password" placeholder="Enter Password" v-bind="componentField" />
+            </FormControl>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- ENCRYPTION -->
+        <FormField v-slot="{ componentField }" name="mail_encryption">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Encryption Type
+            </FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger class="w-full !h-11">
+                  <SelectValue placeholder="Select Encryption Type" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem v-for="enc in encryptionOptions" :key="enc" :value="enc">
+                  {{ enc }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- PORT -->
+        <FormField v-slot="{ componentField }" name="mail_port">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Port No
+            </FormLabel>
+            <FormControl>
+              <Input class="py-5" placeholder="Enter Port No" v-bind="componentField" />
+            </FormControl>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- FOR SENDING -->
+        <FormField v-slot="{ componentField }" name="sender_type">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              For Sending
+            </FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger class="w-full !h-11">
+                  <SelectValue placeholder="Select Email Type" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem v-for="type in senderType" :key="type.value" :value="type.value">
+                  {{ type.title }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- SENDER EMAIL -->
+        <FormField v-slot="{ componentField }" name="from_email">
+          <FormItem class="flex flex-col gap-1">
+            <FormLabel class="text-sm font-medium text-primary">
+              Sender Email
+            </FormLabel>
+            <FormControl>
+              <Input class="py-5" placeholder="Enter Email" v-bind="componentField" />
+            </FormControl>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- SENDER NAME -->
+        <FormField v-slot="{ componentField }" name="senderName">
+          <FormItem class="flex flex-col gap-1 mb-8">
+            <FormLabel class="text-sm font-medium text-primary">
+              Sender Name
+            </FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger class="w-full !h-11">
+                  <SelectValue placeholder="Select Sender Name" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem v-for="name in senderNameOptions" :key="name" :value="name">
+                  {{ name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+      </div>
     </div>
 
-    <Separator />
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 px-6 max-h-[calc(100vh-400px)] overflow-y-auto ">
-      <!-- DRIVER NAME -->
-      <FormField v-slot="{ componentField }" name="mail_driver">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Driver Name
-          </FormLabel>
-          <Select v-bind="componentField">
-            <FormControl>
-              <SelectTrigger class="w-full !h-11">
-                <SelectValue placeholder="Select Driver Name" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem v-for="item in driverOptions" :key="item.value" :value="item.value">
-                {{ item.title }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- HOST NAME -->
-      <FormField v-slot="{ componentField }" name="mail_host">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Host Name
-          </FormLabel>
-          <FormControl>
-            <Input class="py-5" placeholder="Enter Host Name" v-bind="componentField" />
-          </FormControl>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- USERNAME -->
-      <FormField v-slot="{ componentField }" name="mail_username">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Username
-          </FormLabel>
-          <FormControl>
-            <Input class="py-5" placeholder="Enter Username" v-bind="componentField" />
-          </FormControl>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- PASSWORD -->
-      <FormField v-slot="{ componentField }" name="mail_password">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Password
-          </FormLabel>
-          <FormControl>
-            <Input class="py-5" type="password" placeholder="Enter Password" v-bind="componentField" />
-          </FormControl>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- ENCRYPTION -->
-      <FormField v-slot="{ componentField }" name="mail_encryption">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Encryption Type
-          </FormLabel>
-          <Select v-bind="componentField">
-            <FormControl>
-              <SelectTrigger class="w-full !h-11">
-                <SelectValue placeholder="Select Encryption Type" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem v-for="enc in encryptionOptions" :key="enc" :value="enc">
-                {{ enc }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- PORT -->
-      <FormField v-slot="{ componentField }" name="mail_port">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Port No
-          </FormLabel>
-          <FormControl>
-            <Input class="py-5" placeholder="Enter Port No" v-bind="componentField" />
-          </FormControl>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- FOR SENDING -->
-      <FormField v-slot="{ componentField }" name="sender_type">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            For Sending
-          </FormLabel>
-          <Select v-bind="componentField">
-            <FormControl>
-              <SelectTrigger class="w-full !h-11">
-                <SelectValue placeholder="Select Email Type" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem v-for="type in senderType" :key="type.value" :value="type.value">
-                {{ type.title }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- SENDER EMAIL -->
-      <FormField v-slot="{ componentField }" name="from_email">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Sender Email
-          </FormLabel>
-          <FormControl>
-            <Input class="py-5" placeholder="Enter Email" v-bind="componentField" />
-          </FormControl>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-
-      <!-- SENDER NAME -->
-      <FormField v-slot="{ componentField }" name="senderName">
-        <FormItem class="flex flex-col gap-1">
-          <FormLabel class="text-sm font-medium text-primary">
-            Sender Name
-          </FormLabel>
-          <Select v-bind="componentField">
-            <FormControl>
-              <SelectTrigger class="w-full !h-11">
-                <SelectValue placeholder="Select Sender Name" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem v-for="name in senderNameOptions" :key="name" :value="name">
-                {{ name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage class="text-xs text-red-500 mt-1" />
-        </FormItem>
-      </FormField>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class=" absolute rounded-b-xl bottom-0 left-0 w-full grid grid-cols-1 md:grid-cols-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-1px_rgba(0,0,0,0.06)] bg-white border-t border-gray-200 p-7 z-10 gap-4">
+    <!-- Fixed Action Buttons -->
+    <div class="absolute bottom-0 left-0 w-full grid grid-cols-1 md:grid-cols-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-1px_rgba(0,0,0,0.06)] bg-white border-t border-gray-200 p-7 z-10 gap-4">
       <!-- Check Settings Button -->
       <Button
         type="button"

@@ -15,7 +15,7 @@ const loading = computed(() => voiceTemplateStatus.value === 'pending')
   <div>
     <BaseHeader title="Voice Templates">
       <template #actions>
-        <div class="relative">
+        <div class="relative mt-3 md:mt-0">
           <Input placeholder="Search Template" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
