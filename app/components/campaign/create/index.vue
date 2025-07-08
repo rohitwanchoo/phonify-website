@@ -1341,7 +1341,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                       </FormField>
 
                       <AccordionContent class="p-3 border rounded-lg mt-1 ">
-                        <CallTimesCreate>
+                        <CallTimesCreate @complete="callTimingListRefresh()">
                           <Button type="button" class="w-full rounded-[8px]">
                             Create Custom Call Time <Icon name="lucide:plus" />
                           </Button>
@@ -1501,8 +1501,8 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
-                        <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select" />
+                        <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11 truncate">
+                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground truncate" placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
