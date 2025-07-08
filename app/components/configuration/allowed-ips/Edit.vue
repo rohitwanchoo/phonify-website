@@ -5,7 +5,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
 const props = defineProps<{
   open: boolean
@@ -199,7 +199,7 @@ function handleClose() {
 
         <DialogFooter class="flex gap-2 items-center">
           <Button
-            class="w-[50%] h-10"
+            class="w-full md:w-[50%] h-10"
             variant="outline"
             type="button"
             @click="handleClose"
@@ -208,7 +208,7 @@ function handleClose() {
             Close
           </Button>
           <Button
-            class="w-[50%] h-10"
+            class="w-full md:w-[50%] h-10"
             type="submit"
             :loading="loading"
             :disabled="loading"

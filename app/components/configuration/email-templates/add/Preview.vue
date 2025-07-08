@@ -12,12 +12,12 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="w-[480px] bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 inline-flex flex-col justify-start items-start overflow-hidden">
+  <div class="w-full bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 inline-flex flex-col justify-start items-start overflow-hidden">
     <Tabs default-value="desktop" class="w-full gap-0">
       <!-- Header with triggers -->
       <div class="flex items-center justify-between px-5 py-3 bg-white border-b border-zinc-100">
         <div class="text-slate-800 text-base font-medium">
-          Email Preview
+          Template Preview
         </div>
         <TabsList class="flex space-x-1 bg-slate-800/10 rounded-md p-0.5">
           <TabsTrigger
