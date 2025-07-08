@@ -16,12 +16,11 @@ const route = useRoute()
 // get lead detail with ID from params
 const { data: lead, refresh: refreshLead, status: leadStatus } = await useLazyAsyncData(`get-lead-with-id`, () =>
   useApi().get(`/lead/${route.params.id}`), {
-  transform: res => res.data
+  transform: res => res.data,
 })
 </script>
 
 <template>
-  {{ lead }}
   <BaseHeader title="john Doe" :breadcrumbs="breadcrumbs">
     <template #actions>
       <Button class="h-8 md:h-11 px-2 md:px-4 ">
@@ -32,7 +31,7 @@ const { data: lead, refresh: refreshLead, status: leadStatus } = await useLazyAs
   </BaseHeader>
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <div class="lg:col-span-4">
-      <LeadManagementLeadDetails />
+      <LeadManagementLeadDetails :data="lead" />
     </div>
     <div class="lg:col-span-8">
       <LeadManagementLeadLeadTabs />
