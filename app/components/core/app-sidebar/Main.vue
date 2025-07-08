@@ -42,7 +42,17 @@ const data = {
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
     { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
     { title: 'Start Dailing', url: '/app/start-dialing/lead-details', icon: 'icons:start-dialing' },
-    { title: 'Ringless Voicemail', url: '/ringless-voicemail', icon: 'material-symbols:voicemail-2' },
+    { title: 'Ringless Voicemail', url: '/app/ringless-voicemail', icon: 'material-symbols:voicemail-2', items: [
+      { title: 'Campaign', url: '/app/ringless-voicemail/campaign' },
+      { title: 'Lists', url: '/app/ringless-voicemail/lists' },
+      { title: 'Payments', url: '/app/ringless-voicemail/payments' },
+      { title: 'Recharge', url: '/app/ringless-voicemail/recharge' },
+      { title: 'Reports', url: '/app/ringless-voicemail/reports' },
+      { title: 'Balance', url: '/app/ringless-voicemail/balance' },
+      { title: 'Wallet Transactions', url: '/app/ringless-voicemail/wallet-transactions' },
+      { title: 'Voice Template', url: '/app/ringless-voicemail/voice-template' },
+      { title: 'SIP Gateways', url: '/app/ringless-voicemail/sip-gateways' },
+    ] },
     { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
     { title: 'SMS', url: '/sms', icon: 'icons:sms' },
   ],
@@ -62,12 +72,12 @@ const data = {
     { title: 'Call Times', url: '/app/call-times', icon: 'icons:do-not-call' },
   ],
   'Payment & Subscriptions': [
-    { title: 'Billing', url: '/app/billing', icon: 'icons:billing', items: [
-      { title: 'Invoice', url: '/app/billing/invoice' },
-      { title: 'Recharge', url: '/app/billing/recharge' },
-      { title: 'Wallet Transactions', url: '/app/billing/wallet-transactions' },
-      { title: 'Payment Methods', url: '/app/billing/payment-methods' },
-    ] },
+    // { title: 'Billing', url: '/app/billing', icon: 'icons:billing', items: [
+    //   { title: 'Invoice', url: '/app/billing/invoice' },
+    //   { title: 'Recharge', url: '/app/billing/recharge' },
+    //   { title: 'Wallet Transactions', url: '/app/billing/wallet-transactions' },
+    //   { title: 'Payment Methods', url: '/app/billing/payment-methods' },
+    // ] },
     { title: 'Subscriptions', url: '/app/subscriptions', icon: 'icons:subscriptions' },
   ],
   'User & Access Management': [
