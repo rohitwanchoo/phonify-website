@@ -1,0 +1,3 @@
+<template>
+  voice template
+</template>
