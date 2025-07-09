@@ -127,9 +127,9 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex flex-col xl:flex-row gap-6 h-full">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
     <!-- Details Section -->
-    <div class="relative flex-1 bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 flex flex-col overflow-hidden min-h-[400px]">
+    <div class="relative bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <!-- Header -->
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
         <div class="justify-center text-slate-800 mt-1 text-base font-medium">
@@ -140,7 +140,7 @@ const onSubmit = handleSubmit(async (values) => {
       <form class="relative w-full overflow-x-auto flex-1" @submit="onSubmit">
         <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5 pb-28">
           <!-- Template Name and Lead Placeholders Row -->
-          <div class="w-full flex justify-start items-start gap-4">
+          <div class="w-full flex flex-col md:flex-row justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_name" class="flex-1 w-full">
               <FormItem class="w-full flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-xs font-medium">
@@ -180,7 +180,7 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <!-- Sender and Custom Placeholders Row -->
-          <div class="w-full flex justify-start items-start gap-4">
+          <div class="w-full flex flex-col md:flex-row  justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="senderPlaceholder" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-xs font-medium">
@@ -267,6 +267,30 @@ const onSubmit = handleSubmit(async (values) => {
             </FormField>
           </div>
         </div>
+        <!-- Footer with Save Button -->
+        <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
+          <Button
+            v-if="Object.keys(emailTemplate).length > 0"
+            type="button"
+            class="flex-1"
+            :loading="loading"
+            :disabled="loading"
+            @click="$emit('edit', values)"
+          >
+            <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+            Update
+          </Button>
+          <Button
+            v-if="!emailTemplate?.id"
+            type="submit"
+            class="flex-1"
+            :loading="loading"
+            :disabled="loading"
+          >
+            <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+            Save
+          </Button>
+        </div>
       </form>
       <!-- Fixed Save/Update Button at the bottom of details section (outside form) -->
       <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
@@ -295,6 +319,10 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
 
     <div class="overflow-auto">
+      <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
+    </div>
+    <!-- Preview Section -->
+    <div class="w-full max-h-[calc(100vh-190px)]  col-span-1 xl:col-span-4">
       <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
     </div>
   </div>

@@ -83,7 +83,7 @@ const onSubmit = handleSubmit(async (values) => {
     open.value = false
     refreshNuxtData('allowed-ips')
   }
-   catch (error: any) {
+  catch (error: any) {
     handleFieldErrors(error?.data, setFieldError)
     showToast({
       message: `${error?.message}`,
@@ -200,7 +200,7 @@ function openDialog() {
 
           <DialogFooter>
             <Button
-              class="w-[50%] h-10"
+              class="w-full md:w-[50%] h-10"
               variant="outline"
               type="button"
               @click="handleClose"
@@ -209,7 +209,7 @@ function openDialog() {
               Close
             </Button>
             <Button
-              class="w-[50%] h-10"
+              class="w-full md:w-[50%] h-10"
               type="submit"
               :loading="loading"
               :disabled="loading"
