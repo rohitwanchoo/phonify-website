@@ -2,8 +2,8 @@
 import moment from 'moment'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import AddCampaign from '@/components/campaign/marketing-campaign/AddCampaign.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
 // Dummy data for testing
@@ -92,6 +92,7 @@ const meta = {
 const pageStart = ref(0)
 const limit = ref(10)
 const searchQuery = ref('')
+const showAddCampaign = ref(false)
 
 const router = useRouter()
 
@@ -141,10 +142,7 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
           <Input v-model="searchQuery" placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button>
-          <Icon class="!text-white" name="lucide:plus" />
-          Add Campaign
-        </Button>
+        <AddCampaign v-model:open="showAddCampaign" />
       </template>
     </BaseHeader>
 

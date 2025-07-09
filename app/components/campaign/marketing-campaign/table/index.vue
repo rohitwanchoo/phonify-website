@@ -4,7 +4,6 @@ import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@t
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import ConfigurationAPIActionDropdown from '@/components/configuration/api/ActionDropdown.vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -15,6 +14,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Switch } from '~/components/ui/switch'
+import Action from '../ActionDropdown.vue'
+import EditCampaign from '../EditCampaign.vue'
 
 const props = withDefaults(defineProps<{
   list: any[]
@@ -24,9 +25,21 @@ const props = withDefaults(defineProps<{
   loading: false,
 })
 
-const emits = defineEmits(['view-activity', 'edit-row', 'duplicate-row', 'delete-row'])
+const emits = defineEmits([
+  'delete',
+  'edit',
+  'addTextSchedule',
+  'addEmailSchedule',
+])
 
 const router = useRouter()
+
+function handleView(row: any) {
+  router.push({ path: '/app/campaign/marketing-campaign/schedule-list', query: { id: row.original.id } })
+}
+
+const editDialogOpen = ref(false)
+const editRowData = ref<any>(null)
 
 const columnHelper = createColumnHelper<any>()
 
@@ -84,21 +97,23 @@ const columns = [
     header: () => h('div', { class: 'text-center' }, 'Action'),
     cell: ({ row }) => h('div', { class: 'flex items-center justify-center gap-2' }, [
       h(Button, {
-        size: 'icon',
         variant: 'outline',
-        class: 'text-primary h-8 w-15 min-w-0 flex items-center gap-1 px-2',
-        title: 'Edit',
+        class: 'px-2',
         onClick: () => {
-          // Replace this with your actual edit route logic
-          router.push({ path: '', query: { id: row.original.id } })
+          handleView(row)
         },
       }, [
-        h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
-        h('span', { class: 'text-xs font-medium' }, 'Edit'),
+        h(Icon, { name: 'material-symbols:visibility', size: 16 }),
+        h('span', { class: 'text-xs font-normal' }, 'View'),
       ]),
-      h(ConfigurationAPIActionDropdown, {
-        onDuplicate: () => emits('duplicate-row', row.original),
-        onDelete: () => emits('delete-row', row.original),
+      h(Action, {
+        onEdit: () => {
+          editRowData.value = row.original
+          editDialogOpen.value = true
+        },
+        onAddTextSchedule: () => emits('addTextSchedule', row.original),
+        onAddEmailSchedule: () => emits('addEmailSchedule', row.original),
+        onDelete: () => emits('delete', row.original),
       }),
     ]),
   }),
@@ -146,4 +161,5 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
+  <EditCampaign v-model:open="editDialogOpen" :row-data="editRowData" />
 </template>
