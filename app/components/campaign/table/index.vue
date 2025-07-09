@@ -53,30 +53,30 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import Action from './Action.vue' // Track the row ID for the Action menu
+import Action from './Action.vue'
 
-const props = withDefaults(defineProps<Props>(), {
-  list: () => [],
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
 })
 
-const emits = defineEmits(['pageNavigation', 'refresh'])
+// Track the row ID for the Action menu
 
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
-interface Props {
-  list: { [key: string]: any }[]
-  loading?: boolean
-  meta?: Meta
-}
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const sheet = ref(false)
 const selectedCampaign = ref(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
-const actionRowId = ref<number | null>(null)
 
 const {
   isRevealed: showDeleteConfirm,
@@ -301,6 +301,9 @@ const table = useVueTable({
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
+function changeLimit(val: number) {
+  emits('changeLimit', val)
+}
 </script>
 
 <template>
@@ -359,13 +362,13 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -377,14 +380,14 @@ function handlePageChange(page: number) {
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
