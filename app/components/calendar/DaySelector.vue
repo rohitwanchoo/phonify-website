@@ -31,11 +31,13 @@ const placeholder = useVModel(props, 'modelValue', emits, {
 }) as Ref<DateValue>
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const dateValue = defineModel<DateValue>('dateValue')
 </script>
 
 <template>
   <CalendarRoot
     v-slot="{ grid, weekDays }"
+    v-model="dateValue"
     v-model:placeholder="placeholder"
     v-bind="forwarded"
     :class="cn('rounded-md border p-3', props.class)"
