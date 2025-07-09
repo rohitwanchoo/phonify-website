@@ -128,7 +128,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 <template>
   <div class="flex justify-start items-start gap-6">
-    <div class="h-[calc(100vh-190px)] flex-1 bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 flex flex-col justify-start items-start overflow-hidden">
+    <div class="max-h-[calc(100vh-190px)] flex-1 bg-white rounded-xl border border-zinc-100 flex flex-col justify-start items-start overflow-hidden">
       <!-- Header -->
       <div class="w-full px-5 py-3 border-b border-zinc-100 flex justify-start items-center">
         <div class="justify-center text-slate-800 text-base font-medium">
