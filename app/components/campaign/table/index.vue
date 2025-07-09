@@ -18,10 +18,11 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
-import { computed, h, ref, watch } from 'vue'
 
+import { computed, h, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -32,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
 import {
   Sheet,
   SheetContent,
@@ -40,7 +42,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -52,7 +53,7 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import Action from './Action.vue'
+import Action from './Action.vue' // Track the row ID for the Action menu
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
@@ -75,7 +76,34 @@ interface Props {
 const sheet = ref(false)
 const selectedCampaign = ref(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
-const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
+const actionRowId = ref<number | null>(null)
+
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+async function deleteMethod(row: { id: number }) {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  useApi().post('/delete-campaign', {
+    campaign_id: row.id,
+  }).then((response) => {
+    showToast({
+      message: response.message,
+    })
+    emits('refresh')
+  }).catch((err) => {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  })
+}
 
 async function openSheet(id: number) {
   campaignLoadingId.value = id
@@ -231,7 +259,7 @@ const columns = [
         onEdit: () => {
           navigateTo({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
         },
-        onDelete: () => { },
+        onDelete: () => { deleteMethod(row?.original) },
         onCopy: () => { },
         onReset: () => { },
       }),
@@ -362,4 +390,5 @@ function handlePageChange(page: number) {
   </div>
 
   <CampaignTableSheet v-model:open="sheet" :campaign="selectedCampaign" />
+  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Campaign" description="You are about to delete a campaign. Do you wish to proceed?" />
 </template>

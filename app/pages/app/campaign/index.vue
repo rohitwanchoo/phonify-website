@@ -11,7 +11,7 @@ const meta = {
   total: 50,
 }
 
-const { data: campaignList, status, refresh } = await useLazyAsyncData('campaigns-list', async () => {
+const { data: campaignList, status, refresh: refreshCampaignList } = await useLazyAsyncData('campaigns-list', async () => {
   const response = await useApi().get('campaigns', {
     params: {
       // start: 0,
@@ -42,7 +42,7 @@ const { data: campaignList, status, refresh } = await useLazyAsyncData('campaign
 
     <!-- TABLE -->
     <div>
-      <CampaignTable :list="campaignList?.data" :meta="meta" :loading="status === 'pending'" />
+      <CampaignTable :list="campaignList?.data" :meta="meta" :loading="status === 'pending'" @refresh="refreshCampaignList" />
     </div>
   </div>
 </template>
