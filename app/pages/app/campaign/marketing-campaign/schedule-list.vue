@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import AddEmailSchedule from '~/components/campaign/marketing-campaign/AddEmailSchedule.vue'
+import AddTextSchedule from '~/components/campaign/marketing-campaign/AddTextSchedule.vue'
 import { Input } from '~/components/ui/input'
+import { computed, ref } from 'vue'
+
+const showAddEmailSchedule = ref(false)
+const showAddTextSchedule = ref(false)
+
+const route = useRoute()
+const campaignName = computed(() => route.query.name || 'Schedule List') // 👈 this
 
 const breadcrumbs = [
   {
@@ -16,23 +25,37 @@ const breadcrumbs = [
 ]
 </script>
 
+
 <template>
   <div class="flex flex-col h-[calc(100vh-110px)] overflow-auto">
-    <!-- Scrollable content -->
     <div class="flex-1 overflow-y-auto">
-      <!-- Header row with title on left and search on right -->
-      <div class="flex items-center justify-between  py-2 bg-white">
-        <!-- Left: Title & breadcrumbs -->
-        <BaseHeader title="" :breadcrumbs="breadcrumbs" />
-
-        <!-- Right: Search input with icon -->
-        <div class="relative w-full max-w-[240px] mt-4 md:mt-0">
-          <Input v-model="searchQuery" placeholder="Search List" class="pl-3 pr-9 py-6" />
-          <Icon class="absolute top-[17px] right-2 text-muted-foreground" name="lucide:search" />
+      <!-- Header with breadcrumb and buttons -->
+      <BaseHeader :title="campaignName" :breadcrumbs="breadcrumbs">
+        <template #actions>
+          <!-- Search -->
+          <div class="relative mt-4 md:mt-0">
+          <Input v-model="searchQuery" placeholder="Search List" />
+          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-      </div>
 
+          <!-- Add Buttons -->
+          <Button class="mt-4 md:mt-0 hover:bg-white text-black bg-white border border-black" @click="showAddEmailSchedule = true">
+            <Icon name="lucide:plus" class="w-4 h-4" />
+             Email Schedule
+          </Button>
+          <Button class="mt-4 md:mt-0 text-black hover:bg-white bg-white border border-black" @click="showAddTextSchedule = true">
+            <Icon name="lucide:plus" class="w-4 h-4" />
+           Text Schedule
+          </Button>
+          <!-- Modals -->
+          <AddEmailSchedule v-model:open="showAddEmailSchedule" />
+          <AddTextSchedule v-model:open="showAddTextSchedule" />
+        </template>
+      </BaseHeader>
+
+      <!-- Table -->
       <CampaignMarketingCampaignTableScheduleListTable />
     </div>
   </div>
 </template>
+

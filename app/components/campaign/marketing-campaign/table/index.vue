@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/table'
 import { Switch } from '~/components/ui/switch'
 import Action from '../ActionDropdown.vue'
+import AddEmailSchedule from '../AddEmailSchedule.vue'
+import AddTextSchedule from '../AddTextSchedule.vue'
 import EditCampaign from '../EditCampaign.vue'
 
 const props = withDefaults(defineProps<{
@@ -35,12 +37,21 @@ const emits = defineEmits([
 const router = useRouter()
 
 function handleView(row: any) {
-  router.push({ path: '/app/campaign/marketing-campaign/schedule-list', query: { id: row.original.id } })
+  router.push({
+    path: '/app/campaign/marketing-campaign/schedule-list',
+    query: {
+      id: row.original.id,
+      name: row.original.campaign_name, // ✅ pass campaign name
+    },
+  })
 }
 
 const editDialogOpen = ref(false)
 const editRowData = ref<any>(null)
-
+const addTextScheduleDialogOpen = ref(false)
+const addTextScheduleRowData = ref<any>(null)
+const addEmailScheduleDialogOpen = ref(false)
+const addEmailScheduleRowData = ref<any>(null)
 const columnHelper = createColumnHelper<any>()
 
 const columns = [
@@ -111,9 +122,14 @@ const columns = [
           editRowData.value = row.original
           editDialogOpen.value = true
         },
-        onAddTextSchedule: () => emits('addTextSchedule', row.original),
-        onAddEmailSchedule: () => emits('addEmailSchedule', row.original),
-        onDelete: () => emits('delete', row.original),
+        onAddTextSchedule: () => {
+          addTextScheduleRowData.value = row.original
+          addTextScheduleDialogOpen.value = true
+        },
+        onAddEmailSchedule: () => {
+          addEmailScheduleRowData.value = row.original
+          addEmailScheduleDialogOpen.value = true
+        },
       }),
     ]),
   }),
@@ -162,4 +178,12 @@ const table = useVueTable({
     </Table>
   </div>
   <EditCampaign v-model:open="editDialogOpen" :row-data="editRowData" />
+  <AddTextSchedule
+    v-model:open="addTextScheduleDialogOpen"
+    :row-data="addTextScheduleRowData"
+  />
+  <AddEmailSchedule
+    v-model:open="addEmailScheduleDialogOpen"
+    :row-data="addEmailScheduleRowData"
+  />
 </template>

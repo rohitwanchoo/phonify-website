@@ -9,7 +9,6 @@ import { createColumnHelper, FlexRender, getCoreRowModel, getFilteredRowModel, g
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h } from 'vue'
 import { useRouter } from 'vue-router'
-import ConfigurationSmtpSettingsActionDropdown from '@/components/configuration/smtp-settings/ActionDropDown.vue'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -20,8 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
 import { valueUpdater } from '@/components/ui/table/utils'
+
+import Action from '../ScheduleListActionDropDown.vue'
 
 const props = withDefaults(defineProps<{
   list?: any[]
@@ -74,10 +74,10 @@ const mockData = [
     failed: 0,
   },
 ]
-
-const router = useRouter()
-
+const addAbortDialogOpen = ref(false)
+const addAbortRowData = ref<any>(null)
 const columnHelper = createColumnHelper<any>()
+const router = useRouter()
 
 const columns = [
   columnHelper.display({
@@ -239,21 +239,14 @@ const columns = [
       h('div', {
         class: 'flex items-center justify-center gap-2 sticky right-0 z-10',
       }, [
-        h(Button, {
-          size: 'icon',
-          variant: 'outline',
-          class: 'text-primary h-8 w-15 min-w-0 flex items-center gap-1 px-2',
-          title: 'Edit',
-          onClick: () => {
-            router.push(`/app/configuration/smtp-settings/add-smtp?mode=edit&id=${row.original.id}`)
+        h(Action, {
+          onDelete: () => {
+            emits('deleteRow', row.original.id)
           },
-        }, [
-          h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
-          h('span', { class: 'text-xs font-medium' }, 'Edit'),
-        ]),
-        h(ConfigurationSmtpSettingsActionDropdown, {
-          onDuplicate: () => emits('duplicateRow', row.original),
-          onDelete: () => emits('deleteRow', row.original),
+          onAbort: () => {
+            addAbortRowData.value = row.original
+            addAbortDialogOpen.value = true
+          },
         }),
       ]),
     meta: { sticky: 'right' },
@@ -294,8 +287,9 @@ const table = useVueTable({
           <TableHead
             v-for="header in headerGroup.headers"
             :key="header.id"
-            class="bg-gray-50"
-            :class="header.column.id === 'actions' ? 'sticky right-0 z-10 !bg-white' : ''"
+            class="bg-gray-50 text-center"
+            :class="['bg-gray-50', header.column.id === 'actions' ? 'sticky right-0 z-10' : '']"
+
           >
             <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
           </TableHead>
@@ -312,7 +306,10 @@ const table = useVueTable({
             <TableCell
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              :class="cell.column.id === 'actions' ? 'sticky right-0 z-10 bg-white' : 'p-3 text-center'"
+              :class="[
+    'text-center', 
+    cell.column.id === 'actions' ? 'sticky right-0 z-10 bg-white' : 'p-3'
+  ]"
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </TableCell>

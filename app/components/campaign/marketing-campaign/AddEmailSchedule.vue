@@ -82,7 +82,7 @@ function onOpenChange(isOpen: boolean) {
     <Dialog :open="open" @update:open="onOpenChange">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Text Schedule</DialogTitle>
+          <DialogTitle>Add Email Schedule</DialogTitle>
         </DialogHeader>
         <Separator />
 
@@ -90,7 +90,7 @@ function onOpenChange(isOpen: boolean) {
           <!-- List Select -->
           <FormField v-slot="{ componentField }" name="list">
             <FormItem>
-              <FormLabel>Country Code</FormLabel>
+              <FormLabel>Select List</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
                   <SelectTrigger class="w-full">
@@ -110,7 +110,7 @@ function onOpenChange(isOpen: boolean) {
           <!-- Template Select -->
           <FormField v-slot="{ componentField }" name="template">
             <FormItem>
-              <FormLabel>Select List</FormLabel>
+              <FormLabel>Email Template</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
                   <SelectTrigger class="w-full">
@@ -130,7 +130,7 @@ function onOpenChange(isOpen: boolean) {
           <!-- Day Select -->
           <FormField v-slot="{ componentField }" name="day">
             <FormItem>
-              <FormLabel>Text Template</FormLabel>
+              <FormLabel>SMTP for sending email [Host - From Email - From Name]</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
                   <SelectTrigger class="w-full">
@@ -139,32 +139,6 @@ function onOpenChange(isOpen: boolean) {
                   <SelectContent>
                     <SelectItem v-for="option in daysOfWeek" :key="option.id" :value="option.id">
                       {{ option.day }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <!-- Frequency Select -->
-          <FormField v-slot="{ componentField }" name="frequency">
-            <FormItem>
-              <FormLabel>DID</FormLabel>
-              <FormControl>
-                <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">
-                      Daily
-                    </SelectItem>
-                    <SelectItem value="weekly">
-                      Weekly
-                    </SelectItem>
-                    <SelectItem value="monthly">
-                      Monthly
                     </SelectItem>
                   </SelectContent>
                 </Select>
