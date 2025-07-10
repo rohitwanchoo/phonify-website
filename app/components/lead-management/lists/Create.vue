@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '~/components/ui/input'
 import ConfigureListDialog from './ConfigureListDialog.vue'
 
+const emits = defineEmits(['complete'])
+const { user } = useAuth()
 const showDialog = ref(false)
 const showConfigureDialog = ref(false)
 
@@ -53,13 +55,13 @@ function handleFileUpdate(files: File[]) {
 const loading = ref(false)
 
 const onSubmit = handleSubmit((values) => {
-  console.log(values)
   loading.value = true
   const formData = new FormData()
   formData.append('title', values.title)
-  formData.append('file', values.file) // Append the first file from the array
+  formData.append('file', values.file[0]) // Append the first file from the array
   formData.append('campaign', values.campaign_id.toString())
   formData.append('checkDuplicates', JSON.stringify(values.checkDuplicates))
+  formData.append('id', user.value?.id?.toString() ?? '')
   useApi().post('/add-list', formData).then((response) => {
     showToast({
       message: response.message,
@@ -69,6 +71,7 @@ const onSubmit = handleSubmit((values) => {
       type: 'error',
       message: error.message,
     })
+    emits('complete')
   }).finally(() => {
     loading.value = false
   })
