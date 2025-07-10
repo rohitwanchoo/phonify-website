@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { BaseFileUploader, DoNotCallDncRinglessList, Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField, useForm } from 'vee-validate'
 import { ref } from 'vue'
 import { z } from 'zod'
-import ProfileVoiceAiFileUpload from '@/components/profile/voice-ai/FileUpload.vue'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
@@ -103,5 +101,5 @@ function onNext() {
       </Form>
     </DialogContent>
   </Dialog>
-  <DoNotCallDncRinglessList :open="showRinglessConfigure" @update:open="val => { showRinglessConfigure = val; if (!val) closeConfigureDialog() }" />
+  <DoNotCallDncConfigureList :open="showRinglessConfigure" @update:open="val => { showRinglessConfigure = val; if (!val) closeConfigureDialog() }" />
 </template>
