@@ -417,7 +417,7 @@ function handlePageChange(page: number) {
     </div>
   </div>
 
-  <RinglessVoicemailCampaignTableSheet
+  <RinglessVoicemailListsTableSheet
     v-model:open="sheet"
     :campaign="selectedCampaign"
   />
