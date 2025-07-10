@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
 
-const { stepper, formState, resetFormState } = useCreateCampaign()
-
 const breadcrumbs = [
   {
     label: 'Lead',
@@ -13,6 +11,13 @@ const breadcrumbs = [
     href: '/app/lead-management/lead/activity',
   },
 ]
+
+const route = useRoute()
+// get lead detail with ID from params
+const { data: lead, refresh: refreshLead, status: leadStatus } = await useLazyAsyncData(`get-lead-with-id`, () =>
+  useApi().get(`/lead/${route.params.id}`), {
+  transform: res => res.data,
+})
 </script>
 
 <template>
@@ -26,7 +31,7 @@ const breadcrumbs = [
   </BaseHeader>
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <div class="lg:col-span-4">
-      <LeadManagementLeadDetails />
+      <LeadManagementLeadDetails :data="lead" />
     </div>
     <div class="lg:col-span-8">
       <LeadManagementLeadLeadTabs />

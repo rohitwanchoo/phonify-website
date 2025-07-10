@@ -127,20 +127,20 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex justify-start items-start gap-6">
-    <div class="max-h-[calc(100vh-190px)] flex-1 bg-white rounded-xl border border-zinc-100 flex flex-col justify-start items-start overflow-hidden">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
+    <!-- Details Section -->
+    <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <!-- Header -->
-      <div class="w-full px-5 py-3 border-b border-zinc-100 flex justify-start items-center">
-        <div class="justify-center text-slate-800 text-base font-medium">
+      <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
+        <div class="justify-center text-slate-800 mt-1 text-base font-medium">
           Template Details
         </div>
       </div>
-
       <!-- Form Content -->
-      <form class="relative w-full overflow-x-auto" @submit="onSubmit">
-        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5">
+      <form class="relative w-full overflow-x-auto flex-1" @submit="onSubmit">
+        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5 pb-28">
           <!-- Template Name and Lead Placeholders Row -->
-          <div class="w-full flex justify-start items-start gap-4">
+          <div class="w-full flex flex-col md:flex-row justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_name" class="flex-1 w-full">
               <FormItem class="w-full flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-xs font-medium">
@@ -180,7 +180,7 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <!-- Sender and Custom Placeholders Row -->
-          <div class="w-full flex justify-start items-start gap-4">
+          <div class="w-full flex flex-col md:flex-row  justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="senderPlaceholder" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-xs font-medium">
@@ -267,9 +267,8 @@ const onSubmit = handleSubmit(async (values) => {
             </FormField>
           </div>
         </div>
-
         <!-- Footer with Save Button -->
-        <div class="sticky bottom-0 w-full p-5 rounded-b-lg bg-white shadow-md inline-flex justify-start items-start gap-4">
+        <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
           <Button
             v-if="Object.keys(emailTemplate).length > 0"
             type="button"
@@ -294,6 +293,9 @@ const onSubmit = handleSubmit(async (values) => {
         </div>
       </form>
     </div>
-    <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
+    <!-- Preview Section -->
+    <div class="w-full max-h-[calc(100vh-190px)]  col-span-1 xl:col-span-4">
+      <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
+    </div>
   </div>
 </template>

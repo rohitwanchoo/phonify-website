@@ -44,12 +44,13 @@ const dummyLeads = [
   },
 ]
 
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 1,
-  total: 4,
-}
+const { data: leadsList, refresh: refreshLeads, status: leadsStatus } = await useLazyAsyncData('leads-list', () =>
+  useApi().post('/leads', {
+    start: 0,
+    limit: 10,
+  }), {
+  transform: res => res.data,
+})
 </script>
 
 <template>
@@ -69,7 +70,7 @@ const meta = {
 
     <!-- TABLE -->
     <div>
-      <LeadManagementLeadTable :list="dummyLeads" :meta="meta" :loading="false" />
+      <LeadManagementLeadTable :list="leadsList" :loading="leadsStatus === 'pending'" />
     </div>
   </div>
 </template>
