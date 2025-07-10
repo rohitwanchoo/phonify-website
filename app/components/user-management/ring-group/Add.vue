@@ -249,7 +249,7 @@ function removeExtension(index: number) {
           >
             <FormItem>
               <FormLabel class="text-sm font-normal">
-                email
+                Email
               </FormLabel>
               <FormControl>
                 <Input v-bind="componentField" class="h-11" />
