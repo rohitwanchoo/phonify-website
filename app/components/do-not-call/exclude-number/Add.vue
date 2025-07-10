@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
@@ -44,9 +43,8 @@ const formSchema = toTypedSchema(z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   company_name: z.string().min(1, 'Company name is required'),
-  country_code: z.string().min(1, 'Country code is required'),
   number: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(10, 'maximum 10 character allowed'),
-  campaing_id: z.number().min(1, 'Campaign is requires'),
+  campaign_id: z.number().min(1, 'Campaign is requires'),
 }))
 
 const { handleSubmit, resetForm } = useForm({
@@ -61,7 +59,7 @@ const onSubmit = handleSubmit(async (values) => {
     last_name: values.last_name,
     number: values.number,
     company_name: values.company_name,
-    campaign_id: values.campaing_id,
+    campaign_id: values.campaign_id,
   }
 
   try {
@@ -105,7 +103,7 @@ const onSubmit = handleSubmit(async (values) => {
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
-          <div class="flex gap-4 w-full">
+          <div class="flex gap-4 w-full items-start">
             <!-- First name -->
             <FormField
               v-slot="{ componentField }"
