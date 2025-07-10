@@ -62,7 +62,10 @@ const data = {
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
     ] },
-    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call' },
+    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', items: [
+      {title: 'DNC', url: '/app/do-not-call/dnc'},
+      {title: 'Exclude From List', url: '/app/do-not-call/exclude-from-list'},
+    ] },
     { title: 'Lead Management', url: '/app/lead-management', icon: 'icons:lead-management', items: [
       { title: 'Label', url: '/app/lead-management/label' },
       { title: 'Lead', url: '/app/lead-management/lead' },

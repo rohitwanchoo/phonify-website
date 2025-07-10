@@ -129,7 +129,7 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
     <!-- Details Section -->
-    <div class="relative bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
+    <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <!-- Header -->
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
         <div class="justify-center text-slate-800 mt-1 text-base font-medium">
