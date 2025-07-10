@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
+import type { Campaign } from '~/types/campaign'
+
 
 const route = useRoute()
 const id = route.query.id
@@ -26,6 +28,15 @@ const { data: campaignById, status, refresh } = await useLazyAsyncData('get-camp
     return res[0]
   },
   immediate: false,
+})
+const { data: campaignDeposition, refresh:campaignDepositionRefresh  } = await useLazyAsyncData('campaign-deposition-by-id', () =>
+  useApi().post('/campaign-disposition', {
+    campaign_id: id,
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+  immediate: true,
 })
 
 const callerIds = [
@@ -98,7 +109,8 @@ onMounted(() => {
         send_report: campaignById.value.send_report === 1,
         call_transfer: campaignById.value.call_transfer === '1',
         hopper_mode: campaignById.value.hopper_mode,
-        custom_caller_id: String(campaignById.value.custom_caller_id)
+        custom_caller_id: String(campaignById.value.custom_caller_id), 
+        disposition_id: campaignDeposition.value.map(item => item.disposition_id)
 
       }
 
