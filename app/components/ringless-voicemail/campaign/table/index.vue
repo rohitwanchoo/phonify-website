@@ -17,6 +17,7 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
 import moment from 'moment'
 import { computed, h, ref, watch } from 'vue'
@@ -59,8 +60,7 @@ const selectedCampaign = ref<any>(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
 const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
 const loading = ref(false)
-
-// Dummy data with additional fields for the new sheet
+const router = useRouter()
 const dummyData = ref([
   {
     id: 1,
@@ -324,7 +324,10 @@ const columns = [
       ),
       h(Action, {
         onEdit: () => {
-          console.log('Edit campaign:', row.original.id)
+          router.push({
+            path: `/app/ringless-voicemail/campaign/new-campaign`,
+            query: { id: row.original.id,name: row.original.title },
+          })
         },
         onDelete: () => {
           console.log('Delete campaign:', row.original.id)
