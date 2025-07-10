@@ -550,6 +550,7 @@ function onSelectCallerId(val: any) {
 const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+
   if (isEdit.value) {
     emits('completed')
     return
@@ -580,13 +581,15 @@ const onSubmit = handleSubmit(async (values) => {
     Object.entries(payload).filter(([_, v]) => v !== undefined),
   )
   console.log(cleanedPayload)
-  useApi().post('/add-campaign', cleanedPayload).then((res: any) => {
+  useApi().post('/add-campaign', cleanedPayload).then(async(res: any) => {
     if (res.data.status) {
+      await navigateTo({ query: { id: res.data.id } })
       emits('completed')
     }
     showToast({
       message: res.data.message,
     })
+
   }).catch((err: any) => {
     showToast({
       type: 'error',
@@ -1244,7 +1247,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                 <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.audio_message_amd" name="audio_message_amd">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
-                      Audion Message AMD
+                      Audio Message AMD
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
