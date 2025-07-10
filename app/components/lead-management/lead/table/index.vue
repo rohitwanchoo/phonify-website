@@ -3,6 +3,7 @@ import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -12,10 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useRouter } from 'vue-router'
+
+interface Lead {
+  id: number
+  first_name: string
+  last_name: string
+  phone_number: string
+  email: string
+  state: string
+  company_name: string
+}
 
 const props = withDefaults(defineProps<{
-  list: any[]
+  list?: Lead[]
   loading?: boolean
 }>(), {
   list: () => [],
@@ -26,7 +36,7 @@ const emits = defineEmits(['view-activity'])
 
 const router = useRouter()
 
-const columnHelper = createColumnHelper<any>()
+const columnHelper = createColumnHelper<Lead>()
 
 const columns = [
   columnHelper.display({
@@ -34,7 +44,7 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('name', {
+  columnHelper.accessor('id', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Lead ID',
@@ -44,9 +54,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
   }),
-  columnHelper.accessor('day', {
+  columnHelper.accessor('first_name', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'First Name',
@@ -56,9 +66,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.day),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.first_name || '-'),
   }),
-  columnHelper.accessor('from_time', {
+  columnHelper.accessor('last_name', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Last Name',
@@ -68,9 +78,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.from_time),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.last_name || '-'),
   }),
-  columnHelper.accessor('to_time', {
+  columnHelper.accessor('phone_number', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Mobile',
@@ -80,9 +90,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.to_time),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.phone_number) || '-'),
   }),
-  columnHelper.accessor('description', {
+  columnHelper.accessor('email', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Email',
@@ -92,9 +102,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.description),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.email || '-'),
   }),
-  columnHelper.accessor('description', {
+  columnHelper.accessor('state', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'State',
@@ -104,9 +114,9 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.description),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.state || '-'),
   }),
-  columnHelper.accessor('description', {
+  columnHelper.accessor('company_name', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Legal Company Name',
@@ -116,7 +126,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.description),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.company_name),
   }),
   columnHelper.display({
     id: 'actions',
@@ -126,7 +136,7 @@ const columns = [
         size: 'sm',
         class: 'bg-white text-black border border-[#162D3A] flex items-center gap-2 hover:bg-transparent hover:text-inherit',
         onClick: () => {
-          router.push('/app/lead-management/lead/activity')
+          navigateTo(`/app/lead-management/lead/${row.original.id}`)
         },
       }, [
         h(Icon, { name: 'material-symbols:person', filled: true, class: 'text-base text-black' }),
@@ -167,7 +177,7 @@ const table = useVueTable({
       <TableBody>
         <TableRow v-if="loading">
           <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
-            Loading...
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
         </TableRow>
         <template v-else-if="table.getRowModel().rows?.length">
