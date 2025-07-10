@@ -26,6 +26,12 @@ function closeConfigureDialog() {
   showDialog.value = false
 }
 
+const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('create-list-campaign', () =>
+  useApi().post('/campaign' ), {
+  transform: res => res.data,
+  immediate: false
+})
+
 const campaignOptions = [
   { label: 'Campaign 1', value: 'campaign1' },
   { label: 'Campaign 2', value: 'campaign2' },
@@ -67,10 +73,14 @@ function onNext() {
   closeDialog()
   showConfigureDialog.value = true
 }
+function onModelOpen(val:boolean){
+  if(val)
+    refreshCampaigns()
+}
 </script>
 
 <template>
-  <Dialog v-model:open="showDialog">
+  <Dialog v-model:open="showDialog" @update:open="onModelOpen">
     <DialogTrigger as-child>
       <Button @click="openCreateListDialog">
         <Icon class="!text-white" name="lucide:plus" />
