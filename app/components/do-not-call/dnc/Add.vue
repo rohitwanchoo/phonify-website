@@ -75,9 +75,9 @@ const onSubmit = handleSubmit(async (values) => {
     loading.value = false
     refreshNuxtData('dnc-list')
   }
-  catch (error) {
+  catch (error: any) {
     showToast({
-      message: `${error}`,
+      message: `${error.message}`,
       type: 'error',
     })
   }

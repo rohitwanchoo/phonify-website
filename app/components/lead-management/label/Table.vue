@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon } from '#components'
+import { Icon, LeadManagementLabelEdit } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -62,14 +62,19 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedLabelId = ref<number | null>(null)
+const selectedLabelIdForDelete = ref<number | null>(null)
+
+// controls dialog visibility
+const isEditDialogOpen = ref(false)
+// stores the row to edit
+const selectedRowData = ref<labelList | null>(null)
 
 async function handleDelete() {
-  if (!selectedLabelId.value)
+  if (!selectedLabelIdForDelete.value)
     return
 
   try {
-    const res = await useApi().get(`/crm-delete-label/${selectedLabelId.value}`)
+    const res = await useApi().get(`/crm-delete-label/${selectedLabelIdForDelete.value}`)
 
     if (res?.success) {
       showToast({ type: 'success', message: res.message || 'Deleted successfully' })
@@ -83,19 +88,68 @@ async function handleDelete() {
     showToast({ type: 'error', message: 'API error: Unable to delete label' })
   }
   finally {
-    selectedLabelId.value = null
+    selectedLabelIdForDelete.value = null
   }
 }
 
-export interface crmLabelsList {
+export interface labelList {
   id: number
   title: string
-  created_at: string
+  updated_at: string
   status: string
   actions?: string
 }
 
-const columnHelper = createColumnHelper<crmLabelsList>()
+function onEdit(row: labelList) {
+  selectedRowData.value = row
+  isEditDialogOpen.value = true
+}
+
+async function updateStatus(id: number, status: string) {
+  try {
+    const res = await useApi().post('/status-update-label', {
+      listId: id,
+      status,
+    })
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('label')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
+}
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
+
+const columnHelper = createColumnHelper<labelList>()
 
 const columns = [
 
@@ -114,7 +168,7 @@ const columns = [
       return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
     },
   }),
-  columnHelper.accessor('created_at', {
+  columnHelper.accessor('updated_at', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -124,39 +178,34 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, `${moment(row.original.created_at).format('DD MMM YYYY hh:mm A')}`),
+        h('div', { class: 'text-xs' }, `${moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')}`),
       ])
     },
   }),
 
   columnHelper.accessor('status', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
+    header: ({ column }) =>
+      h('div', { class: 'text-center w-full' }, h(Button, {
+        class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      const isChecked = row.original.status === '1'
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': isChecked,
-        'onUpdate:modelValue': async (val: boolean) => {
-          const newStatus = val ? '1' : '0'
-          row.original.status = newStatus // Optimistically update UI
-          await updateStatus(row.original.id, newStatus)
+        'modelValue': row.original.status === '1',
+        'onUpdate:modelValue': (val: boolean) => {
+          updateStatus(row.original.id, val ? '1' : '0')
         },
-      }))
-    },
+      })),
   }),
 
   columnHelper.accessor('actions', {
     header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => emits('edit', row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => onEdit(row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
       h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
-        selectedLabelId.value = row.original.id
+        selectedLabelIdForDelete.value = row.original.id
         revealDeleteConfirm()
       } }, h(Icon, { name: 'material-symbols:delete' })),
     ]),
@@ -193,59 +242,8 @@ const table = useVueTable({
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-
-function changeLimit(val: number | null) {
-  if (val !== null) {
-    emits('changeLimit', val)
-  }
-}
-
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
-}
-
-async function updateStatus(id: number, newStatus: string) {
-  const label = props.list.find(item => item.id === id)
-
-  if (!label)
-    return showToast({ type: 'error', message: 'Label not found' })
-
-  try {
-    const res = await useApi().post(`/crm-update-label/${id}`, {
-      title: label.title,
-      edit_mode: true, // or as per actual label data
-      data_type: 'string', // replace with actual value
-      required: false, // adjust accordingly
-      merchant_required: false,
-      number_length: null, // if not used
-      icons: 'fa fa-user', // optional
-      heading_type: 'owner',
-      values: '', // if any
-      status: newStatus, // <-- include the new status value if backend expects this key
-    })
-
-    if (res?.success) {
-      showToast({ type: 'success', message: res.message || 'Status updated successfully' })
-      emits('refresh')
-    }
-    else {
-      showToast({ type: 'error', message: res.message || 'Failed to update status' })
-    }
-  }
-  catch {
-    showToast({ type: 'error', message: 'API error: Unable to update status' })
-  }
-}
 </script>
 
 <template>
@@ -330,6 +328,8 @@ async function updateStatus(id: number, newStatus: string) {
       />
     </div>
   </div>
+
+  <LeadManagementLabelEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction
