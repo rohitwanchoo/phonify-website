@@ -1,96 +1,77 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
-import { useForm,useField } from 'vee-validate'
+import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { Textarea } from '~/components/ui/textarea'
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
-import { Label } from '~/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 
 const dialogOpen = ref(false)
-const secondDialogOpen = ref(false)
+const optionsOpen = ref(false)
 const loading = ref(false)
-const formData = ref<any>(null)
-
 
 function onDialogOpen(val: boolean) {
-  if (val)
-    resetForm()
+  if (val) resetForm()
 }
 
 const formSchema = toTypedSchema(z.object({
-  campaignName: z.string().min(1, 'Campaign name is required').max(100),
-  message: z.string().min(1, 'Message is required').max(500),
-  phoneNumbers: z.string().min(1, 'Phone numbers are required'),
-  scheduleType: z.enum(["immediate", "scheduled"]),
-  scheduleDate: z.string().optional(),
-  scheduleTime: z.string().optional(),
+  title: z.string().min(1, 'Campaign name is required').max(100),
+  campaign: z.string().min(1, 'Phone numbers are required'),
+  file: z.instanceof(File, { message: 'File is required' })
+    .refine(file => file.size <= 5 * 1024 * 1024, 'Max file size is 5MB')
+    .refine(file => {
+      const ext = file.name.split('.').pop()?.toLowerCase()
+      return ['xlsx', 'xls', 'csv'].includes(ext || '')
+    }, 'Only Excel/CSV files allowed')
 }))
 
-const { handleSubmit, resetForm, setFieldError } = useForm({
+const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    campaignName: '',
-    message: '',
-    phoneNumbers: '',
-    scheduleType: 'immediate',
-    scheduleDate: '',
-    scheduleTime: '',
+    title: '',
+    campaign: '',
+    file: null as File | null
   },
 })
 
-const onSubmit = handleSubmit(async (values) => {
-  try {
-    loading.value = true
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Store form data and open second dialog
-    formData.value = values
-    dialogOpen.value = false
-    secondDialogOpen.value = true
-    
-    showToast({
-      message: 'Form submitted successfully',
-      type: 'success',
-    })
+async function handleFileUpdate(files: File[]) {
+  if (files.length > 0) {
+    setFieldValue('file', files[0])
+    await validateField('file')
+  } else {
+    setFieldValue('file', null)
+    await validateField('file')
   }
-  catch (error: any) {
-    handleFieldErrors(error?.data, setFieldError)
-    showToast({
-      message: error?._data?.message || 'Failed to submit form',
-      type: 'error',
-    })
-  }
-  finally {
+}
+
+const onSubmit = handleSubmit((values) => {
+  loading.value = true
+  console.log('Form submitted with values:', {
+    title: values.title,
+    campaign: values.campaign,
+    fileName: values.file?.name,
+    fileSize: values.file?.size
+  })
+  
+  // Simulate API call
+  setTimeout(() => {
     loading.value = false
-  }
+    dialogOpen.value = false
+    optionsOpen.value = true
+    resetForm()
+  }, 1000)
 })
-
-const { setValue: setFile } = useField('file')
-
-function handleFileUpdate(files: File[]) {
-  setFile(files)
-}
-
-function onSecondDialogClose() {
-  secondDialogOpen.value = false
-  resetForm()
-}
 </script>
 
 <template>
@@ -105,25 +86,39 @@ function onSecondDialogClose() {
       <DialogHeader>
         <DialogTitle>Create Ringless List</DialogTitle>
       </DialogHeader>
-      <form class="space-y-4 py-4" @submit.prevent="onSubmit">
-        <FormField v-slot="{ componentField }" name="campaignName">
+      <form class="space-y-4 py-4" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="title">
           <FormItem>
-            <p class="text-primary text-sm">
-              Title
-            </p>
+            <p class="text-primary text-sm">Title</p>
             <FormControl>
-              <Input placeholder="Enter campaign name" class="h-11" v-bind="componentField" />
+              <Input 
+                placeholder="Enter campaign name" 
+                class="h-11" 
+                v-bind="componentField" 
+              />
             </FormControl>
             <FormMessage class="ml-2 text-xs" />
           </FormItem>
         </FormField>
-        <BaseFileUploader accept=".xlc,.xlxs,.csv" max-size="5MB" @update:files="handleFileUpdate" />
 
-        <FormField v-slot="{ componentField }" name="phoneNumbers">
+        <FormField v-slot="{ componentField }" name="file">
           <FormItem>
-            <p class="text-primary text-sm">
-              Campaign
-            </p>
+            <p class="text-primary text-sm">Upload File</p>
+            <FormControl>
+              <BaseFileUploader
+                v-bind="componentField"
+                accept=".xlsx,.xls,.csv"
+                max-size="5MB"
+                @update:files="handleFileUpdate"
+              />
+            </FormControl>
+            <FormMessage class="ml-2 text-xs" />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="campaign">
+          <FormItem>
+            <p class="text-primary text-sm">Campaign</p>
             <FormControl>
               <Select v-bind="componentField">
                 <SelectTrigger class="h-11 w-full">
@@ -131,21 +126,9 @@ function onSecondDialogClose() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="summer-sale">
-                      Summer Sale Promotion
-                    </SelectItem>
-                    <SelectItem value="new-product">
-                      New Product Launch
-                    </SelectItem>
-                    <SelectItem value="holiday-special">
-                      Holiday Special Offer
-                    </SelectItem>
-                    <SelectItem value="customer-retention">
-                      Customer Retention Program
-                    </SelectItem>
-                    <SelectItem value="referral-bonus">
-                      Referral Bonus Campaign
-                    </SelectItem>
+                    <SelectItem value="summer-sale">Summer Sale Promotion</SelectItem>
+                    <SelectItem value="new-product">New Product Launch</SelectItem>
+                    <SelectItem value="holiday-special">Holiday Special Offer</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -155,76 +138,30 @@ function onSecondDialogClose() {
         </FormField>
 
         <DialogFooter class="pt-4">
-          <Button type="button" class="w-[50%] border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500" variant="outline" @click="resetForm">
+          <Button 
+            type="button" 
+            variant="outline" 
+            class="w-[50%] border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500" 
+            @click="resetForm"
+          >
             <Icon name="material-symbols:close" />
             Discard
           </Button>
-          <Button type="submit" class="w-[50%]" :disabled="loading" :loading="loading">
+          <Button 
+            type="submit" 
+            class="w-[50%]" 
+            :disabled="loading"
+          >
             <Icon name="material-symbols:check" />
-            Next
+            {{ loading ? 'Submitting...' : 'Next' }}
           </Button>
         </DialogFooter>
       </form>
     </DialogContent>
   </Dialog>
-
-  <!-- Second Dialog -->
-  <Dialog v-model:open="secondDialogOpen" @update:open="onSecondDialogClose">
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Review Campaign Details</DialogTitle>
-      </DialogHeader>
-      <div class="space-y-4 py-4">
-        <div v-if="formData">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-sm text-gray-500">Campaign Name:</p>
-              <p class="font-medium">{{ formData.campaignName }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Campaign Type:</p>
-              <p class="font-medium">{{ formData.phoneNumbers }}</p>
-            </div>
-          </div>
-          
-          <div class="mt-4">
-            <p class="text-sm text-gray-500">Message:</p>
-            <p class="font-medium">{{ formData.message }}</p>
-          </div>
-          
-          <div class="mt-4 grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-sm text-gray-500">Schedule Type:</p>
-              <p class="font-medium">{{ formData.scheduleType === 'immediate' ? 'Immediate' : 'Scheduled' }}</p>
-            </div>
-            <div v-if="formData.scheduleType === 'scheduled'">
-              <p class="text-sm text-gray-500">Scheduled Time:</p>
-              <p class="font-medium">{{ formData.scheduleDate }} {{ formData.scheduleTime }}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-6">
-          <p class="text-sm font-medium mb-2">Uploaded File:</p>
-          <div class="border rounded-md p-3 bg-gray-50">
-            <div class="flex items-center">
-              <Icon name="heroicons:document" class="w-5 h-5 text-gray-400 mr-2" />
-              <span class="text-sm">contacts_list.xlsx</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <DialogFooter class="pt-4">
-        <Button type="button" class="w-[50%] border-gray-300 text-gray-700 bg-gray-50 hover:bg-white" variant="outline" @click="secondDialogOpen = false">
-          <Icon name="material-symbols:arrow-back" />
-          Back
-        </Button>
-        <Button type="button" class="w-[50%]" @click="secondDialogOpen = false">
-          <Icon name="material-symbols:check-circle" />
-          Confirm & Create
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+  <RinglessVoicemailListsOptions 
+    v-model:open="optionsOpen" 
+    :title="'hello'" 
+    :campaign="'hi'" 
+  />
 </template>
