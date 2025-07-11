@@ -56,7 +56,7 @@ import { cn } from '@/lib/utils'
 import { Separator } from '~/components/ui/separator'
 
 const sheet = ref(false)
-const selectedCampaign = ref<any>(null) // Store the campaign details
+const selectedList = ref<any>(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
 const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
 const loading = ref(false)
@@ -131,7 +131,7 @@ async function openSheet(id: number) {
   try {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500))
-    selectedCampaign.value = dummyData.value.find(item => item.id === id)
+    selectedList.value = dummyData.value.find(item => item.id === id)
     sheet.value = true
   }
   catch (error) {
@@ -419,6 +419,6 @@ function handlePageChange(page: number) {
 
   <RinglessVoicemailListsTableSheet
     v-model:open="sheet"
-    :campaign="selectedCampaign"
+    :list="selectedList"
   />
 </template>
