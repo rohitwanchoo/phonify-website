@@ -61,9 +61,23 @@ export interface leadList {
   campaign: string
   list: string
   list_id: string
+  campaign_id: string
   updated_at: string
   is_active: number
   rowListData: number
+}
+
+function updateStatus(val: boolean, row: { list_id: number, campaign_id: number }): void {
+  useApi().post('/status-update-list', {
+    list_id: row.list_id,
+    campaign_id: row.campaign_id,
+    status: val ? 1 : 0,
+  }).then((response) => {
+    showToast({ message: response.message })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({ type: 'error', message: error.message })
+  })
 }
 
 const columnHelper = createColumnHelper<leadList>()
@@ -72,7 +86,7 @@ const columns = [
   columnHelper.display({
     id: 'slNo',
     header: () => h('div', { class: 'text-center w-full' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, props.start + row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.index + 1),
   }),
   columnHelper.accessor('list', {
     header: ({ column }) =>
@@ -123,23 +137,29 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.is_active === 1,
+        'modelValue': !!row.original.is_active,
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.is_active = val ? 1 : 0
+          updateStatus(val, {
+            list_id: Number(row.original.list_id),
+            campaign_id: Number(row.original.campaign_id),
+          })
         },
       })),
   }),
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center w-full' }, 'Actions'),
-    cell: () => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
       h(Button, {
         size: 'sm',
         variant: 'outline',
         color: 'primary',
         class: 'cursor-pointer flex items-center gap-x-1 border border-primary',
         onClick: () => {
-          navigateTo('/app/lead-management/list/leads')
+          navigateTo({
+            path: `/app/lead-management/list/${row.original.list_id}`,
+            query: { name: row.original.list },
+          })
         },
       }, [
         h(Icon, { name: 'material-symbols:visibility', color: 'primary' }),
@@ -170,15 +190,9 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  initialState: { pagination: { pageSize: props.limit } },
   manualPagination: true,
-  pageCount: last_page.value,
-  rowCount: total.value,
   state: {
-    pagination: {
-      pageIndex: current_page.value,
-      pageSize: per_page.value,
-    },
+
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
@@ -253,7 +267,6 @@ function changeLimit(val: number | null) {
       </TableBody>
     </Table>
   </div>
-
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
