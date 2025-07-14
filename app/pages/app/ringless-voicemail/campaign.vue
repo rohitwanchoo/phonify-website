@@ -1,3 +1,0 @@
-<template>
-  campaign here
-</template>
