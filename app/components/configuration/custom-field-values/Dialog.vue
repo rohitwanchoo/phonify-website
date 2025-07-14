@@ -98,33 +98,29 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     let res
     if (isEditMode.value) {
-      // Edit API call
-      res = await useLazyAsyncData('custom-field-edit', async () => {
-        return await useApi().post(`/custom-field-value/${props.rowData.id}`, {
-          title_match: values.fieldLabel,
-          title_links: values.link,
-        })
+      console.log('Editing custom field value:', props.rowData.id, values)
+      res = await useApi().post(`/custom-field-value/${props.rowData.id}`, {
+        title_match: values.fieldLabel,
+        title_links: values.link,
       })
     }
     else {
       // Add API call
-      res = await useLazyAsyncData('custom-field-add', async () => {
-        return await useApi().put('custom-field-labels-value', {
-          title_match: values.fieldLabel,
-          title_links: values.link,
-        })
+      res = await useApi().put('custom-field-labels-value', {
+        title_match: values.fieldLabel,
+        title_links: values.link,
       })
     }
 
     showToast({
-      message: res.data.value?.message
-        || (res.data.value?.success
+      message: res?.message
+        || (res?.success
           ? (isEditMode.value ? 'Updated successfully' : 'Saved successfully')
           : (isEditMode.value ? 'Update failed' : 'Failed to save')),
-      type: res.data.value?.success ? 'success' : 'error',
+      type: res.success ? 'success' : 'error',
     })
 
-    if (res.data.value?.success) {
+    if (res?.success) {
       emits('update:open', false)
       props.refresh()
     }
@@ -201,7 +197,7 @@ function onOpenChange(open: boolean) {
           </Button>
           <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting">
             <template v-if="isSubmitting">
-              <Icon name="eos-icons:loading" size="20" class="mr-2" />
+              <Icon name="lucide:ring-resize" size="20" class="mr-2" />
               {{ isEditMode ? 'Updating...' : 'Saving...' }}
             </template>
             <template v-else>

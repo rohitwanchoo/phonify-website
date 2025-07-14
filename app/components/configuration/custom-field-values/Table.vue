@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
-import { h, ref, watch } from 'vue'
+import { h, ref } from 'vue'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import {
@@ -24,8 +25,15 @@ const columnHelper = createColumnHelper<any>()
 const editDialogOpen = ref(false)
 const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
-const showDeleteConfirm = ref(false)
 const selectedRowForDelete = ref<any>(null)
+
+// Integrated confirm dialog logic from reference code
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
 
 function openEditDialog(row: any) {
   editRow.value = row.original
@@ -40,10 +48,14 @@ function closeDropdown() {
   dropdownOpen.value = null
 }
 
-function handleDelete(row: any) {
+async function handleDelete(row: any) {
   selectedRowForDelete.value = row.original
-  showDeleteConfirm.value = true
-  closeDropdown()
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    selectedRowForDelete.value = null
+    return
+  }
+  await handleDeleteConfirm()
 }
 
 const sorting = ref([])
@@ -178,21 +190,25 @@ function handlePageChange(page: number) {
 async function handleDeleteConfirm() {
   if (!selectedRowForDelete.value)
     return
-  const id = selectedRowForDelete.value.id // Use the id from the selected row
-  const res = await useLazyAsyncData('field-label-delete', async () => {
-    const response = await useApi().get(`/delete-custom-field-value/${id}`, {})
-    return response
-  })
-  showToast({
-    message: res.data.value?.message || (res.data.value?.success ? 'Deleted successfully.' : 'Failed to delete.'),
-    type: res.data.value?.success ? 'success' : 'error',
-  })
-  if (res.data.value?.success) {
-    if (typeof props.refresh === 'function') {
-      props.refresh()
+  const id = selectedRowForDelete.value.id
+  useApi().get(`/delete-custom-field-value/${id}`).then((response) => {
+    showToast({
+      message: response.message,
+      type: response.success ? 'success' : 'error',
+    })
+
+    if (response.success) {
+      if (typeof props.refresh === 'function') {
+        props.refresh()
+      }
     }
-  }
-  showDeleteConfirm.value = false
+  }).catch((error) => {
+    console.error('Error deleting custom field value:', error)
+    showToast({
+      message: 'Failed to delete custom field value.',
+      type: 'error',
+    })
+  })
   selectedRowForDelete.value = null
 }
 </script>
@@ -277,8 +293,8 @@ async function handleDeleteConfirm() {
   </div>
   <ConfirmAction
     v-model="showDeleteConfirm"
-    :confirm="handleDeleteConfirm"
-    :cancel="() => { showDeleteConfirm.value = false; selectedRowForDelete.value = null }"
+    :confirm="deleteConfirm"
+    :cancel="deleteCancel"
     title="Delete Custom Field Value"
     description="You are about to delete this custom field value. Do you wish to proceed?"
   />
