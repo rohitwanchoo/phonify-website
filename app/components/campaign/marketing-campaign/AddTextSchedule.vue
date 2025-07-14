@@ -20,6 +20,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 
+import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date'
+import { toDate } from 'reka-ui/date'
+import { CalendarIcon } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 const open = defineModel('open', { type: Boolean, default: false })
 
 // Dummy data for select options
@@ -180,32 +184,38 @@ function onOpenChange(isOpen: boolean) {
   </div>
   <div class="flex flex-col md:flex-row gap-4">
     <FormField v-slot="{ componentField, value }" name="runDate">
-      <FormItem class="flex flex-col flex-1">
-        <FormControl>
-          <Popover>
-            <PopoverTrigger as-child>
-              <Button
-                variant="outline"
-                class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-300"
-              >
-                <Icon name="lucide:calendar" class="mr-2 h-4 w-4" />
-                <span :class="!value ? 'text-gray-500' : ''">
-                  {{ value ? new Date(value).toLocaleDateString() : 'DD/MM/YYYY' }}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent class="w-auto p-0">
-              <Calendar
-                v-bind="componentField"
-                mode="single"
-                initial-focus
-              />
-            </PopoverContent>
-          </Popover>
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
+  <FormItem class="flex flex-col flex-1">
+    <FormControl>
+      <Popover>
+        <PopoverTrigger as-child>
+          <Button
+            variant="outline"
+            class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-300"
+            :class="!value ? 'text-muted-foreground' : ''"
+          >
+            <span>{{ value ? new Date(value).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+            <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent class="w-auto p-0">
+          <Calendar
+            calendar-label="Run Date"
+            :model-value="value ? parseDate(new Date(value).toISOString().split('T')[0]) : undefined"
+            initial-focus
+            @update:model-value="(v) => {
+              if (v) {
+                componentField.onChange(toDate(v))
+              } else {
+                componentField.onChange(undefined)
+              }
+            }"
+          />
+        </PopoverContent>
+      </Popover>
+    </FormControl>
+    <FormMessage />
+  </FormItem>
+</FormField>
     
     <FormField v-slot="{ componentField }" name="toTime">
       <FormItem class="flex flex-col flex-1">
