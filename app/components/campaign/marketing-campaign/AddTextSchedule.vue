@@ -175,52 +175,54 @@ function onOpenChange(isOpen: boolean) {
 
           <!-- Time Range -->
           <div>
-            <div class="font-medium text-sm mb-1">
-              Run Time
-            </div>
-            <div class="flex gap-4">
-              <FormField v-slot="{ componentField, value }" name="runDate">
-                <FormItem class="flex flex-col flex-1">
-                  <FormControl>
-                    <Popover>
-                      <PopoverTrigger as-child>
-                        <Button
-                          variant="outline"
-                          class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-300"
-                        >
-                          <Icon name="lucide:calendar" class="mr-2 h-4 w-4" />
-                          <span :class="!value ? 'text-gray-500' : ''">
-                            {{ value ? new Date(value).toLocaleDateString() : 'DD/MM/YYYY' }}
-                          </span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent class="w-auto p-0">
-                        <Calendar
-                          v-bind="componentField"
-                          mode="single"
-                          initial-focus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
-              <FormField v-slot="{ componentField }" name="toTime">
-                <FormItem class="flex flex-col flex-1">
-                  <FormControl>
-                    <Input
-                      v-bind="componentField"
-                      type="time"
-                      class="border shadow-none focus:ring-0 focus:ring-offset-0 focus:outline-none pl-28"
-                      placeholder="00:00:00s"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
-            </div>
-          </div>
+  <div class="font-medium text-sm mb-1">
+    Run Time
+  </div>
+  <div class="flex flex-col md:flex-row gap-4">
+    <FormField v-slot="{ componentField, value }" name="runDate">
+      <FormItem class="flex flex-col flex-1">
+        <FormControl>
+          <Popover>
+            <PopoverTrigger as-child>
+              <Button
+                variant="outline"
+                class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-300"
+              >
+                <Icon name="lucide:calendar" class="mr-2 h-4 w-4" />
+                <span :class="!value ? 'text-gray-500' : ''">
+                  {{ value ? new Date(value).toLocaleDateString() : 'DD/MM/YYYY' }}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-auto p-0">
+              <Calendar
+                v-bind="componentField"
+                mode="single"
+                initial-focus
+              />
+            </PopoverContent>
+          </Popover>
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    </FormField>
+    
+    <FormField v-slot="{ componentField }" name="toTime">
+      <FormItem class="flex flex-col flex-1">
+        <FormControl>
+          <Input
+            v-bind="componentField"
+            type="time"
+            class="border shadow-none focus:ring-0 focus:ring-offset-0 focus:outline-none pl-28"
+            placeholder="00:00:00s"
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    </FormField>
+  </div>
+</div>
+
 
           <DialogFooter class="w-full mt-4 flex flex-col gap-2 sm:flex-row">
             <Button variant="outline" class="flex-1 h-11" as-child>

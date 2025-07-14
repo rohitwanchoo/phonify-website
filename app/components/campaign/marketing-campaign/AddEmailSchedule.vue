@@ -152,7 +152,7 @@ function onOpenChange(isOpen: boolean) {
             <div class="font-medium text-sm mb-1">
               Run Time
             </div>
-            <div class="flex gap-4">
+            <div class="flex flex-col md:flex-row gap-4">
               <FormField v-slot="{ componentField, value }" name="runDate">
                 <FormItem class="flex flex-col flex-1">
                   <FormControl>

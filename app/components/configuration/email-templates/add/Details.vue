@@ -317,10 +317,6 @@ const onSubmit = handleSubmit(async (values) => {
         </Button>
       </div>
     </div>
-
-    <div class="overflow-auto">
-      <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
-    </div>
     <!-- Preview Section -->
     <div class="w-full max-h-[calc(100vh-190px)]  col-span-1 xl:col-span-4">
       <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
