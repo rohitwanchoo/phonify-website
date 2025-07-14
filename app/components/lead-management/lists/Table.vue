@@ -72,7 +72,7 @@ const columns = [
   columnHelper.display({
     id: 'slNo',
     header: () => h('div', { class: 'text-center w-full' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, props.start + row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.index + 1),
   }),
   columnHelper.accessor('list', {
     header: ({ column }) =>
@@ -132,14 +132,17 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center w-full' }, 'Actions'),
-    cell: () => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center pr-3 w-full' }, [
       h(Button, {
         size: 'sm',
         variant: 'outline',
         color: 'primary',
         class: 'cursor-pointer flex items-center gap-x-1 border border-primary',
         onClick: () => {
-          navigateTo('/app/lead-management/list/leads')
+          navigateTo({
+            path: `/app/lead-management/list/${row.original.list_id}`,
+            query: { name: row.original.list },
+          })
         },
       }, [
         h(Icon, { name: 'material-symbols:visibility', color: 'primary' }),
@@ -170,15 +173,9 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  initialState: { pagination: { pageSize: props.limit } },
   manualPagination: true,
-  pageCount: last_page.value,
-  rowCount: total.value,
   state: {
-    pagination: {
-      pageIndex: current_page.value,
-      pageSize: per_page.value,
-    },
+
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
@@ -253,7 +250,6 @@ function changeLimit(val: number | null) {
       </TableBody>
     </Table>
   </div>
-
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
