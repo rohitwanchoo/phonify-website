@@ -61,9 +61,23 @@ export interface leadList {
   campaign: string
   list: string
   list_id: string
+  campaign_id: string
   updated_at: string
   is_active: number
   rowListData: number
+}
+
+function updateStatus(val: boolean, row: { list_id: number, campaign_id: number }): void {
+  useApi().post('/status-update-list', {
+    list_id: row.list_id,
+    campaign_id: row.campaign_id,
+    status: val ? 1 : 0,
+  }).then((response) => {
+    showToast({ message: response.message })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({ type: 'error', message: error.message })
+  })
 }
 
 const columnHelper = createColumnHelper<leadList>()
@@ -123,9 +137,12 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.is_active === 1,
+        'modelValue': !!row.original.is_active,
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.is_active = val ? 1 : 0
+          updateStatus(val, {
+            list_id: Number(row.original.list_id),
+            campaign_id: Number(row.original.campaign_id),
+          })
         },
       })),
   }),
