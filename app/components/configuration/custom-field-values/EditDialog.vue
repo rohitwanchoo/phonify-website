@@ -1,8 +1,7 @@
-<!-- components/EditDialog.vue -->
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { computed, watch } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -57,15 +56,35 @@ const formSchema = toTypedSchema(
   }),
 )
 
-const { handleSubmit, resetForm, isSubmitting, setFieldValue } = useForm({
+const { handleSubmit, resetForm, isSubmitting, setValues } = useForm({
   validationSchema: formSchema,
 })
 
-// Pre-fill form when rowData changes
-watch(() => props.rowData, (newVal) => {
-  if (newVal?.id) {
-    setFieldValue('fieldLabel', newVal.title_match)
-    setFieldValue('link', newVal.title_links)
+// Initialize form with empty values
+resetForm({
+  values: {
+    fieldLabel: '',
+    link: '',
+  },
+})
+
+// Populate form when dialog opens or rowData changes
+watch(() => props.open, async (isOpen) => {
+  if (isOpen && props.rowData?.id) {
+    // Wait for dialog to fully open and form to be ready
+    // await nextTick()
+    setValues({
+      fieldLabel: props.rowData.title_match,
+      link: props.rowData.title_links,
+    })
+  }
+  else {
+    resetForm({
+      values: {
+        fieldLabel: '',
+        link: '',
+      },
+    })
   }
 }, { immediate: true })
 
@@ -76,7 +95,6 @@ const onSubmit = handleSubmit(async (values) => {
       return await useApi().post(`/custom-field-value/${props.rowData.id}`, {
         title_match: values.fieldLabel,
         title_links: values.link,
-        // Include any other required fields from your API
       })
     })
 
@@ -88,7 +106,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     if (res.data.value?.success) {
       emits('update:open', false)
-      props.refresh() // Refresh parent table
+      props.refresh()
     }
   }
   catch (error) {
@@ -100,9 +118,6 @@ const onSubmit = handleSubmit(async (values) => {
 })
 
 function onOpenChange(open: boolean) {
-  if (!open) {
-    resetForm()
-  }
   emits('update:open', open)
 }
 </script>
@@ -157,7 +172,7 @@ function onOpenChange(open: boolean) {
 
         <DialogFooter class="w-full mt-4 flex flex-col gap-2 sm:flex-row">
           <Button variant="outline" class="flex-1 h-11" as-child>
-            <DialogClose @click="resetForm">
+            <DialogClose>
               <Icon name="material-symbols:close" size="20" />
               Cancel
             </DialogClose>

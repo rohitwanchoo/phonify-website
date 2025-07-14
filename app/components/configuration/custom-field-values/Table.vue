@@ -19,15 +19,6 @@ const props = defineProps<{
   loading?: boolean
   refresh: () => void
 }>()
-watch(
-  () => props.list,
-  (newVal) => {
-    if (newVal && (Array.isArray(newVal) ? newVal.length : newVal?.data?.length)) {
-      console.log('Table.vue props.list changed:', newVal)
-    }
-  },
-  { immediate: true },
-)
 
 const columnHelper = createColumnHelper<any>()
 const editDialogOpen = ref(false)
