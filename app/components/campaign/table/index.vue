@@ -75,7 +75,7 @@ const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const sheet = ref(false)
-const selectedCampaign = ref(null) // Store the campaign details
+const selectedCampaign = ref<any>() // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
 
 const {
@@ -159,9 +159,9 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('group_id', {
+  columnHelper.accessor('lists', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.group_id),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowListData)),
   }),
 
   columnHelper.display({

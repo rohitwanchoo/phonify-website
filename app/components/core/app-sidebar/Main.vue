@@ -61,6 +61,7 @@ const data = {
       { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
+      { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign' },
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', items: [
       {title: 'DNC', url: '/app/do-not-call/dnc'},

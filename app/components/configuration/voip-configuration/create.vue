@@ -137,11 +137,11 @@ const onSubmit = handleSubmit(async (values) => {
         </FormField>
 
         <DialogFooter class="pt-4">
-          <Button type="button" class="w-[50%]" variant="outline" @click="resetForm">
+          <Button type="button" class="w-full md:w-[50%]" variant="outline" @click="resetForm">
             <Icon name="material-symbols:autorenew" />
             Reset
           </Button>
-          <Button type="submit" class="w-[50%]" :disabled="loading" :loading="loading">
+          <Button type="submit" class="w-full md:w-[50%]" :disabled="loading" :loading="loading">
             <Icon name="material-symbols:save" />
             Save
           </Button>

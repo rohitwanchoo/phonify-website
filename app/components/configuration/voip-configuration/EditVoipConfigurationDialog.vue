@@ -67,7 +67,6 @@ watch(dialogOpen, (newVal) => {
   if (newVal && props.row) {
     resetForm({
       values: {
-        id: props.row.id || null,
         name: props.row.name || '',
         host: props.row.host || '',
         username: props.row.username || '',
@@ -77,6 +76,18 @@ watch(dialogOpen, (newVal) => {
     })
   }
 })
+
+function handleReset() {
+  resetForm({
+    values: {
+      name: props.row?.name || '',
+      host: props.row?.host || '',
+      username: props.row?.username || '',
+      secret: props.row?.secret || '',
+      dialPrefix: props.row?.dialPrefix || '',
+    },
+  })
+}
 </script>
 
 <template>
@@ -145,7 +156,7 @@ watch(dialogOpen, (newVal) => {
         </div>
         <DialogFooter>
           <Button
-            class="w-[50%] h-10"
+            class="w-full md:w-[50%] h-10"
             variant="outline"
             type="button"
             @click="handleReset"
@@ -153,7 +164,7 @@ watch(dialogOpen, (newVal) => {
             <Icon name="material-symbols:autorenew" />
             Reset
           </Button>
-          <Button class="w-[50%] h-10" type="submit" :disabled="loading">
+          <Button class="w-full md:w-[50%] h-10" type="submit" :disabled="loading">
             <Icon name="material-symbols:save" />
             Save
           </Button>
