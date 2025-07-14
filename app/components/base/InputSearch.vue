@@ -13,11 +13,16 @@ const props = withDefaults(defineProps<Props>(), {
   class: '',
 })
 const model = defineModel<string>()
+
+function onClear(){
+  if(model) 
+    model.value = ''
+}
 </script>
 
 <template>
   <div :class="cn('relative', props.class)">
-    <Input v-model="model" :placeholder="props.placeholder" class="w-full h-11" />
-    <Icon name="lucide:search" class="absolute top-1/2  right-0 -translate-x-1/2  -translate-y-1/2" />
+    <Input v-model="model" :placeholder="props.placeholder" class="w-full h-11 pr-[30px]" />
+    <Icon @click="onClear" :name="model ? 'lucide:x' : 'lucide:search'" class="absolute top-1/2 right-0.5 -translate-x-1/2 -translate-y-1/2 cursor-pointer" />
   </div>
 </template>
