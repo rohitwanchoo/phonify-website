@@ -41,7 +41,7 @@ function handleView(row: any) {
     path: '/app/campaign/marketing-campaign/schedule-list',
     query: {
       id: row.original.id,
-      name: row.original.campaign_name, // ✅ pass campaign name
+      name: row.original.campaign_name,
     },
   })
 }
