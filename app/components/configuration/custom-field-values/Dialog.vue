@@ -200,8 +200,14 @@ function onOpenChange(open: boolean) {
             </DialogClose>
           </Button>
           <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting">
-            <Icon name="material-symbols:save" size="20" />
-            {{ isEditMode ? 'Update' : 'Save' }}
+            <template v-if="isSubmitting">
+              <Icon name="eos-icons:loading" size="20" class="mr-2" />
+              {{ isEditMode ? 'Updating...' : 'Saving...' }}
+            </template>
+            <template v-else>
+              <Icon name="material-symbols:save" size="20" class="mr-2" />
+              {{ isEditMode ? 'Update' : 'Save' }}
+            </template>
           </Button>
         </DialogFooter>
       </form>
