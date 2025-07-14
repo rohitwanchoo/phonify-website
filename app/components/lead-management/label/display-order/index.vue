@@ -29,7 +29,9 @@ function reorder(fromIndex: number, toIndex: number) {
 
   const newItems = [...labelList.value]
   const [movedItem] = newItems.splice(fromIndex, 1)
-  newItems.splice(toIndex, 0, movedItem)
+  if (movedItem) {
+    newItems.splice(toIndex, 0, movedItem)
+  }
   labelList.value = newItems
 
   emit('updateOrder', newItems)
@@ -42,7 +44,7 @@ function resetOrder() {
 
 <template>
   <div
-    class="p-4 border border-[#E4E4E7CC] rounded-md min-w-[360px] bg-[#162D3A] h-fit max-h-[calc(100vh-145px)] overflow-y-auto"
+    class="p-4 border border-[#E4E4E7CC] rounded-md min-w-[360px] bg-[#162D3A] h-fit overflow-y-auto"
   >
     <!-- Header -->
     <div class="flex gap-4 justify-between items-center pb-4 border-b border-white/10 mb-4">
@@ -66,7 +68,7 @@ function resetOrder() {
       </div>
     </div>
     <!-- Draggable list -->
-    <div v-else class="space-y-2 overflow-hidden">
+    <div v-else class="space-y-2 overflow-hidden max-h-[calc(100vh-270px)] overflow-y-auto">
       <LeadManagementLabelDisplayOrderDragBox
         v-for="(item, index) in labelList"
         :key="item.id"

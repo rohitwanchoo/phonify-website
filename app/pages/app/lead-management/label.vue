@@ -88,7 +88,7 @@ async function handleReorder(updatedList: any[]) {
 
   <div class="flex gap-4 justify-between">
     <!-- TABLE -->
-    <div class="w-full h-[calc(100vh-145px)] overflow-y-auto">
+    <div class="w-full h-[calc(100vh-165px)] overflow-y-auto">
       <LeadManagementLabelTable :limit="limit" :total-rows="filteredLabel.length" :start="pageStart" :list="paginatedList || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" />
     </div>
     <LeadManagementLabelDisplayOrder
