@@ -90,9 +90,9 @@ const pitch = ref([0])
   </Breadcrumb>
   <BaseHeader title="Add Voice Templates" />
 
-  <form class="w-full relative h-full border border-gray-200 rounded-xl py-6 flex flex-col gap-4 pb-4" @submit.prevent="onSubmit">
-    <div class="overflow-y-auto max-h-[80%]">
-      <div class="flex items-center justify-between px-6 pb-3">
+  <form class="w-full relative h-full border border-gray-200 rounded-xl py-4 md:py-6 flex flex-col gap-4 pb-4" @submit.prevent="onSubmit">
+    <div class="overflow-y-auto max-h-[88%]">
+      <div class="flex items-center justify-between px-4 md:px-6 pb-3">
         <h2 class="text-lg font-semibold text-primary">
           Voice Template details
         </h2>
@@ -102,7 +102,7 @@ const pitch = ref([0])
         </Button>
       </div>
       <Separator />
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 px-6 pt-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 md:gap-y-6  px-6 pt-4">
         <!-- Language Dropdown -->
         <div class="w-full">
           <FormField v-slot="{ componentField, errorMessage }" name="language">

@@ -11,7 +11,7 @@ const { data: ipSettingList, refresh: refreshIpSettingList, status: ipSettingSta
       ...filter.value,
     },
   }), {
-  transform: res => res.data.slice(0, 10) || [],
+  transform: res => res.data || [],
 })
 const filterValues = ref({})
 

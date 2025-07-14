@@ -50,7 +50,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -92,6 +92,7 @@ export interface callTimingList {
 const sheet = ref(false)
 
 const edit = ref(false)
+const create = ref(false)
 
 const selectedRowData = ref<callTimingList | null>(null)
 
@@ -245,7 +246,8 @@ function changeLimit(val: number | null) {
 
 function editMethod(original: callTimingList) {
   editRowData.value = original
-  edit.value = true
+  // edit.value = true\
+  emits('edit', original)
 }
 </script>
 
@@ -334,8 +336,6 @@ function editMethod(original: callTimingList) {
 
   <!---->
   <CallTimesTableSheet v-model:open="sheet" :schedule="selectedRowData || {}" />
-
-  <CallTimesTableEdit v-model:open="edit" :edit-data="editRowData" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Call Times" description="You are about to delete call time. Do you wish to proceed?" />

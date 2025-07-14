@@ -8,8 +8,8 @@ export function useApi() {
   const apiClient = $fetch.create({
     baseURL: config.public.apiBaseUrl,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      // 'Content-Type': 'application/json',
+      // 'Accept': 'application/json',
     },
     onRequest({ options }) {
       // Add auth token to requests if available

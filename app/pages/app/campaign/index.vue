@@ -4,22 +4,26 @@ import { computed, ref } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 10,
-  total: 50,
-}
+const start = ref<number>(0)
+const limit = ref<number>(10)
 
-const { data: campaignList, status, refresh } = await useLazyAsyncData('campaigns-list', async () => {
-  const response = await useApi().get('campaigns', {
-    params: {
-      // start: 0,
-      // limit: 5,
-    },
+const { data: campaignList, status, refresh: refreshCampaignList } = await useLazyAsyncData('campaigns-list', async () => {
+  const response = await useApi().post('campaign', {
+    start: start.value,
+    limit: limit.value,
   })
   return response
 })
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return refreshCampaignList()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refreshCampaignList()
+}
 </script>
 
 <template>
@@ -42,7 +46,7 @@ const { data: campaignList, status, refresh } = await useLazyAsyncData('campaign
 
     <!-- TABLE -->
     <div>
-      <CampaignTable :list="campaignList?.data" :meta="meta" :loading="status === 'pending'" />
+      <CampaignTable :list="campaignList?.data" :total-rows="campaignList?.total_rows" :start :limit :loading="status === 'pending'" @refresh="refreshCampaignList" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>
