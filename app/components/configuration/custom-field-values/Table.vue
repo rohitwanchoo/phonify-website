@@ -257,9 +257,11 @@ async function handleDeleteConfirm() {
         </span>
         of {{ meta?.total }} entries
       </div>
-      <ConfigurationCustomFieldValuesEditDialog
+      <!-- Replaced with the new combined dialog component -->
+      <ConfigurationCustomFieldValuesDialog
         :open="editDialogOpen"
         :row-data="editRow"
+        :refresh="props.refresh"
         @update:open="val => editDialogOpen = val"
       />
     </div>

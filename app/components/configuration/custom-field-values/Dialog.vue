@@ -1,7 +1,8 @@
+<!-- components/CustomFieldDialog.vue -->
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { computed, nextTick, watch } from 'vue'
+import { computed, watch } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,9 +23,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  // Optional prop for edit mode
   rowData: {
     type: Object,
-    default: () => ({}),
+    default: null,
   },
   refresh: {
     type: Function,
@@ -33,6 +35,9 @@ const props = defineProps({
 })
 
 const emits = defineEmits(['update:open'])
+
+// Computed property to determine if we're in edit mode
+const isEditMode = computed(() => Boolean(props.rowData?.id))
 
 // Fetch field label options from API
 const { data: fieldLabelList } = await useLazyAsyncData('field-label-list', async () => {
@@ -69,16 +74,16 @@ resetForm({
 })
 
 // Populate form when dialog opens or rowData changes
-watch(() => props.open, async (isOpen) => {
-  if (isOpen && props.rowData?.id) {
-    // Wait for dialog to fully open and form to be ready
-    // await nextTick()
+watch(() => props.open, (isOpen) => {
+  if (isOpen && isEditMode.value) {
+    // Edit mode - populate with rowData
     setValues({
       fieldLabel: props.rowData.title_match,
       link: props.rowData.title_links,
     })
   }
   else {
+    // Add mode - reset form
     resetForm({
       values: {
         fieldLabel: '',
@@ -88,19 +93,34 @@ watch(() => props.open, async (isOpen) => {
   }
 }, { immediate: true })
 
-// Submit handler for editing
+// Handle form submission
 const onSubmit = handleSubmit(async (values) => {
   try {
-    const res = await useLazyAsyncData('custom-field-edit', async () => {
-      return await useApi().post(`/custom-field-value/${props.rowData.id}`, {
-        title_match: values.fieldLabel,
-        title_links: values.link,
+    let res
+    if (isEditMode.value) {
+      // Edit API call
+      res = await useLazyAsyncData('custom-field-edit', async () => {
+        return await useApi().post(`/custom-field-value/${props.rowData.id}`, {
+          title_match: values.fieldLabel,
+          title_links: values.link,
+        })
       })
-    })
+    }
+    else {
+      // Add API call
+      res = await useLazyAsyncData('custom-field-add', async () => {
+        return await useApi().put('custom-field-labels-value', {
+          title_match: values.fieldLabel,
+          title_links: values.link,
+        })
+      })
+    }
 
     showToast({
       message: res.data.value?.message
-        || (res.data.value?.success ? 'Updated successfully' : 'Update failed'),
+        || (res.data.value?.success
+          ? (isEditMode.value ? 'Updated successfully' : 'Saved successfully')
+          : (isEditMode.value ? 'Update failed' : 'Failed to save')),
       type: res.data.value?.success ? 'success' : 'error',
     })
 
@@ -111,7 +131,7 @@ const onSubmit = handleSubmit(async (values) => {
   }
   catch (error) {
     showToast({
-      message: 'An error occurred while updating',
+      message: `An error occurred while ${isEditMode.value ? 'updating' : 'saving'}`,
       type: 'error',
     })
   }
@@ -126,7 +146,9 @@ function onOpenChange(open: boolean) {
   <Dialog :open="open" @update:open="onOpenChange">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Edit Custom Field Value</DialogTitle>
+        <DialogTitle>
+          {{ isEditMode ? 'Edit Custom Field Value' : 'Add Custom Field Value' }}
+        </DialogTitle>
       </DialogHeader>
       <Separator />
 
@@ -179,7 +201,7 @@ function onOpenChange(open: boolean) {
           </Button>
           <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting">
             <Icon name="material-symbols:save" size="20" />
-            Update
+            {{ isEditMode ? 'Update' : 'Save' }}
           </Button>
         </DialogFooter>
       </form>
