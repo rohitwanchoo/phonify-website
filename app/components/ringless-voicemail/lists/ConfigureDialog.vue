@@ -7,12 +7,11 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { h, ref } from 'vue'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 const props = defineProps<{
   open: boolean
@@ -32,96 +31,48 @@ const inputValue = ref(props.title || '')
 const selectValue = ref(props.campaign || '')
 const dialingColumnValue = ref('')
 
-const fileHeaderOptions = [
-  'Phone Number',
-  'Owner Name',
-  'Business Name',
-  'Email/Fax',
-  'Address',
-  'City',
-  'State',
-  'Zip',
-  'Monthly Deposit',
-  'Years in business',
-  'Amount Needed',
-]
-
-const tableData = ref(fileHeaderOptions.map((header, idx) => {
-  let label = ''
-  if (Array.isArray(labelOptions) && labelOptions.length > 0) {
-    const opt = labelOptions[idx % labelOptions.length]
-    label = opt && typeof opt.value === 'string' ? opt.value : ''
-  }
-  return {
-    slno: idx + 1,
-    fileHeader: header,
-    searchFilter: idx % 2 === 0,
-    visible: true,
-    editable: idx % 3 !== 0,
-    dialingColumn: idx % 4 === 0,
-    label,
-  }
-}))
+const tableData = ref([
+  { slno: 1, fileHeader: 'Phone Number', dialingColumn: false, label: '' },
+  { slno: 2, fileHeader: 'Owner Name', dialingColumn: false, label: '' },
+  { slno: 3, fileHeader: 'Business Name', dialingColumn: false, label: '' },
+  { slno: 4, fileHeader: 'Email/Fax', dialingColumn: false, label: '' },
+])
 
 const columnHelper = createColumnHelper<typeof tableData.value[0]>()
 const columns = [
   columnHelper.accessor('slno', {
-    header: 'Sl. No',
+    header: '#',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('fileHeader', {
     header: 'File Header',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('searchFilter', {
-    header: 'Search Filter',
-    cell: info => h(Checkbox, {
-      modelValue: info.row.original.searchFilter,
-      'onUpdate:modelValue': (val: boolean) => info.row.original.searchFilter = val,
-      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]'
-    }),
-  }),
-  columnHelper.accessor('visible', {
-    header: 'Visible',
-    cell: info => h(Checkbox, {
-      modelValue: info.row.original.visible,
-      'onUpdate:modelValue': (val: boolean) => info.row.original.visible = val,
-      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]'
-    }),
-  }),
-  columnHelper.accessor('editable', {
-    header: 'Editable',
-    cell: info => h(Checkbox, {
-      modelValue: info.row.original.editable,
-      'onUpdate:modelValue': (val: boolean) => info.row.original.editable = val,
-      class: 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]'
-    }),
-  }),
   columnHelper.accessor('dialingColumn', {
     header: 'Dialing Column',
     cell: info => h(RadioGroup, {
-      modelValue: dialingColumnValue.value,
+      'modelValue': dialingColumnValue.value,
       'onUpdate:modelValue': (val: string) => {
         dialingColumnValue.value = val
         tableData.value.forEach(row => row.dialingColumn = row.slno.toString() === val)
       },
-      class: 'flex justify-center',
+      'class': 'flex justify-center',
     }, {
       default: () => h(RadioGroupItem, {
         value: info.row.original.slno.toString(),
         class: [
           'h-4.5 w-4.5 mx-auto border-1 border-primary text-primary',
           'data-[state=checked]:border-[#16A34A] border-2',
-          '[&_[data-slot=radio-group-indicator]>svg]:!fill-[#16A34A]'
+          '[&_[data-slot=radio-group-indicator]>svg]:!fill-[#16A34A]',
         ].join(' '),
         checked: dialingColumnValue.value === info.row.original.slno.toString(),
-      })
+      }),
     }),
   }),
   columnHelper.accessor('label', {
     header: 'Label',
     cell: info => h(Select, {
-      modelValue: info.getValue(),
+      'modelValue': info.getValue(),
       'onUpdate:modelValue': (val: string | number | null) => info.row.original.label = val ? String(val) : '',
     }, {
       default: () => [
@@ -130,7 +81,7 @@ const columns = [
         ]),
         h(SelectContent, { class: 'w-full text-xs bg-[#F0F9F8] border-0' }, [
           labelOptions.map(opt =>
-            h(SelectItem, { value: opt.value, key: opt.value, class: 'text-xs' }, () => opt.label)
+            h(SelectItem, { value: opt.value, key: opt.value, class: 'text-xs' }, () => opt.label),
           ),
         ]),
       ],
@@ -151,7 +102,7 @@ function closeDialog() {
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-w-[90vw] w-[90vw] sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
+    <DialogContent class="max-w-[90vw] sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
       <DialogHeader>
         <DialogTitle class="text-primary">
           Configure List
@@ -176,7 +127,7 @@ function closeDialog() {
           </Select>
         </div>
       </div>
-      <div class="overflow-x-auto rounded border mb-8">
+      <div class="overflow-x-auto rounded-lg border mb-8">
         <table class="min-w-full text-sm text-primary">
           <thead class="bg-gray-50 text-primary">
             <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">

@@ -4,10 +4,6 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
-import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
-import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -16,13 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
 
 const dialogOpen = ref(false)
 const optionsOpen = ref(false)
 const loading = ref(false)
+const formTitle = ref('')
+const formCampaign = ref('')
 
 function onDialogOpen(val: boolean) {
-  if (val) resetForm()
+  if (val)
+    resetForm()
 }
 
 const formSchema = toTypedSchema(z.object({
@@ -30,10 +33,10 @@ const formSchema = toTypedSchema(z.object({
   campaign: z.string().min(1, 'Phone numbers are required'),
   file: z.instanceof(File, { message: 'File is required' })
     .refine(file => file.size <= 5 * 1024 * 1024, 'Max file size is 5MB')
-    .refine(file => {
+    .refine((file) => {
       const ext = file.name.split('.').pop()?.toLowerCase()
       return ['xlsx', 'xls', 'csv'].includes(ext || '')
-    }, 'Only Excel/CSV files allowed')
+    }, 'Only Excel/CSV files allowed'),
 }))
 
 const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
@@ -41,7 +44,7 @@ const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
   initialValues: {
     title: '',
     campaign: '',
-    file: null as File | null
+    file: null as File | null,
   },
 })
 
@@ -49,7 +52,8 @@ async function handleFileUpdate(files: File[]) {
   if (files.length > 0) {
     setFieldValue('file', files[0])
     await validateField('file')
-  } else {
+  }
+  else {
     setFieldValue('file', null)
     await validateField('file')
   }
@@ -57,13 +61,15 @@ async function handleFileUpdate(files: File[]) {
 
 const onSubmit = handleSubmit((values) => {
   loading.value = true
+  formTitle.value = values.title
+  formCampaign.value = values.campaign
   console.log('Form submitted with values:', {
     title: values.title,
     campaign: values.campaign,
     fileName: values.file?.name,
-    fileSize: values.file?.size
+    fileSize: values.file?.size,
   })
-  
+
   // Simulate API call
   setTimeout(() => {
     loading.value = false
@@ -89,12 +95,14 @@ const onSubmit = handleSubmit((values) => {
       <form class="space-y-4 py-4" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="title">
           <FormItem>
-            <p class="text-primary text-sm">Title</p>
+            <p class="text-primary text-sm">
+              Title
+            </p>
             <FormControl>
-              <Input 
-                placeholder="Enter campaign name" 
-                class="h-11" 
-                v-bind="componentField" 
+              <Input
+                placeholder="Enter campaign name"
+                class="h-11"
+                v-bind="componentField"
               />
             </FormControl>
             <FormMessage class="ml-2 text-xs" />
@@ -103,7 +111,9 @@ const onSubmit = handleSubmit((values) => {
 
         <FormField v-slot="{ componentField }" name="file">
           <FormItem>
-            <p class="text-primary text-sm">Upload File</p>
+            <p class="text-primary text-sm">
+              Upload File
+            </p>
             <FormControl>
               <BaseFileUploader
                 v-bind="componentField"
@@ -118,7 +128,9 @@ const onSubmit = handleSubmit((values) => {
 
         <FormField v-slot="{ componentField }" name="campaign">
           <FormItem>
-            <p class="text-primary text-sm">Campaign</p>
+            <p class="text-primary text-sm">
+              Campaign
+            </p>
             <FormControl>
               <Select v-bind="componentField">
                 <SelectTrigger class="h-11 w-full">
@@ -126,9 +138,15 @@ const onSubmit = handleSubmit((values) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="summer-sale">Summer Sale Promotion</SelectItem>
-                    <SelectItem value="new-product">New Product Launch</SelectItem>
-                    <SelectItem value="holiday-special">Holiday Special Offer</SelectItem>
+                    <SelectItem value="summer-sale">
+                      Summer Sale Promotion
+                    </SelectItem>
+                    <SelectItem value="new-product">
+                      New Product Launch
+                    </SelectItem>
+                    <SelectItem value="holiday-special">
+                      Holiday Special Offer
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -138,18 +156,18 @@ const onSubmit = handleSubmit((values) => {
         </FormField>
 
         <DialogFooter class="pt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            class="w-[50%] border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500" 
+          <Button
+            type="button"
+            variant="outline"
+            class="w-[50%] border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500"
             @click="resetForm"
           >
             <Icon name="material-symbols:close" />
             Discard
           </Button>
-          <Button 
-            type="submit" 
-            class="w-[50%]" 
+          <Button
+            type="submit"
+            class="w-[50%]"
             :disabled="loading"
           >
             <Icon name="material-symbols:check" />
@@ -159,9 +177,9 @@ const onSubmit = handleSubmit((values) => {
       </form>
     </DialogContent>
   </Dialog>
-  <RinglessVoicemailListsOptions 
-    v-model:open="optionsOpen" 
-    :title="'hello'" 
-    :campaign="'hi'" 
+  <RinglessVoicemailListsConfigureDialog
+    v-model:open="optionsOpen"
+    :title="formTitle"
+    :campaign="formCampaign"
   />
 </template>

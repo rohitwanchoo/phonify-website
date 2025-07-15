@@ -17,10 +17,10 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
-
 import moment from 'moment'
+
 import { computed, h, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
 
 import { Button } from '@/components/ui/button'
@@ -58,8 +58,10 @@ import { Separator } from '~/components/ui/separator'
 const sheet = ref(false)
 const selectedList = ref<any>(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
-const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
 const loading = ref(false)
+const optionsOpen = ref(false)
+const editTitle = ref('')
+const editCampaign = ref('')
 const router = useRouter()
 const dummyData = ref([
   {
@@ -201,35 +203,35 @@ const columns = [
       ])
     },
   }),
-columnHelper.display({
-  id: 'scheduled',
-  header: ({ column }) =>
-    h('div', { class: 'text-center' }, h(Button, {
-      class: 'text-sm font-normal',
-      variant: 'ghost',
-      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-    }, () => ['Schedule Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-  cell: ({ row }) => {
-    const isScheduled = row.original.scheduled;
-    return h('div', {
-      class: cn(
-        'text-center font-normal text-sm py-1 px-3 inline-flex items-center justify-center w-full',
-        isScheduled ? ' text-green-600' : ' text-red-600'
-      )
-    }, isScheduled ? 'Yes' : 'No');
-  },
-  sortingFn: (rowA, rowB, columnId) => {
-    const valueA = rowA.original.scheduled;
-    const valueB = rowB.original.scheduled;
-    if (valueA === valueB)
-      return 0;
-    if (valueA && !valueB)
-      return -1;
-    if (!valueA && valueB)
-      return 1;
-    return 0;
-  },
-}),
+  columnHelper.display({
+    id: 'scheduled',
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Schedule Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => {
+      const isScheduled = row.original.scheduled
+      return h('div', {
+        class: cn(
+          'text-center font-normal text-sm py-1 px-3 inline-flex items-center justify-center w-full',
+          isScheduled ? ' text-green-600' : ' text-red-600',
+        ),
+      }, isScheduled ? 'Yes' : 'No')
+    },
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.original.scheduled
+      const valueB = rowB.original.scheduled
+      if (valueA === valueB)
+        return 0
+      if (valueA && !valueB)
+        return -1
+      if (!valueA && valueB)
+        return 1
+      return 0
+    },
+  }),
 
   columnHelper.display({
     id: 'campaignStatus',
@@ -279,10 +281,9 @@ columnHelper.display({
       ),
       h(Action, {
         onEdit: () => {
-          router.push({
-            path: `/app/ringless-voicemail/campaign/new-campaign`,
-            query: { id: row.original.id, name: row.original.title },
-          })
+          editTitle.value = row.original.title
+          editCampaign.value = row.original.campaign_name
+          optionsOpen.value = true
         },
         onDelete: () => {
           console.log('Delete campaign:', row.original.id)
@@ -416,6 +417,11 @@ function handlePageChange(page: number) {
       />
     </div>
   </div>
+  <RinglessVoicemailListsConfigureDialog
+    v-model:open="optionsOpen"
+    :title="editTitle"
+    :campaign="editCampaign"
+  />
 
   <RinglessVoicemailListsTableSheet
     v-model:open="sheet"
