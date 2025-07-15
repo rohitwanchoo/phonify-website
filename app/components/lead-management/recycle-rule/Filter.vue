@@ -17,26 +17,62 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { default: false })
 
-const campaignOptions = props.recycleRules.map(e => ({
-  label: e.campaign,
-  value: e.campaign_id,
-}))
-const listOptions = props.recycleRules.map(e => ({
-  label: e.list,
-  value: e.list_id,
-}))
-const dispositionOptions = props.recycleRules.map(e => ({
-  label: e.disposition,
-  value: e.disposition_id,
-}))
-const dayOptions = props.recycleRules.map(e => ({
-  label: e.day,
-  value: e.day,
-}))
-const callTimeOptions = props.recycleRules.map(e => ({
-  label: e.call_time,
-  value: e.call_time,
-}))
+const { data: campaigns, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign-list-filter', () =>
+  useApi().post('/campaign '), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: lists, status: listStatus, refresh: listRefresh } = await useLazyAsyncData('list-filter', () =>
+  useApi().post('/list '), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: disposition, status: dispositionStatus, refresh: dispositionRefresh } = await useLazyAsyncData('disposition-filter', () =>
+  useApi().post('/disposition '), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+watch(open, (val) => {
+  if (val) {
+    Promise.all([
+      !campaigns.value?.length && campaignRefresh(),
+      !lists.value?.length && listRefresh(),
+      !disposition.value?.length && dispositionRefresh(),
+
+    ])
+  }
+})
+
+const dayOptions = [
+  { label: 'Sunday', value: 'sunday' },
+  { label: 'Monday', value: 'monday' },
+  { label: 'Tuesday', value: 'tuesday' },
+  { label: 'Wednesday', value: 'wednesday' },
+  { label: 'Thursday', value: 'thursday' },
+  { label: 'Friday', value: 'friday' },
+  { label: 'Saturday', value: 'saturday' },
+]
+
+const callTimeOptions = [
+  { value: '1', label: '1' },
+  { value: '2', label: 'less than or equal to 2' },
+  { value: '3', label: 'less than or equal to 3' },
+  { value: '4', label: 'less than or equal to 4' },
+  { value: '5', label: 'less than or equal to 5' },
+  { value: '6', label: 'less than or equal to 6' },
+  { value: '7', label: 'less than or equal to 7' },
+  { value: '8', label: 'less than or equal to 8' },
+  { value: '9', label: 'less than or equal to 9' },
+  { value: '10', label: 'less than or equal to 10' },
+  { value: '11', label: 'less than or equal to 11' },
+  { value: '12', label: 'less than or equal to 12' },
+  { value: '13', label: 'less than or equal to 13' },
+  { value: '14', label: 'less than or equal to 14' },
+  { value: '15', label: 'less than or equal to 15' },
+]
 
 // Simple reactive filter values
 const filters = ref({
@@ -122,13 +158,18 @@ function clearFilters() {
               <div>
                 <label class="block text-sm font-medium mb-2">Campaign</label>
                 <Select v-model="filters.campaign">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in campaignOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
+                    <SelectItem v-if="campaignStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in campaigns" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </div>
@@ -136,13 +177,18 @@ function clearFilters() {
               <div>
                 <label class="block text-sm font-medium mb-2">List</label>
                 <Select v-model="filters.list">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select list" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in listOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
+                    <SelectItem v-if="listStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in lists" :key="option.list_id" :value="option.list_id">
+                        {{ option.list }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </div>
@@ -150,13 +196,18 @@ function clearFilters() {
               <div>
                 <label class="block text-sm font-medium mb-2">Disposition</label>
                 <Select v-model="filters.disposition">
-                  <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select disposition" />
+                  <SelectTrigger class="w-full !h-11">
+                    <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in dispositionOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
+                    <SelectItem v-if="campaignStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in disposition" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </div>
@@ -164,7 +215,7 @@ function clearFilters() {
               <div>
                 <label class="block text-sm font-medium mb-2">Select Day</label>
                 <Select v-model="filters.day">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select day" />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,7 +229,7 @@ function clearFilters() {
               <div>
                 <label class="block text-sm font-medium mb-2">Call Time</label>
                 <Select v-model="filters.callTime">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select call time" />
                   </SelectTrigger>
                   <SelectContent>
@@ -197,7 +248,7 @@ function clearFilters() {
                       <div class="text-sm text-muted-foreground">
                         From:
                       </div>
-                      <Input v-model="filters.fromTime" type="time" class="border-none shadow-none ml-auto w-28" />
+                      <Input v-model="filters.fromTime" type="time" class="border-none shadow-none ml-auto w-28 focus-visible:ring-0" />
                     </div>
                   </div>
                   <div class="flex-1">
@@ -205,7 +256,7 @@ function clearFilters() {
                       <div class="text-sm text-muted-foreground">
                         To:
                       </div>
-                      <Input v-model="filters.toTime" type="time" class="border-none shadow-none ml-auto w-28" />
+                      <Input v-model="filters.toTime" type="time" class="border-none shadow-none ml-auto w-28 focus-visible:ring-0" />
                     </div>
                   </div>
                 </div>
