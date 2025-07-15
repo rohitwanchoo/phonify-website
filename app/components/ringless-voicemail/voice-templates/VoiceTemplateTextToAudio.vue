@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
+import { ref } from 'vue'
 import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -12,9 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
+
 const speed = ref([1])
 const pitch = ref([0])
+
 const formSchema = toTypedSchema(z.object({
   language: z.string().min(1, 'Please select a language'),
   voice: z.string().min(1, 'Please select a voice'),
@@ -25,10 +29,9 @@ const { handleSubmit } = useForm({
   validationSchema: formSchema,
 })
 
-const onSubmit = handleSubmit((values) => {
-  console.log('Text to audio input:', values)
-  // Trigger audio playback here
-})
+// const onSubmit = handleSubmit((values) => {
+//   console.log('Text to audio input:', values)
+// })
 </script>
 
 <template>
@@ -88,64 +91,53 @@ const onSubmit = handleSubmit((values) => {
       </FormField>
     </div>
 
+    <!-- Speed Slider -->
+    <div class="relative">
+      <label class="text-sm font-medium text-primary flex justify-between items-center">
+        <span>Speed</span>
+        <span class="text-sm font-light">Value: x {{ (Array.isArray(speed) ? speed[0] : speed).toFixed(2) }}</span>
+      </label>
+      <div
+        class="[&_[data-slot=slider-range]]:bg-[#00A086]
+        [&_[data-slot=slider-thumb]]:bg-[#162D3A]
+        [&_[data-slot=slider-thumb]]:border-[#162D3A]"
+      >
+        <Slider
+          v-model="speed"
+          :min="0.5"
+          :max="2"
+          :step="0.01"
+          class="mt-2"
+        />
+      </div>
+    </div>
 
- <div class="relative">
-          <label class="text-sm font-medium text-primary flex justify-between items-center">
-            <span>Speed</span>
-            <span class="text-sm font-light">Value: x {{ (Array.isArray(speed) ? speed[0] : speed).toFixed(2) }}</span>
-          </label>
-          <div
-            class="[&_[data-slot=slider-range]]:bg-[#00A086]
-            [&_[data-slot=slider-thumb]]:bg-[#162D3A]
-            [&_[data-slot=slider-thumb]]:border-[#162D3A]"
-          >
-            <Slider
-              v-model="speed"
-              :min="0.5"
-              :max="2"
-              :step="0.01"
-              class="mt-2"
-            />
-          </div>
-        </div>
-         <!-- Pitch Slider  -->
-        <div class="relative">
-          <label class="text-sm font-medium text-primary flex justify-between items-center">
-            <span>Pitch</span>
-            <span class="text-sm font-light">Value: {{ Array.isArray(pitch) ? pitch[0] : pitch }}</span>
-          </label>
-          <div
-            class="[&_[data-slot=slider-range]]:bg-[#00A086]
-            [&_[data-slot=slider-thumb]]:bg-[#162D3A]
-            [&_[data-slot=slider-thumb]]:border-[#162D3A]"
-          >
-            <Slider
-              v-model="pitch"
-              :min="-12"
-              :max="12"
-              :step="1"
-              class="mt-2"
-            />
-          </div>
-        </div>
-
-
-
-
-
+    <!-- Pitch Slider -->
+    <div class="relative">
+      <label class="text-sm font-medium text-primary flex justify-between items-center">
+        <span>Pitch</span>
+        <span class="text-sm font-light">Value: {{ Array.isArray(pitch) ? pitch[0] : pitch }}</span>
+      </label>
+      <div
+        class="[&_[data-slot=slider-range]]:bg-[#00A086]
+        [&_[data-slot=slider-thumb]]:bg-[#162D3A]
+        [&_[data-slot=slider-thumb]]:border-[#162D3A]"
+      >
+        <Slider
+          v-model="pitch"
+          :min="-12"
+          :max="12"
+          :step="1"
+          class="mt-2"
+        />
+      </div>
+    </div>
 
     <!-- Text Area -->
     <FormField v-slot="{ componentField }" name="text">
       <FormItem class="w-full">
         <label class="text-sm font-medium text-primary">Text</label>
-        <FormControl>
-          <Textarea
-            v-bind="componentField"
-            placeholder="Type what you like your customers to hear and click on the icon to listen"
-            class="w-full resize-none min-h-[120px] placeholder:text-[#162D3A80]"
-            rows="10"
-          />
-        </FormControl>
+        <Textarea id="description" placeholder="Enter here..." class="w-full min-h-[100px]" />
         <FormMessage class="text-xs" />
       </FormItem>
     </FormField>

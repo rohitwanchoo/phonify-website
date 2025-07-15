@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
 
 const showCreateRingless = ref(false)
 
 const newRinglessItem = ref({
   id: 0,
   extension: '',
-  audioUrl: ''
+  audioUrl: '',
 })
 
-function handleSave(data: { extension: string; audioUrl: string }) {
+function handleSave(data: { extension: string, audioUrl: string }) {
   console.log('Saved Ringless:', data)
   // Optional: send to API or update state here
 }
@@ -45,7 +45,7 @@ function handleSave(data: { extension: string; audioUrl: string }) {
 
     <!-- TABLE -->
     <div>
-      <RinglessVoicemailReportsTable />
+      <RinglessVoicemailVoiceTemplatesTable />
     </div>
   </div>
 </template>
