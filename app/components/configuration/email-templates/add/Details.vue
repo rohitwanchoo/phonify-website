@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
+import { useFocus } from '@vueuse/core'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+
 import { Button } from '~/components/ui/button'
 
 const props = defineProps({
@@ -27,28 +29,30 @@ const props = defineProps({
   emailTemplateStatus: String,
 })
 
-// Lead placeholders options
-const leadPlaceholders = [
-  { value: 'first_name', label: 'First Name' },
-  { value: 'last_name', label: 'Last Name' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'company', label: 'Company' },
-]
+const route = useRoute()
+
+const isEdit = computed(() => route.query.id)
+
+const { data: leadPlaceholders, status: leadPlaceholdersStatus } = await useLazyAsyncData('lead-placeholder-email-template', () =>
+  useApi().post('/label'), {
+  transform: res => res.data,
+})
+
+// Custom placeholders options
+
+const { data: customPlaceholders, status: customPlaceholdersStatus } = await useLazyAsyncData('custom-field-labels-email-template', () =>
+  useApi().get('/custom-field-labels'), {
+  transform: res => res.data,
+})
 
 // Sender placeholders options
 const senderPlaceholders = [
-  { value: 'sender_name', label: 'Sender Name' },
-  { value: 'sender_email', label: 'Sender Email' },
-  { value: 'sender_title', label: 'Sender Title' },
-  { value: 'sender_company', label: 'Sender Company' },
-]
+  'first_name',
+  'last_name',
+  'email',
+  'mobile',
+  'company_name',
 
-// Custom placeholders options
-const customPlaceholders = [
-  { value: 'custom_field_1', label: 'Custom Field 1' },
-  { value: 'custom_field_2', label: 'Custom Field 2' },
-  { value: 'custom_field_3', label: 'Custom Field 3' },
 ]
 
 const formSchema = toTypedSchema(z.object({
@@ -91,10 +95,20 @@ watch(() => props.emailTemplate, (newTemplate) => {
 const onSubmit = handleSubmit(async (values) => {
   try {
     loading.value = true
-    const response = await useApi().put('/email-template', {
-      ...values,
-      status: 1,
-    })
+    let response
+    if (props.emailTemplate.id) {
+      // update email template
+      response = await useApi().post(`/email-template/${props.emailTemplate.id}`, {
+        ...values,
+      })
+    }
+    else {
+      // create new email template
+      response = await useApi().put('/email-template', {
+        ...values,
+        status: 1,
+      })
+    }
 
     if (response.success) {
       showToast({
@@ -124,6 +138,73 @@ const onSubmit = handleSubmit(async (values) => {
     loading.value = false
   }
 })
+
+const subject = ref('')
+const subjectRef = ref<HTMLInputElement | null>(null)
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const focusState = ref<'subject' | 'template' | null>(null)
+
+function setFocus(field: 'subject' | 'template') {
+  focusState.value = field
+}
+
+const cursorPos = ref({ start: 0, end: 0 })
+
+function trackCursor(e: Event, field: 'subject' | 'template') {
+  const target = e.target as HTMLInputElement | HTMLTextAreaElement
+  focusState.value = field
+  cursorPos.value = {
+    start: target.selectionStart ?? 0,
+    end: target.selectionEnd ?? 0,
+  }
+}
+
+// Insert placeholder
+function insertPlaceholder(value: any) {
+  let el: HTMLInputElement | HTMLTextAreaElement | null = null
+  let currentValue = ''
+  let modelKey: 'subject' | 'template_html' | null = null
+
+  if (focusState.value === 'subject') {
+    el = subjectRef.value
+    currentValue = values.subject
+    modelKey = 'subject'
+  }
+  else if (focusState.value === 'template') {
+    el = textareaRef.value
+    currentValue = values.template_html
+    modelKey = 'template_html'
+  }
+
+  if (!el || !modelKey)
+    return
+
+  const start = cursorPos.value.start
+  const end = cursorPos.value.end
+  const newText = `[[${value}]]`
+
+  const updatedValue = currentValue.slice(0, start) + newText + currentValue.slice(end)
+
+  setValues({
+    ...values,
+    [modelKey]: updatedValue,
+  })
+
+  // Update cursor AFTER DOM updates
+  nextTick(() => {
+    const newCursorPos = start + newText.length
+    el!.focus()
+    el!.setSelectionRange(newCursorPos, newCursorPos)
+
+    // Also update cursor cache in case user adds multiple placeholders
+    cursorPos.value = {
+      start: newCursorPos,
+      end: newCursorPos,
+    }
+  })
+}
 </script>
 
 <template>
@@ -132,7 +213,7 @@ const onSubmit = handleSubmit(async (values) => {
     <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <!-- Header -->
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
-        <div class="justify-center text-slate-800 mt-1 text-base font-medium">
+        <div class="justify-center text-slate-800 mt-1 text-[16px] font-medium">
           Template Details
         </div>
       </div>
@@ -143,14 +224,14 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="w-full flex flex-col md:flex-row justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_name" class="flex-1 w-full">
               <FormItem class="w-full flex flex-col justify-start items-start gap-1">
-                <FormLabel class="justify-start text-slate-800 text-xs font-medium">
+                <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Template Name
                 </FormLabel>
                 <FormControl>
                   <Input
                     v-bind="componentField"
                     placeholder="Enter Template Name"
-                    class="px-3 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                    class="px-3 py-2 h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-sm font-normal placeholder:text-sm placeholder:text-slate-800/50"
                   />
                 </FormControl>
                 <FormMessage />
@@ -159,17 +240,17 @@ const onSubmit = handleSubmit(async (values) => {
 
             <FormField v-slot="{ componentField }" name="leadPlaceholder" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
-                <FormLabel class="justify-start text-slate-800 text-xs font-medium">
+                <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Lead Placeholders
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField">
-                    <SelectTrigger class="w-full px-3 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
-                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-xs font-normal" />
+                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
+                    <SelectTrigger class="w-full px-3 !h-11 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
+                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in leadPlaceholders" :key="option.value" :value="option.value">
-                        {{ option.label }}
+                      <SelectItem v-for="option in leadPlaceholders" :key="option.id" :value="option.title">
+                        {{ option.title }}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -183,17 +264,17 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="w-full flex flex-col md:flex-row  justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="senderPlaceholder" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
-                <FormLabel class="justify-start text-slate-800 text-xs font-medium">
+                <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Sender Placeholders
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField">
-                    <SelectTrigger class="w-full px-3 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
-                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-xs font-normal" />
+                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
+                    <SelectTrigger class="w-full px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
+                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in senderPlaceholders" :key="option.value" :value="option.value">
-                        {{ option.label }}
+                      <SelectItem v-for="option in senderPlaceholders" :key="option" :value="option">
+                        {{ option }}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -204,17 +285,17 @@ const onSubmit = handleSubmit(async (values) => {
 
             <FormField v-slot="{ componentField }" name="customPlaceholder" class="flex-1">
               <FormItem class="w-full flex flex-col justify-start items-start gap-1">
-                <FormLabel class="justify-start text-slate-800 text-xs font-medium">
+                <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Custom Placeholders
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField">
-                    <SelectTrigger class="w-full px-3 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
-                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-xs font-normal" />
+                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
+                    <SelectTrigger class="w-full px-3 !h-11 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
+                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in customPlaceholders" :key="option.value" :value="option.value">
-                        {{ option.label }}
+                      <SelectItem v-for="option in customPlaceholders" :key="option.title" :value="option.title">
+                        {{ option.title }}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -226,16 +307,20 @@ const onSubmit = handleSubmit(async (values) => {
 
           <!-- Subject Row -->
           <div class="w-full flex justify-start items-start gap-4">
-            <FormField v-slot="{ componentField }" name="subject" class="flex-1">
+            <FormField v-slot="{ componentField }" v-model="subject" name="subject" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
-                <FormLabel class="justify-start text-slate-800 text-xs font-medium">
+                <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Subject
                 </FormLabel>
                 <FormControl>
                   <Input
+                    ref="subjectRef"
                     v-bind="componentField"
                     placeholder="Enter Email Subject"
-                    class="px-3 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                    class="px-3 py-2 h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-sm font-normal placeholder:text-sm placeholder:text-slate-800/50"
+                    @focus="setFocus('subject')"
+                    @click="(e) => trackCursor(e, 'subject')"
+                    @keyup="(e) => trackCursor(e, 'subject')"
                   />
                 </FormControl>
                 <FormMessage />
@@ -247,7 +332,7 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="w-full flex justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_html" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
-                <FormLabel class="justify-start text-slate-800 text-xs font-medium">
+                <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Template
                 </FormLabel>
                 <FormControl>
@@ -255,9 +340,13 @@ const onSubmit = handleSubmit(async (values) => {
                     <!-- Text Area -->
                     <div class="w-full h-64 px-4 pt-3 pb-4 relative flex flex-col justify-start items-start overflow-hidden">
                       <Textarea
+                        ref="textareaRef"
                         v-bind="componentField"
                         placeholder="Email Template..."
-                        class="p-0 h-full border-none shadow-none resize-none text-sm font-normal leading-tight placeholder:text-slate-800/50 focus-visible:ring-0"
+                        class="p-0 h-full border-none shadow-none resize-none text-sm rounded-none font-normal leading-tight placeholder:text-slate-800/50 focus-visible:ring-0"
+                        @focus="setFocus('template')"
+                        @click="(e) => trackCursor(e, 'template')"
+                        @keyup="(e) => trackCursor(e, 'template')"
                       />
                     </div>
                   </div>
@@ -267,53 +356,19 @@ const onSubmit = handleSubmit(async (values) => {
             </FormField>
           </div>
         </div>
-        <!-- Footer with Save Button -->
-        <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
-          <Button
-            v-if="Object.keys(emailTemplate).length > 0"
-            type="button"
-            class="flex-1"
-            :loading="loading"
-            :disabled="loading"
-            @click="$emit('edit', values)"
-          >
-            <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-            Update
-          </Button>
-          <Button
-            v-if="!emailTemplate?.id"
-            type="submit"
-            class="flex-1"
-            :loading="loading"
-            :disabled="loading"
-          >
-            <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-            Save
-          </Button>
-        </div>
       </form>
       <!-- Fixed Save/Update Button at the bottom of details section (outside form) -->
-      <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
+      <div class=" bottom-0 left-0 w-full p-5 bg-white flex justify-between z-10">
         <Button
-          v-if="Object.keys(emailTemplate).length > 0"
-          type="button"
-          class="flex-1"
-          :loading="loading"
-          :disabled="loading"
-          @click="$emit('edit', values)"
-        >
-          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-          Update
-        </Button>
-        <Button
-          v-if="!emailTemplate?.id"
+
           type="submit"
           class="flex-1"
           :loading="loading"
           :disabled="loading"
+          @click="onSubmit"
         >
           <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-          Save
+          {{ !isEdit ? 'Save' : 'Update' }}
         </Button>
       </div>
     </div>
