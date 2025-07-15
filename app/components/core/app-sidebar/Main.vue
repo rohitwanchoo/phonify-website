@@ -64,8 +64,8 @@ const data = {
       { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign' },
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', items: [
-      {title: 'DNC', url: '/app/do-not-call/dnc'},
-      {title: 'Exclude From List', url: '/app/do-not-call/exclude-from-list'},
+      { title: 'DNC', url: '/app/do-not-call/dnc' },
+      { title: 'Exclude From List', url: '/app/do-not-call/exclude-from-list' },
     ] },
     { title: 'Lead Management', url: '/app/lead-management', icon: 'icons:lead-management', items: [
       { title: 'Label', url: '/app/lead-management/label' },
@@ -91,7 +91,13 @@ const data = {
       { title: 'Ring Groups', url: '/app/user-management/ring-group' },
 
     ] },
-    { title: 'Inbound Settings', url: '/app/inbound-settings', icon: 'icons:inbound-settings' },
+    { title: 'Inbound Settings', url: '/app/inbound-settings', icon: 'icons:inbound-settings', items: [
+      { title: 'DID configuration', url: '/app/inbound-settings/did-configuration' },
+      { title: 'Call Times', url: '/app/inbound-settings/call-times' },
+      { title: 'Holidays', url: '/app/inbound-settings/holidays' },
+      { title: 'IVR', url: '/app/inbound-settings/ivr' },
+      { title: 'Audio Messages', url: '/app/inbound-settings/audio-messages' },
+    ] },
     { title: 'Configuration', url: '/app/configuration', icon: 'icons:configuration', items: [
       { title: 'API', url: '/app/configuration/api' },
       { title: 'VoIP Configuration', url: '/app/configuration/voip-configuration' },
