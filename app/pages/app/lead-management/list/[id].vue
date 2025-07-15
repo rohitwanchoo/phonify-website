@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
 import { useDebounceFn } from '@vueuse/core'
+import { Button } from '~/components/ui/button'
 
 const route = useRoute()
 const id = computed(() => route.params.id)
@@ -60,15 +60,14 @@ const debouncedSearch = useDebounceFn(() => {
 function searchText() {
   debouncedSearch()
 }
-
 </script>
 
 <template>
   <BaseHeader :title="name" :breadcrumbs>
     <template #actions>
-      <BaseInputSearch class="w-[300px]" v-model="search" @update:model-value="searchText"></BaseInputSearch>
+      <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" />
       <Nuxt-link to="/app/campaign/new-campaign">
-        <Button>
+        <Button class="h-11">
           <Icon class="!text-white" name="lucide:download" />
           Download
         </Button>
