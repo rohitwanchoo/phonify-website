@@ -3,6 +3,7 @@ import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown, Trash2 } from 'lucide-vue-next'
 import { h, ref } from 'vue'
+import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
 import Button from '~/components/ui/button/Button.vue'
 
 const dummyData = ref([
@@ -12,8 +13,15 @@ const dummyData = ref([
   { id: 4, extension: 'Bibendum id mi etiam amet est facilisis vitae.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
 ])
 
-const isEditDialogOpen = ref(false)
+const showCreateRingless = ref(false)
 const currentEditItem = ref<typeof dummyData.value[0] | null>(null)
+
+// Default empty item structure
+const emptyRinglessItem = {
+  id: 0,
+  extension: '',
+  audioUrl: '',
+}
 
 const columnHelper = createColumnHelper<typeof dummyData.value[0]>()
 
@@ -28,7 +36,7 @@ const columns = [
   }),
 
   columnHelper.accessor('extension', {
-    header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center  gap-1 w-full' }, [
+    header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-1 w-full' }, [
       'Description',
       h(Button, {
         class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
@@ -75,11 +83,10 @@ const columns = [
         h(Button, {
           class: 'bg-white text-black border border-black px-2.5 hover:bg-white',
           onClick: () => {
-            onEdit(row.original)
+            handleEdit(row.original)
           },
         }, [
           h(Icon, { name: 'material-symbols:edit-square', size: 16 }),
-
         ]),
 
         h(Button, {
@@ -99,13 +106,31 @@ const table = useVueTable({
   getCoreRowModel: getCoreRowModel(),
 })
 
-function handleEdit(file: typeof dummyData.value[0]) {
-  currentEditItem.value = file
-  isEditDialogOpen.value = true
+function handleEdit(item: typeof dummyData.value[0]) {
+  currentEditItem.value = { ...item } // Create a copy of the item
+  showCreateRingless.value = true
 }
 
 function handleDelete(id: number) {
   dummyData.value = dummyData.value.filter(item => item.id !== id)
+}
+
+function handleSave(data: { extension: string, audioUrl: string }) {
+  if (currentEditItem.value?.id) {
+    // Update existing item
+    const index = dummyData.value.findIndex(item => item.id === currentEditItem.value?.id)
+    if (index !== -1) {
+      dummyData.value[index] = { ...currentEditItem.value, ...data }
+    }
+  }
+  else {
+    // Add new item
+    const newId = Math.max(...dummyData.value.map(item => item.id), 0) + 1
+    dummyData.value.push({ id: newId, ...data })
+  }
+
+  showCreateRingless.value = false
+  currentEditItem.value = null
 }
 </script>
 
@@ -157,10 +182,10 @@ function handleDelete(id: number) {
     </table>
 
     <!-- Edit Dialog -->
-    <ProfileVoiceAiEditDialog
-      v-if="currentEditItem"
-      v-model:open="isEditDialogOpen"
-      :item="currentEditItem"
+    <CreateRingless
+      v-model:open="showCreateRingless"
+      :item="currentEditItem || emptyRinglessItem"
+      @save="handleSave"
     />
   </div>
 </template>
