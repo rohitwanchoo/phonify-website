@@ -292,6 +292,30 @@ const onSubmit = handleSubmit(async (values) => {
           </Button>
         </div>
       </form>
+      <!-- Fixed Save/Update Button at the bottom of details section (outside form) -->
+      <div class="absolute bottom-0 left-0 w-full p-5 rounded-b-lg bg-white shadow-md flex justify-between z-10">
+        <Button
+          v-if="Object.keys(emailTemplate).length > 0"
+          type="button"
+          class="flex-1"
+          :loading="loading"
+          :disabled="loading"
+          @click="$emit('edit', values)"
+        >
+          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+          Update
+        </Button>
+        <Button
+          v-if="!emailTemplate?.id"
+          type="submit"
+          class="flex-1"
+          :loading="loading"
+          :disabled="loading"
+        >
+          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+          Save
+        </Button>
+      </div>
     </div>
     <!-- Preview Section -->
     <div class="w-full max-h-[calc(100vh-190px)]  col-span-1 xl:col-span-4">

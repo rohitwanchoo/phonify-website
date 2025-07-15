@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import moment from 'moment'
 import {
   Sheet,
   SheetClose,
@@ -6,16 +7,32 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import moment from 'moment';
 
-const formatTime = (time) => {
-  return moment(time, 'HH:mm').format('h:mm A');
-};
+interface Campaign {
+  title?: string
+  description?: string
+  dial_mode?: string
+  status?: number
+  call_time_start?: string
+  call_time_end?: string
+  caller_id?: string
+  custom_caller_id?: string
+  country_code?: string
+  send_crm?: number
+  email?: number
+  sms?: number
+  send_report?: number
+  max_lead_temp: number
+  min_lead_temp: number
+}
+
+defineProps<{
+  campaign?: Campaign // Accept the campaign details object as a prop
+}>()
+function formatTime(time: any) {
+  return moment(time, 'HH:mm').format('h:mm A')
+}
 const open = defineModel<boolean>()
-const props = defineProps({
-  campaign: Object // Accept the campaign details object as a prop
-})
-
 </script>
 
 <template>
@@ -28,13 +45,13 @@ const props = defineProps({
       </SheetHeader>
       <div>
         <div class="mx-auto p-6 space-y-6">
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <Icon name="material-symbols:campaign-outline" size="20" />
-                <span class="text-sm font-normal">Name</span>
-              </div>
-              <div class="text-[16px] font-medium">
-              {{campaign?.title}}
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <Icon name="material-symbols:campaign-outline" size="20" />
+              <span class="text-sm font-normal">Name</span>
+            </div>
+            <div class="text-[16px] font-medium">
+              {{ campaign?.title }}
             </div>
           </div>
 
@@ -57,8 +74,8 @@ const props = defineProps({
                 <Icon name="ic:outline-local-phone" />
                 <span class="text-sm font-normal">Dialing Mode</span>
               </div>
-              <p class="text-gray-700">
-                {{ campaign?.dial_mode}}
+              <p class="text-gray-700 capitalize">
+                {{ campaign?.dial_mode?.replace(/_/g, ' ') }}
               </p>
             </div>
 
@@ -69,13 +86,12 @@ const props = defineProps({
                 <span class="text-sm font-normal">Status</span>
               </div>
               <p
-  :class="[
-    'font-medium text-[16px]',
-    campaign?.status === 1 ? 'text-green-600' : 'text-red-600'
-  ]"
->
-  {{ campaign?.status === 1 ? 'Active' : 'Inactive' }}
-</p>
+                class="font-medium text-[16px]" :class="[
+                  campaign?.status === 1 ? 'text-green-600' : 'text-red-600',
+                ]"
+              >
+                {{ campaign?.status === 1 ? 'Active' : 'Inactive' }}
+              </p>
             </div>
 
             <!-- Time based calling -->
@@ -85,13 +101,12 @@ const props = defineProps({
                 <span class="text-sm font-normal">Time based calling</span>
               </div>
               <p
-  :class="[
-    'font-medium text-[16px]',
-    campaign?.status === 1 ? 'text-green-600' : 'text-red-600'
-  ]"
->
-  {{ campaign?.status === 1 ?  'Yes' : 'No'}}
-</p>
+                class="font-medium text-[16px]" :class="[
+                  campaign?.status === 1 ? 'text-green-600' : 'text-red-600',
+                ]"
+              >
+                {{ campaign?.status === 1 ? 'Yes' : 'No' }}
+              </p>
             </div>
 
             <!-- Call Time -->
@@ -101,8 +116,8 @@ const props = defineProps({
                 <span class="text-sm font-normal">Call Time</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-  {{ formatTime(campaign?.call_time_start) }} to {{ formatTime(campaign?.call_time_end) }}
-</p>
+                {{ formatTime(campaign?.call_time_start) }} to {{ formatTime(campaign?.call_time_end) }}
+              </p>
             </div>
 
             <!-- Caller ID -->
@@ -112,7 +127,7 @@ const props = defineProps({
                 <span class="text-sm font-normal">Caller ID</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{campaign?.caller_id}}
+                {{ campaign?.caller_id }}
               </p>
             </div>
 
@@ -123,7 +138,7 @@ const props = defineProps({
                 <span class="text-sm font-normal">Custom Caller ID</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{campaign?.custom_caller_id}}
+                {{ campaign?.custom_caller_id }}
               </p>
             </div>
 
@@ -134,7 +149,7 @@ const props = defineProps({
                 <span class="text-sm font-normal">Country Code</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{campaign?.country_code}}
+                {{ campaign?.country_code }}
               </p>
             </div>
 
@@ -156,13 +171,12 @@ const props = defineProps({
                 <span class="text-sm font-normal">Send to CRM</span>
               </div>
               <p
-  :class="[
-    'font-medium text-[16px]',
-    campaign?.send_crm === 1 ? 'text-green-600' : 'text-red-600'
-  ]"
->
-  {{ campaign?.send_crm === 1 ?  'Yes' : 'No'}}
-</p>
+                class="font-medium text-[16px]" :class="[
+                  campaign?.send_crm === 1 ? 'text-green-600' : 'text-red-600',
+                ]"
+              >
+                {{ campaign?.send_crm === 1 ? 'Yes' : 'No' }}
+              </p>
             </div>
 
             <!-- Dialed Leads/Total Leads -->
@@ -172,7 +186,7 @@ const props = defineProps({
                 <span class="text-sm font-normal">Dialed Leads/Total Leads</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                908/8725
+                {{ campaign?.min_lead_temp }}/{{ campaign?.max_lead_temp }}
               </p>
             </div>
 
@@ -183,13 +197,12 @@ const props = defineProps({
                 <span class="text-sm font-normal">Send Email</span>
               </div>
               <p
-  :class="[
-    'font-medium text-[16px]',
-    campaign?.email === 1 ? 'text-green-600' : 'text-red-600'
-  ]"
->
-  {{ campaign?.email === 1 ? 'With user email' : 'No'}}
-</p>
+                class="font-medium text-[16px]" :class="[
+                  campaign?.email === 1 ? 'text-green-600' : 'text-red-600',
+                ]"
+              >
+                {{ campaign?.email === 1 ? 'With user email' : 'No' }}
+              </p>
             </div>
 
             <!-- Send SMS -->
@@ -200,13 +213,12 @@ const props = defineProps({
                 <span class="text-sm font-normal">Send SMS</span>
               </div>
               <p
-  :class="[
-    'font-medium text-[16px]',
-    campaign?.sms === 1 ? 'text-green-600' : 'text-red-600'
-  ]"
->
-  {{ campaign?.sms === 1 ? 'With user phone number' : 'No'}}
-</p>
+                class="font-medium text-[16px]" :class="[
+                  campaign?.sms === 1 ? 'text-green-600' : 'text-red-600',
+                ]"
+              >
+                {{ campaign?.sms === 1 ? 'With user phone number' : 'No' }}
+              </p>
             </div>
 
             <!-- Hopper Count -->
@@ -239,13 +251,12 @@ const props = defineProps({
                 <span class="text-sm font-normal ">Send Report</span>
               </div>
               <p
-  :class="[
-    'font-medium text-[16px]',
-    campaign?.send_report === 1 ? 'text-green-600' : 'text-red-600'
-  ]"
->
-  {{ campaign?.send_report === 1 ? 'Yes' : 'No'}}
-</p>
+                class="font-medium text-[16px]" :class="[
+                  campaign?.send_report === 1 ? 'text-green-600' : 'text-red-600',
+                ]"
+              >
+                {{ campaign?.send_report === 1 ? 'Yes' : 'No' }}
+              </p>
             </div>
           </div>
         </div>

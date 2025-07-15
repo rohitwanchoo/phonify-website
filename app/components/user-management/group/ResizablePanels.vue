@@ -51,6 +51,8 @@ export interface Extension {
   actions?: string
 
 }
+const addExtensionSheet = ref(false)
+const selectedExtensions = ref<any>([])
 // const loading = ref(false)
 const data: Extension[] = [
   {
@@ -250,7 +252,10 @@ async function deleteGroup(group: { id: number }) {
             <Icon name="lucide:search" class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2" />
           </div>
 
-          <UserManagementGroupAddExtension />
+          <UserManagementGroupAddExtension
+            v-model="addExtensionSheet"
+            v-model:selected-extensions="selectedExtensions"
+          />
         </div>
       </div>
       <div class="h-[calc(100vh-280px)] overflow-y-auto">

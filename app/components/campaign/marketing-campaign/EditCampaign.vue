@@ -14,36 +14,36 @@ import {
 } from '@/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 
-const open = ref(false)
-
-// Field label options
-const fieldLabelOptions = [
-  { label: 'Facebook', value: 'Facebook' },
-  { label: 'Twitter', value: 'Twitter' },
-  { label: 'LinkedIn', value: 'LinkedIn' },
-  { label: 'Instagram', value: 'Instagram' },
-  { label: 'Google', value: 'Google' },
-  { label: 'YouTube', value: 'YouTube' },
-  { label: 'Affiliate Link', value: 'Affiliate Link' },
-]
-
-// Form validation schema
+const props = defineProps<{ rowData?: { campaign_name?: string, description?: string } }>()
+const open = defineModel('open', { type: Boolean, default: false })
 const formSchema = toTypedSchema(
   z.object({
-    fieldLabel: z.string().min(1, 'Field label is required'),
-    link: z.string().min(1, 'Link is required').url('Please enter a valid URL'),
+    campaign_name: z.string().min(1, 'Title is required'),
+    description: z.string().min(1, 'Description is required').max(200, 'Max 200 characters'),
   }),
 )
 
-const { handleSubmit, resetForm, isSubmitting } = useForm({
+const { handleSubmit, resetForm, isSubmitting, setValues } = useForm({
   validationSchema: formSchema,
 })
 
+watch(
+  () => props.rowData,
+  (val) => {
+    if (val) {
+      setValues({
+        campaign_name: val.campaign_name || '',
+        description: val.description || '',
+      })
+    }
+  },
+  { immediate: true },
+)
+
 const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted:', values)
   open.value = false
 })
 
@@ -57,54 +57,41 @@ function onOpenChange(isOpen: boolean) {
 
 <template>
   <div>
-    <!-- Dialog Trigger Button -->
-    <Button @click="open = true">
-      <Icon class="!text-white" name="lucide:plus" />
-      Add Custom Field Value
-    </Button>
-
     <!-- Dialog Content -->
     <Dialog :open="open" @update:open="onOpenChange">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Custom Value</DialogTitle>
+          <DialogTitle>Edit Campaign</DialogTitle>
         </DialogHeader>
         <Separator />
 
         <form class="space-y-4 mt-4" @submit.prevent="onSubmit">
-          <!-- Field Label Dropdown -->
-          <FormField v-slot="{ componentField }" name="fieldLabel">
+          <!-- Campaign Name Input -->
+          <FormField v-slot="{ componentField }" name="campaign_name">
             <FormItem>
-              <FormLabel>Custom Field Label</FormLabel>
-              <Select v-bind="componentField">
-                <FormControl>
-                  <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select a field label" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem
-                    v-for="label in fieldLabelOptions"
-                    :key="label.value"
-                    :value="label.value"
-                  >
-                    {{ label.label }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="Enter Title Name"
+                  v-bind="componentField"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
 
-          <!-- Link Input -->
-          <FormField v-slot="{ componentField }" name="link">
+          <!-- Description Textarea -->
+          <FormField v-slot="{ componentField }" name="description">
             <FormItem>
-              <FormLabel>Link</FormLabel>
+              <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input
-                  type="text"
-                  placeholder="Enter title Link"
+                <Textarea
                   v-bind="componentField"
+                  placeholder="Enter Description"
+                  rows="4"
+                  maxlength="200"
+                  class="xl:h-[130px] h-[50px] max-h-[190px]"
                 />
               </FormControl>
               <FormMessage />

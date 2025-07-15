@@ -42,9 +42,9 @@ function handleCheckboxChange(id: any, extension: Extension) {
     extension: extension.extension,
   }
 
-  if (selectedExtensions.value.some(item => item.extension === extension.extension)) {
-    selectedExtensions.value = selectedExtensions.value.filter(
-      item => item.extension !== extension.extension,
+  if (selectedExtensions?.value.some(item => item?.extension === extension?.extension)) {
+    selectedExtensions.value = selectedExtensions?.value.filter(
+      item => item?.extension !== extension?.extension,
     )
   }
   else {

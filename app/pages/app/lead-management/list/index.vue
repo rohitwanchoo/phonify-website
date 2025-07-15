@@ -34,6 +34,6 @@ function changeLimit(val: number) {
   </BaseHeader>
   <!-- TABLE -->
   <div>
-    <LeadManagementListsTable :loading="status === 'pending'" :list="leadList?.data || []" :limit :total-rows="leadList?.total_rows" :start @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
+    <LeadManagementListsTable :loading="status === 'pending'" :list="leadList?.data || []" :limit :total-rows="leadList?.total_rows" :start @page-navigation="changePage" @change-limit="changeLimit" @refresh="refreshLeadList" />
   </div>
 </template>
