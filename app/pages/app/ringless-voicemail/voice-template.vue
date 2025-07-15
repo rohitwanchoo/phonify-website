@@ -31,7 +31,7 @@ function handleSave(data: { extension: string, audioUrl: string }) {
         <!-- Trigger Button -->
         <Button @click="showCreateRingless = true">
           <Icon name="lucide:plus" class="mr-1" />
-          Add Campaign
+          Add Voice Template
         </Button>
 
         <!-- Dialog Component -->

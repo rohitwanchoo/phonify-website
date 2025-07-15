@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import { ChevronsUpDown, SquarePen, Trash2 } from 'lucide-vue-next'
+import { ChevronsUpDown, Trash2 } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import Button from '~/components/ui/button/Button.vue'
 
@@ -72,11 +73,14 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'flex justify-center space-x-2' }, [
         h(Button, {
-          class: 'p-0 border border-primary rounded-md text-primary',
-          variant: 'outline',
-          size: 'icon',
-          onClick: () => handleEdit(row.original),
-        }, h(SquarePen, { class: 'h-3 w-3' })),
+          class: 'bg-white text-black border border-black px-2.5 hover:bg-white',
+          onClick: () => {
+            onEdit(row.original)
+          },
+        }, [
+          h(Icon, { name: 'material-symbols:edit-square', size: 16 }),
+
+        ]),
 
         h(Button, {
           class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
