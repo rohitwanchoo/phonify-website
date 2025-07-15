@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 
+import AddEmailSchedule from '../AddEmailSchedule.vue'
+import AddTextSchedule from '../AddTextSchedule.vue'
 import Action from '../ScheduleListActionDropDown.vue'
 
 const props = withDefaults(defineProps<{
@@ -30,9 +32,10 @@ const props = withDefaults(defineProps<{
   list: () => [],
   loading: false,
 })
-
 const emits = defineEmits(['duplicateRow', 'deleteRow', 'updateStatus'])
-
+const showDialog = ref(false)
+const dialogType = ref<'sms' | 'email' | null>(null)
+const selectedRowData = ref<any>(null)
 const mockData = [
   {
     id: 1,
@@ -46,11 +49,15 @@ const mockData = [
     total: 100,
     sent: 98,
     failed: 2,
+    day: 'Monday',
+    frequency: 'Daily',
+    fromTime: '09:00',
+    toTime: '10:00',
   },
   {
     id: 2,
     list: 'List B',
-    template: 'Promo',
+    template: 'Follow-up',
     account: 'Account 2',
     type: 'SMS',
     scheduled_time: '2024-06-02 14:00',
@@ -59,21 +66,30 @@ const mockData = [
     total: 50,
     sent: 30,
     failed: 20,
+    day: 'Tuesday',
+    frequency: 'Weekly',
+    fromTime: '13:00',
+    toTime: '14:00',
   },
   {
     id: 3,
     list: 'List C',
-    template: 'Reminder',
+    template: 'Promotion',
     account: 'Account 3',
     type: 'Email',
     scheduled_time: '2024-06-03 09:00',
-    complete_time: '2024-05-02 24:10',
+    complete_time: '2024-06-03 09:10',
     status: 'planned',
     total: 200,
     sent: 0,
     failed: 0,
+    day: 'Friday',
+    frequency: 'Monthly',
+    fromTime: '08:30',
+    toTime: '09:30',
   },
 ]
+
 const addAbortDialogOpen = ref(false)
 const addAbortRowData = ref<any>(null)
 const columnHelper = createColumnHelper<any>()
@@ -234,11 +250,27 @@ const columns = [
   }),
   columnHelper.display({
     id: 'actions',
-    header: () => h('div', { class: 'text-center' }, 'Action'),
+    header: () => h('div', { class: 'text-center w-full' }, 'Action'),
     cell: ({ row }) =>
       h('div', {
-        class: 'flex items-center justify-center gap-2 sticky right-0 z-10',
+        class: 'flex items-center justify-center sticky right-0 z-10',
       }, [
+      // Edit Button
+        h(Button, {
+          variant: 'outline',
+          class: 'px-2',
+          title: 'Edit',
+          onClick: () => {
+            selectedRowData.value = row.original
+            dialogType.value = row.original.type.toLowerCase() === 'sms' ? 'sms' : 'email'
+            showDialog.value = true
+          },
+        }, [
+          h(Icon, { name: 'material-symbols:edit-square', size: 14 }),
+          h('span', { class: 'text-xs font-normal ml-0' }, 'Edit'),
+        ]),
+
+        // Action Dropdown
         h(Action, {
           onDelete: () => {
             emits('deleteRow', row.original.id)
@@ -287,9 +319,8 @@ const table = useVueTable({
           <TableHead
             v-for="header in headerGroup.headers"
             :key="header.id"
-            class="bg-gray-50 text-center"
-            :class="['bg-gray-50', header.column.id === 'actions' ? 'sticky right-0 z-10' : '']"
-
+            class="bg-gray-50 text-center bg-gray-50"
+            :class="[header.column.id === 'actions' ? 'sticky right-0 z-10' : '']"
           >
             <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
           </TableHead>
@@ -306,10 +337,9 @@ const table = useVueTable({
             <TableCell
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              :class="[
-    'text-center', 
-    cell.column.id === 'actions' ? 'sticky right-0 z-10 bg-white' : 'p-3'
-  ]"
+              class="text-center" :class="[
+                cell.column.id === 'actions' ? 'sticky right-0 z-10 bg-white' : 'p-3',
+              ]"
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </TableCell>
@@ -323,4 +353,15 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
+  <AddTextSchedule
+    v-if="dialogType === 'sms'"
+    v-model:open="showDialog"
+    :data="selectedRowData"
+  />
+
+  <AddEmailSchedule
+    v-else-if="dialogType === 'email'"
+    v-model:open="showDialog"
+    :data="selectedRowData"
+  />
 </template>
