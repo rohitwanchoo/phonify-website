@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import AddCampaign from '@/components/campaign/marketing-campaign/AddCampaign.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Input } from '~/components/ui/input'
-
+import { Button } from '~/components/ui/button'
 // Dummy data for testing
 const dummyCampaigns = [
   {
@@ -142,7 +142,10 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
           <Input v-model="searchQuery" placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <AddCampaign v-model:open="showAddCampaign" />
+        <Button @click="showAddCampaign = true">
+      <Icon class="mr-1" name="lucide:plus" />
+      Add Campaign
+    </Button>
       </template>
     </BaseHeader>
 
@@ -177,4 +180,5 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
       </div>
     </div>
   </div>
+  <AddCampaign v-model:open="showAddCampaign" />
 </template>

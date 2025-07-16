@@ -17,7 +17,9 @@ import { Switch } from '~/components/ui/switch'
 import Action from '../ActionDropdown.vue'
 import AddEmailSchedule from '../AddEmailSchedule.vue'
 import AddTextSchedule from '../AddTextSchedule.vue'
-import EditCampaign from '../EditCampaign.vue'
+import AddCampaign from '@/components/campaign/marketing-campaign/AddCampaign.vue'
+
+
 
 const props = withDefaults(defineProps<{
   list: any[]
@@ -27,12 +29,6 @@ const props = withDefaults(defineProps<{
   loading: false,
 })
 
-const emits = defineEmits([
-  'delete',
-  'edit',
-  'addTextSchedule',
-  'addEmailSchedule',
-])
 
 const router = useRouter()
 
@@ -46,8 +42,8 @@ function handleView(row: any) {
   })
 }
 
-const editDialogOpen = ref(false)
-const editRowData = ref<any>(null)
+const showAddCampaign = ref(false)
+const campaignRowData = ref<any>(null)
 const addTextScheduleDialogOpen = ref(false)
 const addTextScheduleRowData = ref<any>(null)
 const addEmailScheduleDialogOpen = ref(false)
@@ -104,35 +100,41 @@ const columns = [
   }),
 
   columnHelper.display({
-    id: 'actions',
-    header: () => h('div', { class: 'text-center' }, 'Action'),
-    cell: ({ row }) => h('div', { class: 'flex items-center justify-center gap-2' }, [
-      h(Button, {
-        variant: 'outline',
-        class: 'px-2',
-        onClick: () => {
-          handleView(row)
-        },
-      }, [
-        h(Icon, { name: 'material-symbols:visibility', size: 16 }),
-        h('span', { class: 'text-xs font-normal' }, 'View'),
-      ]),
-      h(Action, {
-        onEdit: () => {
-          editRowData.value = row.original
-          editDialogOpen.value = true
-        },
-        onAddTextSchedule: () => {
-          addTextScheduleRowData.value = row.original
-          addTextScheduleDialogOpen.value = true
-        },
-        onAddEmailSchedule: () => {
-          addEmailScheduleRowData.value = row.original
-          addEmailScheduleDialogOpen.value = true
-        },
-      }),
+  id: 'actions',
+  header: () => h('div', { class: 'text-center' }, 'Action'),
+  cell: ({ row }) => h('div', { class: 'flex items-center justify-center gap-2' }, [
+    h(Button, {
+      variant: 'outline',
+      class: 'px-2',
+      onClick: () => {
+        handleView(row)
+      },
+    }, [
+      h(Icon, { name: 'material-symbols:visibility', size: 16 }),
+      h('span', { class: 'text-xs font-normal' }, 'View'),
     ]),
-  }),
+    h(Action, {
+      onEdit: () => {
+       
+        campaignRowData.value = row.original
+        showAddCampaign.value = true
+      },
+      onAddTextSchedule: () => {
+     
+        addTextScheduleRowData.value = row.original
+        addTextScheduleDialogOpen.value = true
+      },
+      onAddEmailSchedule: () => {
+     
+        addEmailScheduleRowData.value = row.original
+        addEmailScheduleDialogOpen.value = true
+      },
+      onDelete: () => {
+
+      },
+    }),
+  ]),
+}),
 ]
 
 const table = useVueTable({
@@ -176,8 +178,10 @@ const table = useVueTable({
         </TableRow>
       </TableBody>
     </Table>
+    
   </div>
-  <EditCampaign v-model:open="editDialogOpen" :row-data="editRowData" />
+
+  <AddCampaign v-model:open="showAddCampaign" :row-data="campaignRowData" />
   <AddTextSchedule
     v-model:open="addTextScheduleDialogOpen"
     :row-data="addTextScheduleRowData"
