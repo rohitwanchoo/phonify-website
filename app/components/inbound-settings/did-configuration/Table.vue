@@ -129,8 +129,24 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.phone_number)
-    },
+  return h('div', { class: 'flex items-center justify-center gap-2' }, [
+    // Phone number
+    h('div', row.original.phone_number),
+    
+    // Three status tags
+    h('div', { class: 'flex gap-1' }, [
+      h('div', { 
+        class: 'bg-blue-50 border border-blue-600 text-primary text-xs px-2 py-0.5 rounded-sm' 
+      }, 'Default'),
+      h('div', { 
+        class: 'bg-green-50 border border-green-600 text-primary text-xs px-2 py-0.5 rounded-sm' 
+      }, 'Voice'),
+      h('div', { 
+        class: 'bg-purple-50 border border-purple-600 text-primary text-xs px-2 py-0.5 rounded-sm' 
+      }, 'Configured')
+    ])
+  ])
+},
   }),
 
   columnHelper.accessor('c_name', {
