@@ -166,7 +166,9 @@ function insertPlaceholder(value: any) {
   })
 }
 
+const fetchValuesLoading = ref(false)
 function setEditValues() {
+  fetchValuesLoading.value = true
   useApi().post(`/voice-templete`, {
     templete_id: editId.value,
   }).then((response) => {
@@ -179,6 +181,8 @@ function setEditValues() {
       speed: [Number(data.speed)],
       pitch: [Number(data.pitch)],
     })
+  }).finally(()=>{
+    fetchValuesLoading.value = false
   })
 }
 
@@ -214,7 +218,7 @@ onMounted(() => {
         <h2 class="text-lg font-semibold text-primary">
           Voice Template details
         </h2>
-        <Button class="flex items-center gap-2">
+        <Button type="button" class="flex items-center gap-2">
           <Icon name="material-symbols:volume-up" class="text-base" />
           Listen
         </Button>
@@ -461,7 +465,7 @@ onMounted(() => {
     </div>
     <!-- Submit Button (sticky to bottom of form div) -->
     <div class="absolute rounded-b-xl  bottom-0 left-0 w-full flex justify-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-1px_rgba(0,0,0,0.06)] bg-white border-t border-gray-200 p-7 z-10">
-      <Button type="submit" :loading class="bg-[#162D3A] w-full py-6 text-md text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white" @click="onSubmit">
+      <Button :disabled="fetchValuesLoading" type="submit" :loading class="bg-[#162D3A] w-full py-6 text-md text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white" @click="onSubmit">
         <Icon name="material-symbols:save" />
         {{ editId ? 'Update' : 'Submit' }}
       </Button>

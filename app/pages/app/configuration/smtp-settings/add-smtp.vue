@@ -7,16 +7,8 @@ import * as z from 'zod'
 
 import Failed from '@/components/configuration/smtp-settings/Failed.vue'
 import Verified from '@/components/configuration/smtp-settings/Verified.vue'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
 import {
   FormControl,
   FormField,
@@ -33,6 +25,8 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Separator } from '~/components/ui/separator'
+
+const router = useRouter()
 
 const driverOptions = [{
   title: 'SMTP',
@@ -54,8 +48,6 @@ const senderType = [
   },
 ]
 
-const senderNameOptions = ['Company A', 'Company B']
-
 const formSchema = toTypedSchema(z.object({
   mail_driver: z.string().min(1, 'Driver Name is required'),
   mail_host: z.string().min(1, 'Host Name is required'),
@@ -65,46 +57,95 @@ const formSchema = toTypedSchema(z.object({
   mail_port: z.string().min(1, 'Port No is required'),
   sender_type: z.string().min(1, 'For Sending is required'),
   from_email: z.string().email('Must be a valid email').min(1, 'Sender Email is required'),
-  senderName: z.string().min(1, 'Sender Name is required'),
+  from_name: z.string().min(1, 'Sender Name is required'),
 }))
 
-const { handleSubmit, validate } = useForm({
+const { handleSubmit, setValues, values } = useForm({
   validationSchema: formSchema,
 })
 
 const showVerifiedDialog = ref(false)
 const showFailedDialog = ref(false)
 
+const checkSettingsLoading = ref(false)
+
 async function checkSettings() {
-  const { valid } = await validate()
-  if (valid)
+  checkSettingsLoading.value = true
+  useApi().post('/checkSMTPSetting', values).then((response) => {
+    showToast({ message: response.message })
     showVerifiedDialog.value = true
-  else showFailedDialog.value = true
+  }).catch(() => {
+    // showToast({ type: 'error', message: error.message })
+    showFailedDialog.value = true
+  }).finally(() => {
+    checkSettingsLoading.value = false
+  })
+  // const { valid } = await validate()
+  // if (valid)
+  //   showVerifiedDialog.value = true
+  // else showFailedDialog.value = true
 }
 
-const router = useRouter()
 const route = useRoute()
-const isEditMode = computed(() => route.query.mode === 'edit')
+const editId = computed(() => route.query.id)
 
+const loading = ref(false)
 const onSubmit = handleSubmit((values) => {
-  console.log('Form Submitted:', values)
-  router.push('/app/configuration/smtp-settings')
+  loading.value = true
+  useApi().post(`/smtp/${editId.value}`, values).then((response) => {
+    showToast({ message: response.message })
+    router.back()
+  }).catch((error) => {
+    showToast({
+      type: 'error',
+      message: error.message,
+    })
+  }).finally(() => {
+    loading.value = false
+  })
 })
 
 const breadcrumbs = ref([
   {
     label: 'SMTP Settings',
-    href: '/app/configuration/smtp-settings',
+    href: '/app/configuration/company-settings',
   },
   {
-    label: isEditMode.value ? 'Edit SMTP' : 'Add SMTP',
+    label: editId.value ? 'Edit SMTP' : 'Add SMTP',
     active: true,
   },
 ])
+
+const fetchSmtpLoading = ref(false)
+onMounted(() => {
+  if (editId.value) {
+    fetchSmtpLoading.value = true
+    useApi().get(`/smtp/${editId.value}`).then(({ data }) => {
+      setValues({
+        mail_driver: data.mail_driver,
+        mail_host: data.mail_host,
+        mail_username: data.mail_username,
+        mail_password: data.mail_password,
+        mail_encryption: data.mail_encryption,
+        mail_port: data.mail_port,
+        sender_type: data.sender_type,
+        from_email: data.from_email,
+        from_name: data.from_name,
+      })
+    }).catch((error) => {
+      showToast({
+        type: 'error',
+        message: error.message,
+      })
+    }).finally(() => {
+      fetchSmtpLoading.value = false
+    })
+  }
+})
 </script>
 
 <template>
-  <BaseHeader :title="isEditMode ? 'Edit SMTP' : 'Add SMTP'" :breadcrumbs />
+  <BaseHeader :title="editId ? 'Edit SMTP' : 'Add SMTP'" :breadcrumbs />
 
   <Verified v-model:open="showVerifiedDialog" @close="showVerifiedDialog = false" />
   <Failed v-model:open="showFailedDialog" @close="showFailedDialog = false" />
@@ -252,23 +293,13 @@ const breadcrumbs = ref([
         </FormField>
 
         <!-- SENDER NAME -->
-        <FormField v-slot="{ componentField }" name="senderName">
+        <FormField v-slot="{ componentField }" name="from_name">
           <FormItem class="flex flex-col gap-1 mb-8">
             <FormLabel class="text-sm font-medium text-primary">
               Sender Name
             </FormLabel>
-            <Select v-bind="componentField">
-              <FormControl>
-                <SelectTrigger class="w-full !h-11">
-                  <SelectValue placeholder="Select Sender Name" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem v-for="name in senderNameOptions" :key="name" :value="name">
-                  {{ name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <Input class="py-5" placeholder="Sender Name" v-bind="componentField" />
+
             <FormMessage class="text-xs text-red-500 mt-1" />
           </FormItem>
         </FormField>
@@ -282,6 +313,7 @@ const breadcrumbs = ref([
         type="button"
         variant="outline"
         class="w-full py-6 text-md flex items-center justify-center gap-2 border border-[#162D3A] text-gray-700 hover:bg-gray-100"
+        :loading="checkSettingsLoading"
         @click="checkSettings"
       >
         Check Setting
@@ -290,6 +322,8 @@ const breadcrumbs = ref([
       <!-- Save Button -->
       <Button
         type="submit"
+        :disabled="fetchSmtpLoading"
+        :loading
         class="w-full bg-[#162D3A] py-6 text-md text-white flex items-center justify-center gap-2 hover:bg-[#162D3A] hover:text-white"
       >
         <Icon name="material-symbols:save" />
