@@ -28,7 +28,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Slider } from '~/components/ui/slider'
 import { Textarea } from '~/components/ui/textarea'
 
-// const languages = ['English', 'Spanish', 'French', 'German']
+const route = useRoute()
+
+const editId = computed(() => route.query.id)
+
 const templete_desc = ref('')
 
 const formSchema = toTypedSchema(z.object({
@@ -66,6 +69,7 @@ const onSubmit = handleSubmit((vals) => {
   delete payload.senderDetails
   payload.speed = String(vals.speed[0])
   payload.pitch = String(vals.pitch[0])
+
   useApi().post('add-voice-templete', payload).then((response) => {
     showToast({
       message: response.message,
@@ -87,7 +91,7 @@ const { data: languages, status: languagesStatus, refresh: languageRefresh } = a
   {
     transform: (res) => {
       const seen = new Set()
-      return res.data.filter((item) => {
+      return res.data.filter((item: any) => {
         if (seen.has(item.language_code))
           return false
         seen.add(item.language_code)
@@ -155,6 +159,18 @@ function insertPlaceholder(value: any) {
     }
   })
 }
+
+function setEditValues() {
+  //  TODO: get voice template with id api is not available
+  // useApi().get(`/voice-template/${editId.value}`).then((response) => {
+  //   console.log(response)
+  // })
+}
+
+onMounted(() => {
+  if (editId.value)
+    setEditValues()
+})
 </script>
 
 <template>
