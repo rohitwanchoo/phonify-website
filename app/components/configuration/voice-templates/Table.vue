@@ -21,6 +21,7 @@ import {
 const props = defineProps<Props>()
 
 interface VoiceTemplate {
+  templete_id: number
   templete_name: string
   templete_desc: string
   status: boolean
@@ -45,11 +46,6 @@ const meta = ref({
   total: 120,
   last_page: 12,
 })
-
-function openEditDialog(row: any) {
-  editRow.value = row.original
-  editDialogOpen.value = true
-}
 
 function openDropdown(rowIdx: number) {
   dropdownOpen.value = rowIdx
@@ -158,8 +154,7 @@ const columns = [
             h(DropdownMenuItem, {
               class: 'cursor-pointer flex items-center gap-2',
               onClick: () => {
-                openEditDialog(row)
-                closeDropdown()
+                navigateTo({ path: '/app/configuration/voice-templates/add', query: { id: row.original.templete_id } })
               },
             }, [
               h(Icon, { name: 'material-symbols:edit-square-outline', class: 'text-base' }),
@@ -232,7 +227,6 @@ const table = useVueTable({
         </TableRow>
       </TableBody>
     </Table>
-    <EditVoipConfigurationDialog v-model:open="editDialogOpen" :row="editRow" />
   </div>
   <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">

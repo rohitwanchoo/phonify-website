@@ -37,20 +37,22 @@ const props = defineProps<{
 
       <!-- Content -->
       <div class="overflow-y-auto p-5 h-[calc(100vh-250px)]">
-        <TabsContent value="desktop">
-          <div class="flex justify-center">
-            <div class="w-[480px] overflow-hidden border rounded-lg border-zinc-100 p-1">
-              <div v-html="props?.templateHtml" />
+        <div v-if="props?.templateHtml">
+          <TabsContent value="desktop">
+            <div class="flex justify-center">
+              <div class="w-[480px] overflow-hidden border rounded-lg border-zinc-100 p-1">
+                <div v-html="props?.templateHtml" />
+              </div>
             </div>
-          </div>
-        </TabsContent>
-        <TabsContent value="mobile">
-          <div class="flex justify-center">
-            <div class="w-80 overflow-hidden border rounded-lg border-zinc-100 p-1">
-              <div v-html="props?.templateHtml" />
+          </TabsContent>
+          <TabsContent value="mobile">
+            <div class="flex justify-center">
+              <div class="w-80 overflow-hidden border rounded-lg border-zinc-100 p-1">
+                <div v-html="props?.templateHtml" />
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        </div>
       </div>
     </Tabs>
   </div>
