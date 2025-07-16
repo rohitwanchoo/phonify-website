@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import EditVoipConfigurationDialog from '~/components/configuration/voip-configuration/EditVoipConfigurationDialog.vue'
+
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
@@ -20,6 +20,8 @@ import {
 
 const props = defineProps<Props>()
 
+const emits = defineEmits(['refresh'])
+
 interface VoiceTemplate {
   templete_id: number
   templete_name: string
@@ -34,8 +36,6 @@ interface Props {
 
 const columnHelper = createColumnHelper<VoiceTemplate>()
 
-const editDialogOpen = ref(false)
-const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
 const sorting = ref([])
 
@@ -54,10 +54,34 @@ function openDropdown(rowIdx: number) {
 function closeDropdown() {
   dropdownOpen.value = null
 }
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
 
-function handleDelete(row: any) {
-  // Placeholder for delete logic
-  closeDropdown()
+const selectedRowForDelete = ref<VoiceTemplate>()
+
+function handleDeleteConfirm() {
+  useApi().delete(`/voice-template/${selectedRowForDelete.value?.templete_id}`).then((response) => {
+    showToast({ message: response.message })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({
+      type: 'error',
+      message: error.message,
+    })
+  })
+}
+
+async function handleDelete(row: any) {
+  selectedRowForDelete.value = row.original
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled)
+    return
+
+  handleDeleteConfirm()
 }
 
 function handlePageChange(page: number) {
@@ -257,4 +281,11 @@ const table = useVueTable({
       />
     </div>
   </div>
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirm"
+    :cancel="deleteCancel"
+    title="Delete Voice Template"
+    description="You are about to delete this Voice Template. Do you wish to proceed?"
+  />
 </template>
