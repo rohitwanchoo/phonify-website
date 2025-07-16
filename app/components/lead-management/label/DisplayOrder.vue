@@ -162,7 +162,7 @@ useSortable(el, sortableList, {
           {{ index + 1 }}
         </div>
         <div class="flex-1 text-white text-sm font-medium p-3">
-          {{ item.title }}-{{ item.id }}
+          {{ item.title }}
         </div>
         <div class="pr-1 flex items-center justify-center">
           <Icon
