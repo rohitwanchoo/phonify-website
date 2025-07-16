@@ -5,10 +5,11 @@ import moment from 'moment'
 
 import { Button } from '@/components/ui/button'
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 
 // Table imports
 import {
@@ -37,10 +38,15 @@ const props = defineProps({
   }
 })
 
-const isOpen = ref(false)
-const isDialogOpen = ref(false)
+const emit = defineEmits(['edit'])
+
+const isOpen = ref(false) 
 
 const columnHelper = createColumnHelper<any>()
+
+const toggleAccordion = () => {
+  isOpen.value = !isOpen.value
+}
 
 const columns = [
   // Serial number column
@@ -86,107 +92,89 @@ const table = useVueTable({
 })
 
 const handleEditClick = () => {
-  isDialogOpen.value = true
-}
-
-const handleDialogSubmit = (data: any) => {
-  console.log('Updated data:', data)
-  isDialogOpen.value = false
-  // You would typically emit an event to update the parent component's data here
-  // emit('update', data)
+  emit('edit', { data: props.scheduleData }, props.title)
 }
 </script>
 
 <template>
   <div class="border rounded-lg">
-    <Collapsible
-      v-model:open="isOpen"
-      class="w-full"
-    >
-      <div class="flex items-center justify-between my-4 px-4">
-        <div>
-          <h4 class="text-md">
-            {{ title }}
-          </h4>
-          <p class="text-xs font-light text-gray-400">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur illum vitae, error ratione nesciunt distinctio aliquam molestias delectus ipsa velit eveniet repellat. Aliquam veritatis veniam animi, voluptatum repellendus explicabo cum.
-          </p>
+    <Accordion type="single" collapsible class="w-full" >
+      <AccordionItem value="item-1">
+        <div class="flex items-center justify-between px-4 py-2 gap-2">
+          <div>
+            <h4 class="text-md">
+              {{ title }}
+            </h4>
+            <p class="text-xs font-light text-gray-400">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur illum vitae, error ratione nesciunt distinctio aliquam molestias delectus ipsa velit eveniet repellat. Aliquam veritatis veniam animi, voluptatum repellendus explicabo cum.
+            </p>
+          </div>
+         <AccordionTrigger >
+            <template  #icon>  <Button variant="outline" size="icon" class="relative" @click="toggleAccordion">
+    <Icon 
+      :name="isOpen ? 'material-symbols:close' : 'material-symbols:arrow-drop-down'" 
+      :class="isOpen ? 'text-md' : 'text-xl'" 
+    />
+  </Button>
+</template>
+</AccordionTrigger>
         </div>
-        <CollapsibleTrigger as-child>
-          <Button variant="outline" size="icon">
-            <Icon 
-              :name="isOpen ? 'material-symbols:close' : 'material-symbols:arrow-drop-down'" 
-              :class="isOpen? 'text-md' : 'text-xl'" 
-            />
-          </Button>
-        </CollapsibleTrigger>
-      </div>
-      <CollapsibleContent class="">
-        <div class="border border-r-0 border-l-0 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                <TableHead
-                  v-for="header in headerGroup.headers"
-                  :key="header.id"
-                  class="bg-gray-50 text-center"
-                >
-                  <FlexRender
-                    v-if="!header.isPlaceholder"
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <template v-if="table.getRowModel().rows?.length">
-                <TableRow
-                  v-for="row in table.getRowModel().rows"
-                  :key="row.id"
-                  class="h-12"
-                >
-                  <TableCell
-                    v-for="cell in row.getVisibleCells()"
-                    :key="cell.id"
-                    class="p-2"
+        <AccordionContent class="">
+          <div class="border border-r-0 border-l-0 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+                  <TableHead
+                    v-for="header in headerGroup.headers"
+                    :key="header.id"
+                    class="bg-gray-50 text-center"
                   >
                     <FlexRender
-                      :render="cell.column.columnDef.cell"
-                      :props="cell.getContext()"
+                      v-if="!header.isPlaceholder"
+                      :render="header.column.columnDef.header"
+                      :props="header.getContext()"
                     />
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <template v-if="table.getRowModel().rows?.length">
+                  <TableRow
+                    v-for="row in table.getRowModel().rows"
+                    :key="row.id"
+                    class="h-12"
+                  >
+                    <TableCell
+                      v-for="cell in row.getVisibleCells()"
+                      :key="cell.id"
+                      class="p-2"
+                    >
+                      <FlexRender
+                        :render="cell.column.columnDef.cell"
+                        :props="cell.getContext()"
+                      />
+                    </TableCell>
+                  </TableRow>
+                </template>
+                <TableRow v-else>
+                  <TableCell
+                    :colspan="columns.length"
+                    class="h-24 text-center"
+                  >
+                    No schedule found.
                   </TableCell>
                 </TableRow>
-              </template>
-              <TableRow v-else>
-                <TableCell
-                  :colspan="columns.length"
-                  class="h-24 text-center"
-                >
-                  No schedule found.
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-        <div class=" px-4 py-5">
-          <Button class="w-full h-11" @click="handleEditClick">
-            <Icon name="material-symbols:edit-square" class="text-lg" />
-            Edit
-          </Button>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-
-    <InboundSettingsCallTimesDialog
-      :open="isDialogOpen"
-      :row-data="{
-        title: title,
-        description: 'Current call timing schedule', // Add description if needed
-        data: scheduleData
-      }"
-      @update:open="isDialogOpen = $event"
-      @submit="handleDialogSubmit"
-    />
+              </TableBody>
+            </Table>
+          </div>
+          <div class=" px-4 pt-5 pb-1">
+            <Button class="w-full h-11" @click="handleEditClick">
+              <Icon name="material-symbols:edit-square" class="text-lg" />
+              Edit
+            </Button>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   </div>
 </template>

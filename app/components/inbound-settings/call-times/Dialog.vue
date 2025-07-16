@@ -109,8 +109,6 @@ const onSubmit = handleSubmit((values) => {
     description: values.description,
     data: formattedData
   }
-
-  console.log('Form data:', result)
   
   loading.value = false
   emit('update:open', false)

@@ -67,6 +67,30 @@ const callSchedules = ref([
     ]
   },
 ])
+
+const dialogData = ref({
+  open: false,
+  title: '',
+  data: []
+})
+
+const handleEditClick = (schedule: any, title: string) => {
+  dialogData.value = {
+    open: true,
+    title: title,
+    data: JSON.parse(JSON.stringify(schedule.data))
+  }
+}
+
+const handleDialogSubmit = (data: any) => {
+  console.log('Updated data:', data)
+  // Find and update the corresponding schedule in callSchedules
+  const index = callSchedules.value.findIndex(s => s.data === data.data)
+  if (index !== -1) {
+    callSchedules.value[index].data = data.data
+  }
+  dialogData.value.open = false
+}
 </script>
 
 <template>
@@ -76,7 +100,18 @@ const callSchedules = ref([
       :key="index"
       :schedule-data="schedule.data"
       :title="`Call Timing ${index + 1}`"
+      @edit="handleEditClick(schedule, `Call Timing ${index + 1}`)"
+    />
+
+    <InboundSettingsCallTimesDialog
+      :open="dialogData.open"
+      :row-data="{
+        title: dialogData.title,
+        description: 'Current call timing schedule',
+        data: dialogData.data
+      }"
+      @update:open="dialogData.open = $event"
+      @submit="handleDialogSubmit"
     />
   </div>
 </template>
-
