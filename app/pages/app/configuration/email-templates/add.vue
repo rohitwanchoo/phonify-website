@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 
-const emit = defineEmits(['edit'])
-
 const route = useRoute()
-const editMode = computed(() => route.query.mode === 'edit')
 const editId = computed(() => route.query.id ? Number(route.query.id) : null)
 
 // Fetch the email template data if in edit mode
@@ -16,15 +13,9 @@ const { data: emailTemplate, status } = await useLazyAsyncData('email-template',
   transform: res => res.data,
 })
 
-function handleEdit(updatedFormValues: Record<string, any>): void {
-  console.log(updatedFormValues)
-}
-
-
-
 // Page title based on mode
-const pageTitle = computed(() => editMode.value ? emailTemplate.value?.template_name : 'Add Email Template')
-const breadcrumbTitle = computed(() => editMode.value ? 'Edit Email Template' : 'Add Email Template')
+const pageTitle = computed(() => editId.value ? emailTemplate.value?.template_name : 'Add Email Template')
+const breadcrumbTitle = computed(() => editId.value ? 'Edit Email Template' : 'Add Email Template')
 </script>
 
 <template>
@@ -46,8 +37,8 @@ const breadcrumbTitle = computed(() => editMode.value ? 'Edit Email Template' : 
     </BreadcrumbList>
   </Breadcrumb>
   <BaseHeader :title="pageTitle" />
-  <ConfigurationEmailTemplatesAddDetails 
-  :email-template="emailTemplate" 
-  :email-template-status="status"
-  @edit="handleEdit" />
+  <ConfigurationEmailTemplatesAddDetails
+    :email-template="emailTemplate"
+    :email-template-status="status"
+  />
 </template>

@@ -5,7 +5,6 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-
 import { Icon } from '#components'
 import {
   createColumnHelper,
@@ -17,12 +16,13 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-
-import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 
 import { computed, h, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
+
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
 import {
   Sheet,
   SheetContent,
@@ -42,6 +41,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -53,70 +53,91 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import Action from './Action.vue'
-
-const props = withDefaults(defineProps<{
-  loading: boolean
-  totalRows: number
-  list: any[]
-  start: number // pagination start
-  limit?: number // pagination limit
-}>(), {
-  limit: 10, // Set default limit to 10
-})
-
-// Track the row ID for the Action menu
-
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
-
-const total = computed(() => props.totalRows)
-const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
-const per_page = computed(() => props.limit)
-const last_page = computed(() => Math.ceil(total.value / per_page.value))
+import { Separator } from '~/components/ui/separator'
 
 const sheet = ref(false)
-const selectedCampaign = ref<any>() // Store the campaign details
+const selectedList = ref<any>(null) // Store the campaign details
 const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
+const loading = ref(false)
+const optionsOpen = ref(false)
+const editTitle = ref('')
+const editCampaign = ref('')
+const router = useRouter()
+const dummyData = ref([
+  {
+    id: 1,
+    title: 'List 1',
+    campaign_name: 'Marketing Campaign Q3',
+    dialed_leads: 150,
+    total_leads: 500,
+    created_date: '2023-07-15 14:30:00',
+    scheduled: true,
+    status: 1,
+  },
+  {
+    id: 2,
+    title: 'List 2',
+    campaign_name: 'Sales Outreach',
+    dialed_leads: 75,
+    total_leads: 200,
+    created_date: '2023-07-16 09:15:00',
+    scheduled: false,
+    status: 0,
+  },
+  {
+    id: 3,
+    title: 'List 3',
+    campaign_name: 'Product Feedback',
+    dialed_leads: 40,
+    total_leads: 100,
+    created_date: '2023-07-14 16:45:00',
+    scheduled: true,
+    status: 1,
+  },
+  {
+    id: 4,
+    title: 'List 4',
+    campaign_name: 'Customer Retention',
+    dialed_leads: 200,
+    total_leads: 300,
+    created_date: '2023-07-13 11:20:00',
+    scheduled: true,
+    status: 1,
+  },
+  {
+    id: 5,
+    title: 'List 5',
+    campaign_name: 'New Product Launch',
+    dialed_leads: 300,
+    total_leads: 1000,
+    created_date: '2023-07-12 13:10:00',
+    scheduled: false,
+    status: 0,
+  },
+])
 
-const {
-  isRevealed: showDeleteConfirm,
-  reveal: revealDeleteConfirm,
-  confirm: deleteConfirm,
-  cancel: deleteCancel,
-} = useConfirmDialog()
+// Dummy meta data
+const meta = ref({
+  current_page: 1,
+  per_page: 10,
+  last_page: 5,
+  total: 50,
+})
 
-async function deleteMethod(row: { id: number }) {
-  const { isCanceled } = await revealDeleteConfirm()
-  if (isCanceled) {
-    return false
-  }
-  useApi().post('/delete-campaign', {
-    campaign_id: row.id,
-  }).then((response) => {
-    showToast({
-      message: response.message,
-    })
-    emits('refresh')
-  }).catch((err) => {
-    showToast({
-      type: 'error',
-      message: err.message,
-    })
-  })
+function formatTime(time: string) {
+  return moment(time, 'HH:mm:ss').format('h:mm A')
 }
 
 async function openSheet(id: number) {
   campaignLoadingId.value = id
   try {
-    const res = await useApi().post('campaign-by-id', { campaign_id: id })
-    selectedCampaign.value = res[0]
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500))
+    selectedList.value = dummyData.value.find(item => item.id === id)
     sheet.value = true
   }
   catch (error) {
-    showToast({
-      type: 'error',
-      message: error?.message || 'An error occurred while fetching campaign details.',
-    })
+    console.error('Error fetching campaign details:', error)
   }
   finally {
     campaignLoadingId.value = null
@@ -138,30 +159,20 @@ const columns = [
         class: 'text-center text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['List', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
 
-  columnHelper.display({
-    id: 'callTime',
+  columnHelper.accessor('campaign_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const start = row.original.call_time_start
-      const end = row.original.call_time_end
-      return h('div', { class: 'uppercase text-center text-sm' }, start && end
-        ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
-        : 'N/A')
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name)
     },
-  }),
-
-  columnHelper.accessor('lists', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowListData)),
   }),
 
   columnHelper.display({
@@ -172,37 +183,53 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`,
-    ),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.dialed_leads || 0}/${row.original.total_leads || 0}`),
   }),
 
   columnHelper.display({
-    id: 'hoppers',
+    id: 'createdDate',
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Hoppers', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, 0,
-    ),
-  }),
-
-  columnHelper.display({
-    id: 'dateTime',
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const updated = row.original.updated
+      const created = row.original.created_date
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : ''),
+        h('div', created ? moment(created, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : ''),
         h('br'),
-        h('div', { class: 'text-xs' }, updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') : ''),
+        h('div', { class: 'text-xs' }, created ? moment(created, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') : ''),
       ])
+    },
+  }),
+  columnHelper.display({
+    id: 'scheduled',
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Schedule Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => {
+      const isScheduled = row.original.scheduled
+      return h('div', {
+        class: cn(
+          'text-center font-normal text-sm py-1 px-3 inline-flex items-center justify-center w-full',
+          isScheduled ? ' text-green-600' : ' text-red-600',
+        ),
+      }, isScheduled ? 'Yes' : 'No')
+    },
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.original.scheduled
+      const valueB = rowB.original.scheduled
+      if (valueA === valueB)
+        return 0
+      if (valueA && !valueB)
+        return -1
+      if (!valueA && valueB)
+        return 1
+      return 0
     },
   }),
 
@@ -216,11 +243,8 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === 1,
-        'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? 1 : 0
-        },
+        class: 'data-[state=checked]:bg-green-600 cursor-pointer',
+        modelValue: row.original.status === 1,
       })),
     sortingFn: (rowA, rowB, columnId) => {
       const valueA = rowA.original.status === 1
@@ -257,11 +281,16 @@ const columns = [
       ),
       h(Action, {
         onEdit: () => {
-          navigateTo({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
+          editTitle.value = row.original.title
+          editCampaign.value = row.original.campaign_name
+          optionsOpen.value = true
         },
-        onDelete: () => { deleteMethod(row?.original) },
-        onCopy: () => { },
-        onReset: () => { },
+        onDelete: () => {
+          console.log('Delete campaign:', row.original.id)
+        },
+        onDuplicate: () => {
+          console.log('Duplicate campaign:', row.original.id)
+        },
       }),
     ]),
   }),
@@ -274,10 +303,9 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return props.list || [] },
+  get data() { return dummyData.value || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
-  // getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
@@ -299,10 +327,8 @@ const table = useVueTable({
 })
 
 function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-function changeLimit(val: number) {
-  emits('changeLimit', val)
+  console.log('Page changed to:', page)
+  meta.value.current_page = page
 }
 </script>
 
@@ -362,13 +388,13 @@ function changeLimit(val: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing {{ meta?.current_page }} to
 
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
+          <Select :default-value="10">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -380,18 +406,25 @@ function changeLimit(val: number) {
           </Select>
         </span>
 
-        of {{ totalRows }} entries
+        of {{ meta?.total }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(total)" :current-page="Number(current_page)"
-        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
+        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
+  <RinglessVoicemailListsConfigureDialog
+    v-model:open="optionsOpen"
+    :title="editTitle"
+    :campaign="editCampaign"
+  />
 
-  <CampaignTableSheet v-model:open="sheet" :campaign="selectedCampaign" />
-  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Campaign" description="You are about to delete a campaign. Do you wish to proceed?" />
+  <RinglessVoicemailListsTableSheet
+    v-model:open="sheet"
+    :list="selectedList"
+  />
 </template>

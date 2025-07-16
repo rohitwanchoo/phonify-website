@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { Button } from '~/components/ui/button'
@@ -14,85 +15,25 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
-const mockData = [
-  {
-    id: 1,
-    title: 'Facebook',
-    titleLink: 'http://facebook.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 2,
-    title: 'Affiliate Link',
-    titleLink: 'http://affiliate.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 3,
-    title: 'Twitter',
-    titleLink: 'http://twitter.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 4,
-    title: 'LinkedIn',
-    titleLink: 'http://linkedin.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 5,
-    title: 'Instagram',
-    titleLink: 'http://instagram.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 6,
-    title: 'Google',
-    titleLink: 'http://google.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 7,
-    title: 'YouTube',
-    titleLink: 'http://youtube.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 8,
-    title: 'Amazon',
-    titleLink: 'http://amazon.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 9,
-    title: 'Netflix',
-    titleLink: 'http://netflix.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 10,
-    title: 'Spotify',
-    titleLink: 'http://spotify.com/admin/dashboard',
-    status: 'inactive',
-  },
-  {
-    id: 11,
-    title: 'Reddit',
-    titleLink: 'http://reddit.com/admin/dashboard',
-    status: 'active',
-  },
-  {
-    id: 12,
-    title: 'Discord',
-    titleLink: 'http://discord.com/admin/dashboard',
-    status: 'inactive',
-  },
-]
+const props = defineProps<{
+  list?: any
+  loading?: boolean
+  refresh: () => void
+}>()
 
 const columnHelper = createColumnHelper<any>()
 const editDialogOpen = ref(false)
 const editRow = ref<any>(null)
 const dropdownOpen = ref<number | null>(null)
+const selectedRowForDelete = ref<any>(null)
+
+// Integrated confirm dialog logic from reference code
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
 
 function openEditDialog(row: any) {
   editRow.value = row.original
@@ -107,19 +48,25 @@ function closeDropdown() {
   dropdownOpen.value = null
 }
 
-function handleDelete(row: any) {
-  // Placeholder for delete logic
-  closeDropdown()
+async function handleDelete(row: any) {
+  selectedRowForDelete.value = row.original
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    selectedRowForDelete.value = null
+    return
+  }
+  await handleDeleteConfirm()
 }
 
 const sorting = ref([])
 
 const columns = [
-  columnHelper.accessor('id', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
+  columnHelper.display({
+    id: 'siNo',
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Sl. No'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('title', {
+  columnHelper.accessor('title_match', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Title',
@@ -129,10 +76,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title_match),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('titleLink', {
+  columnHelper.accessor('title_links', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Title Links',
@@ -142,10 +89,10 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.titleLink),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title_links),
     sortingFn: 'alphanumeric',
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('is_deleted', {
     header: ({ column }) =>
       h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
         'Status',
@@ -156,10 +103,10 @@ const columns = [
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
     cell: ({ row }) => h('div', {
-      class: `inline-flex items-center w-22 justify-center rounded-full px-3 py-1 text-sm flex justify-center items-center  text-white ${
-        row.original.status === 'active' ? 'bg-green-600' : 'bg-red-600'
+      class: `inline-flex items-center w-22 justify-center rounded-full px-3 py-1 text-sm flex justify-center items-center text-white ${
+        row.original.is_deleted === 0 ? 'bg-green-600' : 'bg-red-600'
       }`,
-    }, row.original.status === 'active' ? 'Active' : 'Inactive'),
+    }, row.original.is_deleted === 0 ? 'Active' : 'Inactive'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.display({
@@ -210,7 +157,7 @@ const columns = [
 ]
 
 const table = useVueTable({
-  get data() { return mockData },
+  get data() { return props.list },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -239,6 +186,31 @@ const loading = ref(false)
 function handlePageChange(page: number) {
   meta.value.current_page = page
 }
+
+async function handleDeleteConfirm() {
+  if (!selectedRowForDelete.value)
+    return
+  const id = selectedRowForDelete.value.id
+  useApi().get(`/delete-custom-field-value/${id}`).then((response) => {
+    showToast({
+      message: response.message,
+      type: response.success ? 'success' : 'error',
+    })
+
+    if (response.success) {
+      if (typeof props.refresh === 'function') {
+        props.refresh()
+      }
+    }
+  }).catch((error) => {
+    console.error('Error deleting custom field value:', error)
+    showToast({
+      message: 'Failed to delete custom field value.',
+      type: 'error',
+    })
+  })
+  selectedRowForDelete.value = null
+}
 </script>
 
 <template>
@@ -256,7 +228,19 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-if="table.getRowModel().rows?.length">
+        <TableRow v-if="props.loading">
+          <TableCell :colspan="columns.length" class="px-3 py-4">
+            <div class="space-y-2">
+              <BaseSkelton
+                v-for="i in 10"
+                :key="i"
+                class="h-8 w-full"
+                rounded="rounded-md"
+              />
+            </div>
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-center">
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
@@ -289,9 +273,11 @@ function handlePageChange(page: number) {
         </span>
         of {{ meta?.total }} entries
       </div>
-      <ConfigurationCustomFieldValuesEditDialog
+      <!-- Replaced with the new combined dialog component -->
+      <ConfigurationCustomFieldValuesDialog
         :open="editDialogOpen"
         :row-data="editRow"
+        :refresh="props.refresh"
         @update:open="val => editDialogOpen = val"
       />
     </div>
@@ -305,4 +291,11 @@ function handlePageChange(page: number) {
       />
     </div>
   </div>
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirm"
+    :cancel="deleteCancel"
+    title="Delete Custom Field Value"
+    description="You are about to delete this custom field value. Do you wish to proceed?"
+  />
 </template>

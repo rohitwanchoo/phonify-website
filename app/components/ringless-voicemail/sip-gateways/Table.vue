@@ -5,7 +5,6 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-
 import { Icon } from '#components'
 import {
   createColumnHelper,
@@ -13,35 +12,22 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-
-import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import moment from 'moment'
 
-import { computed, h, ref, watch } from 'vue'
+import { h, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -53,75 +39,57 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import Action from './Action.vue'
-
-const props = withDefaults(defineProps<{
-  loading: boolean
-  totalRows: number
-  list: any[]
-  start: number // pagination start
-  limit?: number // pagination limit
-}>(), {
-  limit: 10, // Set default limit to 10
-})
-
-// Track the row ID for the Action menu
-
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
-
-const total = computed(() => props.totalRows)
-const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
-const per_page = computed(() => props.limit)
-const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const sheet = ref(false)
-const selectedCampaign = ref<any>() // Store the campaign details
-const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
+const selectedCampaign = ref<any>(null)
+const isDialogOpen = ref(false)
+const selectedRowData = ref<any>(null)
+const loading = ref(false)
 
-const {
-  isRevealed: showDeleteConfirm,
-  reveal: revealDeleteConfirm,
-  confirm: deleteConfirm,
-  cancel: deleteCancel,
-} = useConfirmDialog()
+const dummyData = ref([
+  {
+    id: 1,
+    title: 'Marketing Campaign Q3',
+    group_id: 'Customer List A',
+    status: 1,
+    updated: '2023-07-15 14:30:00',
+  },
+  {
+    id: 2,
+    title: 'Sales Outreach',
+    group_id: 'Prospect List B',
+    status: 0,
+    updated: '2023-07-16 09:15:00',
+  },
+  {
+    id: 3,
+    title: 'Product Feedback',
+    group_id: 'User List C',
+    status: 1,
+    updated: '2023-07-14 16:45:00',
+  },
+  {
+    id: 4,
+    title: 'Customer Retention',
+    group_id: 'VIP Clients',
+    status: 1,
+    updated: '2023-07-13 11:20:00',
+  },
+  {
+    id: 5,
+    title: 'New Product Launch',
+    group_id: 'All Contacts',
+    status: 0,
+    updated: '2023-07-12 13:10:00',
+  },
+])
 
-async function deleteMethod(row: { id: number }) {
-  const { isCanceled } = await revealDeleteConfirm()
-  if (isCanceled) {
-    return false
-  }
-  useApi().post('/delete-campaign', {
-    campaign_id: row.id,
-  }).then((response) => {
-    showToast({
-      message: response.message,
-    })
-    emits('refresh')
-  }).catch((err) => {
-    showToast({
-      type: 'error',
-      message: err.message,
-    })
-  })
-}
-
-async function openSheet(id: number) {
-  campaignLoadingId.value = id
-  try {
-    const res = await useApi().post('campaign-by-id', { campaign_id: id })
-    selectedCampaign.value = res[0]
-    sheet.value = true
-  }
-  catch (error) {
-    showToast({
-      type: 'error',
-      message: error?.message || 'An error occurred while fetching campaign details.',
-    })
-  }
-  finally {
-    campaignLoadingId.value = null
-  }
-}
+const meta = ref({
+  current_page: 1,
+  per_page: 10,
+  last_page: 5,
+  total: 50,
+})
 
 const columnHelper = createColumnHelper<any>()
 
@@ -138,71 +106,19 @@ const columns = [
         class: 'text-center text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['Client Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
 
-  columnHelper.display({
-    id: 'callTime',
+  columnHelper.accessor('group_id', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['Trunk Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const start = row.original.call_time_start
-      const end = row.original.call_time_end
-      return h('div', { class: 'uppercase text-center text-sm' }, start && end
-        ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
-        : 'N/A')
-    },
-  }),
-
-  columnHelper.accessor('lists', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowListData)),
-  }),
-
-  columnHelper.display({
-    id: 'dialed',
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`,
-    ),
-  }),
-
-  columnHelper.display({
-    id: 'hoppers',
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Hoppers', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, 0,
-    ),
-  }),
-
-  columnHelper.display({
-    id: 'dateTime',
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => {
-      const updated = row.original.updated
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : ''),
-        h('br'),
-        h('div', { class: 'text-xs' }, updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') : ''),
-      ])
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.group_id)
     },
   }),
 
@@ -216,11 +132,8 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === 1,
-        'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? 1 : 0
-        },
+        class: 'data-[state=checked]:bg-green-600 cursor-pointer',
+        modelValue: row.original.status === 1,
       })),
     sortingFn: (rowA, rowB, columnId) => {
       const valueA = rowA.original.status === 1
@@ -237,33 +150,25 @@ const columns = [
 
   columnHelper.display({
     id: 'actions',
-    header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(
-        Button,
-        {
-          size: 'icon',
-          class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
-          onClick: () => openSheet(row.original.id),
-        },
-        h(
-          Icon,
-          {
-            name: campaignLoadingId.value === row.original.id
-              ? 'eos-icons:bubble-loading'
-              : 'lucide:eye',
+    header: () => h('div', { class: 'text-center' }, 'Action'),
+    cell: ({ row }) =>
+      h('div', { class: 'flex justify-center space-x-2' }, [
+        h(Button, {
+          class: 'bg-white text-black border border-black px-2.5 hover:bg-white',
+          onClick: () => {
+            selectedRowData.value = row.original
+            isDialogOpen.value = true
           },
-        ),
-      ),
-      h(Action, {
-        onEdit: () => {
-          navigateTo({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
-        },
-        onDelete: () => { deleteMethod(row?.original) },
-        onCopy: () => { },
-        onReset: () => { },
-      }),
-    ]),
+        }, [
+          h(Icon, { name: 'material-symbols:edit-square', size: 16 }),
+        ]),
+        h(Button, {
+          class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
+          variant: 'outline',
+          size: 'icon',
+        }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
+      ]),
+    meta: { className: 'w-[100px] text-center' },
   }),
 ]
 
@@ -274,10 +179,9 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return props.list || [] },
+  get data() { return dummyData.value || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
-  // getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
@@ -299,10 +203,8 @@ const table = useVueTable({
 })
 
 function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-function changeLimit(val: number) {
-  emits('changeLimit', val)
+  console.log('Page changed to:', page)
+  meta.value.current_page = page
 }
 </script>
 
@@ -362,13 +264,13 @@ function changeLimit(val: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing {{ meta?.current_page }} to
 
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
+          <Select :default-value="10">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -380,18 +282,20 @@ function changeLimit(val: number) {
           </Select>
         </span>
 
-        of {{ totalRows }} entries
+        of {{ meta?.total }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(total)" :current-page="Number(current_page)"
-        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
+        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
+        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
 
-  <CampaignTableSheet v-model:open="sheet" :campaign="selectedCampaign" />
-  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Campaign" description="You are about to delete a campaign. Do you wish to proceed?" />
+  <RinglessVoicemailSipGatewaysDialog
+    v-model:open="isDialogOpen"
+    :row-data="selectedRowData"
+  />
 </template>
