@@ -74,18 +74,30 @@ async function handleDelete() {
     return
 
   try {
-    const res = await useApi().get(`/crm-delete-label/${selectedLabelIdForDelete.value}`)
+    const res = await useApi().post('/edit-label', {
+      label_id: selectedLabelIdForDelete.value,
+      is_deleted: '1'
+    })
 
     if (res?.success) {
-      showToast({ type: 'success', message: res.message || 'Deleted successfully' })
+      showToast({
+        type: 'success',
+        message: res.message,
+      })
       emits('refresh') // properly emit refresh
     }
     else {
-      showToast({ type: 'error', message: res.message || 'Failed to delete label' })
+      showToast({
+        type: 'error',
+        message: res.message,
+      })
     }
   }
-  catch {
-    showToast({ type: 'error', message: 'API error: Unable to delete label' })
+  catch (err: any) {
+    showToast({
+      type: 'error',
+      message: `${err.message}`,
+    })
   }
   finally {
     selectedLabelIdForDelete.value = null

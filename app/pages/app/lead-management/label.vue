@@ -46,27 +46,6 @@ const paginatedList = computed(() => {
 watch(searchQuery, () => {
   pageStart.value = 0
 })
-
-async function handleReorder(updatedList: any[]) {
-  try {
-    await Promise.all(
-      updatedList.map((item, index) =>
-        updateCrmLabel(item.id, {
-          title: item.title,
-          order: index + 1,
-          edit_mode: true,
-        }),
-      ),
-    )
-    await labelRefresh()
-  }
-  catch {
-    showToast({
-      message: 'Failed to update label order',
-      type: 'error',
-    })
-  }
-}
 </script>
 
 <template>
@@ -77,12 +56,6 @@ async function handleReorder(updatedList: any[]) {
         <Icon class="absolute top-[9px] right-2" name="material-symbols:search" size="20" />
       </div>
       <LeadManagementLabelAdd v-model:open="showDialog" />
-      <!-- <LeadManagementLabelAddLabel
-        :initial-data="selectedLabel"
-        :open="showDialog"
-        @close="showDialog = false"
-        @saved="fetchLabels"
-      /> -->
     </template>
   </BaseHeader>
 
@@ -91,11 +64,11 @@ async function handleReorder(updatedList: any[]) {
     <div class="w-full h-[calc(100vh-165px)] overflow-y-auto">
       <LeadManagementLabelTable :limit="limit" :total-rows="filteredLabel.length" :start="pageStart" :list="paginatedList || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" />
     </div>
+    <!-- Display Order -->
     <LeadManagementLabelDisplayOrder
+      v-if="labelStatus !== 'pending'"
       :label-list="labelData?.data"
-      :loading="labelStatus === 'pending'"
       class="hidden lg:block"
-      @update-order="handleReorder"
     />
   </div>
 </template>
