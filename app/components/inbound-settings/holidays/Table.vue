@@ -167,6 +167,9 @@ function handlePageChange(page: number) {
 
 <template>
   <div class="border rounded-lg my-6 overflow-hidden">
+    <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
+      Call Timing #
+    </div>
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
