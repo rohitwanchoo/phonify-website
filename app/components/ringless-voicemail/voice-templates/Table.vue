@@ -7,19 +7,24 @@ import CreateRingless from '@/components/ringless-voicemail/voice-templates/Crea
 import Button from '~/components/ui/button/Button.vue'
 
 const dummyData = ref([
-  { id: 1, extension: 'Lorem ipsum dolor sit amet consectetur. Est id facilisis in sit id nibh neque neque.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 2, extension: 'Libero nunc semper mauris duis sapien malesuada.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 3, extension: 'Tempus vel sed ac et quis ipsum et.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 4, extension: 'Bibendum id mi etiam amet est facilisis vitae.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
+  { id: 1, description: 'Lorem ipsum dolor sit amet consectetur. Est id facilisis in sit id nibh neque neque.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+  { id: 2, description: 'Libero nunc semper mauris duis sapien malesuada.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
+  { id: 3, description: 'Tempus vel sed ac et quis ipsum et.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
+  { id: 4, description: 'Bibendum id mi etiam amet est facilisis vitae.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
 ])
 
 const showCreateRingless = ref(false)
 const currentEditItem = ref<typeof dummyData.value[0] | null>(null)
-
+const ringlessDialogMode = ref<'create' | 'edit'>('create')
+function openCreateDialog() {
+  currentEditItem.value = null
+  ringlessDialogMode.value = 'create'
+  showCreateRingless.value = true
+}
 // Default empty item structure
 const emptyRinglessItem = {
   id: 0,
-  extension: '',
+  description: '',
   audioUrl: '',
 }
 
@@ -35,7 +40,7 @@ const columns = [
     meta: { className: 'w-[40px] text-center' },
   }),
 
-  columnHelper.accessor('extension', {
+  columnHelper.accessor('description', {
     header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-1 w-full' }, [
       'Description',
       h(Button, {
@@ -44,7 +49,7 @@ const columns = [
         onClick: () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-light text-left' }, row.original.extension),
+    cell: ({ row }) => h('div', { class: 'text-sm font-light text-left' }, row.original.description),
     sortingFn: 'alphanumeric',
     meta: { className: 'w-[40%]' },
   }),
@@ -107,7 +112,8 @@ const table = useVueTable({
 })
 
 function handleEdit(item: typeof dummyData.value[0]) {
-  currentEditItem.value = { ...item } // Create a copy of the item
+  currentEditItem.value = { ...item }
+  ringlessDialogMode.value = 'edit'
   showCreateRingless.value = true
 }
 
@@ -115,7 +121,7 @@ function handleDelete(id: number) {
   dummyData.value = dummyData.value.filter(item => item.id !== id)
 }
 
-function handleSave(data: { extension: string, audioUrl: string }) {
+function handleSave(data: { description: string, audioUrl: string }) {
   if (currentEditItem.value?.id) {
     // Update existing item
     const index = dummyData.value.findIndex(item => item.id === currentEditItem.value?.id)
@@ -185,6 +191,7 @@ function handleSave(data: { extension: string, audioUrl: string }) {
     <CreateRingless
       v-model:open="showCreateRingless"
       :item="currentEditItem || emptyRinglessItem"
+      :mode="ringlessDialogMode"
       @save="handleSave"
     />
   </div>
