@@ -69,8 +69,14 @@ const onSubmit = handleSubmit((vals) => {
   delete payload.senderDetails
   payload.speed = String(vals.speed[0])
   payload.pitch = String(vals.pitch[0])
+  let api = 'add-voice-templete'
 
-  useApi().post('add-voice-templete', payload).then((response) => {
+  if (editId.value) { // if edit
+    api = 'edit-voice-templete'
+    payload.templete_id = editId.value
+  }
+
+  useApi().post(api, payload).then((response) => {
     showToast({
       message: response.message,
     })
@@ -161,10 +167,19 @@ function insertPlaceholder(value: any) {
 }
 
 function setEditValues() {
-  //  TODO: get voice template with id api is not available
-  // useApi().get(`/voice-template/${editId.value}`).then((response) => {
-  //   console.log(response)
-  // })
+  useApi().post(`/voice-templete`, {
+    templete_id: editId.value,
+  }).then((response) => {
+    const data = response.data[0]
+    setValues({
+      language: data.language,
+      voice_name: data.voice_name,
+      templete_name: data.templete_name,
+      templete_desc: data.templete_desc,
+      speed: [Number(data.speed)],
+      pitch: [Number(data.pitch)],
+    })
+  })
 }
 
 onMounted(() => {
@@ -448,7 +463,7 @@ onMounted(() => {
     <div class="absolute rounded-b-xl  bottom-0 left-0 w-full flex justify-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-1px_rgba(0,0,0,0.06)] bg-white border-t border-gray-200 p-7 z-10">
       <Button type="submit" :loading class="bg-[#162D3A] w-full py-6 text-md text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white" @click="onSubmit">
         <Icon name="material-symbols:save" />
-        Submit
+        {{ editId ? 'Update' : 'Submit' }}
       </Button>
     </div>
   </form>
