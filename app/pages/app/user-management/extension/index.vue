@@ -33,10 +33,6 @@ function changeLimit(val: number) {
   limit.value = Number(val)
   return refresh()
 }
-
-function toastTest() {
-  showToast({ type: 'warning', message: 'Test' })
-}
 </script>
 
 <template>
