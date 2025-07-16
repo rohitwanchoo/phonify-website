@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { toTypedSchema } from '@vee-validate/zod'
+import { useForm } from 'vee-validate'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,6 +19,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 
 // Props and emits
 const props = defineProps<{
@@ -34,27 +38,69 @@ const emit = defineEmits<{
 }>()
 
 const open = defineModel('open', { type: Boolean, default: false })
+const activeTab = ref('file')
 
-// Form data ref
-const formData = ref({
-  description: '',
-  audioUrl: '',
+// Form validation schema
+const schema = toTypedSchema(z.object({
+  description: z.string().min(3, 'Description must be at least 3 characters'),
+  audioUrl: z.string().url('Please enter a valid URL').optional()
+    .superRefine((val, ctx) => {
+      if (activeTab.value === 'file' && !val) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Audio URL is required when uploading file',
+        })
+      }
+    }),
+  // For text-to-audio tab
+  language: z.string().optional(),
+  voice: z.string().optional(),
+  text: z.string().optional(),
+}))
+
+const { handleSubmit, setValues, setFieldValue } = useForm({
+  validationSchema: schema,
 })
+const textToAudioRef = ref()
 
+const handleSave = async () => {
+  if (!textToAudioRef.value) return
+  
+  const { valid, errors, values } = await textToAudioRef.value.validateForm()
+  
+  if (!valid) {
+    console.error('Form validation failed:', errors)
+    return
+  }
+  
+  // Proceed with saving the data
+  console.log('Form data:', values)
+  // You can also emit this data or call an API here
+}
 // Sync form data when `props.item` changes
 watch(
   () => props.item,
   (newItem) => {
-    formData.value.description = newItem.description
-    formData.value.audioUrl = newItem.audioUrl
+    setValues({
+      description: newItem.description,
+      audioUrl: newItem.audioUrl
+    })
   },
   { immediate: true, deep: true },
 )
 
-function handleSave() {
-  emit('save', formData.value)
-  emit('update:open', false)
+// Handle file upload success
+function handleFileUpload(url: string) {
+  setFieldValue('audioUrl', url)
 }
+
+const onSubmit = handleSubmit((values) => {
+  emit('save', {
+    description: values.description,
+    audioUrl: activeTab.value === 'file' ? values.audioUrl : '' // Clear audioUrl if using text-to-audio
+  })
+  emit('update:open', false)
+})
 
 function onOpenChange(value: boolean) {
   emit('update:open', value)
@@ -68,46 +114,69 @@ function onOpenChange(value: boolean) {
         <DialogTitle>{{ props.mode === 'edit' ? 'Edit' : 'Create' }} Ringless Voice Template</DialogTitle>
       </DialogHeader>
 
-      <Tabs default-value="file" class="w-full">
-        <div class="space-y-2">
-          <Label for="description" class="text-primary text-sm pb-2">Audio File Description</Label>
-          <Textarea
-            id="description"
-            v-model="formData.description"
-            placeholder="Enter here..."
-            class="w-full min-h-[100px]"
-          />
-        </div>
+      <form @submit.prevent="onSubmit" class="space-y-4">
+        <!-- Description Field -->
+        <FormField v-slot="{ componentField }" name="description">
+          <FormItem>
+            <Label class="text-primary text-sm pb-2">Audio File Description</Label>
+            <FormControl>
+              <Textarea
+                v-bind="componentField"
+                placeholder="Enter here..."
+                class="w-full min-h-[100px]"
+              />
+            </FormControl>
+            <FormMessage class="text-xs" />
+          </FormItem>
+        </FormField>
 
-        <TabsList class="grid w-full grid-cols-2 p-0">
-          <TabsTrigger value="file" class="data-[state=active]:bg-[#00A086] data-[state=active]:text-white font-light">
-            Upload File
-          </TabsTrigger>
-          <TabsTrigger value="text" class="data-[state=active]:bg-[#00A086] data-[state=active]:text-white font-light">
-            Text to Audio
-          </TabsTrigger>
-        </TabsList>
+        <Tabs v-model="activeTab" default-value="file" class="w-full">
+          <TabsList class="grid w-full grid-cols-2 p-0">
+            <TabsTrigger value="file" class="data-[state=active]:bg-[#00A086] data-[state=active]:text-white font-light">
+              Upload File
+            </TabsTrigger>
+            <TabsTrigger value="text" class="data-[state=active]:bg-[#00A086] data-[state=active]:text-white font-light">
+              Text to Audio
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="file">
-          <Label class="text-primary mt-4">Upload File*</Label>
-          <RinglessVoicemailVoiceTemplatesVoiceTemplateFileUpload />
-        </TabsContent>
+          <TabsContent value="file" class="mt-4">
+            <FormField v-slot="{ componentField }" name="audioUrl">
+              <FormItem>
+                <Label class="text-primary">Upload File*</Label>
+                <FormControl>
+                  <RinglessVoicemailVoiceTemplatesVoiceTemplateFileUpload 
+                    @upload-success="handleFileUpload"
+                  />
+                </FormControl>
+                <FormMessage class="text-xs" />
+              </FormItem>
+            </FormField>
+          </TabsContent>
 
-        <TabsContent value="text">
-          <RinglessVoicemailVoiceTemplatesVoiceTemplateTextToAudio />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="text" class="mt-4">
+            <RinglessVoicemailVoiceTemplatesVoiceTemplateTextToAudio 
+      ref="textToAudioRef"
+      @submit="(data) => {
+        setFieldValue('language', data.language)
+        setFieldValue('voice', data.voice)
+        setFieldValue('text', data.text)
+      }"
+    />
+          </TabsContent>
+        </Tabs>
 
-      <DialogFooter class="flex justify-between items-center">
-        <Button variant="outline" class="w-[49%]" @click="onOpenChange(false)">
-          <Icon name="lucide:x" class="w-4 h-4 mr-1" />
-          Discard
-        </Button>
-        <Button type="submit" class="w-[49%]" @click="handleSave">
-          <Icon name="lucide:save" class="w-4 h-4 mr-1" />
-          Save
-        </Button>
-      </DialogFooter>
+        <DialogFooter class="flex justify-between items-center pt-4">
+          <Button variant="outline" class="w-[49%]" @click="onOpenChange(false)" type="button">
+            <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+            Discard
+          </Button>
+          <Button @click="handleSave" class="w-[49%]">
+            <Icon name="lucide:save" class="w-4 h-4 mr-1" />
+            Save
+          </Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
   </Dialog>
 </template>
