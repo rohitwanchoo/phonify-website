@@ -4,8 +4,10 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
+
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import { h } from 'vue'
 import { useRouter } from 'vue-router'
@@ -31,8 +33,49 @@ const props = withDefaults(defineProps<{
   loading: false,
 })
 
-const emits = defineEmits(['duplicateRow', 'deleteRow', 'updateStatus'])
+const emits = defineEmits(['updateStatus', 'refresh'])
 const router = useRouter()
+
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+async function deleteMethod(id: number) {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  useApi().delete(`smtp/${id}`).then((response) => {
+    showToast({
+      message: response.message,
+    })
+    emits('refresh')
+  }).catch((err) => {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  })
+}
+
+function duplicate(id: number) {
+  useApi().post('/copy-smtp', {
+    id,
+  }).then((response) => {
+    showToast({
+      message: response.message,
+    })
+    emits('refresh')
+  }).catch((err) => {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  })
+}
 
 const columnHelper = createColumnHelper<any>()
 
@@ -163,8 +206,8 @@ const columns = [
           h('span', { class: 'text-xs font-medium' }, 'Edit'),
         ]),
         h(ConfigurationSmtpSettingsActionDropdown, {
-          onDuplicate: () => emits('duplicateRow', row.original),
-          onDelete: () => emits('deleteRow', row.original),
+          onDuplicate: () => duplicate(row.original.id),
+          onDelete: () => deleteMethod(row.original.id),
         }),
       ]),
     meta: { sticky: 'right' },
@@ -244,4 +287,6 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
+
+  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Extension" description="You are about to delete extension. Do you wish to proceed?" />
 </template>

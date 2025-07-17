@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
+import { Check, ChevronsUpDown, Search } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -8,7 +9,11 @@ import * as z from 'zod'
 import Failed from '@/components/configuration/smtp-settings/Failed.vue'
 import Verified from '@/components/configuration/smtp-settings/Verified.vue'
 
+import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxTrigger } from '@/components/ui/combobox'
+
+import { cn } from '@/lib/utils'
 import { Button } from '~/components/ui/button'
+
 import {
   FormControl,
   FormField,
@@ -58,9 +63,31 @@ const formSchema = toTypedSchema(z.object({
   sender_type: z.string().min(1, 'For Sending is required'),
   from_email: z.string().email('Must be a valid email').min(1, 'Sender Email is required'),
   from_name: z.string().min(1, 'Sender Name is required'),
+  campaign_id: z.number().optional().refine(
+    (val) => {
+      if (values.sender_type === 'campaign') {
+        return val !== null && val !== undefined
+      }
+      return true
+    },
+    {
+      message: 'Campaign is required',
+    },
+  ),
+  user_id: z.number().optional().refine(
+    (val) => {
+      if (values.sender_type === 'user') {
+        return val !== null && val !== undefined
+      }
+      return true
+    },
+    {
+      message: 'User is required',
+    },
+  ),
 }))
 
-const { handleSubmit, setValues, values } = useForm({
+const { handleSubmit, setValues, values, errors, setFieldValue } = useForm({
   validationSchema: formSchema,
 })
 
@@ -68,6 +95,42 @@ const showVerifiedDialog = ref(false)
 const showFailedDialog = ref(false)
 
 const checkSettingsLoading = ref(false)
+
+const { data: campaignList, status: campaignListStatus, refresh: campaignListRefresh } = await useLazyAsyncData('campaign-list-smtp', () =>
+  useApi().post('/campaign'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: extensionList, status: extensionListStatus, refresh: extensionListRefresh } = await useLazyAsyncData('extension-list-smtp', () =>
+  useApi().get('/extension'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+function refreshList(listName: 'campaign' | 'user') {
+  switch (listName) {
+    case 'campaign':
+      if (!campaignList?.value?.length) {
+        campaignListRefresh()
+      }
+      break
+    case 'user':
+      if (!extensionList?.value?.length) {
+        extensionListRefresh()
+      }
+      break
+  }
+}
+
+function getExtensionName(val: number) {
+  const extension = extensionList?.value?.find((el: { id: number }) => el?.id === val)
+  return `${extension?.first_name} ${extension?.last_name}-${extension?.email}` || ''
+}
+
+function onSenderUpdate(val: any) {
+  refreshList(val)
+}
 
 async function checkSettings() {
   checkSettingsLoading.value = true
@@ -92,7 +155,11 @@ const editId = computed(() => route.query.id)
 const loading = ref(false)
 const onSubmit = handleSubmit((values) => {
   loading.value = true
-  useApi().post(`/smtp/${editId.value}`, values).then((response) => {
+  let api = `/smtp/${editId.value}`
+  if (!editId.value)
+    api = '/smtp'
+
+  useApi()[editId.value ? 'post' : 'put'](api, values).then((response) => {
     showToast({ message: response.message })
     router.back()
   }).catch((error) => {
@@ -108,7 +175,7 @@ const onSubmit = handleSubmit((values) => {
 const breadcrumbs = ref([
   {
     label: 'SMTP Settings',
-    href: '/app/configuration/company-settings',
+    href: () => router.back(),
   },
   {
     label: editId.value ? 'Edit SMTP' : 'Add SMTP',
@@ -117,36 +184,58 @@ const breadcrumbs = ref([
 ])
 
 const fetchSmtpLoading = ref(false)
+
+function setEditValues() {
+  fetchSmtpLoading.value = true
+  useApi().get(`/smtp/${editId.value}`).then(({ data }) => {
+    setValues({
+      mail_driver: data.mail_driver,
+      mail_host: data.mail_host,
+      mail_username: data.mail_username,
+      mail_password: data.mail_password,
+      mail_encryption: data.mail_encryption,
+      mail_port: data.mail_port,
+      sender_type: data.sender_type,
+      from_email: data.from_email,
+      from_name: data.from_name,
+    })
+
+    // set campaign and extension data
+    switch (data.sender_type) {
+      case 'campaign':
+        if (data.campaign_id) {
+          setFieldValue('campaign_id', data.campaign_id)
+        }
+        refreshList('campaign')
+
+        break
+      case 'user':
+        if (data.user_id) {
+          setFieldValue('user_id', data.user_id)
+        }
+        refreshList('user')
+
+        break
+    }
+  }).catch((error) => {
+    showToast({
+      type: 'error',
+      message: error.message,
+    })
+    router.back()
+  }).finally(() => {
+    fetchSmtpLoading.value = false
+  })
+}
 onMounted(() => {
   if (editId.value) {
-    fetchSmtpLoading.value = true
-    useApi().get(`/smtp/${editId.value}`).then(({ data }) => {
-      setValues({
-        mail_driver: data.mail_driver,
-        mail_host: data.mail_host,
-        mail_username: data.mail_username,
-        mail_password: data.mail_password,
-        mail_encryption: data.mail_encryption,
-        mail_port: data.mail_port,
-        sender_type: data.sender_type,
-        from_email: data.from_email,
-        from_name: data.from_name,
-      })
-    }).catch((error) => {
-      showToast({
-        type: 'error',
-        message: error.message,
-      })
-    }).finally(() => {
-      fetchSmtpLoading.value = false
-    })
+    setEditValues()
   }
 })
 </script>
 
 <template>
   <BaseHeader :title="editId ? 'Edit SMTP' : 'Add SMTP'" :breadcrumbs />
-
   <Verified v-model:open="showVerifiedDialog" @close="showVerifiedDialog = false" />
   <Failed v-model:open="showFailedDialog" @close="showFailedDialog = false" />
 
@@ -263,7 +352,7 @@ onMounted(() => {
             <FormLabel class="text-sm font-medium text-primary">
               For Sending
             </FormLabel>
-            <Select v-bind="componentField">
+            <Select v-bind="componentField" @update:model-value="onSenderUpdate">
               <FormControl>
                 <SelectTrigger class="w-full !h-11">
                   <SelectValue placeholder="Select Email Type" />
@@ -301,6 +390,112 @@ onMounted(() => {
             <Input class="py-5" placeholder="Sender Name" v-bind="componentField" />
 
             <FormMessage class="text-xs text-red-500 mt-1" />
+          </FormItem>
+        </FormField>
+
+        <!-- CAMPAIGN -->
+        <FormField v-if="values.sender_type === 'campaign'" v-slot="{ value }" name="campaign_id">
+          <FormItem class="flex flex-col">
+            <FormLabel>Campaign</FormLabel>
+            <Combobox>
+              <ComboboxAnchor as-child>
+                <ComboboxTrigger as-child class="w-full h-11 border-gray-300">
+                  <Button variant="outline" class="justify-between" :class="!value && 'text-gray-500 font-normal hover:text-gray-500 ' ">
+                    {{ campaignList?.find((val: any) => val.id === value)?.title ?? 'Select Campaign' }}
+                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </ComboboxTrigger>
+              </ComboboxAnchor>
+
+              <ComboboxList class="max-h-[400px] w-[350px]">
+                <div class="relative w-full items-center">
+                  <ComboboxInput class="focus-visible:ring-0 border-0 rounded-none h-10" placeholder="Select campaign..." />
+                  <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
+                    <Search class="size-4 text-muted-foreground" />
+                  </span>
+                </div>
+
+                <ComboboxEmpty>
+                  No Campaign found.
+                </ComboboxEmpty>
+
+                <ComboboxGroup>
+                  <ComboboxItem v-if="campaignListStatus === 'pending'" disabled :value="null" class="justify-center">
+                    <Icon name="eos-icons:loading" />
+                  </ComboboxItem>
+                  <template v-else>
+                    <ComboboxItem
+                      v-for="campaign in campaignList"
+                      :key="campaign.id"
+                      :value="campaign.id"
+                      @select="() => {
+                        setFieldValue('campaign_id', campaign.id)
+                      }"
+                    >
+                      {{ campaign.title }}
+
+                      <ComboboxItemIndicator>
+                        <Check :class="cn('ml-auto h-4 w-4')" />
+                      </ComboboxItemIndicator>
+                    </ComboboxItem>
+                  </template>
+                </ComboboxGroup>
+              </ComboboxList>
+            </Combobox>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <!-- USER -->
+        <FormField v-if="values.sender_type === 'user'" v-slot="{ value }" name="user_id">
+          <FormItem class="flex flex-col">
+            <FormLabel>User</FormLabel>
+            <Combobox>
+              <ComboboxAnchor as-child>
+                <ComboboxTrigger as-child class="w-full h-11 border-gray-300">
+                  <Button variant="outline" class="justify-between" :class="!value && 'text-gray-500 font-light hover:text-gray-500 ' ">
+                    {{ value ? getExtensionName(value) : 'Select User' }}
+                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </ComboboxTrigger>
+              </ComboboxAnchor>
+
+              <ComboboxList class="max-h-[400px] w-[350px]">
+                <div class="relative w-full items-center">
+                  <ComboboxInput class="focus-visible:ring-0 border-0 rounded-none h-10" placeholder="Select User..." />
+                  <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
+                    <Search class="size-4 text-muted-foreground" />
+                  </span>
+                </div>
+
+                <ComboboxEmpty>
+                  No Campaign found.
+                </ComboboxEmpty>
+
+                <ComboboxGroup>
+                  <ComboboxItem v-if="extensionListStatus === 'pending'" disabled :value="null" class="justify-center">
+                    <Icon name="eos-icons:loading" />
+                  </ComboboxItem>
+                  <template v-else>
+                    <ComboboxItem
+                      v-for="extension in extensionList"
+                      :key="extension.id"
+                      :value="extension.id"
+                      @select="() => {
+                        setFieldValue('user_id', extension.id)
+                      }"
+                    >
+                      {{ extension.first_name }} {{ extension.last_name }} - {{ extension.email }}
+
+                      <ComboboxItemIndicator>
+                        <Check :class="cn('ml-auto h-4 w-4')" />
+                      </ComboboxItemIndicator>
+                    </ComboboxItem>
+                  </template>
+                </ComboboxGroup>
+              </ComboboxList>
+            </Combobox>
+            <FormMessage />
           </FormItem>
         </FormField>
       </div>
