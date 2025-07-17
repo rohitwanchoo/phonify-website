@@ -84,7 +84,7 @@ function onUserSelect(val: any) {
   if (val === 'all')
     delete dateFilter?.value?.userId
 
-  refreshDashboardData()
+  // refreshDashboardData()
   refreshCallCount()
   setStateWiseCalls()
   refreshAgentWiseCall()

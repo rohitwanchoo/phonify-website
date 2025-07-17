@@ -3,6 +3,11 @@ import { Icon } from '#components'
 import { ref } from 'vue'
 import NotificationSheet from '@/components/configuration/company-settings/NotificationSheet.vue'
 
+const { data: notificationDetails } = await useLazyAsyncData('notification-details', () =>
+  useApi().get('/notifications'), {
+  transform: res => res.data,
+})
+
 const notifications = [
   {
     icon: 'material-symbols:list',
@@ -39,6 +44,7 @@ const notifications = [
 ]
 
 const showSheet = ref(false)
+const selectedNotification = ref<{ text: string }>()
 </script>
 
 <template>
@@ -55,7 +61,7 @@ const showSheet = ref(false)
         v-for="(item, idx) in notifications"
         :key="idx"
         class="flex items-center justify-between px-4 py-5 bg-[#FAFAFA] rounded-md cursor-pointer"
-        @click="showSheet = true"
+        @click="selectedNotification = item; showSheet = true"
       >
         <div class="flex items-center gap-3">
           <Icon :name="item.icon" class="text-[#162D3A]" size="18" />
@@ -64,6 +70,6 @@ const showSheet = ref(false)
         <Icon name="material-symbols:chevron-right" size="18" />
       </div>
     </div>
-    <NotificationSheet v-model:open="showSheet" />
+    <NotificationSheet v-model:open="showSheet" :title="selectedNotification?.text" />
   </div>
 </template>

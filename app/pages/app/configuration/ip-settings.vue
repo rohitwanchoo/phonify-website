@@ -4,15 +4,23 @@ import { Input } from '~/components/ui/input'
 const filter = ref({
 
 })
+const start = ref(0)
+const limit = ref(10)
+
+await useLazyAsyncData('server-option-list', () =>
+  useApi().get('/servers/client-servers '), {
+  transform: res => res.data,
+})
 
 const { data: ipSettingList, refresh: refreshIpSettingList, status: ipSettingStatus } = await useLazyAsyncData('ip-setting-list', () =>
-  useApi().get('/ip/query-ip-whitelist', {
-    params: {
-      ...filter.value,
-    },
+  useApi().post('/ip/query-ip-whitelist', {
+    start: start.value,
+    limit: limit.value,
+    ...filter.value,
   }), {
-  transform: res => res.data.slice(0, 10) || [],
+  transform: res => res || [],
 })
+
 const filterValues = ref({})
 
 async function applyFilter() {
@@ -24,6 +32,22 @@ async function applyFilter() {
     refreshIpSettingList()
   }
 }
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return refreshIpSettingList()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refreshIpSettingList()
+}
+
+function clearFilter() {
+  filterValues.value = {}
+  filter.value = {}
+  refreshIpSettingList()
+}
 </script>
 
 <template>
@@ -33,13 +57,13 @@ async function applyFilter() {
         <Input placeholder="Search List" />
         <Icon class="absolute top-[9px] right-2" name="lucide:search" />
       </div>
-      <ConfigurationIpSettingsFilterSheet v-model:form-values="filterValues" @apply-filter="applyFilter" />
-      <ConfigurationIpSettingsWhiteListIpDialog />
+      <ConfigurationIpSettingsFilterSheet v-model:form-values="filterValues" @apply-filter="applyFilter" @clear-filter="clearFilter" />
+      <ConfigurationIpSettingsWhiteListIpDialog @refresh="refreshIpSettingList()" />
     </template>
   </BaseHeader>
 
   <!-- TABLE -->
   <div>
-    <ConfigurationIpSettingsTable :list="ipSettingList || []" :loading="ipSettingStatus === 'pending'" />
+    <ConfigurationIpSettingsTable :limit :start :list="ipSettingList?.data || []" :total-rows="ipSettingList?.total" :loading="ipSettingStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
   </div>
 </template>

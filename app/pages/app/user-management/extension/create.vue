@@ -290,7 +290,7 @@ const onSubmit = handleSubmit((values) => {
 
 // get extension by id
 
-const { data: extensionById, refresh: refreshExtensionById, status: extensionByIdStatus } = await useLazyAsyncData<Extension>('get-extension-by-id', () =>
+const { data: extensionById, refresh: refreshExtensionById, status: extensionByIdStatus } = await useLazyAsyncData('get-extension-by-id', () =>
   useApi().post('/extension', {
     extension_id: id,
   }), {
@@ -690,28 +690,28 @@ onMounted(() => {
                   <div class="flex">
                     <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
                       <FormField v-slot="{ componentField: countryCodeComponentField, errorMessage: countryCodeErrorMessage }" name="country_code" class="relative">
-  <FormItem>
-    <FormControl>
-      <Select v-bind="countryCodeComponentField">
-        <SelectTrigger class="w-min rounded-r-none bg-gray-100 !h-11 overflow-hidden" :class="countryCodeErrorMessage && !errorMessage ? 'border-red-600 border' : 'border-none'">
-          <SelectValue as-child>
-            <span class="text-sm">
-              {{ values.country_code }} {{ countries.find(c => c.dial_code === values.country_code)?.code || '' }}
-            </span>
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectItem v-for="item in countries" :key="item?.code" :value="item.dial_code">
-              {{ item.name }} ({{ item.dial_code }})
-            </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </FormControl>
-    <FormMessage class="text-sm absolute bottom-0" />
-  </FormItem>
-</FormField>
+                        <FormItem>
+                          <FormControl>
+                            <Select v-bind="countryCodeComponentField">
+                              <SelectTrigger class="w-min rounded-r-none bg-gray-100 !h-11 overflow-hidden" :class="countryCodeErrorMessage && !errorMessage ? 'border-red-600 border' : 'border-none'">
+                                <SelectValue as-child>
+                                  <span class="text-sm">
+                                    {{ values.country_code }} {{ countries.find(c => c.dial_code === values.country_code)?.code || '' }}
+                                  </span>
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  <SelectItem v-for="item in countries" :key="item?.code" :value="item.dial_code">
+                                    {{ item.name }} ({{ item.dial_code }})
+                                  </SelectItem>
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage class="text-sm absolute bottom-0" />
+                        </FormItem>
+                      </FormField>
                       <Input
                         type="tel"
                         maxlength="10"

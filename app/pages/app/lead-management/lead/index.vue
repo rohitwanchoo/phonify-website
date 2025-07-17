@@ -45,8 +45,11 @@ const dummyLeads = [
 ]
 
 const { data: leadsList, refresh: refreshLeads, status: leadsStatus } = await useLazyAsyncData('leads-list', () =>
-  useApi().post('/leads'), {
-  transform: res => res.data.slice(0, 10),
+  useApi().post('/leads', {
+    start: 0,
+    limit: 10,
+  }), {
+  transform: res => res.data,
 })
 </script>
 

@@ -4,7 +4,8 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon } from '#components'
+
+import { DoNotCallExcludeNumberEdit, Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -18,7 +19,6 @@ import {
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 
-import moment from 'moment'
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -49,7 +48,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -62,103 +61,151 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedLabelId = ref<number | null>(null)
+const selectedExcludeNumberForDelete = ref<{
+  number: number | null
+}>({
+  number: null,
+})
+
+// controls dialog visibility
+const isEditDialogOpen = ref(false)
+// stores the row to edit
+const selectedRowData = ref<excludeNumberList | null>(null)
+const selectedRowDataForDelete = ref<excludeNumberList | null>(null)
+
+export interface excludeNumberList {
+  siNo: number
+  number: number
+  first_name: string
+  last_name: string
+  company_name: string
+  campaign_id: number
+}
+
+function onEdit(row: excludeNumberList) {
+  selectedRowData.value = row
+  isEditDialogOpen.value = true
+}
+
+function onDelete(row: excludeNumberList) {
+    selectedRowDataForDelete.value = row
+}
 
 async function handleDelete() {
-  if (!selectedLabelId.value)
+  if (!selectedRowDataForDelete.value?.number )
     return
 
   try {
-    const res = await useApi().get(`/crm-delete-label/${selectedLabelId.value}`)
+    const res = await useApi().post('/delete-exclude-number', {
+      number: selectedRowDataForDelete.value?.number,
+      campaign_id: selectedRowDataForDelete.value?.campaign_id
+    })
 
-    if (res?.success) {
-      showToast({ type: 'success', message: res.message || 'Deleted successfully' })
-      emits('refresh') // properly emit refresh
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
     }
     else {
-      showToast({ type: 'error', message: res.message || 'Failed to delete label' })
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
     }
+    emits('refresh')
   }
-  catch {
-    showToast({ type: 'error', message: 'API error: Unable to delete label' })
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
   }
   finally {
-    selectedLabelId.value = null
+    selectedExcludeNumberForDelete.value = {
+      number: null,
+    }
   }
 }
 
-export interface crmLabelsList {
-  id: number
-  title: string
-  created_at: string
-  status: string
-  actions?: string
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
 }
 
-const columnHelper = createColumnHelper<crmLabelsList>()
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
 
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
+
+const columnHelper = createColumnHelper<excludeNumberList>()
 const columns = [
-
-  columnHelper.accessor('id', {
+  columnHelper.accessor('siNo', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
     },
   }),
 
-  columnHelper.accessor('title', {
+  columnHelper.accessor('first_name', {
     header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Group Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['First Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
-    },
-  }),
-  columnHelper.accessor('created_at', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, `${moment(row.original.created_at).format('DD MMM YYYY hh:mm A')}`),
-      ])
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('first_name'))
     },
   }),
 
-  columnHelper.accessor('status', {
+  columnHelper.accessor('last_name', {
     header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Last Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      const isChecked = row.original.status === '1'
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': isChecked,
-        'onUpdate:modelValue': async (val: boolean) => {
-          const newStatus = val ? '1' : '0'
-          row.original.status = newStatus // Optimistically update UI
-          await updateStatus(row.original.id, newStatus)
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('last_name'))
+    },
+  }),
+
+  columnHelper.accessor('company_name', {
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Company Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('company_name'))
+    },
+  }),
+
+    columnHelper.accessor('number', {
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Mobile', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+        const number = String(row.getValue('number'))
+      return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(number))
+    },
+  }),
+
+  columnHelper.display({
+    id: 'actions',
+    header: () => h('div', { class: 'text-center w-full' }, 'Action'),
+    cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
+      h(Button, {
+        size: 'icon',
+        variant: 'outline',
+        class: 'text-primary h-7 w-7 min-w-0',
+        title: 'Edit',
+        onClick: () => {
+          onEdit(row.original)
         },
-      }))
-    },
-  }),
-
-  columnHelper.accessor('actions', {
-    header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => emits('edit', row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
-        selectedLabelId.value = row.original.id
+      }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', title: 'Delete', onClick: () => {
+        onDelete(row.original)
         revealDeleteConfirm()
-      } }, h(Icon, { name: 'material-symbols:delete' })),
+      } }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
     ]),
   }),
 
@@ -198,58 +245,10 @@ const table = useVueTable({
     },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-
-function changeLimit(val: number | null) {
-  if (val !== null) {
-    emits('changeLimit', val)
-  }
-}
-
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
-}
-
-async function updateStatus(id: number, newStatus: string) {
-  const label = props.list.find(item => item.id === id)
-
-  if (!label)
-    return showToast({ type: 'error', message: 'Label not found' })
-
-  try {
-    const res = await useApi().post(`/crm-update-label/${id}`, {
-      title: label.title,
-      edit_mode: true, // or as per actual label data
-      data_type: 'string', // replace with actual value
-      required: false, // adjust accordingly
-      merchant_required: false,
-      number_length: null, // if not used
-      icons: 'fa fa-user', // optional
-      heading_type: 'owner',
-      values: '', // if any
-      status: newStatus, // <-- include the new status value if backend expects this key
-    })
-
-    if (res?.success) {
-      showToast({ type: 'success', message: res.message || 'Status updated successfully' })
-      emits('refresh')
-    }
-    else {
-      showToast({ type: 'error', message: res.message || 'Failed to update status' })
-    }
-  }
-  catch {
-    showToast({ type: 'error', message: 'API error: Unable to update status' })
-  }
-}
 </script>
 
 <template>
-  <div class="border rounded-lg overflow-hidden">
+  <div class="border rounded-lg my-6 overflow-hidden">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -331,12 +330,15 @@ async function updateStatus(id: number, newStatus: string) {
     </div>
   </div>
 
+  <!-- Edit DNC Dialog -->
+  <DoNotCallExcludeNumberEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
+
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
     :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
-    title="Delete Label"
-    description="You are about to delete this label. Do you wish to proceed?"
+    title="Delete Exclude Number"
+    description="You are about to delete Exclude Number. Do you wish to proceed?"
   />
 </template>

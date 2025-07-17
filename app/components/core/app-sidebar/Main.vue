@@ -45,11 +45,11 @@ const data = {
     { title: 'Ringless Voicemail', url: '/app/ringless-voicemail', icon: 'material-symbols:voicemail-2', items: [
       { title: 'Campaign', url: '/app/ringless-voicemail/campaign' },
       { title: 'Lists', url: '/app/ringless-voicemail/lists' },
-      { title: 'Payments', url: '/app/ringless-voicemail/payments' },
-      { title: 'Recharge', url: '/app/ringless-voicemail/recharge' },
+      // { title: 'Payments', url: '/app/ringless-voicemail/payments' },
+      // { title: 'Recharge', url: '/app/ringless-voicemail/recharge' },
       { title: 'Reports', url: '/app/ringless-voicemail/reports' },
-      { title: 'Balance', url: '/app/ringless-voicemail/balance' },
-      { title: 'Wallet Transactions', url: '/app/ringless-voicemail/wallet-transactions' },
+      // { title: 'Balance', url: '/app/ringless-voicemail/balance' },
+      // { title: 'Wallet Transactions', url: '/app/ringless-voicemail/wallet-transactions' },
       { title: 'Voice Template', url: '/app/ringless-voicemail/voice-template' },
       { title: 'SIP Gateways', url: '/app/ringless-voicemail/sip-gateways' },
     ] },
@@ -61,8 +61,12 @@ const data = {
       { title: 'Campaign', url: '/app/campaign' },
       { title: 'Agent Status', url: '/start-campaign/agent-status' },
       { title: 'Diposition', url: '/campaign/diposition' },
+      { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign' },
     ] },
-    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call' },
+    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', items: [
+      { title: 'DNC', url: '/app/do-not-call/dnc' },
+      { title: 'Exclude From List', url: '/app/do-not-call/exclude-from-list' },
+    ] },
     { title: 'Lead Management', url: '/app/lead-management', icon: 'icons:lead-management', items: [
       { title: 'Label', url: '/app/lead-management/label' },
       { title: 'Lead', url: '/app/lead-management/lead' },
@@ -87,7 +91,13 @@ const data = {
       { title: 'Ring Groups', url: '/app/user-management/ring-group' },
 
     ] },
-    { title: 'Inbound Settings', url: '/app/inbound-settings', icon: 'icons:inbound-settings' },
+    { title: 'Inbound Settings', url: '/app/inbound-settings', icon: 'icons:inbound-settings', items: [
+      { title: 'DID configuration', url: '/app/inbound-settings/did-configuration' },
+      { title: 'Call Times', url: '/app/inbound-settings/call-times' },
+      { title: 'Holidays', url: '/app/inbound-settings/holidays' },
+      { title: 'IVR', url: '/app/inbound-settings/ivr' },
+      { title: 'Audio Messages', url: '/app/inbound-settings/audio-messages' },
+    ] },
     { title: 'Configuration', url: '/app/configuration', icon: 'icons:configuration', items: [
       { title: 'API', url: '/app/configuration/api' },
       { title: 'VoIP Configuration', url: '/app/configuration/voip-configuration' },
