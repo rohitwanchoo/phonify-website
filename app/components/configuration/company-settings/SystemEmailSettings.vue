@@ -38,7 +38,7 @@ const infoRows = computed(() => [
 ])
 
 function goToAddSmtp() {
-  navigateTo({ path: '/app/configuration/smtp-settings/add-smtp', query: { id: props.data.id } })
+  navigateTo({ path: '/app/configuration/smtp-settings/add-smtp', query: { id: props?.data?.id } })
 }
 </script>
 

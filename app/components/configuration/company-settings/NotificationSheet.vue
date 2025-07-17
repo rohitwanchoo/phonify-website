@@ -5,9 +5,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
-const props = defineProps<{ open: boolean }>()
-const emit = defineEmits(['update:open'])
-
+defineProps<Props>()
+const open = defineModel('open', { type: Boolean, default: false })
+interface Props {
+  title?: string
+}
 const searchQuery = ref('')
 const agents = ref([
   {
@@ -42,16 +44,16 @@ const agents = ref([
   },
 ])
 
-const close = () => emit('update:open', false)
+const close = () => open.value = false
 </script>
 
 <template>
-  <Sheet :open="props.open" @update:open="close">
+  <Sheet :open="open" @update:open="close">
     <SheetContent class="w-full md:max-w-[600px] max-h-[100vh] overflow-hidden flex flex-col h-full">
       <!-- Header -->
       <SheetHeader class="bg-[#173B3F] px-6 py-4">
         <SheetTitle class="text-white text-base font-normal">
-          Notification for list uploaded/deleted
+          {{ title }}
         </SheetTitle>
       </SheetHeader>
 
