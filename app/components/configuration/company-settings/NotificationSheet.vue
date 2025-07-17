@@ -64,58 +64,58 @@ const close = () => emit('update:open', false)
       <!-- Table -->
       <div class="overflow-auto px-4 pb-6 flex-1">
         <table class="min-w-full text-sm">
-            <thead class="border-b sticky top-0 bg-gray-50 z-10">
-  <tr class="text-[#666] text-md font-normal">
-    <th class="py-5 px-4 text-center font-normal">
-      #
-    </th>
-    <th class="py-2 px-4 text-center font-normal">
-      <div class="flex items-center justify-center gap-1">
-        Agents
-        <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
-      </div>
-    </th>
-    <th class="py-2 px-4 text-center w-24 font-normal">
-      <div class="flex items-center justify-center gap-1">
-        Email
-        <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
-      </div>
-    </th>
-    <th class="py-2 px-4 text-center w-24 font-normal">
-      <div class="flex items-center justify-center gap-1">
-        SMS
-        <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
-      </div>
-    </th>
-  </tr>
-</thead>
+          <thead class="border-b sticky top-0 bg-gray-50 z-10">
+            <tr class="text-[#666] text-md font-normal">
+              <th class="py-5 px-4 text-center font-normal">
+                #
+              </th>
+              <th class="py-2 px-4 text-center font-normal">
+                <div class="flex items-center justify-center gap-1">
+                  Agents
+                  <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
+                </div>
+              </th>
+              <th class="py-2 px-4 text-center w-24 font-normal">
+                <div class="flex items-center justify-center gap-1">
+                  Email
+                  <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
+                </div>
+              </th>
+              <th class="py-2 px-4 text-center w-24 font-normal">
+                <div class="flex items-center justify-center gap-1">
+                  SMS
+                  <Icon name="lucide:chevrons-up-down" class="w-4 h-4" />
+                </div>
+              </th>
+            </tr>
+          </thead>
 
-<tbody>
-  <tr
-    v-for="(agent, index) in agents"
-    :key="index"
-    class="border-t border-gray-100 hover:bg-gray-50"
-  >
-    <td class="py-6 px-4 text-[#162D3A] text-md text-center">
-      {{ index + 1 }}
-    </td>
-    <td class="py-3 px-4 text-md text-[#162D3A] w-full">
-      {{ agent.agent }}
-    </td>
-    <td class="py-3 px-4 text-center w-24">
-      <Checkbox
-        v-model="agent.emailNotify"
-        class="data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]"
-      />
-    </td>
-    <td class="py-3 px-4 text-center w-24">
-      <Checkbox
-        v-model="agent.smsNotify"
-        class="data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]"
-      />
-    </td>
-  </tr>
-</tbody>
+          <tbody>
+            <tr
+              v-for="(agent, index) in agents"
+              :key="index"
+              class="border-t border-gray-100 hover:bg-gray-50"
+            >
+              <td class="py-6 px-4 text-[#162D3A] text-md text-center">
+                {{ index + 1 }}
+              </td>
+              <td class="py-3 px-4 text-md text-[#162D3A] w-full">
+                {{ agent.agent }}
+              </td>
+              <td class="py-3 px-4 text-center w-24">
+                <Checkbox
+                  v-model="agent.emailNotify"
+                  class="data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]"
+                />
+              </td>
+              <td class="py-3 px-4 text-center w-24">
+                <Checkbox
+                  v-model="agent.smsNotify"
+                  class="data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]"
+                />
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </SheetContent>
