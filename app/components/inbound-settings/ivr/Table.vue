@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import { ChevronsUpDown, Trash2 } from 'lucide-vue-next'
+import { ChevronsUpDown, Trash2, Eye, Pencil } from 'lucide-vue-next'
 import { h, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
 import {
   Table,
@@ -13,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import Button from '~/components/ui/button/Button.vue'
-import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
+
 const dummyData = ref([
   { id: 1, description: 'Lorem ipsum dolor sit amet consectetur. Est id facilisis in sit id nibh neque neque.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
   { id: 2, description: 'Libero nunc semper mauris duis sapien malesuada.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
@@ -25,11 +26,7 @@ const showCreateRingless = ref(false)
 const currentEditItem = ref<typeof dummyData.value[0] | null>(null)
 const ringlessDialogMode = ref<'create' | 'edit'>('create')
 const campaignLoadingId = ref<number | null>(null)
-function openCreateDialog() {
-  currentEditItem.value = null
-  ringlessDialogMode.value = 'create'
-  showCreateRingless.value = true
-}
+const router = useRouter()
 
 const emptyRinglessItem = {
   id: 0,
@@ -88,35 +85,42 @@ const columns = [
 
   columnHelper.display({
   id: 'actions',
-  header: () => h('div', { class: 'text-center' }, 'Actions'),
-  cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+  header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Actions'),
+  cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
     h(Button, {
-      size: 'icon',
-      variant: 'outline', // ✅ This changes background to white/transparent
-      class: `border cursor-pointer ${campaignLoadingId.value === row.original.id ? 'opacity-50' : ''}`,
-      onClick: () => openSheet(row.original.id),
+      class: 'font-light',
+      onClick: () => router.push('/app/inbound-settings/ivr/view-ivr'),
     }, [
-      h(Icon, {
-        name: campaignLoadingId.value === row.original.id
-          ? 'eos-icons:bubble-loading'
-          : 'lucide:eye',
-        size: 16,
+      h(Icon, { 
+        name: 'material-symbols:visibility-outline', 
+        class: 'text-white text-base' 
+      }),
+      'View More',
+    ]),
+    
+    h(Button, {  
+      size: 'icon',
+      variant: 'outline',  
+      class: 'border-primary',
+      onClick: () => handleEdit(row.original),
+    }, [
+      h(Icon, { 
+        name: 'material-symbols:edit-square', 
+        class: 'text-base text-primary' 
       }),
     ]),
-
-    h(Action, {
-      onEdit: () => {
-        editTitle.value = row.original.title
-        editCampaign.value = row.original.campaign_name
-        optionsOpen.value = true
-      },
-      onDelete: () => {
-        console.log('Delete campaign:', row.original.id)
-      },
-      onDuplicate: () => {
-        console.log('Duplicate campaign:', row.original.id)
-      },
-    }),
+    
+    h(Button, {
+      size: 'icon',
+      variant:'outline',
+      class: ' text-red-600 border-red-600 hover:text-red-700',
+      onClick: () => handleDelete(row.original.id),
+    }, [
+      h(Icon, { 
+        name: 'material-symbols:delete', 
+        class: 'text-base text-red-600' 
+      }),
+    ]),
   ]),
 }),
 ]
@@ -152,6 +156,14 @@ function handleSave(data: { description: string, audioUrl: string }) {
   showCreateRingless.value = false
   currentEditItem.value = null
 }
+
+function openSheet(id: number) {
+  campaignLoadingId.value = id
+  // Your view more logic here
+  setTimeout(() => {
+    campaignLoadingId.value = null
+  }, 1000)
+}
 </script>
 
 <template>
@@ -168,7 +180,7 @@ function handleSave(data: { description: string, audioUrl: string }) {
           <TableHead
             v-for="header in headerGroup.headers"
             :key="header.id"
-            class="text-center px-4   py-4 text-sm font-medium text-gray-500 bg-gray-50 align-middle"
+            class="text-center px-4 py-4 text-sm font-medium text-gray-500 bg-gray-50 align-middle"
             :class="header.column.columnDef.meta?.className"
           >
             <FlexRender
