@@ -1,5 +1,14 @@
+<script setup lang="ts">
+</script>
+
 <template>
   <div>
-    audio messages
+    <!-- HEADER -->
+    <BaseHeader title="Audio Messages"/>
+
+    <!-- TABLE -->
+    <div>
+     <InboundSettingsAudioMessagesTable/>
+    </div>
   </div>
 </template>
