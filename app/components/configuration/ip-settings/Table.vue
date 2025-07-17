@@ -12,6 +12,13 @@ import { useDraggable, useWindowSize } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 import { computed, h, ref, watch } from 'vue'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Separator } from '~/components/ui/separator'
@@ -26,6 +33,8 @@ import {
 import { valueUpdater } from '~/components/ui/table/utils'
 
 const props = defineProps<Props>()
+
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 
 const el = useTemplateRef<HTMLElement>('el')
 
@@ -53,7 +62,15 @@ interface IpList {
 interface Props {
   list: IpList[]
   loading?: boolean
+  totalRows: number
+  start: number // pagination start
+  limit: number
 }
+
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const columnHelper = createColumnHelper<IpList>()
 
@@ -203,18 +220,21 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
+  getRowId: row => row.whitelist_ip,
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  manualPagination: true,
+  rowCount: per_page.value,
   state: {
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
+    columnPinning: {
+      left: ['status'],
+    },
   },
 })
 
@@ -223,21 +243,16 @@ const selectedIps = ref<any>([])
 watch(rowSelection, (newVal: Record<string, boolean>) => {
   selectedIps.value = Object.keys(newVal) // Get the selected keys
     .filter(key => newVal[key]) // Filter keys with a true value
-    .map(key => props.list[key]) // Map keys to items in props.list
+    .map(key => props.list.find(item => item.whitelist_ip === key)) // Map keys to items by matching whitelist_ip
+    .filter(Boolean) // Remove any undefined values
 }, { deep: true })
 
-// Mock pagination meta data
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  total: 120,
-  last_page: 12,
-})
-
 function handlePageChange(page: number) {
-  // For now, just update the mock meta
-  meta.value.current_page = page
-  // You can set loading.value = true and simulate data fetching if needed
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: any) {
+  emits('changeLimit', val)
 }
 
 function onClickBulkApprove() {
@@ -303,12 +318,14 @@ onMounted(() => {
       :row-data="selectedRowData"
     />
   </div>
-  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
+
         <span>
-          <Select :default-value="meta.per_page">
+          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -319,20 +336,19 @@ onMounted(() => {
             </SelectContent>
           </Select>
         </span>
-        of {{ meta?.total }} entries
+
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
+      <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)"
-        :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)"
-        :last-page="Number(meta?.last_page)"
-        @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
-    <!-- Drag select -->
   </div>
+
   <div v-if="selectedIps.length" ref="el" :style="style" class=" z-10 fixed flex items-center center gap-x-3 bg-white border px-3 py-4 rounded-xl shadow-2xs">
     <div class="flex items-center gap-x-3">
       <Icon name="lucide:grip-vertical" class="cursor-grab" />
