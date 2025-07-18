@@ -98,7 +98,6 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     let res
     if (isEditMode.value) {
-      console.log('Editing custom field value:', props.rowData.id, values)
       res = await useApi().post(`/custom-field-value/${props.rowData.id}`, {
         title_match: values.fieldLabel,
         title_links: values.link,
@@ -125,9 +124,9 @@ const onSubmit = handleSubmit(async (values) => {
       props.refresh()
     }
   }
-  catch (error) {
+  catch (error: any) {
     showToast({
-      message: `An error occurred while ${isEditMode.value ? 'updating' : 'saving'}`,
+      message: error?.message,
       type: 'error',
     })
   }
@@ -155,7 +154,7 @@ function onOpenChange(open: boolean) {
             <FormLabel>Field Label</FormLabel>
             <Select v-bind="componentField">
               <FormControl>
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full !h-11">
                   <SelectValue placeholder="Select field label" />
                 </SelectTrigger>
               </FormControl>
@@ -179,6 +178,7 @@ function onOpenChange(open: boolean) {
             <FormLabel>Link URL</FormLabel>
             <FormControl>
               <Input
+                class="h-11"
                 type="text"
                 placeholder="https://example.com"
                 v-bind="componentField"

@@ -3,7 +3,12 @@ import { Button } from '~/components/ui/button/'
 import { Input } from '~/components/ui/input'
 
 const { data: customFieldList, status, refresh } = await useLazyAsyncData('custom-field-list', async () => {
-  const response = await useApi().get('custom-field-labels-values', {})
+  const response = await useApi().get('/custom-field-labels-values', {
+    params: {
+      start: 0,
+      limit: 10,
+    },
+  })
   return response
 })
 
