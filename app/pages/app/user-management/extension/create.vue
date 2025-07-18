@@ -290,7 +290,7 @@ const onSubmit = handleSubmit((values) => {
 
 // get extension by id
 
-const { data: extensionById, refresh: refreshExtensionById, status: extensionByIdStatus } = await useLazyAsyncData<Extension>('get-extension-by-id', () =>
+const { data: extensionById, refresh: refreshExtensionById, status: extensionByIdStatus } = await useLazyAsyncData('get-extension-by-id', () =>
   useApi().post('/extension', {
     extension_id: id,
   }), {

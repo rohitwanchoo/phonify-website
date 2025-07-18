@@ -163,6 +163,7 @@ function trackCursor(e: Event, field: 'subject' | 'template') {
 
 // Insert placeholder
 function insertPlaceholder(value: any) {
+  setValues({ customPlaceholder: '', leadPlaceholder: '', senderPlaceholder: '' })
   let el: HTMLInputElement | HTMLTextAreaElement | null = null
   let currentValue = ''
   let modelKey: 'subject' | 'template_html' | null = null
@@ -246,7 +247,7 @@ function insertPlaceholder(value: any) {
                 <FormControl>
                   <Select v-bind="componentField" @update:model-value="insertPlaceholder">
                     <SelectTrigger class="w-full px-3 !h-11 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
-                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
+                      <SelectValue placeholder="Select Lead Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in leadPlaceholders" :key="option.id" :value="option.title">
@@ -270,7 +271,7 @@ function insertPlaceholder(value: any) {
                 <FormControl>
                   <Select v-bind="componentField" @update:model-value="insertPlaceholder">
                     <SelectTrigger class="w-full px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
-                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
+                      <SelectValue placeholder="Select Sender Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in senderPlaceholders" :key="option" :value="option">
@@ -291,7 +292,7 @@ function insertPlaceholder(value: any) {
                 <FormControl>
                   <Select v-bind="componentField" @update:model-value="insertPlaceholder">
                     <SelectTrigger class="w-full px-3 !h-11 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
-                      <SelectValue placeholder="Select Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
+                      <SelectValue placeholder="Select Custom Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in customPlaceholders" :key="option.title" :value="option.title">

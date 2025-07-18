@@ -2,13 +2,6 @@
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 1,
-  total: 20,
-}
-
 const pageStart = ref(0)
 const limit = ref(10)
 

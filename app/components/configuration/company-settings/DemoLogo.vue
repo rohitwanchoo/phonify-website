@@ -7,17 +7,44 @@ import { Input } from '@/components/ui/input'
 const logoUrl = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-function onFileChange(event: Event) {
+async function onFileChange(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      logoUrl.value = e.target?.result as string
+    try {
+      // Create form data to send file
+      const formData = new FormData()
+      formData.append('logo', file)
+
+      // Show preview immediately while uploading
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        logoUrl.value = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+
+      // Upload file to server
+      // const response = await fetch('/api/upload-logo', {
+      //   method: 'POST',
+      //   body: formData
+      // })
+      const response = await useApi().post('/update-logo', formData)
+
+      if (response.success) {
+        showToast({ message: response.message })
+      }
+
+      // const data = await response.json()
+      // // Update logo URL with the one from server if needed
+      // // logoUrl.value = data.logoUrl
     }
-    reader.readAsDataURL(file)
+    catch (error) {
+      console.error('Error uploading logo:', error)
+      showToast({ type: 'error', message: error?.message })
+      // Handle error appropriately - show error message to user
+      logoUrl.value = null
+    }
   }
 }
-
 function triggerFileInput() {
   fileInputRef.value?.click()
 }
@@ -41,8 +68,8 @@ function removeLogo() {
       class="relative w-full h-95 md:h-100 xl:h-95 flex items-start pt-6 justify-center overflow-hidden border border-gray-100 rounded-lg
       [background-image:url('/images/checkered-bg.png')] bg-contain bg-center"
     >
-      <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="object-contain w-full h-[250px]">
-     
+      <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="object-contain w-full  h-[100px] mt-auto mb-[33%]">
+
       <input
         ref="fileInputRef"
         type="file"

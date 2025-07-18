@@ -275,7 +275,7 @@ async function handleDeleteConfirm() {
       </div>
       <!-- Replaced with the new combined dialog component -->
       <ConfigurationCustomFieldValuesDialog
-        :open="editDialogOpen"
+        v-model:open="editDialogOpen"
         :row-data="editRow"
         :refresh="props.refresh"
         @update:open="val => editDialogOpen = val"
