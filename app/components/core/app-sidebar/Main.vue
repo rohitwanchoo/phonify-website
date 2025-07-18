@@ -54,7 +54,11 @@ const data = {
       { title: 'SIP Gateways', url: '/app/ringless-voicemail/sip-gateways' },
     ] },
     { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
-    { title: 'SMS', url: '/sms', icon: 'icons:sms' },
+    { title: 'SMS', url: '/sms', icon: 'icons:sms',items: [
+      { title: 'Chat SMS', url: '/app/sms/chat-sms' },
+      { title: 'SMS History', url: '/app/sms/sms-history' },
+      { title: 'Text Template', url: '/app/sms/text-template'},
+    ] },
   ],
   'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
