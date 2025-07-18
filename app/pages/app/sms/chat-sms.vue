@@ -32,3 +32,8 @@ function renameGroup(group: any) {
     </div>
   </div>
 </template> -->
+<template>
+  <div>
+    chat-sms page
+  </div>
+</template>
