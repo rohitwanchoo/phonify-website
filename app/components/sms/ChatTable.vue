@@ -1,6 +1,4 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-
+<!-- <script setup lang="ts">
 import {
   ResizableHandle,
   ResizablePanel,
@@ -8,13 +6,6 @@ import {
 } from '@/components/ui/resizable'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 import {
   Tabs,
@@ -27,7 +18,6 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
 
-// ✅ Static dummy group list
 const extensionGroup = [
   {
     id: 1,
@@ -107,9 +97,7 @@ const meta = {
 <template>
   <ResizablePanelGroup direction="horizontal" class="h-full rounded-lg border mt-4">
     <ResizablePanel class="bg-primary p-[18px]" :default-size="25" :min-size="16">
-      <!-- Search + Add Row -->
       <div class="flex items-center gap-3 mb-4">
-        <!-- Search Input -->
         <div class="relative flex-1">
           <Input class="bg-white h-11 pr-10" placeholder="Search here..." />
           <Icon name="lucide:search" class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2" />
@@ -121,8 +109,7 @@ const meta = {
 
       <Separator class="my-2 bg-[#FFFFFF1A]" />
 
-      <!-- Group List -->
-      <ScrollArea class="h-[calc(100vh-330px)]">
+      <ScrollArea class="h-[calc(100vh-260px)]">
         <Tabs orientation="vertical" class="space-y-2 h-full">
           <TabsList class="flex flex-col h-full gap-y-2 bg-transparent w-full">
             <TabsTrigger
@@ -131,7 +118,6 @@ const meta = {
               :value="group.id"
               class="min-h-[56px] w-full border border-[#FFFFFF1A] bg-[#FFFFFF0D] text-white data-[state=active]:bg-[#00A086] mr-2 rounded-[8px] flex items-center justify-between px-[16px] !text-sm !font-normal cursor-pointer hover:bg-[#FFFFFF0D]/80 relative data-[state=inactive]:after:hidden after:absolute after:-right-[16px] after:border-8 after:border-transparent after:border-l-[#00A086]"
             >
-              <!-- Avatar + Name + Number -->
               <div class="flex items-center gap-x-3 truncate">
                 <div class="w-8 h-8 rounded-full bg-[#FFFFFF1A] text-white flex items-center justify-center text-xs font-semibold uppercase">
                   {{ group.title.split(' ').map(w => w[0]).join('').slice(0, 2) }}
@@ -146,7 +132,6 @@ const meta = {
                 </div>
               </div>
 
-              <!-- Time -->
               <div class="text-xs text-white opacity-70 whitespace-nowrap">
                 {{ group.time }}
               </div>
@@ -159,7 +144,6 @@ const meta = {
     <ResizableHandle with-handle />
 
     <ResizablePanel :default-size="75" :min-size="50" class="flex flex-col">
-      <!-- Header with contact info -->
       <div class="px-4 py-3 border-b border-muted flex justify-between items-center">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-gray-300 text-white flex items-center justify-center text-sm font-semibold">
@@ -186,28 +170,24 @@ const meta = {
         </div>
       </div>
 
-      <!-- Chat area -->
       <div
         class="flex-1 overflow-y-auto px-4 py-3 space-y-4"
         style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;"
       >
-        <!-- Time separator -->
+
         <div class="w-full flex justify-center mt-2 mb-4">
           <div class="text-xs text-muted-foreground bg-[#E4E4E7] rounded-xl px-3 py-1 text-center">
             10.00 am
           </div>
         </div>
 
-        <!-- Chat messages loop -->
         <template v-for="(message, index) in messages" :key="index">
-          <!-- Sender Message (right aligned) -->
           <div v-if="message.sender === 'me'" class="flex justify-end">
             <div
               class="max-w-lg break-words bg-[#162D3A] text-white p-3 rounded-xl rounded-tr-none text-sm relative"
             >
               {{ message.text }}
 
-              <!-- Time and Icon aligned to bottom right -->
               <div
                 class="flex justify-end items-center gap-1 text-[10px] text-white opacity-70 mt-1"
               >
@@ -217,7 +197,6 @@ const meta = {
             </div>
           </div>
 
-          <!-- Receiver Message (left aligned) -->
           <div v-else class="flex justify-start">
             <div
               class="max-w-lg break-words bg-[#E4E4E7] text-[#162D3A] p-3 rounded-xl rounded-tl-none text-sm"
@@ -234,45 +213,41 @@ const meta = {
         </template>
       </div>
 
-      <!-- Send message area -->
-      <div class="border-t border-muted p-3">
-        <div class="text-sm text-muted-foreground mb-1">
-          Send with <span class="text-primary font-medium">+1 (563) 536–84653</span>
+      <div class="bg-[#EBF5F3] px-4 py-2 border-t border-muted">
+        <div class="text-sm text-muted-foreground">
+          Send with
+          <span class="text-primary font-medium">+1 (563) 536–84653</span>
+          <Icon name="material-symbols:keyboard-arrow-down" size="20" />
         </div>
-        <div class="flex items-center gap-2">
-          <Input placeholder="Send a message..." class="flex-1" />
-          <Button class="p-2 bg-primary text-white rounded">
-            <Icon name="lucide:send" class="w-5 h-5" />
-          </Button>
+      </div>
+
+      <div class="bg-white  border-t border-muted">
+        <div class="relative w-full flex items-center">
+
+          <Input
+            placeholder="Send a message..."
+            class="w-full  pr-[200px] py-10 border-none rounded-none bg-transparent
+           placeholder:text-base placeholder:text-muted-foreground
+           focus:outline-none focus:ring-0 focus:shadow-none"
+          />
+
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-4">
+            <button
+              type="button"
+              class="text-muted-foreground hover:text-black border border-black h-10 w-10 flex items-center justify-center rounded-sm"
+            >
+              <Icon name="material-symbols:attach-file" size="20" />
+            </button>
+
+            <button
+              type="button"
+              class="bg-[#0B2C3F] hover:bg-[#093142] text-white h-10 w-10 flex items-center justify-center rounded-sm"
+            >
+              <Icon name="material-symbols:send-outline" size="20" />
+            </button>
+          </div>
         </div>
       </div>
     </ResizablePanel>
   </ResizablePanelGroup>
-
-  <div class="flex items-center justify-end space-x-2 py-4 flex-wrap">
-    <div class="flex-1 text-xs text-primary">
-      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta.current_page }} to
-        <span>
-          <Select :default-value="10">
-            <SelectTrigger class="w-fit gap-x-1 px-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">{{ n }}</SelectItem>
-            </SelectContent>
-          </Select>
-        </span>
-        of {{ meta.total }} entries
-      </div>
-    </div>
-    <div class="space-x-2">
-      <TableServerPagination
-        :total-items="meta.total"
-        :current-page="meta.current_page"
-        :items-per-page="meta.per_page"
-        :last-page="meta.last_page"
-      />
-    </div>
-  </div>
-</template>
+</template> -->
