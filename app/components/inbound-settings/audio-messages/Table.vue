@@ -21,18 +21,19 @@ const dummyData = ref<AudioMessage[]>([
 const showCreateRingless = ref(false)
 const currentEditItem = ref<AudioMessage | null>(null)
 
-const handleSave = (data: { extension: string; audioUrl: string }) => {
-  if (!currentEditItem.value) return
-  
+function handleSave(data: { extension: string, audioUrl: string }) {
+  if (!currentEditItem.value)
+    return
+
   // Update the item in dummyData
   const index = dummyData.value.findIndex(item => item.id === currentEditItem.value?.id)
   if (index !== -1) {
     dummyData.value[index] = {
       ...dummyData.value[index],
-      ...data
+      ...data,
     }
   }
-  
+
   showCreateRingless.value = false
   currentEditItem.value = null
 }
@@ -117,12 +118,10 @@ const table = useVueTable({
 
 <template>
   <div class="w-full overflow-x-auto border rounded-xl bg-white mt-8">
-    <!-- Header -->
     <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
       Call Timing #
     </div>
 
-    <!-- Table -->
     <table class="table-fixed w-full">
       <thead class="bg-gray-50">
         <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -163,10 +162,11 @@ const table = useVueTable({
     </table>
 
     <!-- CreateRingless Dialog -->
-    <InboundSettingsAudioMessagesEditDialog
+    <InboundSettingsDialog
       v-if="currentEditItem"
       v-model:open="showCreateRingless"
       :item="currentEditItem"
+      heading="Create New Call Time"
       @save="handleSave"
     />
   </div>
