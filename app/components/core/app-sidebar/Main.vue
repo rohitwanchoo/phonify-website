@@ -63,8 +63,8 @@ const data = {
   'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
       { title: 'Campaign', url: '/app/campaign' },
-      { title: 'Agent Status', url: '/start-campaign/agent-status' },
-      { title: 'Diposition', url: '/campaign/diposition' },
+      { title: 'Agent Status', url: '/app/campaign/start-campaign/agent-status' },
+      { title: 'Disposition', url: '/app/campaign/disposition' },
       { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign' },
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', items: [
@@ -113,7 +113,7 @@ const data = {
       { title: 'Custom Field Values', url: '/app/configuration/custom-field-values' },
       { title: 'Allowed IPs', url: '/app/configuration/allowed-ips' },
     ] },
-    { title: 'Report', url: '/report', icon: 'icons:report' },
+    { title: 'Report', url: '/app/report', icon: 'icons:report' },
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
   // projects: [

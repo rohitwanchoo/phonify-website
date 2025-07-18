@@ -3,36 +3,23 @@ import { Input } from '~/components/ui/input'
 
 const showDialog = ref(false)
 
-const pageStart = ref(0)
+const start = ref(0)
 const limit = ref(10)
 const searchQuery = ref('')
 
 const { data: allowedIps, status: allowedIpsStatus, refresh: allowedIpsRefresh } = await useLazyAsyncData('allowed-ips', () =>
-  useApi().get('/allowed-ips'), {
-  transform: res => res,
-})
-
-const searchFilteredAllowedIps = computed(() => {
-  if (!allowedIps.value)
-    return []
-  const query = searchQuery.value.toLowerCase()
-  return allowedIps.value.data.filter((item: any) => {
-    return (
-      item?.ip_address?.toLowerCase().includes(query)
-      || item?.label?.toLowerCase().includes(query)
-    )
-  })
-})
-
-const paginatedList = computed(() => {
-  const start = pageStart.value
-  const end = start + limit.value
-  return searchFilteredAllowedIps.value.slice(start, end)
+  useApi().get('/allowed-ips', {
+    params: {
+      start: start.value,
+      limit: limit.value,
+    },
+  }), {
+  transform: res => res.data,
 })
 
 // Watch search query and reset pagination
 watch(searchQuery, () => {
-  pageStart.value = 0
+  start.value = 0
 })
 
 const selectedAllowedIp = ref<null | {
@@ -51,12 +38,12 @@ function openEditDialog(allowedIp: any) {
 }
 
 function changePage(page: number) {
-  pageStart.value = Number((page - 1) * limit.value)
+  start.value = Number((page - 1) * limit.value)
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  pageStart.value = 0
+  start.value = 0
 }
 </script>
 
@@ -75,16 +62,16 @@ function changeLimit(val: number) {
 
     <!-- TABLE -->
     <div>
-      <ConfigurationAllowedIpsTable 
-      :limit="limit" 
-      :total-rows="searchFilteredAllowedIps.length" 
-      :start="pageStart" 
-      :list="paginatedList || []" 
-      :loading="allowedIpsStatus === 'pending'" 
-      @page-navigation="changePage" 
-      @change-limit="changeLimit" 
-      @refresh="allowedIpsRefresh" 
-      @edit="openEditDialog" 
+      <ConfigurationAllowedIpsTable
+        :limit="limit"
+        :total-rows="allowedIps?.length"
+        :start="start"
+        :list="allowedIps || []"
+        :loading="allowedIpsStatus === 'pending'"
+        @page-navigation="changePage"
+        @change-limit="changeLimit"
+        @refresh="allowedIpsRefresh"
+        @edit="openEditDialog"
       />
     </div>
   </div>
