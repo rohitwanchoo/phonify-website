@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import {
   ResizableHandle,
   ResizablePanel,
@@ -174,7 +174,6 @@ const meta = {
         class="flex-1 overflow-y-auto px-4 py-3 space-y-4"
         style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;"
       >
-
         <div class="w-full flex justify-center mt-2 mb-4">
           <div class="text-xs text-muted-foreground bg-[#E4E4E7] rounded-xl px-3 py-1 text-center">
             10.00 am
@@ -223,7 +222,6 @@ const meta = {
 
       <div class="bg-white  border-t border-muted">
         <div class="relative w-full flex items-center">
-
           <Input
             placeholder="Send a message..."
             class="w-full  pr-[200px] py-10 border-none rounded-none bg-transparent
@@ -250,4 +248,4 @@ const meta = {
       </div>
     </ResizablePanel>
   </ResizablePanelGroup>
-</template> -->
+</template>
