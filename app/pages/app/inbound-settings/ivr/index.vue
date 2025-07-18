@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 import { InboundSettingsIvrTable } from '#components'
+import { ref } from 'vue'
+import { Button } from '~/components/ui/button'
 
-const showCreateRingless = ref(false)
+const showCreateIvr = ref(false)
 
-const newRinglessItem = ref({
+const ivrItem = ref({
   id: 0,
   extension: '',
   audioUrl: '',
@@ -24,17 +22,17 @@ function handleSave(data: { extension: string, audioUrl: string }) {
     <!-- HEADER -->
     <BaseHeader title="IVR-Interactive Voice Response">
       <template #actions>
-  
         <!-- Trigger Button -->
-        <Button @click="showCreateRingless = true">
+        <Button @click="showCreateIvr = true">
           <Icon name="lucide:plus" class="mr-1" />
           Add IVR
         </Button>
 
         <!-- Dialog Component -->
-        <CreateRingless
-          v-model:open="showCreateRingless"
-          :item="newRinglessItem"
+        <InboundSettingsDialog
+          v-model:open="showCreateIvr"
+          heading="Create New Call Time"
+          :item="ivrItem"
           @save="handleSave"
         />
       </template>

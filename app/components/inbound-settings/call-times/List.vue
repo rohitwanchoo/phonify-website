@@ -9,7 +9,7 @@ const callSchedules = ref([
       { id: 5, day: 'Friday', from: '08:00:00', to: '16:00:00' },
       { id: 6, day: 'Saturday', from: '09:00:00', to: '13:00:00' },
       { id: 7, day: 'Sunday', from: '', to: '' },
-    ]
+    ],
   },
   {
     data: [
@@ -20,7 +20,7 @@ const callSchedules = ref([
       { id: 5, day: 'Friday', from: '09:00:00', to: '17:00:00' },
       { id: 6, day: 'Saturday', from: '', to: '' },
       { id: 7, day: 'Sunday', from: '', to: '' },
-    ]
+    ],
   },
   {
     data: [
@@ -31,7 +31,7 @@ const callSchedules = ref([
       { id: 5, day: 'Friday', from: '07:30:00', to: '15:30:00' },
       { id: 6, day: 'Saturday', from: '08:00:00', to: '12:00:00' },
       { id: 7, day: 'Sunday', from: '10:00:00', to: '14:00:00' },
-    ]
+    ],
   },
   {
     data: [
@@ -42,7 +42,7 @@ const callSchedules = ref([
       { id: 5, day: 'Friday', from: '10:00:00', to: '18:00:00' },
       { id: 6, day: 'Saturday', from: '11:00:00', to: '15:00:00' },
       { id: 7, day: 'Sunday', from: '', to: '' },
-    ]
+    ],
   },
   {
     data: [
@@ -53,7 +53,7 @@ const callSchedules = ref([
       { id: 5, day: 'Friday', from: '06:00:00', to: '14:00:00' },
       { id: 6, day: 'Saturday', from: '07:00:00', to: '11:00:00' },
       { id: 7, day: 'Sunday', from: '08:00:00', to: '12:00:00' },
-    ]
+    ],
   },
   {
     data: [
@@ -64,25 +64,25 @@ const callSchedules = ref([
       { id: 5, day: 'Friday', from: '12:00:00', to: '20:00:00' },
       { id: 6, day: 'Saturday', from: '13:00:00', to: '17:00:00' },
       { id: 7, day: 'Sunday', from: '', to: '' },
-    ]
+    ],
   },
 ])
 
 const dialogData = ref({
   open: false,
   title: '',
-  data: []
+  data: [],
 })
 
-const handleEditClick = (schedule: any, title: string) => {
+function handleEditClick(schedule: any, title: string) {
   dialogData.value = {
     open: true,
-    title: title,
-    data: JSON.parse(JSON.stringify(schedule.data))
+    title,
+    data: JSON.parse(JSON.stringify(schedule.data)),
   }
 }
 
-const handleDialogSubmit = (data: any) => {
+function handleDialogSubmit(data: any) {
   console.log('Updated data:', data)
   // Find and update the corresponding schedule in callSchedules
   const index = callSchedules.value.findIndex(s => s.data === data.data)
@@ -108,7 +108,7 @@ const handleDialogSubmit = (data: any) => {
       :row-data="{
         title: dialogData.title,
         description: 'Current call timing schedule',
-        data: dialogData.data
+        data: dialogData.data,
       }"
       @update:open="dialogData.open = $event"
       @submit="handleDialogSubmit"

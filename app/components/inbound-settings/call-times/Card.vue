@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import { ChevronsUpDown } from 'lucide-vue-next'
-import { ref, h } from 'vue'
-import moment from 'moment'
-
-import { Button } from '@/components/ui/button'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-
-// Table imports
 import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import moment from 'moment'
+import { h, ref } from 'vue'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -30,21 +26,21 @@ import {
 const props = defineProps({
   scheduleData: {
     type: Array,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    default: 'Call Timing'
-  }
+    default: 'Call Timing',
+  },
 })
 
 const emit = defineEmits(['edit'])
 
-const isOpen = ref(false) 
+const isOpen = ref(false)
 
 const columnHelper = createColumnHelper<any>()
 
-const toggleAccordion = () => {
+function toggleAccordion() {
   isOpen.value = !isOpen.value
 }
 
@@ -67,7 +63,7 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'From'),
     cell: ({ row }) => {
       const time = row.original.from
-      return h('div', { 
+      return h('div', {
         class: 'text-center font-normal text-sm flex items-center justify-center h-full',
       }, time ? moment(time, 'HH:mm:ss').format('hh:mm A') : 'NA')
     },
@@ -78,7 +74,7 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'To'),
     cell: ({ row }) => {
       const time = row.original.to
-      return h('div', { 
+      return h('div', {
         class: 'text-center font-normal text-sm flex items-center justify-center h-full',
       }, time ? moment(time, 'HH:mm:ss').format('hh:mm A') : 'NA')
     },
@@ -91,14 +87,14 @@ const table = useVueTable({
   getCoreRowModel: getCoreRowModel(),
 })
 
-const handleEditClick = () => {
+function handleEditClick() {
   emit('edit', { data: props.scheduleData }, props.title)
 }
 </script>
 
 <template>
   <div class="border rounded-lg">
-    <Accordion type="single" collapsible class="w-full" >
+    <Accordion type="single" collapsible class="w-full">
       <AccordionItem value="item-1">
         <div class="flex items-center justify-between px-4 py-2 gap-2">
           <div>
@@ -109,15 +105,16 @@ const handleEditClick = () => {
               Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur illum vitae, error ratione nesciunt distinctio aliquam molestias delectus ipsa velit eveniet repellat. Aliquam veritatis veniam animi, voluptatum repellendus explicabo cum.
             </p>
           </div>
-         <AccordionTrigger >
-            <template  #icon>  <Button variant="outline" size="icon" class="relative" @click="toggleAccordion">
-    <Icon 
-      :name="isOpen ? 'material-symbols:close' : 'material-symbols:arrow-drop-down'" 
-      :class="isOpen ? 'text-md' : 'text-xl'" 
-    />
-  </Button>
-</template>
-</AccordionTrigger>
+          <AccordionTrigger>
+            <template #icon>
+              <Button variant="outline" size="icon" class="relative" @click="toggleAccordion">
+                <Icon
+                  :name="isOpen ? 'material-symbols:close' : 'material-symbols:arrow-drop-down'"
+                  :class="isOpen ? 'text-md' : 'text-xl'"
+                />
+              </Button>
+            </template>
+          </AccordionTrigger>
         </div>
         <AccordionContent class="">
           <div class="border border-r-0 border-l-0 overflow-hidden">

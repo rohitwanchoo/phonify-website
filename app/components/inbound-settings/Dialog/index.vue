@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
-} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import Separator from '~/components/ui/separator/Separator.vue'
 
 const props = defineProps<{
@@ -15,20 +22,21 @@ const props = defineProps<{
     id: number
     extension: string
     audioUrl: string
-  },
+  }
   open: boolean
+  heading?: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:open', value: boolean): void
+  (e: 'save', data: { extension: string, audioUrl: string }): void
 }>()
 
 const open = defineModel('open', { type: Boolean, default: false })
 
-const emit = defineEmits<{
-  (e: 'update:open', value: boolean): void
-  (e: 'save', data: { extension: string; audioUrl: string }): void
-}>()
-
 const formData = ref({
   extension: props.item.extension,
-  audioUrl: props.item.audioUrl
+  audioUrl: props.item.audioUrl,
 })
 
 function handleSave() {
@@ -45,8 +53,8 @@ function onOpenChange(value: boolean) {
   <Dialog :open="open" @update:open="onOpenChange">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Create New Call Time</DialogTitle>
-        <Separator/>
+        <DialogTitle>{{ props.heading ? heading : 'Heading Here' }}</DialogTitle>
+        <Separator />
       </DialogHeader>
       <Tabs default-value="file" class="w-full">
         <div class="space-y-2">
@@ -65,11 +73,11 @@ function onOpenChange(value: boolean) {
 
         <TabsContent value="file">
           <Label class="text-primary mt-4">Upload File*</Label>
-          <InboundSettingsAudioMessagesEditDialogFileUpload />
+          <InboundSettingsDialogFileUpload />
         </TabsContent>
 
         <TabsContent value="text">
-            <InboundSettingsAudioMessagesEditDialogTextToAudio />
+          <InboundSettingsDialogTextToAudio />
         </TabsContent>
       </Tabs>
 
