@@ -32,7 +32,7 @@ const addDialogOpen = ref(false)
         </Button>
         <!-- Combined Dialog Component -->
         <ConfigurationCustomFieldValuesDialog
-          :open="addDialogOpen"
+          v-model:open="addDialogOpen"
           :refresh="refresh"
           @update:open="addDialogOpen = $event"
         />
