@@ -137,6 +137,18 @@ function deleteConfirmHandler() {
   handleDelete() // now delete safely
 }
 
+function updateStatus(val: { status: boolean, id: number }) {
+  useApi().post('/status-update-allowed-ip', {
+    listId: val.id,
+    status: val.status ? 1 : 0,
+  }).then((response) => {
+    showToast({ message: response.message })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({ type: 'error', message: error.message })
+  })
+}
+
 const columnHelper = createColumnHelper<allowedIpList>()
 const columns = [
   columnHelper.display({
@@ -193,7 +205,7 @@ const columns = [
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
         'modelValue': row.original.status === '1',
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? '1' : '0'
+          updateStatus({ status: val, id: row.original.id })
         },
       })),
   }),
@@ -238,15 +250,15 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  initialState: { pagination: { pageSize: props.limit } },
-  manualPagination: true,
-  pageCount: last_page.value,
-  rowCount: total.value,
+  // initialState: { pagination: { pageSize: props.limit } },
+  // manualPagination: true,
+  // pageCount: last_page.value,
+  // rowCount: total.value,
   state: {
-    pagination: {
-      pageIndex: current_page.value,
-      pageSize: per_page.value,
-    },
+    // pagination: {
+    //   pageIndex: current_page.value,
+    //   pageSize: per_page.value,
+    // },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
