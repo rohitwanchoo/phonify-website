@@ -98,6 +98,9 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.14(typescript@5.8.3)
+      vue-cal:
+        specifier: 5.0.1-rc.25
+        version: 5.0.1-rc.25(vue@3.5.14(typescript@5.8.3))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.14(typescript@5.8.3))
@@ -5842,6 +5845,11 @@ packages:
 
   vue-bundle-renderer@2.1.1:
     resolution: {integrity: sha512-+qALLI5cQncuetYOXp4yScwYvqh8c6SMXee3B+M7oTZxOgtESP0l4j/fXdEJoZ+EdMxkGWIj+aSEyjXkOdmd7g==}
+
+  vue-cal@5.0.1-rc.25:
+    resolution: {integrity: sha512-aUzJuu2mJJYIA8sYiy+JFYUowhoeZFDqIZrds7fm9j+2/A3GNn9lwPyUFoJql7FuaNUkQ/GkcRsgjKe8Y9b92w==}
+    peerDependencies:
+      vue: ^3.5.0
 
   vue-chrts@0.1.8:
     resolution: {integrity: sha512-u9Jdz3s6ss5/DXbY/KSQ9BFACz11toub0L73YSLR4akTlkhJNMDf8KhZf6N4Mvy4Slb53uUzoxwA9ciwaUcB9Q==}
@@ -12750,6 +12758,10 @@ snapshots:
   vue-bundle-renderer@2.1.1:
     dependencies:
       ufo: 1.6.1
+
+  vue-cal@5.0.1-rc.25(vue@3.5.14(typescript@5.8.3)):
+    dependencies:
+      vue: 3.5.14(typescript@5.8.3)
 
   vue-chrts@0.1.8(vue@3.5.14(typescript@5.8.3)):
     dependencies:
