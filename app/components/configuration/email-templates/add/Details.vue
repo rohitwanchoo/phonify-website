@@ -33,14 +33,14 @@ const route = useRoute()
 
 const isEdit = computed(() => route.query.id)
 
-const { data: leadPlaceholders, status: leadPlaceholdersStatus } = await useLazyAsyncData('lead-placeholder-email-template', () =>
+const { data: leadPlaceholders } = await useLazyAsyncData('lead-placeholder-email-template', () =>
   useApi().post('/label'), {
   transform: res => res.data,
 })
 
 // Custom placeholders options
 
-const { data: customPlaceholders, status: customPlaceholdersStatus } = await useLazyAsyncData('custom-field-labels-email-template', () =>
+const { data: customPlaceholders } = await useLazyAsyncData('custom-field-labels-email-template', () =>
   useApi().get('/custom-field-labels'), {
   transform: res => res.data,
 })

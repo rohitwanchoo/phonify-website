@@ -19,7 +19,6 @@ import {
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 
-import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -48,7 +47,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -126,7 +125,7 @@ function handlePageChange(page: number) {
 
 function changeLimit(val: number | null) {
   if (val !== null) {
-    emits('changeLimit', val)
+    emits('limitChange', val)
   }
 }
 
@@ -291,7 +290,7 @@ const table = useVueTable({
         Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
+          <Select :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>

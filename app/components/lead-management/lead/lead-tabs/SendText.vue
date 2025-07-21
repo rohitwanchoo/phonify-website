@@ -10,36 +10,57 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 
+const props = defineProps({
+  leadData: Object,
+})
+
 const agentOptions = [
   { label: 'Agent 1', value: 'agent1' },
   { label: 'Agent 2', value: 'agent2' },
   { label: 'Agent 3', value: 'agent3' },
 ]
-const templateOptions = [
-  { label: 'Template 1', value: 'template1' },
-  { label: 'Template 2', value: 'template2' },
-  { label: 'Template 3', value: 'template3' },
-]
+
+const phoneCountryCode = ref(1)
+
+const { data: textMessageData } = await useLazyAsyncData('get-sms-email-list', () =>
+  useApi().post('/get-sms-email-list', {
+    lead_id: props.leadData?.id,
+  }), {
+  transform: res => res,
+})
+
+// County list
+const { data: countrylist } = await useLazyAsyncData('phone-country-list', () =>
+  useApi().post('/phone-country-list'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+function getCountryLabel(code: string) {
+  const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
+  return country ? `${country.country_code} (+${country.phone_code})` : ''
+}
 
 const formSchema = toTypedSchema(z.object({
-  leadContact: z.string().min(1, 'Lead contact number is required').regex(/^\d{10,15}$/, 'Please enter a valid phone number (10-15 digits)'),
+  leadContact: z.string().min(1, 'Lead contact number is required'),
   agentContact: z.string().min(1, 'Agent contact number is required'),
   template: z.string().min(1, 'Template is required'),
   message: z.string().min(1, 'Message is required').max(200, 'Max 200 characters'),
 }))
 
-const { handleSubmit, resetForm, errors, meta, isSubmitting, values } = useForm({
+const { handleSubmit, isSubmitting, values } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    leadContact: '',
+    leadContact: props?.leadData?.phone_number,
     agentContact: '',
     template: '',
     message: '',
   },
 })
 
+// const formatMaskaToNumber = Number(values?.leadContact?.replace(/\D/g, "") || '')
+
 const messageLength = computed(() => values.message?.length || 0)
-const phoneCountryCode = ref('+1')
 
 const onSubmit = handleSubmit((vals) => {
   // handle send sms
@@ -62,25 +83,24 @@ const onSubmit = handleSubmit((vals) => {
                 <FormControl>
                   <div class="flex">
                     <Select v-model="phoneCountryCode">
-                      <SelectTrigger class="w-24 h-11 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
-                        <SelectValue placeholder="USA (+1)" class="text-xs" />
+                      <SelectTrigger class="w-fit data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
+                        <SelectValue>
+                          <span class="text-sm text-nowrap">
+                            {{ getCountryLabel(String(phoneCountryCode)) }}
+                          </span>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="+1">
-                          USA (+1)
-                        </SelectItem>
-                        <SelectItem value="+44">
-                          UK (+44)
-                        </SelectItem>
-                        <SelectItem value="+91">
-                          IN (+91)
+                        <SelectItem v-for="(item, index) in countrylist" :key="index" :value="item.phone_code">
+                          {{ item.country_name }} (+{{ item.phone_code }})
                         </SelectItem>
                       </SelectContent>
                     </Select>
                     <Input
+                      v-maska="'(###) ### ####'"
                       placeholder="Enter Phone Number"
                       v-bind="componentField"
-                      class="border-gray-200 rounded-l-none"
+                      class="h-11 border-gray-200 rounded-l-none"
                     />
                   </div>
                 </FormControl>
@@ -95,7 +115,7 @@ const onSubmit = handleSubmit((vals) => {
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger class="w-full h-11">
+                    <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select agent" />
                     </SelectTrigger>
                     <SelectContent>
@@ -115,12 +135,12 @@ const onSubmit = handleSubmit((vals) => {
               <FormLabel>Template</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full h-11">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select template" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in templateOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
+                    <SelectItem v-for="option in textMessageData.sms" :key="option.templete_id" :value="option.templete_desc">
+                      {{ option.templete_name }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -141,19 +161,19 @@ const onSubmit = handleSubmit((vals) => {
                   class="resize-y pr-14 min-h-[100px]"
                 />
               </FormControl>
-              <div class="flex justify-end mt-1">
-                <span class="text-xs text-muted-foreground select-none">
+              <div class="flex justify-between">
+                <FormMessage class="w-full" />
+                <span class="text-xs text-muted-foreground select-none w-full text-end">
                   {{ messageLength }}/200
                 </span>
               </div>
-              <FormMessage />
             </FormItem>
           </FormField>
         </div>
         <!-- Button section -->
         <div>
           <Button type="submit" :disabled="isSubmitting" class="w-full">
-            <Icon name="material-symbols:chat" class="mr-1" />
+            <Icon name="material-symbols:chat" class="mr-1 !h-11" />
             Send Text
           </Button>
         </div>

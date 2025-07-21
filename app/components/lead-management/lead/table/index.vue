@@ -1,10 +1,28 @@
 <script setup lang="ts">
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
 import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
+import {
+  createColumnHelper,
+  FlexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useVueTable,
+} from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -13,6 +31,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { valueUpdater } from '@/components/ui/table/utils'
+
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
+
+const emits = defineEmits(['pageNavigation', 'limitChange'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 interface Lead {
   id: number
@@ -24,20 +59,15 @@ interface Lead {
   company_name: string
 }
 
-const props = withDefaults(defineProps<{
-  list?: Lead[]
-  loading?: boolean
-}>(), {
-  list: () => [],
-  loading: false,
-})
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
 
-const emits = defineEmits(['view-activity'])
-
-const router = useRouter()
+function changeLimit(val: number) {
+  emits('limitChange', val)
+}
 
 const columnHelper = createColumnHelper<Lead>()
-
 const columns = [
   columnHelper.display({
     id: 'siNo',
@@ -153,10 +183,36 @@ const columns = [
   }),
 ]
 
+const sorting = ref<SortingState>([])
+const columnFilters = ref<ColumnFiltersState>([])
+const columnVisibility = ref<VisibilityState>({})
+const rowSelection = ref({})
+
 const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
+  state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
+    get sorting() { return sorting.value },
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
+  },
 })
 </script>
 
@@ -194,5 +250,34 @@ const table = useVueTable({
         </TableRow>
       </TableBody>
     </Table>
+  </div>
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ current_page }} to
+
+        <span>
+          <Select :model-value="limit" @update:model-value="val => changeLimit(Number(val))">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in 15" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+
+        of {{ totalRows }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <!-- Pagination Controls -->
+      <TableServerPagination
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
+      />
+    </div>
   </div>
 </template>

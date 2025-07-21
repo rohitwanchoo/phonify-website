@@ -6,7 +6,7 @@ const searchQuery = ref('')
 const start = ref(0)
 const limit = ref(10)
 
-const { data: leadList, status, refresh: refreshLeadList } = await useLazyAsyncData('lead-management-list', () =>
+const { data: leadList, status: statusLeadList, refresh: refreshLeadList } = await useLazyAsyncData('lead-management-list', () =>
   useApi().post('/list', { start: start.value, limit: limit.value }), {
   transform: res => res,
 })
@@ -34,6 +34,6 @@ function changeLimit(val: number) {
   </BaseHeader>
   <!-- TABLE -->
   <div>
-    <LeadManagementListsTable :loading="status === 'pending'" :list="leadList?.data || []" :limit :total-rows="leadList?.total_rows" :start @page-navigation="changePage" @change-limit="changeLimit" @refresh="refreshLeadList" />
+    <LeadManagementListsTable :loading="statusLeadList === 'pending'" :list="leadList?.data || []" :limit="limit" :total-rows="leadList?.total_rows" :start="start" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refreshLeadList" />
   </div>
 </template>

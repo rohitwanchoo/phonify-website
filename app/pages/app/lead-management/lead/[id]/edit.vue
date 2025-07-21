@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -9,72 +10,207 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const router = useRouter()
+const route = useRoute()
 
-// Country code refs for phone numbers
-const phoneCountryCode = ref('+1')
-const workPhoneCountryCode = ref('+1')
+const phoneCountryCode = ref(1)
+const workPhoneCountryCode = ref(1)
 
-// Define comprehensive form schema with requirements
 const formSchema = toTypedSchema(z.object({
-  // Personal Information - Required fields
-  firstName: z.string().min(1, 'First name is required').min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(1, 'Last name is required').min(2, 'Last name must be at least 2 characters'),
-  phoneNumber: z.string().min(1, 'Phone number is required').regex(/^\d{10,15}$/, 'Please enter a valid phone number (10-15 digits)'),
-  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
-
-  // Personal Information - Optional but with validation when provided
-  workPhone: z.string().optional().refine(val => !val || /^\d{10,15}$/.test(val), {
+  first_name: z.string().min(1).min(2),
+  last_name: z.string().min(1).min(2),
+  phone_number: z.string().min(1).regex(/^\d{10,15}$/),
+  email: z.string().min(1).email(),
+  work_phone: z.string().optional().refine(val => !val || /^\d{10,15}$/.test(val), {
     message: 'Please enter a valid work phone number (10-15 digits)',
   }),
-  education: z.string().min(1, 'Education level is required'),
+  education: z.string().optional(),
   extension: z.string().optional().refine(val => !val || /^\d{1,6}$/.test(val), {
     message: 'Extension must be numeric and up to 6 digits',
   }),
-
-  // Company Information - Required fields
-  legalCompanyName: z.string().min(1, 'Legal company name is required').min(2, 'Company name must be at least 2 characters'),
-  businessType: z.string().min(1, 'Business type is required'),
-  businessAge: z.string().min(1, 'Business age is required').regex(/^\d+$/, 'Business age must be a number'),
-  currentPhoneSystem: z.string().min(1, 'Current phone system information is required'),
-  leadSource: z.string().min(1, 'Lead source is required'),
-
-  // Company Information - Financial requirements
-  fundingAmount: z.string().min(1, 'Funding amount is required').regex(/^\d+(\.\d{2})?$/, 'Please enter a valid amount (e.g., 10000 or 10000.50)'),
-  factorRate: z.string().min(1, 'Factor rate is required').regex(/^\d+(\.\d{1,3})?$/, 'Please enter a valid factor rate'),
-  noOfOpenLoans: z.string().min(1, 'Number of open loans is required').regex(/^\d+$/, 'Must be a whole number'),
-
-  // Address Details - All required for business verification
-  address1: z.string().min(1, 'Address line 1 is required').min(5, 'Please enter a complete address'),
+  company_name: z.string().min(1).min(2),
+  business_type: z.string().optional(),
+  business_age: z.string().optional().refine(val => !val || /^\d+$/.test(val), {
+    message: 'Business age must be a valid number',
+  }),
+  currentPhoneSystem: z.string().optional(),
+  leadSource: z.string().optional(),
+  fundingAmount: z.string().optional().refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
+    message: 'Funding amount must be a valid number with up to 2 decimal places',
+  }),
+  factorRate: z.string().optional().refine(val => !val || /^\d+(?:\.\d{1,3})?$/.test(val), {
+    message: 'Factor rate must be a valid number with up to 3 decimal places',
+  }),
+  noOfOpenLoans: z.string().optional().refine(val => !val || /^\d+$/.test(val), {
+    message: 'Number of open loans must be a valid number',
+  }),
+  address: z.string().min(1).min(5),
   address2: z.string().optional(),
-  city: z.string().min(1, 'City is required').min(2, 'Please enter a valid city name'),
-  state: z.string().min(1, 'State is required').min(2, 'Please enter a valid state'),
-  zip: z.string().min(1, 'ZIP code is required').regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code (e.g., 12345 or 12345-6789)'),
-
-  // Financial Information - All required for lead qualification
-  monthlyRevenue: z.string().min(1, 'Monthly revenue is required').regex(/^\d+(\.\d{2})?$/, 'Please enter a valid revenue amount'),
-  annualRevenue: z.string().min(1, 'Annual revenue is required').regex(/^\d+(\.\d{2})?$/, 'Please enter a valid revenue amount'),
-  creditScore: z.string().min(1, 'Credit score is required').regex(/^[3-8]\d{2}$/, 'Credit score must be between 300-850'),
-
-  // Other Information - Optional but useful
+  city: z.string().min(1).min(2),
+  state: z.string().min(1).min(2),
+  zip: z.string().optional().refine(val => !val || /^\d{5}(?:-\d{4})?$/.test(val), {
+    message: 'ZIP code must be in format 12345 or 12345-6789',
+  }),
+  monthlyRevenue: z.string().optional().refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
+    message: 'Monthly revenue must be a valid number with up to 2 decimal places',
+  }),
+  annualRevenue: z.string().optional().refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
+    message: 'Annual revenue must be a valid number with up to 2 decimal places',
+  }),
+  creditScore: z.string().optional().refine(val => !val || /^[3-8]\d{2}$/.test(val), {
+    message: 'Credit score must be a 3-digit number between 300-899',
+  }),
   newLabel1: z.string().optional(),
   newLabel2: z.string().optional(),
 }))
 
-const { handleSubmit, resetForm } = useForm({
+interface Lead {
+  first_name: string
+  last_name: string
+  phone_number: string
+  work_phone?: string
+  email: string
+  education: string
+  extension?: string
+  company_name: string
+  business_type: string
+  business_age: string
+  current_phone_system: string
+  lead_source: string
+  funding_amount: string
+  factor_rate: string
+  no_of_open_loans: string
+  address: string
+  address2?: string
+  city: string
+  state: string
+  zip: string
+  monthly_revenue: string
+  annual_revenue: string
+  credit_score: string
+  new_label_1?: string
+  new_label_2?: string
+  phone_country_code?: string
+  work_phone_country_code?: string
+}
+
+// County list
+const { data: countrylist } = await useLazyAsyncData('phone-country-list', () =>
+  useApi().post('/phone-country-list'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+function getCountryLabel(code: string) {
+  const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
+  return country ? `${country.country_code} (+${country.phone_code})` : ''
+}
+
+// Lead data
+const { data: leadData, status: leadDataStatus } = await useLazyAsyncData<Lead>('lead-details', () =>
+  useApi().get(`/lead/${route.params.id}`), {
+  transform: (res: any) => res.data as Lead,
+})
+
+const { handleSubmit, resetForm, setFieldError, setValues, isSubmitting } = useForm({
   validationSchema: formSchema,
 })
 
-const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted with values:', values)
-  // Handle form submission here
-  router.push('/app/lead-management/lead/activity')
+// Watch for fetched data and populate form
+watch(leadData, (data) => {
+  if (!data)
+    return
+  setValues({
+    first_name: data.first_name || '',
+    last_name: data.last_name || '',
+    phone_number: data.phone_number || '',
+    email: data.email || '',
+    work_phone: data.work_phone || '',
+    education: data.education || '',
+    extension: data.extension || '',
+    company_name: data.company_name || '',
+    business_type: data.business_type || '',
+    business_age: data.business_age || '',
+    currentPhoneSystem: data.current_phone_system || '',
+    leadSource: data.lead_source || '',
+    fundingAmount: data.funding_amount || '',
+    factorRate: data.factor_rate || '',
+    noOfOpenLoans: data.no_of_open_loans || '',
+    address: data.address || '',
+    address2: data.address2 || '',
+    city: data.city || '',
+    state: data.state || '',
+    zip: data.zip || '',
+    monthlyRevenue: data.monthly_revenue || '',
+    annualRevenue: data.annual_revenue || '',
+    creditScore: data.credit_score || '',
+    newLabel1: data.new_label_1 || '',
+    newLabel2: data.new_label_2 || '',
+  })
+  phoneCountryCode.value = Number(data.phone_country_code) || 1
+  workPhoneCountryCode.value = Number(data.work_phone_country_code) || 1
+})
+
+// Submit handler to PUT data
+// Submit handler using option fields for additional data
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    // Main fields that exist in database
+    const supportedFields = {
+      first_name: values.first_name,
+      last_name: values.last_name,
+      email: values.email,
+      phone_number: values.phone_number,
+      city: values.city,
+      state: values.state,
+      address: values.address,
+      company_name: values.company_name,
+
+      // Map additional fields to option fields
+      option_30: phoneCountryCode.value, // phone_country_code
+      option_31: workPhoneCountryCode.value, // work_phone_country_code
+      option_32: values.work_phone || '', // work_phone
+      option_33: values.education || '', // education
+      option_34: values.extension || '', // extension
+      option_35: values.business_type || '', // business_type
+      // Add more mappings as needed for other fields
+    }
+
+    const response = await useApi().post(`/lead/${route.params.id}/edit`, supportedFields)
+
+    if (response.success === true) {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+      router.push(`/app/lead-management/lead/${route.params.id}`)
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (error: any) {
+    handleFieldErrors(error?.data, setFieldError)
+    showToast({
+      message: `${error.message}`,
+      type: 'error',
+    })
+  }
 })
 
 function onCancel() {
   resetForm()
-  // Handle cancel action (maybe navigate back)
-  console.log('Form cancelled')
+  router.push(`/app/lead-management/lead/${route.params.id}`)
 }
+
+const { data: selectedLeadData } = await useLazyAsyncData('selected-lead-data', () =>
+  useApi().post('/get-data-for-edit-lead-page', {
+    id: 200,
+  }), {
+  transform: res => res.data,
+})
 
 const breadcrumbs = [
   {
@@ -84,12 +220,11 @@ const breadcrumbs = [
   },
   {
     label: 'Lead Activity',
-    href: '/app/lead-management/lead/activity',
+    href: `/app/lead-management/lead/${route.params.id}`,
     active: false,
   },
   {
     label: 'Edit Lead',
-    href: '/app/lead-management/lead/edit',
     active: true,
   },
 ]
@@ -99,6 +234,7 @@ const breadcrumbs = [
   <div class="space-y-6">
     <BaseHeader title="John Doe" :breadcrumbs="breadcrumbs" />
     <div class="h-[calc(100vh-200px)] overflow-auto">
+      {{ selectedLeadData }}
       <form id="form" class="flex flex-col gap-4" @submit.prevent="onSubmit">
         <!-- Personal Information Section -->
         <div class="border border-gray-100 rounded-xl">
@@ -107,7 +243,7 @@ const breadcrumbs = [
           </h2>
           <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
             <!-- First Name -->
-            <FormField v-slot="{ componentField }" name="firstName">
+            <FormField v-slot="{ componentField }" name="first_name">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-[#162D3A]">
                   First Name
@@ -124,7 +260,7 @@ const breadcrumbs = [
             </FormField>
 
             <!-- Last Name -->
-            <FormField v-slot="{ componentField }" name="lastName">
+            <FormField v-slot="{ componentField }" name="last_name">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Last Name
@@ -141,7 +277,7 @@ const breadcrumbs = [
             </FormField>
 
             <!-- Phone Number -->
-            <FormField v-slot="{ componentField }" name="phoneNumber">
+            <FormField v-slot="{ componentField }" name="phone_number">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Phone Number
@@ -149,18 +285,16 @@ const breadcrumbs = [
                 <FormControl>
                   <div class="flex">
                     <Select v-model="phoneCountryCode">
-                      <SelectTrigger class="w-24 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
-                        <SelectValue placeholder="USA (+1)" class="text-xs md:text-sm" />
+                      <SelectTrigger class="w-fit data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
+                        <SelectValue>
+                          <span class="text-sm text-nowrap">
+                            {{ getCountryLabel(String(phoneCountryCode)) }}
+                          </span>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="+1">
-                          USA (+1)
-                        </SelectItem>
-                        <SelectItem value="+44">
-                          UK (+44)
-                        </SelectItem>
-                        <SelectItem value="+91">
-                          IN (+91)
+                        <SelectItem v-for="(item, index) in countrylist" :key="index" :value="item.phone_code">
+                          {{ item.country_name }} (+{{ item.phone_code }})
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -184,18 +318,16 @@ const breadcrumbs = [
                 <FormControl>
                   <div class="flex">
                     <Select v-model="workPhoneCountryCode">
-                      <SelectTrigger class="w-24 data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
-                        <SelectValue placeholder="USA (+1)" class="text-xs md:text-sm" />
+                      <SelectTrigger class="w-fit data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
+                        <SelectValue>
+                          <span class="text-sm text-nowrap">
+                            {{ getCountryLabel(String(workPhoneCountryCode)) }}
+                          </span>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="+1">
-                          USA (+1)
-                        </SelectItem>
-                        <SelectItem value="+44">
-                          UK (+44)
-                        </SelectItem>
-                        <SelectItem value="+91">
-                          IN (+91)
+                        <SelectItem v-for="(item, index) in countrylist" :key="index" :value="item.phone_code">
+                          {{ item.country_name }} (+{{ item.phone_code }})
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -271,7 +403,7 @@ const breadcrumbs = [
           </h2>
           <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
             <!-- Legal Company Name -->
-            <FormField v-slot="{ componentField }" name="legalCompanyName">
+            <FormField v-slot="{ componentField }" name="company_name">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Legal Company Name
@@ -288,7 +420,7 @@ const breadcrumbs = [
             </FormField>
 
             <!-- Business Type -->
-            <FormField v-slot="{ componentField }" name="businessType">
+            <FormField v-slot="{ componentField }" name="business_type">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Business Type
@@ -305,7 +437,7 @@ const breadcrumbs = [
             </FormField>
 
             <!-- Business Age -->
-            <FormField v-slot="{ componentField }" name="businessAge">
+            <FormField v-slot="{ componentField }" name="business_age">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Business Age
@@ -415,7 +547,7 @@ const breadcrumbs = [
           </h2>
           <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
             <!-- Address1 -->
-            <FormField v-slot="{ componentField }" name="address1">
+            <FormField v-slot="{ componentField }" name="address">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Address1
@@ -615,6 +747,8 @@ const breadcrumbs = [
           <Button
             type="submit"
             class="flex-1 px-8 py-3 h-8 md:h-12 w-[100px] md:w-full"
+            :disabled="isSubmitting || leadDataStatus === 'pending'"
+            :loading="isSubmitting"
           >
             <Icon name="material-symbols:save" size="20" />
             Save

@@ -2,7 +2,7 @@
 import { Button } from '~/components/ui/button/'
 import { Input } from '~/components/ui/input'
 
-const { data: customFieldList, status, refresh } = await useLazyAsyncData('custom-field-list', async () => {
+const { data: customFieldList, status: customFieldStatus, refresh: customFieldRefresh } = await useLazyAsyncData('custom-field-list', async () => {
   const response = await useApi().get('custom-field-labels-values', {})
   return response
 })
@@ -28,7 +28,7 @@ const addDialogOpen = ref(false)
         <!-- Combined Dialog Component -->
         <ConfigurationCustomFieldValuesDialog
           :open="addDialogOpen"
-          :refresh="refresh"
+          :refresh="customFieldRefresh"
           @update:open="addDialogOpen = $event"
         />
       </template>
@@ -38,8 +38,8 @@ const addDialogOpen = ref(false)
     <div>
       <ConfigurationCustomFieldValuesTable
         :list="customFieldList?.data"
-        :loading="status === 'pending'"
-        :refresh="refresh"
+        :loading="customFieldStatus === 'pending'"
+        :refresh="customFieldRefresh"
       />
     </div>
   </div>
