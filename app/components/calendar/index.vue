@@ -2,6 +2,8 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
 import moment from 'moment'
 
+const emits = defineEmits(['onEdit'])
+
 const date = ref()
 const selectedDate = ref(String(new Date()))
 const activeView = ref<'month' | 'week' | 'day'>('month')
@@ -29,7 +31,7 @@ function test(val: any) {
 
 <template>
   <div class="flex gap-x-6">
-    <CalendarEvent v-model:selected-date="selectedDate" v-model:active-view="activeView" class="w-full" @on-date-change="onDateChange" />
+    <CalendarEvent v-model:selected-date="selectedDate" v-model:active-view="activeView" class="w-full" @on-date-change="onDateChange" @edit="emits('onEdit')" />
     <div v-auto-animate :class="!monthActive ? 'max-h-[calc(100vh-458px)]' : 'max-h-[calc(100vh-150px)]'" class=" space-y-6">
       <CalendarDaySelector v-show="!monthActive" v-model:date-value="date" @update:date-value="test" />
       <CalendarEventList />
