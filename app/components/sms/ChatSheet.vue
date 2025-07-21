@@ -1,84 +1,102 @@
 <script setup lang="ts">
-import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date'
-import { CalendarIcon } from 'lucide-vue-next'
-import { toDate } from 'reka-ui/date'
-import { computed, ref } from 'vue'
-import { Calendar } from '@/components/ui/calendar'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { toTypedSchema } from '@vee-validate/zod'
+import { useForm } from 'vee-validate'
+import { ref } from 'vue'
+import * as z from 'zod'
+
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '~/components/ui/sheet'
-// Define emits
-const emit = defineEmits<{
-  applyFilter: []
-  clearFilter: []
-}>()
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '~/components/ui/sheet'
+import { Textarea } from '~/components/ui/textarea'
 
-// Sheet open state
+// UI state
 const open = ref(false)
-const formValues = defineModel<Record<string, any>>('formValues', {
-  default: {
-    whitelistIp: '',
-    server: '',
-    status: '',
-    fromWeb: '',
-  },
-})
+const uploadedFiles = ref<File[]>([])
 
-// Dummy data for dropdown options
-const serverOptions = [
-  { label: 'All', value: 'null' },
-]
-
-const statusOptions = [
-  { value: '0', label: 'Pending' },
-  { value: '1', label: 'Approved' },
-  { value: '-1', label: 'Rejected' },
-]
-
-const fromWebOptions = [
-  { label: 'All', value: null },
-  { label: 'Yes', value: '1' },
-  { label: 'No', value: '0' },
+// Country codes with USA first
+const countryCodes = [
+  { id: 2, name: 'USA', phonecode: '+1' }, // USA first
+  { id: 1, name: 'Ind', phonecode: '+91' },
+  { id: 3, name: 'UK', phonecode: '+44' },
+  { id: 4, name: 'UAE', phonecode: '+971' },
 ]
 
 // Form validation schema
+const schema = z.object({
+  from: z.string().min(1, 'From is required'),
+  countryCode: z.string().min(1, 'Country code is required'),
+  phoneNumber: z.string().min(5, 'Phone number must be at least 5 digits').regex(/^\d+$/, 'Only digits allowed'),
+  template: z.string().min(1, 'Template is required'),
+  text: z.string().min(1, 'Message is required'),
+  files: z.array(z.instanceof(File)).optional(),
+})
 
-// const filterValues = defineModel({default :{
-//   whitelistIp: '',
-//   server: '',
-//   status: '',
-//   fromWeb: '',
-// } })
+const { handleSubmit, defineField, values } = useForm({
+  validationSchema: toTypedSchema(schema),
+  initialValues: {
+    from: '',
+    countryCode: '+1', // USA set as default
+    phoneNumber: '',
+    template: '',
+    text: '',
+    files: [],
+  },
+})
+// Define form fields
+const [from, fromAttrs] = defineField('from')
+const [countryCode, countryCodeAttrs] = defineField('countryCode')
+const [phoneNumber, phoneNumberAttrs] = defineField('phoneNumber')
+const [template, templateAttrs] = defineField('template')
+const [text, textAttrs] = defineField('text')
+const [files, filesAttrs] = defineField('files')
 
-// Submit handler
-function onSubmit() {
-  // Build filter parameters object with only filled values
-
-  emit('applyFilter')
-  open.value = false
+// File handlers
+function handleFileChange(event: Event) {
+  const fileList = (event.target as HTMLInputElement)?.files
+  if (fileList) {
+    const list = Array.from(fileList)
+    uploadedFiles.value = list
+    files.value = list
+  }
 }
 
-// const formValues = ref({
-//   whitelistIp: '',
-//   server: '',
-//   status: '',
-//   fromWeb: '',
-// })
-
-// Clear filters
-function clearFilters() {
-  resetForm()
-  emit('clearFilter')
-  open.value = false
+function handleDrop(event: DragEvent) {
+  event.preventDefault()
+  const fileList = event.dataTransfer?.files
+  if (fileList) {
+    const list = Array.from(fileList)
+    uploadedFiles.value = list
+    files.value = list
+  }
 }
+
+const onSubmit = handleSubmit((formData) => {
+  console.log('Form submitted:', formData)
+})
 </script>
 
 <template>
   <Button @click="open = true">
-    <Icon class="!text-white" name="lucide:plus" />
+    <Icon name="lucide:plus" class="!text-white" />
     New Message
   </Button>
 
@@ -90,115 +108,150 @@ function clearFilters() {
         </SheetTitle>
       </SheetHeader>
 
-      <!-- Scrollable content -->
-      <div class="flex-1 overflow-y-auto">
-        <div class="mx-auto space-y-6">
-          <div class="flex-1 overflow-y-auto">
-            <div class="mx-auto p-6 space-y-6">
-              <div class="space-y-4">
-                <!-- IP Address Field -->
-                <div>
-                  <label class="text-sm font-medium text-primary">Phone Number</label>
+      <form class="flex-1 flex flex-col justify-between overflow-hidden" @submit.prevent="onSubmit">
+        <div class="p-6 space-y-5 overflow-y-auto">
+          <!-- From -->
+          <FormField name="from">
+            <FormItem>
+              <FormLabel>From</FormLabel>
+              <FormControl>
+                <Select v-bind="fromAttrs" v-model="from">
+                  <SelectTrigger class="w-full !h-11">
+                    <SelectValue placeholder="Select From" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="campaign_1">
+                      Campaign 1
+                    </SelectItem>
+                    <SelectItem value="campaign_2">
+                      Campaign 2
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <!-- To -->
+          <FormField name="phoneNumber">
+            <FormItem>
+              <FormLabel>To</FormLabel>
+              <div class="flex">
+                <!-- Country Code -->
+                <FormField name="countryCode">
+                  <FormItem class="w-[120px] !gap-0">
+                    <FormControl>
+                      <Select v-bind="countryCodeAttrs" v-model="countryCode">
+                        <SelectTrigger class="w-full rounded-r-none bg-gray-100 !h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="item in countryCodes" :key="item.id" :value="item.phonecode">
+                            {{ item.name }} ({{ item.phonecode }})
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItem>
+                </FormField>
+
+                <!-- Phone Number -->
+                <FormControl>
                   <Input
-                    type="number"
-                    class="h-11"
+                    v-model="phoneNumber"
+                    type="tel"
                     placeholder="Enter Phone Number"
+                    class="!h-11 rounded-l-none flex-1"
+                    v-bind="phoneNumberAttrs"
                   />
-                </div>
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
-                <div>
-                  <label class="text-sm font-medium text-primary">Campaign</label>
-                  <Select>
-                    <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select Campaign" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem :value="null">
-                        All
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <!-- Template -->
+          <FormField name="template">
+            <FormItem>
+              <FormLabel>Template</FormLabel>
+              <FormControl>
+                <Select v-bind="templateAttrs" v-model="template">
+                  <SelectTrigger class="w-full !h-11">
+                    <SelectValue placeholder="Select Template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="template_1">
+                      Template 1
+                    </SelectItem>
+                    <SelectItem value="template_2">
+                      Template 2
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
-                <div class="space-y-1">
-                  <label class="text-sm font-medium text-primary">Date Range</label>
-                  <div class="flex flex-col md:flex-row gap-2">
-                    <!-- FROM DATE -->
-                    <FormField v-slot="{ componentField, value }" name="fromDate">
-                      <FormItem class="flex-1">
-                        <FormControl>
-                          <Popover>
-                            <PopoverTrigger as-child>
-                              <Button
-                                variant="outline"
-                                class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
-                                :class="!value ? 'text-muted-foreground' : ''"
-                              >
-                                <span>{{ value ? new Date(value).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
-                                <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent class="w-auto p-0">
-                              <Calendar
-                                calendar-label="From Date"
-                                :model-value="value ? parseDate(new Date(value).toISOString().split('T')[0]) : undefined"
-                                initial-focus
-                                @update:model-value="(v) => {
-                                  componentField.onChange(v ? toDate(v) : undefined)
-                                }"
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    </FormField>
+          <!-- Text -->
+          <FormField name="text">
+            <FormItem>
+              <FormLabel>Message</FormLabel>
+              <FormControl>
+                <Textarea
+                  v-model="text"
+                  class="w-full min-h-[100px]"
+                  placeholder="Enter your message..."
+                  v-bind="textAttrs"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
-                    <!-- TO DATE -->
-                    <FormField v-slot="{ componentField, value }" name="toDate">
-                      <FormItem class="flex-1">
-                        <FormControl>
-                          <Popover>
-                            <PopoverTrigger as-child>
-                              <Button
-                                variant="outline"
-                                class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
-                                :class="!value ? 'text-muted-foreground' : ''"
-                              >
-                                <span>{{ value ? new Date(value).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
-                                <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent class="w-auto p-0">
-                              <Calendar
-                                calendar-label="To Date"
-                                :model-value="value ? parseDate(new Date(value).toISOString().split('T')[0]) : undefined"
-                                initial-focus
-                                @update:model-value="(v) => {
-                                  componentField.onChange(v ? toDate(v) : undefined)
-                                }"
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    </FormField>
+          <!-- File Upload -->
+          <FormField name="files">
+            <FormItem>
+              <FormLabel>File</FormLabel>
+              <FormControl>
+                <div
+                  class="w-full p-[30px] mt-2 border-2 border-dashed border-[#00A086] text-sm text-muted-foreground rounded-md cursor-pointer bg-[#F0F9F8] hover:bg-muted/80 transition flex flex-col items-center justify-center"
+                  @dragover.prevent
+                  @drop="handleDrop"
+                >
+                  <label for="file-upload" class="text-center cursor-pointer">
+                    <Icon name="icons:upload" class="text-5xl" />
+                    <p>
+                      <span class="text-muted-foreground">Drag & drop or </span>
+                      <span class="text-primary underline">choose file</span>
+                    </p>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      class="hidden"
+                      accept=".mp3,.wav"
+                      @change="handleFileChange"
+                    >
+                  </label>
+                  <div v-if="uploadedFiles.length" class="mt-2">
+                    Selected: {{ uploadedFiles.map(f => f.name).join(', ') }}
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
         </div>
-      </div>
 
-      <!-- Sticky footer with buttons -->
-      <div class="p-6 bg-white space-y-3">
-        <Button class="w-full h-12 text-md" @click="onSubmit">
-          <Icon name="material-symbols:search" class="text-md" />
-          Search
-        </Button>
-      </div>
+        <!-- Footer -->
+        <div class="p-6 bg-white">
+          <Button class="w-full h-12 text-md" type="submit">
+            <Icon name="material-symbols:send-outline" class="text-md" />
+            Send
+          </Button>
+        </div>
+      </form>
     </SheetContent>
   </Sheet>
 </template>
