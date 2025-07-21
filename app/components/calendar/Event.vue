@@ -8,6 +8,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 import 'vue-cal/style'
 
+const emits = defineEmits(['onDateChange'])
+
 const activeView = defineModel<'month' | 'week' | 'day'>('activeView', {
   default: 'month',
 })
@@ -50,6 +52,9 @@ const events = [
     content: 'Lorem ipsum dolor sit amet consectetur. Diam velit faucibus sem justo. Eu sed vitae nunc pellentesque aliquet urna hendrerit eget. Amet lectus eleifend feugiat cum euismod eleifend sagittis ultricies amet.',
   },
 ]
+function onOnDateChange(val: any) {
+  emits('onDateChange', val)
+}
 </script>
 
 <template>
@@ -93,6 +98,7 @@ const events = [
       :title-bar="false"
       :events="events"
       events-on-month-view
+      @update:selected-date="onOnDateChange"
     >
       <template #weekday-heading="{ label, id, date }">
         <div class="uppercase text-sm text-primary font-medium" :class="[id, { 'text-red-500': id === 'sun' }]">
