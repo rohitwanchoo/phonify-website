@@ -31,7 +31,7 @@ function test(val: any) {
   <div class="flex gap-x-6">
     <CalendarEvent v-model:selected-date="selectedDate" v-model:active-view="activeView" class="w-full" @on-date-change="onDateChange" />
     <div v-auto-animate :class="!monthActive ? 'max-h-[calc(100vh-458px)]' : 'max-h-[calc(100vh-150px)]'" class=" space-y-6">
-      <CalendarDaySelector v-model:date-value="date" @update:date-value="test" />
+      <CalendarDaySelector v-show="!monthActive" v-model:date-value="date" @update:date-value="test" />
       <CalendarEventList />
     </div>
   </div>
