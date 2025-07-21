@@ -12,10 +12,12 @@ import { Input } from '~/components/ui/input'
           <Input placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <Button>
-          <Icon class="!text-white" name="lucide:plus" />
-          Add SMS Template
-        </Button>
+        <NuxtLink to="/app/sms/text-template/create">
+          <Button>
+            <Icon class="!text-white" name="lucide:plus" />
+            Add SMS Template
+          </Button>
+        </NuxtLink>
       </template>
     </BaseHeader>
 
