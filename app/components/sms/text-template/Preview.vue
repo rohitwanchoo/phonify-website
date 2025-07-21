@@ -47,7 +47,7 @@ const props = defineProps({
                 v-if="!content"
                 class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] absolute top-1/4 left-1/5 max-w-[60%]"
               >
-                Preview will appear here
+                Preview will appear here....
               </div>
             </div>
           </div>

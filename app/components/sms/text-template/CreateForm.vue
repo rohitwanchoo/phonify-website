@@ -135,7 +135,7 @@ const onSubmit = handleSubmit(() => {
                   <Input
                     v-bind="componentField"
                     placeholder="Enter Template Name"
-                    class="px-3 py-2 h-11 bg-white rounded-lg outline outline-zinc-200 text-sm"
+                    class="px-3 py-2 h-9 bg-white rounded-lg outline outline-zinc-200 text-sm"
                   />
                 </FormControl>
                 <FormMessage />
