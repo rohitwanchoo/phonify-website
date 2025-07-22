@@ -29,27 +29,28 @@ const props = defineProps({
       <!-- Content -->
       <div class="h-[calc(100vh-250px)]">
         <div class="h-full">
-          <div value="mobile" class="h-full p-3">
-            <div
-              class="w-full h-full relative bg-contain bg-center bg-no-repeat"
-              :style="{ 'background-image': `url(${preview})` }"
-            >
-              <!-- Updated message bubble with proper styling -->
-              <div
-                class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] absolute top-1/4 left-1/5 max-w-[60%]"
-                :class="{ hidden: !content }"
-              >
-                <div class="break-words whitespace-pre-wrap overflow-hidden">
-                  {{ content || '&nbsp;' }}
-                </div>
-              </div>
-              <div
-                v-if="!content"
-                class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] absolute top-1/4 left-1/5 max-w-[60%]"
-              >
-                Preview will appear here....
-              </div>
-            </div>
+          <div class="h-full p-3 flex justify-center items-center">
+       <div class="w-[450px] h-full relative bg-contain bg-center bg-no-repeat" 
+     :style="{ 'background-image': `url(${preview})` }">
+  <!-- Message bubble container -->
+  <div class="absolute top-[40%] left-[10%] max-w-[80%]"
+       :class="{ hidden: !content }">
+    <!-- Bubble with hidden scrollbar but scrollable content -->
+    <div class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] 
+                max-h-[300px] overflow-y-auto "> <!-- This hides the scrollbar -->
+      <div class="break-words whitespace-pre-wrap">
+        {{ content || '&nbsp;' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div v-if="!content"
+       class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] 
+              absolute top-[40%] left-[10%] max-w-[60%]">
+    Preview will appear here....
+  </div>
+</div>
           </div>
         </div>
       </div>
