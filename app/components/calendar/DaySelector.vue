@@ -41,7 +41,7 @@ const dateValue = defineModel<DateValue>('dateValue')
     v-model:placeholder="placeholder"
     v-bind="forwarded"
     :class="cn('rounded-md border p-3', props.class)"
-    class="bg-primary text-white"
+    class="bg-primary text-white w-full"
   >
     <CalendarHeader>
       <CalendarHeading />
@@ -68,7 +68,7 @@ const dateValue = defineModel<DateValue>('dateValue')
             <CalendarCell
               v-for="weekDate in weekDates"
               :key="weekDate.toString()"
-              class="[&:has([data-selected])]:bg-gray-600"
+              class="[&:has([data-selected])]:bg-gray-600 w-9"
               :date="weekDate"
             >
               <CalendarCellTrigger

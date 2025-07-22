@@ -114,7 +114,16 @@ const data = {
       { title: 'Allowed IPs', url: '/app/configuration/allowed-ips' },
     ] },
     { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar' },
-    { title: 'Report', url: '/app/report', icon: 'icons:report' },
+    { title: 'Report', url: '/app/report', icon: 'icons:report', items: [
+      { title: 'Call Transfer ', url: '/app/report/call-transfer' },
+      { title: 'Live Call', url: '/app/report/live-call' },
+      { title: 'IVR Logs', url: '/app/report/ivr-logs' },
+      { title: 'Call Data Reports', url: '/app/report/call-data-reports' },
+      { title: 'Callback', url: '/app/report/callback' },
+      { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports' },
+      { title: 'Count Report', url: '/app/report/count-report' },
+      { title: 'Login History', url: '/app/report/login-history' },
+    ]},
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
   // projects: [

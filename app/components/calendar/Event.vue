@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { Bold, Italic, Underline } from 'lucide-vue-next'
 import moment from 'moment'
-import { VueCal } from 'vue-cal'
 
+import { VueCal } from 'vue-cal'
 import Button from '@/components/ui/button/Button.vue'
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 import 'vue-cal/style'
 
-const emits = defineEmits(['onDateChange'])
+const emits = defineEmits(['edit'])
 
 const activeView = defineModel<'month' | 'week' | 'day'>('activeView', {
   default: 'month',
@@ -107,24 +112,83 @@ function onOnDateChange(val: any) {
       </template>
 
       <template #event="{ event }">
-        <div class="flex flex-col text-xs gap-y-1">
-          <div class="flex items-center gap-x-0.5">
-            <Icon name="material-symbols:adjust-outline" />
-            <div class="font-medium">
-              {{ event.title }}
+        <Popover>
+          <PopoverTrigger as-child>
+            <div class="flex flex-col text-xs gap-y-1">
+              <div class="flex items-center gap-x-0.5">
+                <Icon name="material-symbols:adjust-outline" />
+                <div class="font-medium">
+                  {{ event.title }}
+                </div>
+              </div>
+              <div v-if="activeView === 'day'" class="">
+                {{ event.content }}
+              </div>
+              <div class="flex items-center gap-x-0.5">
+                <Icon name="material-symbols:schedule" />
+                <div class="font-medium">
+                  {{ moment(event.start).format("hh:mm A") }} -
+                  {{ moment(event.end).format("hh:mm A") }}
+                </div>
+              </div>
             </div>
-          </div>
-          <div v-if="activeView === 'day'" class="">
-            {{ event.content }}
-          </div>
-          <div class="flex items-center gap-x-0.5">
-            <Icon name="material-symbols:schedule" />
-            <div class="font-medium">
-              {{ moment(event.start).format("hh:mm A") }} -
-              {{ moment(event.end).format("hh:mm A") }}
+          </PopoverTrigger>
+          <PopoverContent class="w-[380px] p-0 overflow-hidden rounded-2xl">
+            <div class="text-[14px] font-semibold bg-secondary py-[16px] px-5">
+              Marketing Lead
+              <div class="text-xs font-normal">
+                1-hr Meeting
+              </div>
             </div>
-          </div>
-        </div>
+            <div class="py-[16px] px-5 space-y-3">
+              <div>
+                <div class="text-sm text-[#00000099] flex items-center gap-x-0.5">
+                  <Icon name="mdi:folder-text-outline" />
+                  <div>
+                    Title
+                  </div>
+                </div>
+                <div class="text-[16px] font-medium">
+                  Title Here
+                </div>
+              </div>
+              <div>
+                <div class="text-sm text-[#00000099] flex items-center gap-x-0.5">
+                  <Icon name="lucide:file-text" />
+                  <div>
+                    Description
+                  </div>
+                </div>
+                <div class="text-[16px] font-medium">
+                  Lorem ipsum dolor sit amet consectetur. Sit augue posuere dolor condimentum pharetra.
+                </div>
+              </div>
+              <div>
+                <div class="text-sm text-[#00000099] flex items-center gap-x-0.5">
+                  <Icon name="lucide:calendar" />
+                  <div>
+                    Date & Time
+                  </div>
+                </div>
+                <div class="text-[16px] font-medium">
+                  18 May 2025, 09:00 AM - 11:00 AM
+                </div>
+              </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="px-5 flex pb-[16px] gap-x-3">
+              <Button variant="outline" class="h-11 border-red-600 text-red-600 hover:text-red-600/80 w-1/2">
+                <Icon name="material-symbols:delete" />
+                Delete
+              </Button>
+              <Button variant="default" class="h-11 w-1/2" @click="emits('edit')">
+                <Icon name="material-symbols:edit-square" />
+                Edit
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </template>
     </VueCal>
   </div>
