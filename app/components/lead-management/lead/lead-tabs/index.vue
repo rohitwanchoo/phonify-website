@@ -43,7 +43,7 @@ const props = defineProps({
           <LeadManagementLeadLeadTabsSendText :lead-data="leadData" />
         </TabsContent>
         <TabsContent value="email">
-          <LeadManagementLeadLeadTabsSendEmail />
+          <LeadManagementLeadLeadTabsSendEmail :lead-data="leadData" />
         </TabsContent>
         <TabsContent value="fax">
           <LeadManagementLeadLeadTabsSendFax />

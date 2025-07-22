@@ -205,13 +205,6 @@ function onCancel() {
   router.push(`/app/lead-management/lead/${route.params.id}`)
 }
 
-const { data: selectedLeadData } = await useLazyAsyncData('selected-lead-data', () =>
-  useApi().post('/get-data-for-edit-lead-page', {
-    id: 200,
-  }), {
-  transform: res => res.data,
-})
-
 const breadcrumbs = [
   {
     label: 'Lead',
@@ -234,7 +227,6 @@ const breadcrumbs = [
   <div class="space-y-6">
     <BaseHeader title="John Doe" :breadcrumbs="breadcrumbs" />
     <div class="h-[calc(100vh-200px)] overflow-auto">
-      {{ selectedLeadData }}
       <form id="form" class="flex flex-col gap-4" @submit.prevent="onSubmit">
         <!-- Personal Information Section -->
         <div class="border border-gray-100 rounded-xl">

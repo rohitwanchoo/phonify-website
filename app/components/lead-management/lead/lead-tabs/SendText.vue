@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
+import moment from 'moment'
 import { useForm } from 'vee-validate'
-import { computed, ref } from 'vue'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -14,14 +14,25 @@ const props = defineProps({
   leadData: Object,
 })
 
+// Static agent options
 const agentOptions = [
-  { label: 'Agent 1', value: 'agent1' },
-  { label: 'Agent 2', value: 'agent2' },
-  { label: 'Agent 3', value: 'agent3' },
+  { label: 'Agent 1', value: 5654544444 },
+  { label: 'Agent 2', value: 5654544442 },
+  { label: 'Agent 3', value: 5654544443 },
 ]
 
+// Selected country code (defaults to +1)
 const phoneCountryCode = ref(1)
 
+// Form validation schema using Zod
+const formSchema = toTypedSchema(z.object({
+  leadContact: z.string().min(1, 'Lead contact number is required'),
+  agentContact: z.number().min(1, 'Agent contact number is required'),
+  template: z.number().min(1, 'Template is required'),
+  templateMessage: z.string().min(1, 'Message is required').max(200, 'Max 200 characters'),
+}))
+
+// Fetch templates for the lead
 const { data: textMessageData } = await useLazyAsyncData('get-sms-email-list', () =>
   useApi().post('/get-sms-email-list', {
     lead_id: props.leadData?.id,
@@ -29,41 +40,79 @@ const { data: textMessageData } = await useLazyAsyncData('get-sms-email-list', (
   transform: res => res,
 })
 
-// County list
+// Fetch list of phone countries
 const { data: countrylist } = await useLazyAsyncData('phone-country-list', () =>
   useApi().post('/phone-country-list'), {
   transform: res => res.data,
   immediate: true,
 })
 
+// Helper to get country label from code
 function getCountryLabel(code: string) {
   const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
   return country ? `${country.country_code} (+${country.phone_code})` : ''
 }
 
-const formSchema = toTypedSchema(z.object({
-  leadContact: z.string().min(1, 'Lead contact number is required'),
-  agentContact: z.string().min(1, 'Agent contact number is required'),
-  template: z.string().min(1, 'Template is required'),
-  message: z.string().min(1, 'Message is required').max(200, 'Max 200 characters'),
-}))
-
-const { handleSubmit, isSubmitting, values } = useForm({
+// Setup vee-validate form
+const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
     leadContact: props?.leadData?.phone_number,
-    agentContact: '',
-    template: '',
-    message: '',
+    agentContact: undefined,
+    template: undefined,
+    templateMessage: '',
   },
 })
 
-// const formatMaskaToNumber = Number(values?.leadContact?.replace(/\D/g, "") || '')
+// Watch for template changes and update the message
+watch(() => values.template, (newId) => {
+  if (newId && textMessageData.value?.sms) {
+    const selectedTemplate = textMessageData.value.sms.find(
+      (item: { templete_id: number }) => item.templete_id === Number(newId),
+    )
+    if (selectedTemplate) {
+      setFieldValue('templateMessage', selectedTemplate.templete_desc)
+    }
+  }
+}, { immediate: true })
 
-const messageLength = computed(() => values.message?.length || 0)
+// Message character length
+const messageLength = computed(() => values.templateMessage?.length || 0)
 
-const onSubmit = handleSubmit((vals) => {
-  // handle send sms
+// Handle form submission
+const onSubmit = handleSubmit(async (vals) => {
+  const formatMaskaToNumber = Number(vals?.leadContact?.replace(/\D/g, '') || '')
+
+  const payload = {
+    to: formatMaskaToNumber,
+    from: vals.agentContact,
+    message: vals.templateMessage,
+    date: moment().format('YYYY-MM-DD'),
+  }
+  try {
+    const response = await useApi().post('/send-sms', {
+      ...payload,
+    })
+
+    if (response.success === true) {
+      showToast({
+        message: response?.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: response?.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (error: any) {
+    showToast({
+      message: `${error.message}`,
+      type: 'error',
+    })
+  }
 })
 </script>
 
@@ -139,7 +188,7 @@ const onSubmit = handleSubmit((vals) => {
                     <SelectValue placeholder="Select template" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in textMessageData.sms" :key="option.templete_id" :value="option.templete_desc">
+                    <SelectItem v-for="option in textMessageData?.sms" :key="option.templete_id" :value="option.templete_id">
                       {{ option.templete_name }}
                     </SelectItem>
                   </SelectContent>
@@ -149,7 +198,7 @@ const onSubmit = handleSubmit((vals) => {
             </FormItem>
           </FormField>
           <!-- Message (full width) -->
-          <FormField v-slot="{ componentField }" name="message">
+          <FormField v-slot="{ componentField }" name="templateMessage">
             <FormItem>
               <FormLabel>Message</FormLabel>
               <FormControl>
@@ -172,7 +221,7 @@ const onSubmit = handleSubmit((vals) => {
         </div>
         <!-- Button section -->
         <div>
-          <Button type="submit" :disabled="isSubmitting" class="w-full">
+          <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full">
             <Icon name="material-symbols:chat" class="mr-1 !h-11" />
             Send Text
           </Button>
