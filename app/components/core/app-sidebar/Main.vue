@@ -113,6 +113,7 @@ const data = {
       { title: 'Custom Field Values', url: '/app/configuration/custom-field-values' },
       { title: 'Allowed IPs', url: '/app/configuration/allowed-ips' },
     ] },
+    { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar' },
     { title: 'Report', url: '/app/report', icon: 'icons:report' },
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
