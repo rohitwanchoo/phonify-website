@@ -19,7 +19,7 @@ const props = defineProps({
         </div>
         <div class="flex space-x-1 bg-slate-800/10 rounded-md p-0.5">
           <div
-            class="bg-slate-800  text-white shadow text-sm px-3 py-1 rounded-md"
+            class="bg-slate-800  text-white shadow text-sm py-1 px-3 flex items-center  rounded-md"
           >
             <Icon name="material-symbols:smartphone-outline" size="20" />
           </div>

@@ -238,18 +238,19 @@ const onSubmit = handleSubmit(() => {
       </form>
 
       <!-- Save Button -->
-      <div class="bottom-0 left-0 w-full p-5 bg-white flex justify-between z-10">
-        <Button
-          type="submit"
-          class="flex-1"
-          :loading="loading"
-          :disabled="loading"
-          @click="onSubmit"
-        >
-          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-          Save
-        </Button>
-      </div>
+<div class="bottom-0 left-0 w-full p-5 bg-white flex justify-between z-10 
+            shadow-[0_-6px_12px_-4px_rgba(0,0,0,0.15)]">
+  <Button
+    type="submit"
+    class="flex-1"
+    :loading="loading"
+    :disabled="loading"
+    @click="onSubmit"
+  >
+    <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+    Save
+  </Button>
+</div>
     </div>
 
     <!-- Right Preview Section -->
