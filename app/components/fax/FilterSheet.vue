@@ -76,7 +76,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">Sender</label>
                   <Select>
   <SelectTrigger class="w-full !h-11">
-    <SelectValue placeholder="Select Campaign" />
+    <SelectValue placeholder="Select" />
   </SelectTrigger>
   <SelectContent>
     <SelectItem :value="'+1 (333) 123-4567'">
