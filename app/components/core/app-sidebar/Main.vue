@@ -53,7 +53,7 @@ const data = {
       { title: 'Voice Template', url: '/app/ringless-voicemail/voice-template' },
       { title: 'SIP Gateways', url: '/app/ringless-voicemail/sip-gateways' },
     ] },
-    { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
+    { title: 'Mailbox', url: '/app/mailbox', icon: 'icons:mailbox' },
     { title: 'SMS', url: '/sms', icon: 'icons:sms', items: [
       { title: 'Chat SMS', url: '/app/sms/chat-sms' },
       { title: 'SMS History', url: '/app/sms/sms-history' },
@@ -123,7 +123,7 @@ const data = {
       { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports' },
       { title: 'Count Report', url: '/app/report/count-report' },
       { title: 'Login History', url: '/app/report/login-history' },
-    ]},
+    ] },
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
   // projects: [
