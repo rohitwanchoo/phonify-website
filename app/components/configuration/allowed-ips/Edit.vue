@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 
 const props = defineProps<{
   open: boolean
-  selectedId: number
+  selectedId?: number
 }>()
 
 const emit = defineEmits(['update:open'])

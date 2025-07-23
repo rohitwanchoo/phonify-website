@@ -53,14 +53,18 @@ const data = {
       { title: 'Voice Template', url: '/app/ringless-voicemail/voice-template' },
       { title: 'SIP Gateways', url: '/app/ringless-voicemail/sip-gateways' },
     ] },
-    { title: 'Mailbox', url: '/mailbox', icon: 'icons:mailbox' },
-    { title: 'SMS', url: '/sms', icon: 'icons:sms' },
+    { title: 'Mailbox', url: '/app/mailbox', icon: 'icons:mailbox' },
+    { title: 'SMS', url: '/sms', icon: 'icons:sms', items: [
+      { title: 'Chat SMS', url: '/app/sms/chat-sms' },
+      { title: 'SMS History', url: '/app/sms/sms-history' },
+      { title: 'Text Template', url: '/app/sms/text-template' },
+    ] },
   ],
   'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
       { title: 'Campaign', url: '/app/campaign' },
-      { title: 'Agent Status', url: '/start-campaign/agent-status' },
-      { title: 'Diposition', url: '/campaign/diposition' },
+      { title: 'Agent Status', url: '/app/campaign/start-campaign/agent-status' },
+      { title: 'Disposition', url: '/app/campaign/disposition' },
       { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign' },
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', items: [
@@ -109,7 +113,17 @@ const data = {
       { title: 'Custom Field Values', url: '/app/configuration/custom-field-values' },
       { title: 'Allowed IPs', url: '/app/configuration/allowed-ips' },
     ] },
-    { title: 'Report', url: '/report', icon: 'icons:report' },
+    { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar' },
+    { title: 'Report', url: '/app/report', icon: 'icons:report', items: [
+      { title: 'Call Transfer ', url: '/app/report/call-transfer' },
+      { title: 'Live Call', url: '/app/report/live-call' },
+      { title: 'IVR Logs', url: '/app/report/ivr-logs' },
+      { title: 'Call Data Reports', url: '/app/report/call-data-reports' },
+      { title: 'Callback', url: '/app/report/callback' },
+      { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports' },
+      { title: 'Count Report', url: '/app/report/count-report' },
+      { title: 'Login History', url: '/app/report/login-history' },
+    ] },
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
   // projects: [

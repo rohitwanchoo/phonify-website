@@ -127,6 +127,7 @@ function openDialog() {
                 <FormLabel>IP Address</FormLabel>
                 <FormControl>
                   <Input
+                    class="h-11"
                     v-bind="componentField"
                     placeholder="Enter IP address"
                   />
@@ -142,6 +143,7 @@ function openDialog() {
                 <FormControl>
                   <Input
                     v-bind="componentField"
+                    class="h-11"
                     placeholder="Enter label"
                   />
                 </FormControl>
@@ -155,7 +157,7 @@ function openDialog() {
                 <FormLabel>Status</FormLabel>
                 <Select v-bind="componentField">
                   <FormControl>
-                    <SelectTrigger class="w-full">
+                    <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
@@ -179,7 +181,7 @@ function openDialog() {
                 <FormLabel>Is Primary</FormLabel>
                 <Select v-bind="componentField">
                   <FormControl>
-                    <SelectTrigger class="w-full">
+                    <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select primary" />
                     </SelectTrigger>
                   </FormControl>
