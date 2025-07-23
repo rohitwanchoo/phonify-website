@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
+import { ref, watch } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Label } from '@/components/ui/label'
 import {
   Tabs,
@@ -19,7 +20,6 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 
 // Props and emits
 const props = defineProps<{
@@ -43,15 +43,14 @@ const activeTab = ref('file')
 // Form validation schema
 const schema = toTypedSchema(z.object({
   description: z.string().min(3, 'Description must be at least 3 characters'),
-  audioUrl: z.string().url('Please enter a valid URL').optional()
-    .superRefine((val, ctx) => {
-      if (activeTab.value === 'file' && !val) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Audio URL is required when uploading file',
-        })
-      }
-    }),
+  audioUrl: z.string().url('Please enter a valid URL').optional().superRefine((val, ctx) => {
+    if (activeTab.value === 'file' && !val) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Audio URL is required when uploading file',
+      })
+    }
+  }),
   // For text-to-audio tab
   language: z.string().optional(),
   voice: z.string().optional(),
@@ -63,16 +62,17 @@ const { handleSubmit, setValues, setFieldValue } = useForm({
 })
 const textToAudioRef = ref()
 
-const handleSave = async () => {
-  if (!textToAudioRef.value) return
-  
+async function handleSave() {
+  if (!textToAudioRef.value)
+    return
+
   const { valid, errors, values } = await textToAudioRef.value.validateForm()
-  
+
   if (!valid) {
     console.error('Form validation failed:', errors)
     return
   }
-  
+
   // Proceed with saving the data
   console.log('Form data:', values)
   // You can also emit this data or call an API here
@@ -83,7 +83,7 @@ watch(
   (newItem) => {
     setValues({
       description: newItem.description,
-      audioUrl: newItem.audioUrl
+      audioUrl: newItem.audioUrl,
     })
   },
   { immediate: true, deep: true },
@@ -97,7 +97,7 @@ function handleFileUpload(url: string) {
 const onSubmit = handleSubmit((values) => {
   emit('save', {
     description: values.description,
-    audioUrl: activeTab.value === 'file' ? values.audioUrl : '' // Clear audioUrl if using text-to-audio
+    audioUrl: activeTab.value === 'file' ? values.audioUrl : '', // Clear audioUrl if using text-to-audio
   })
   emit('update:open', false)
 })
@@ -114,7 +114,7 @@ function onOpenChange(value: boolean) {
         <DialogTitle>{{ props.mode === 'edit' ? 'Edit' : 'Create' }} Ringless Voice Template</DialogTitle>
       </DialogHeader>
 
-      <form @submit.prevent="onSubmit" class="space-y-4">
+      <form class="space-y-4" @submit.prevent="onSubmit">
         <!-- Description Field -->
         <FormField v-slot="{ componentField }" name="description">
           <FormItem>
@@ -145,7 +145,7 @@ function onOpenChange(value: boolean) {
               <FormItem>
                 <Label class="text-primary">Upload File*</Label>
                 <FormControl>
-                  <RinglessVoicemailVoiceTemplatesVoiceTemplateFileUpload 
+                  <RinglessVoicemailVoiceTemplatesVoiceTemplateFileUpload
                     @upload-success="handleFileUpload"
                   />
                 </FormControl>
@@ -155,23 +155,23 @@ function onOpenChange(value: boolean) {
           </TabsContent>
 
           <TabsContent value="text" class="mt-4">
-            <RinglessVoicemailVoiceTemplatesVoiceTemplateTextToAudio 
-      ref="textToAudioRef"
-      @submit="(data) => {
-        setFieldValue('language', data.language)
-        setFieldValue('voice', data.voice)
-        setFieldValue('text', data.text)
-      }"
-    />
+            <RinglessVoicemailVoiceTemplatesVoiceTemplateTextToAudio
+              ref="textToAudioRef"
+              @submit="(data) => {
+                setFieldValue('language', data.language)
+                setFieldValue('voice', data.voice)
+                setFieldValue('text', data.text)
+              }"
+            />
           </TabsContent>
         </Tabs>
 
         <DialogFooter class="flex justify-between items-center pt-4">
-          <Button variant="outline" class="w-[49%]" @click="onOpenChange(false)" type="button">
+          <Button variant="outline" class="w-[49%]" type="button" @click="onOpenChange(false)">
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Discard
           </Button>
-          <Button @click="handleSave" class="w-[49%]">
+          <Button class="w-[49%]" @click="handleSave">
             <Icon name="lucide:save" class="w-4 h-4 mr-1" />
             Save
           </Button>
