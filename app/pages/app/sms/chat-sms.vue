@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Dialer from '@/components/sms/ChatDialer.vue'
+import Dialer from '@/components/dialer/index.vue'
 import SmsChatList from '@/components/sms/ChatList.vue'
 import SmsChatSection from '@/components/sms/ChatSection.vue'
 import {
