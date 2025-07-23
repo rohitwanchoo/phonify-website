@@ -59,6 +59,7 @@ const data = {
       { title: 'SMS History', url: '/app/sms/sms-history' },
       { title: 'Text Template', url: '/app/sms/text-template' },
     ] },
+    { title: 'Fax', url: '/app/fax', icon: 'icons:fax' },
   ],
   'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
@@ -123,7 +124,7 @@ const data = {
       { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports' },
       { title: 'Count Report', url: '/app/report/count-report' },
       { title: 'Login History', url: '/app/report/login-history' },
-    ]},
+    ] },
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report' },
   ],
   // projects: [
