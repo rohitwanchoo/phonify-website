@@ -203,7 +203,7 @@ function clearFilters() {
 </div>
 <Button variant="outline" class=" w-full h-11 border border-red-600 rounded-sm flex justify-between items-center gap-2 px-3">
   <div class="flex gap-2 items-center justify-center text-sm text-primary">
-  <Icon name="carbon:document-pdf" class="text-red-600 text-xl" />
+  <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
           Download PDF
           </div>
            <Icon name="material-symbols:download" class="text-xl text-primary" />
