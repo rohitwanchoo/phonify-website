@@ -1,6 +1,23 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
+import type { DateValue } from '@internationalized/date'
+import {
+  DateFormatter,
+  getLocalTimeZone,
+} from '@internationalized/date'
+import { CalendarIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Button } from '@/components/ui/button'
+
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+
+const df = new DateFormatter('en-US', {
+  dateStyle: 'long',
+})
+
+const startDate = ref<DateValue>()
+const endDate = ref<DateValue>()
 
 const callsData = [
   {
@@ -58,15 +75,41 @@ const reportData = [
     <!-- HEADER -->
     <BaseHeader title="Call Transfer">
       <template #actions>
-        <div class="relative">
-          <Input placeholder="From:" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:calendar" />
-        </div>
-        <div class="relative">
-          <Input placeholder="To:" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:calendar" />
-        </div>
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button
+              variant="outline"
+              :class="cn(
+                'justify-between text-left font-normal mr-2 min-w-[150px]',
+                !startDate && 'text-muted-foreground',
+              )"
+            >
+              {{ startDate ? df.format(startDate.toDate(getLocalTimeZone())) : "From:" }}
+              <CalendarIcon class="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-auto p-0">
+            <Calendar v-model="startDate" initial-focus />
+          </PopoverContent>
+        </Popover>
 
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button
+              variant="outline"
+              :class="cn(
+                'justify-between text-left font-normal mr-2 min-w-[150px]',
+                !endDate && 'text-muted-foreground',
+              )"
+            >
+              {{ endDate ? df.format(endDate.toDate(getLocalTimeZone())) : "To:" }}
+              <CalendarIcon class=" h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-auto  p-0">
+            <Calendar v-model="endDate" initial-focus />
+          </PopoverContent>
+        </Popover>
         <!-- Trigger Button -->
         <Button>
           <Icon name="material-symbols:search" class="text-xl text-white" />
