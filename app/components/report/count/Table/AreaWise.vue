@@ -11,8 +11,7 @@ import {
   getCoreRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { h, ref, computed } from 'vue'
-import { cn } from '@/lib/utils'
+import { computed, h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -23,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import { cn } from '@/lib/utils'
 
 // New dummy data from the screenshot
 const data = ref([
@@ -128,7 +128,9 @@ const total = computed(() => {
 <template>
   <div class="w-full my-6 border border-gray-100 rounded-lg overflow-hidden">
     <div class="border-b border-gray-100 w-full">
-      <h3 class="text-lg m-4">State / City / Area code Wise Summary</h3>
+      <h3 class="text-lg m-4">
+        State / City / Area code Wise Summary
+      </h3>
     </div>
 
     <Table>
@@ -163,12 +165,16 @@ const total = computed(() => {
         </TableRow>
 
         <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">Total</TableCell>
-          <TableCell class="text-center"></TableCell>
-          <TableCell class="text-center"></TableCell>
-          <TableCell class="text-center"></TableCell>
-          <TableCell class="text-center"></TableCell>
-          <TableCell class="text-center">{{ total.totalCalls }}</TableCell>
+          <TableCell class="text-center">
+            Total
+          </TableCell>
+          <TableCell class="text-center" />
+          <TableCell class="text-center" />
+          <TableCell class="text-center" />
+          <TableCell class="text-center" />
+          <TableCell class="text-center">
+            {{ total.totalCalls }}
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>

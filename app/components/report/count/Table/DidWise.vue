@@ -11,8 +11,7 @@ import {
   getCoreRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { h, ref, computed } from 'vue'
-import { cn } from '@/lib/utils'
+import { computed, h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -23,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import { cn } from '@/lib/utils'
 
 // Dummy data with time in seconds
 const data = ref([
@@ -30,7 +30,7 @@ const data = ref([
     didNumber: '15168686507',
     inboundCalls: 5,
     totalCallTime: 1525, // in seconds (25 minutes 25 seconds)
-    avgHandleTime: 61,   // in seconds (1 minute 1 second)
+    avgHandleTime: 61, // in seconds (1 minute 1 second)
     smsSent: 100,
     smsReceived: 100,
   },
@@ -53,14 +53,14 @@ const data = ref([
 ])
 
 // Format seconds to HH:MM:SS
-const formatTime = (seconds: number) => {
+function formatTime(seconds: number) {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const secs = seconds % 60
   return [
     hours.toString().padStart(2, '0'),
     minutes.toString().padStart(2, '0'),
-    secs.toString().padStart(2, '0')
+    secs.toString().padStart(2, '0'),
   ].join(':')
 }
 
@@ -134,7 +134,7 @@ const table = useVueTable({
 const total = computed(() => {
   const totalSeconds = data.value.reduce((sum, r) => sum + r.totalCallTime, 0)
   const avgSeconds = data.value.reduce((sum, r) => sum + r.avgHandleTime, 0) / data.value.length
-  
+
   return {
     calls: data.value.reduce((sum, r) => sum + r.inboundCalls, 0),
     smsSent: data.value.reduce((sum, r) => sum + r.smsSent, 0),
@@ -148,7 +148,9 @@ const total = computed(() => {
 <template>
   <div class="w-full my-6 border border-gray-100 rounded-lg overflow-hidden">
     <div class="border-b border-gray-100 w-full">
-      <h3 class="text-lg m-4">Inbound DID Wise Call Report</h3>
+      <h3 class="text-lg m-4">
+        Inbound DID Wise Call Report
+      </h3>
     </div>
 
     <Table>
@@ -183,12 +185,24 @@ const total = computed(() => {
         </TableRow>
 
         <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">Total</TableCell>
-          <TableCell class="text-center">{{ total.calls }}</TableCell>
-          <TableCell class="text-center">{{ total.totalCallTime }}</TableCell>
-          <TableCell class="text-center">{{ total.avgHandleTime }}</TableCell>
-          <TableCell class="text-center">{{ total.smsSent }}</TableCell>
-          <TableCell class="text-center">{{ total.smsReceived }}</TableCell>
+          <TableCell class="text-center">
+            Total
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.calls }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.totalCallTime }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.avgHandleTime }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.smsSent }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.smsReceived }}
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>

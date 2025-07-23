@@ -11,8 +11,7 @@ import {
   getCoreRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { h, ref, computed } from 'vue'
-import { cn } from '@/lib/utils'
+import { computed, h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -23,15 +22,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import { cn } from '@/lib/utils'
 
-const formatTime = (seconds: number) => {
+function formatTime(seconds: number) {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const secs = seconds % 60
   return [
     hours.toString().padStart(2, '0'),
     minutes.toString().padStart(2, '0'),
-    secs.toString().padStart(2, '0')
+    secs.toString().padStart(2, '0'),
   ].join(':')
 }
 
@@ -44,10 +44,10 @@ const data = ref(
     c2cCalls: 15,
     inboundCalls: 5,
     totalCallTime: 1525, // 00:25:25
-    avgHandleTime: 61,   // 00:01:01
+    avgHandleTime: 61, // 00:01:01
     smsSent: 100,
     smsReceived: 50,
-  }))
+  })),
 )
 
 const columnHelper = createColumnHelper<any>()
@@ -153,7 +153,9 @@ const total = computed(() => {
 <template>
   <div class="w-full my-6 border border-gray-100 rounded-lg overflow-hidden">
     <div class="border-b border-gray-100 w-full">
-      <h3 class="text-lg m-4">Agent Wise Summary</h3>
+      <h3 class="text-lg m-4">
+        Agent Wise Summary
+      </h3>
     </div>
 
     <Table>
@@ -185,16 +187,34 @@ const total = computed(() => {
         </TableRow>
 
         <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">Total</TableCell>
+          <TableCell class="text-center">
+            Total
+          </TableCell>
           <TableCell />
-          <TableCell class="text-center">{{ total.totalCalls }}</TableCell>
-          <TableCell class="text-center">{{ total.outbound }}</TableCell>
-          <TableCell class="text-center">{{ total.c2c }}</TableCell>
-          <TableCell class="text-center">{{ total.inbound }}</TableCell>
-          <TableCell class="text-center">{{ total.totalCallTime }}</TableCell>
-          <TableCell class="text-center">{{ total.avgHandleTime }}</TableCell>
-          <TableCell class="text-center">{{ total.smsSent }}</TableCell>
-          <TableCell class="text-center">{{ total.smsReceived }}</TableCell>
+          <TableCell class="text-center">
+            {{ total.totalCalls }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.outbound }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.c2c }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.inbound }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.totalCallTime }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.avgHandleTime }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.smsSent }}
+          </TableCell>
+          <TableCell class="text-center">
+            {{ total.smsReceived }}
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>
