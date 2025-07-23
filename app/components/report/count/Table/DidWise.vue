@@ -12,7 +12,6 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { computed, h, ref } from 'vue'
-import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -22,7 +21,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
-import { cn } from '@/lib/utils'
 
 // Dummy data with time in seconds
 const data = ref([

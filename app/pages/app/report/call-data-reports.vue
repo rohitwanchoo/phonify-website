@@ -7,10 +7,8 @@
     <!-- HEADER -->
     <BaseHeader title="Call Reports">
       <template #actions>
-      
-
         <!-- Trigger Button -->
-       <ReportCallDataFilterSheet class="bg-black text-white" v-model:form-values="filterValues" @apply-filter="applyFilter" />
+        <ReportCallDataFilterSheet class="bg-black text-white" />
       </template>
     </BaseHeader>
 

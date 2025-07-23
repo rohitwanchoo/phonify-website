@@ -16,9 +16,9 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
+import moment from 'moment'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import moment from 'moment'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -42,7 +42,6 @@ import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
 const loading = ref(false)
-const router = useRouter()
 
 interface CallRecord {
   id: number
@@ -52,8 +51,8 @@ interface CallRecord {
   route: string
   campaign: string
   callType: 'Inbound' | 'Outbound' | 'Missed' | 'Voicemail'
-  startTime: string // ISO format
-  duration: number // in seconds
+  startTime: string
+  duration: number
 }
 
 const dummyData = ref<CallRecord[]>([
@@ -66,7 +65,7 @@ const dummyData = ref<CallRecord[]>([
     campaign: 'Summer Sale',
     callType: 'Inbound',
     startTime: '2023-06-15T09:30:00Z',
-    duration: 145
+    duration: 145,
   },
   {
     id: 2,
@@ -77,7 +76,7 @@ const dummyData = ref<CallRecord[]>([
     campaign: 'Tech Support',
     callType: 'Outbound',
     startTime: '2023-06-15T10:15:00Z',
-    duration: 327
+    duration: 327,
   },
   {
     id: 3,
@@ -88,7 +87,7 @@ const dummyData = ref<CallRecord[]>([
     campaign: 'New Leads',
     callType: 'Missed',
     startTime: '2023-06-15T11:05:00Z',
-    duration: 0
+    duration: 0,
   },
   {
     id: 4,
@@ -99,7 +98,7 @@ const dummyData = ref<CallRecord[]>([
     campaign: 'Account Management',
     callType: 'Voicemail',
     startTime: '2023-06-15T13:22:00Z',
-    duration: 42
+    duration: 42,
   },
   {
     id: 5,
@@ -110,8 +109,8 @@ const dummyData = ref<CallRecord[]>([
     campaign: 'Payment Reminders',
     callType: 'Inbound',
     startTime: '2023-06-15T14:10:00Z',
-    duration: 218
-  }
+    duration: 218,
+  },
 ])
 
 const meta = ref({
@@ -123,7 +122,7 @@ const meta = ref({
 
 const columnHelper = createColumnHelper<CallRecord>()
 
-const formatDuration = (seconds: number) => {
+function formatDuration(seconds: number) {
   return moment.utc(seconds * 1000).format('HH:mm:ss')
 }
 
@@ -150,8 +149,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, 
-      formatNumber(row.original.number)
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.number),
     ),
   }),
   columnHelper.accessor('route', {
@@ -188,8 +186,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Start Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, 
-      moment(row.original.startTime).format('MMM D, YYYY h:mm A')
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, moment(row.original.startTime).format('MMM D, YYYY h:mm A'),
     ),
   }),
   columnHelper.accessor('duration', {
@@ -199,21 +196,18 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Duration', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, 
-      row.original.duration > 0 ? formatDuration(row.original.duration) : '--:--:--'
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.duration > 0 ? formatDuration(row.original.duration) : '--:--:--',
     ),
   }),
   columnHelper.display({
     id: 'action',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
     cell: () =>
-      h('div', { class: 'flex justify-center' },
-        h(Button, { 
-          variant: 'ghost', 
-          size: 'sm',
-          class: 'h-8 w-8 p-0'
-        }, () => h(MoreVertical, { class: 'h-4 w-4' }))
-      ),
+      h('div', { class: 'flex justify-center' }, h(Button, {
+        variant: 'ghost',
+        size: 'sm',
+        class: 'h-8 w-8 p-0',
+      }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
   }),
 ]
 
