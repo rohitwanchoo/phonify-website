@@ -101,7 +101,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['#', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.index + 1),
   }),
   columnHelper.accessor('userName', {
     header: ({ column }) =>
@@ -110,7 +110,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Name', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.userName),
+    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.userName),
   }),
   columnHelper.accessor('ip', {
     header: ({ column }) =>
@@ -119,7 +119,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['IP', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.ip),
+    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.ip),
   }),
   columnHelper.accessor('userAgent', {
     header: ({ column }) =>
@@ -128,7 +128,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Agent', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-xs break-words' }, row.original.userAgent),
+    cell: ({ row }) => h('div', { class: 'text-center text-md break-words' }, row.original.userAgent),
   }),
   columnHelper.accessor('loggedIn', {
     header: ({ column }) =>
@@ -205,7 +205,7 @@ function handlePageChange(page: number) {
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             :data-state="row.getIsSelected() && 'selected'"
-            class="hover:bg-gray-50/50"
+            class="hover:bg-gray-50/50 "
           >
             <TableCell
               v-for="cell in row.getVisibleCells()"
