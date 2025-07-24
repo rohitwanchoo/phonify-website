@@ -4,6 +4,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
+
+const isCollapsed = ref(false)
 </script>
 
 <template>
@@ -12,9 +14,12 @@ import {
     direction="horizontal"
     class="!h-[calc(100vh-160px)] rounded-2xl border"
   >
-    <ResizablePanel id="handle-demo-panel-1" :collapsed-size="5" :min-size="10" :default-size="265" :max-size="25">
-      <div class="flex h-full justify-center p-5 bg-primary text-white">
-        <EmailResizablePanelNavigation />
+    <ResizablePanel
+      id="handle-demo-panel-1" collapsible :collapsed-size="4.5" :default-size="265" :min-size="15"
+      :max-size="20" @collapse="isCollapsed = true" @expand="isCollapsed = false"
+    >
+      <div class="flex h-full justify-center  bg-primary text-white" :class="isCollapsed ? 'p-2' : 'p-5'">
+        <EmailResizablePanelNavigation :is-collapsed />
       </div>
     </ResizablePanel>
     <ResizableHandle id="handle-demo-handle-1" with-handle />

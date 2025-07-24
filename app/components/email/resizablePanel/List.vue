@@ -179,7 +179,7 @@ function getRandomColorClass() {
           <div class="text-[16px] font-medium">
             Sent
           </div>
-          <div class="text-xs font-normal text-gray-500">
+          <div class="text-xs font-normal text-gray-500 text-nowrap">
             245 mails
           </div>
         </div>
@@ -195,8 +195,8 @@ function getRandomColorClass() {
     </div>
     <!-- List -->
     <ScrollArea class="overflow-y-auto max-h-full">
-      <div v-auto-animate>
-        <div v-for="item in messages" :key="item.name" class="flex py-3 px-4 gap-x-3 border-b cursor-pointer hover:bg-gray-50 transition-colors duration-200 ease-in-out">
+      <div>
+        <div v-for="item in messages" :key="item.name" v-auto-animate class="flex py-3 px-4 gap-x-3 border-b cursor-pointer hover:bg-gray-50 transition-colors duration-200 ease-in-out">
           <Checkbox v-if="enableSelect" />
 
           <Avatar v-else class="h-10 w-10">
