@@ -19,10 +19,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 
 const props = defineProps({
-  open: {
-    type: Boolean,
-    required: true,
-  },
   // Optional prop for edit mode
   rowData: {
     type: Object,
@@ -33,25 +29,18 @@ const props = defineProps({
     required: true,
   },
 })
-
-const emits = defineEmits(['update:open'])
-
+const emit = defineEmits(['update:open'])
 // Computed property to determine if we're in edit mode
 const isEditMode = computed(() => Boolean(props.rowData?.id))
 
-// Fetch field label options from API
-const { data: fieldLabelList } = await useLazyAsyncData('field-label-list', async () => {
-  const response = await useApi().get('/custom-field-labels', {})
-  return response
+const { data: fieldLabelList, refresh: refreshLabels } = await useLazyAsyncData('field-label-list', () =>
+  useApi().get('/custom-field-labels', {
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+  immediate: false,
 })
-
-// Map API data to dropdown options
-const fieldLabelOptions = computed(() =>
-  ((fieldLabelList.value?.data || []) as any[]).map((item: any) => ({
-    label: item.title,
-    value: item.title,
-  })),
-)
 
 // Form validation schema
 const formSchema = toTypedSchema(
@@ -133,9 +122,15 @@ const onSubmit = handleSubmit(async (values) => {
     })
   }
 })
+const open = defineModel('open', { type: Boolean, default: false })
+watch(open, (val) => {
+  if (val) {
+    refreshLabels()
+  }
+})
 
-function onOpenChange(open: boolean) {
-  emits('update:open', open)
+function onOpenChange(value: boolean) {
+  emit('update:open', value)
 }
 </script>
 
@@ -156,17 +151,17 @@ function onOpenChange(open: boolean) {
             <FormLabel>Field Label</FormLabel>
             <Select v-bind="componentField">
               <FormControl>
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full !h-11">
                   <SelectValue placeholder="Select field label" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 <SelectItem
-                  v-for="label in fieldLabelOptions"
-                  :key="label.value"
-                  :value="label.value"
+                  v-for="label in fieldLabelList"
+                  :key="label.id"
+                  :value="label.title"
                 >
-                  {{ label.label }}
+                  {{ label.title }}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -180,6 +175,7 @@ function onOpenChange(open: boolean) {
             <FormLabel>Link URL</FormLabel>
             <FormControl>
               <Input
+                class="h-11"
                 type="text"
                 placeholder="https://example.com"
                 v-bind="componentField"

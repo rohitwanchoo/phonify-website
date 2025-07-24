@@ -28,7 +28,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Slider } from '~/components/ui/slider'
 import { Textarea } from '~/components/ui/textarea'
 
-// const languages = ['English', 'Spanish', 'French', 'German']
+const route = useRoute()
+
+const editId = computed(() => route.query.id)
+
 const templete_desc = ref('')
 
 const formSchema = toTypedSchema(z.object({
@@ -66,7 +69,14 @@ const onSubmit = handleSubmit((vals) => {
   delete payload.senderDetails
   payload.speed = String(vals.speed[0])
   payload.pitch = String(vals.pitch[0])
-  useApi().post('add-voice-templete', payload).then((response) => {
+  let api = 'add-voice-templete'
+
+  if (editId.value) { // if edit
+    api = 'edit-voice-templete'
+    payload.templete_id = editId.value
+  }
+
+  useApi().post(api, payload).then((response) => {
     showToast({
       message: response.message,
     })
@@ -87,7 +97,7 @@ const { data: languages, status: languagesStatus, refresh: languageRefresh } = a
   {
     transform: (res) => {
       const seen = new Set()
-      return res.data.filter((item) => {
+      return res.data.filter((item: any) => {
         if (seen.has(item.language_code))
           return false
         seen.add(item.language_code)
@@ -155,6 +165,31 @@ function insertPlaceholder(value: any) {
     }
   })
 }
+
+const fetchValuesLoading = ref(false)
+function setEditValues() {
+  fetchValuesLoading.value = true
+  useApi().post(`/voice-templete`, {
+    templete_id: editId.value,
+  }).then((response) => {
+    const data = response.data[0]
+    setValues({
+      language: data.language,
+      voice_name: data.voice_name,
+      templete_name: data.templete_name,
+      templete_desc: data.templete_desc,
+      speed: [Number(data.speed)],
+      pitch: [Number(data.pitch)],
+    })
+  }).finally(()=>{
+    fetchValuesLoading.value = false
+  })
+}
+
+onMounted(() => {
+  if (editId.value)
+    setEditValues()
+})
 </script>
 
 <template>
@@ -183,7 +218,7 @@ function insertPlaceholder(value: any) {
         <h2 class="text-lg font-semibold text-primary">
           Voice Template details
         </h2>
-        <Button class="flex items-center gap-2">
+        <Button type="button" class="flex items-center gap-2">
           <Icon name="material-symbols:volume-up" class="text-base" />
           Listen
         </Button>
@@ -430,9 +465,9 @@ function insertPlaceholder(value: any) {
     </div>
     <!-- Submit Button (sticky to bottom of form div) -->
     <div class="absolute rounded-b-xl  bottom-0 left-0 w-full flex justify-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-1px_rgba(0,0,0,0.06)] bg-white border-t border-gray-200 p-7 z-10">
-      <Button type="submit" :loading class="bg-[#162D3A] w-full py-6 text-md text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white" @click="onSubmit">
+      <Button :disabled="fetchValuesLoading" type="submit" :loading class="bg-[#162D3A] w-full py-6 text-md text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white" @click="onSubmit">
         <Icon name="material-symbols:save" />
-        Submit
+        {{ editId ? 'Update' : 'Submit' }}
       </Button>
     </div>
   </form>

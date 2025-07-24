@@ -1,20 +1,44 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
 import { useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
+
+interface MailConfig {
+  id: number
+  mail_driver: string
+  mail_host: string
+  mail_port: string
+  mail_username: string
+  mail_encryption: string
+  api_key: string | null
+  user_id: number | null
+  created_at: string
+  updated_at: string
+  status: number
+  sender_type: string
+  campaign_id: number | null
+  from_email: string
+  from_name: string
+}
+
+interface Props {
+  data: MailConfig
+}
+
+const props = defineProps<Props>()
 
 const router = useRouter()
 
-const infoRows = [
-  { label: 'Type', value: 'System' },
-  { label: 'Driver Name', value: 'smtp' },
-  { label: 'Host Name', value: 'smtp.sendgrid.net' },
-  { label: 'Username', value: 'johndoe' },
-  { label: 'Sender Email', value: 'demomail@phonify.com' },
-  { label: 'Sender Name', value: 'Phonify Pvt Ltd' },
-]
+const infoRows = computed(() => [
+  { label: 'Type', value: props?.data?.sender_type || '-' },
+  { label: 'Driver Name', value: props?.data?.mail_driver || '-' },
+  { label: 'Host Name', value: props?.data?.mail_host || '-' },
+  { label: 'Username', value: props?.data?.mail_username || '-' },
+  { label: 'Sender Email', value: props?.data?.from_email || '-' },
+  { label: 'Sender Name', value: props?.data?.from_name || '-' },
+])
 
 function goToAddSmtp() {
-  router.push('/app/configuration/smtp-settings/add-smtp')
+  navigateTo({ path: '/app/configuration/smtp-settings/add-smtp', query: { id: props?.data?.id } })
 }
 </script>
 

@@ -10,21 +10,23 @@ const emit = defineEmits<{
   clearFilter: []
 }>()
 
+const { data: serverOptions } = useNuxtData('server-option-list')
+
 // Sheet open state
 const open = ref(false)
 const formValues = defineModel<Record<string, any>>('formValues', {
   default: {
     whitelistIp: '',
-    server: '',
+    asteriskServer: '',
     status: '',
     fromWeb: '',
   },
 })
 
 // Dummy data for dropdown options
-const serverOptions = [
-  { label: 'All', value: 'null' },
-]
+// const serverOptions = [
+//   { label: 'All', value: 'null' },
+// ]
 
 const statusOptions = [
   { value: '0', label: 'Pending' },
@@ -64,7 +66,6 @@ function onSubmit() {
 
 // Clear filters
 function clearFilters() {
-  resetForm()
   emit('clearFilter')
   open.value = false
 }
@@ -104,7 +105,7 @@ function clearFilters() {
                 <!-- Server Dropdown -->
                 <div>
                   <label class="text-sm font-medium text-primary">Server</label>
-                  <Select v-model="formValues.server">
+                  <Select v-model="formValues.asteriskServer">
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue class="text-black" placeholder="Select server" />
                     </SelectTrigger>
@@ -112,13 +113,13 @@ function clearFilters() {
                       <SelectItem :value="null">
                         All
                       </SelectItem>
-                      <!-- <SelectItem
+                      <SelectItem
                         v-for="option in serverOptions"
-                        :key="option.label"
-                        :value="option.value"
+                        :key="option.id"
+                        :value="option.host"
                       >
-                        {{ option.label }}
-                      </SelectItem> -->
+                        {{ option.host }} - {{ option.location }} - {{ option.trunk }}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -167,8 +168,12 @@ function clearFilters() {
       </div>
 
       <!-- Sticky footer with buttons -->
-      <div class="p-6 bg-white space-y-3">
-        <Button class="w-full h-12 text-md" @click="onSubmit">
+      <div class="p-6 bg-white flex gap-x-2">
+        <Button variant="outline" class="w-1/2 h-12 text-md" @click="clearFilters">
+          <Icon name="material-symbols:close" class="text-md" />
+          Clear
+        </Button>
+        <Button class="w-1/2 h-12 text-md" @click="onSubmit">
           <Icon name="material-symbols:search" class="text-md" />
           Search
         </Button>

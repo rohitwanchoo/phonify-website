@@ -1,8 +1,12 @@
 <!-- components/EditDialog.vue -->
 <script setup lang="ts">
+import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date'
 import { toTypedSchema } from '@vee-validate/zod'
+import { CalendarIcon } from 'lucide-vue-next'
+import { toDate } from 'reka-ui/date'
 // import { format } from 'date-fns'
 import { useForm } from 'vee-validate'
+import { computed, ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -15,23 +19,22 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 
-import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date'
-import { toDate } from 'reka-ui/date'
-import { CalendarIcon } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+const props = defineProps<{
+  data?: any
+}>()
 const open = defineModel('open', { type: Boolean, default: false })
-
 // Dummy data for select options
 const leadList = [
-  { list_id: '1', list: 'Premium Customers' },
-  { list_id: '2', list: 'New Leads' },
-  { list_id: '3', list: 'Inactive Users' },
-  { list_id: '4', list: 'VIP Clients' },
+  { list_id: '1', list: 'List A' },
+  { list_id: '2', list: 'List B' },
+  { list_id: '3', list: 'List C' },
+  { list_id: '4', list: 'List D' },
 ]
 
 const messageTemplates = [
@@ -78,6 +81,27 @@ function onOpenChange(isOpen: boolean) {
   }
   open.value = isOpen
 }
+watch(
+  () => props.data,
+  (newData) => {
+    if (newData) {
+      const selectedList = leadList.find(item => item.list === newData.list)
+      const selectedTemplate = messageTemplates.find(item => item.name === newData.template)
+      const selectedDay = daysOfWeek.find(d => d.day === newData.day)
+
+      setValues({
+        list: selectedList?.list_id ?? '',
+        template: selectedTemplate?.id ?? '',
+        day: selectedDay?.id ?? '',
+        frequency: newData.frequency ?? '',
+        fromTime: newData.fromTime ?? '',
+        toTime: newData.toTime ?? '',
+        runDate: new Date(newData.scheduled_time.replace(' ', 'T')),
+      })
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -86,7 +110,7 @@ function onOpenChange(isOpen: boolean) {
     <Dialog :open="open" @update:open="onOpenChange">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Text Schedule</DialogTitle>
+          <DialogTitle>{{ props.data ? 'Edit Text Schedule' : 'Add Text Schedule' }}</DialogTitle>
         </DialogHeader>
         <Separator />
 
@@ -179,60 +203,60 @@ function onOpenChange(isOpen: boolean) {
 
           <!-- Time Range -->
           <div>
-  <div class="font-medium text-sm mb-1">
-    Run Time
-  </div>
-  <div class="flex flex-col md:flex-row gap-4">
-    <FormField v-slot="{ componentField, value }" name="runDate">
-  <FormItem class="flex flex-col flex-1">
-    <FormControl>
-      <Popover>
-        <PopoverTrigger as-child>
-          <Button
-            variant="outline"
-            class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-300"
-            :class="!value ? 'text-muted-foreground' : ''"
-          >
-            <span>{{ value ? new Date(value).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
-            <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent class="w-auto p-0">
-          <Calendar
-            calendar-label="Run Date"
-            :model-value="value ? parseDate(new Date(value).toISOString().split('T')[0]) : undefined"
-            initial-focus
-            @update:model-value="(v) => {
-              if (v) {
-                componentField.onChange(toDate(v))
-              } else {
-                componentField.onChange(undefined)
-              }
-            }"
-          />
-        </PopoverContent>
-      </Popover>
-    </FormControl>
-    <FormMessage />
-  </FormItem>
-</FormField>
-    
-    <FormField v-slot="{ componentField }" name="toTime">
-      <FormItem class="flex flex-col flex-1">
-        <FormControl>
-          <Input
-            v-bind="componentField"
-            type="time"
-            class="border shadow-none focus:ring-0 focus:ring-offset-0 focus:outline-none pl-28"
-            placeholder="00:00:00s"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-  </div>
-</div>
+            <div class="font-medium text-sm mb-1">
+              Run Time
+            </div>
+            <div class="flex flex-col md:flex-row gap-4">
+              <FormField v-slot="{ componentField, value }" name="runDate">
+                <FormItem class="flex flex-col flex-1">
+                  <FormControl>
+                    <Popover>
+                      <PopoverTrigger as-child>
+                        <Button
+                          variant="outline"
+                          class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-300"
+                          :class="!value ? 'text-muted-foreground' : ''"
+                        >
+                          <span>{{ value ? new Date(value).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                          <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-auto p-0">
+                        <Calendar
+                          calendar-label="Run Date"
+                          :model-value="value ? parseDate(new Date(value).toISOString().split('T')[0]) : undefined"
+                          initial-focus
+                          @update:model-value="(v) => {
+                            if (v) {
+                              componentField.onChange(toDate(v))
+                            }
+                            else {
+                              componentField.onChange(undefined)
+                            }
+                          }"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
 
+              <FormField v-slot="{ componentField }" name="toTime">
+                <FormItem class="flex flex-col flex-1">
+                  <FormControl>
+                    <Input
+                      v-bind="componentField"
+                      type="time"
+                      class="border shadow-none focus:ring-0 focus:ring-offset-0 focus:outline-none pl-28"
+                      placeholder="00:00:00s"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+            </div>
+          </div>
 
           <DialogFooter class="w-full mt-4 flex flex-col gap-2 sm:flex-row">
             <Button variant="outline" class="flex-1 h-11" as-child>

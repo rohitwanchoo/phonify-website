@@ -10,21 +10,17 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/comp
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
+const emits = defineEmits(['refresh'])
+
 const showWhitelistDialog = ref(false)
 
-// Dummy server options
-const serverOptions = [
-  { label: 'US East Server', value: 'us-east' },
-  { label: 'US West Server', value: 'us-west' },
-  { label: 'Europe Server', value: 'eu' },
-  { label: 'Asia Server', value: 'asia' },
-]
+const { data: serverOptions } = useNuxtData('server-option-list')
 
 // Form validation schema
 const formSchema = toTypedSchema(
   z.object({
-    ipAddress: z.string().min(1, 'IP Address is required').ip({ version: 'v4', message: 'Invalid IPv4 address' }),
-    server: z.string().min(1, 'Server is required'),
+    whitelistIp: z.string().min(1, 'IP Address is required').ip({ version: 'v4', message: 'Invalid IPv4 address' }),
+    server: z.number().min(1, 'Server is required'),
   }),
 )
 
@@ -32,10 +28,27 @@ const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
 })
 
+const loading = ref(false)
 const onSubmit = handleSubmit((values) => {
   // Handle whitelist IP submission here
-  console.log('Whitelisting IP:', values)
-  showWhitelistDialog.value = false
+  loading.value = true
+  useApi().post('/ip/whitelist-ip', {
+    whitelistIp: values.whitelistIp,
+    asteriskServers: [values.server],
+  }).then((response) => {
+    showWhitelistDialog.value = false
+    showToast({ message: response.message })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({
+      type: 'error',
+      message: error.message,
+    })
+  }).finally(() => {
+    loading.value = false
+  })
+  // console.log('Whitelisting IP:', values)
+  // showWhitelistDialog.value = false
 })
 
 function onCancel() {
@@ -52,7 +65,7 @@ function onCancel() {
     </Button>
 
     <Dialog v-model:open="showWhitelistDialog">
-      <DialogContent class="sm:max-w-[425px]">
+      <DialogContent class="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Whitelist IP</DialogTitle>
         </DialogHeader>
@@ -60,7 +73,7 @@ function onCancel() {
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="grid gap-4 py-4">
             <!-- IP Address Field -->
-            <FormField v-slot="{ componentField }" name="ipAddress">
+            <FormField v-slot="{ componentField }" name="whitelistIp">
               <FormItem>
                 <FormLabel>IP Address</FormLabel>
                 <FormControl>
@@ -88,9 +101,9 @@ function onCancel() {
                     <SelectItem
                       v-for="server in serverOptions"
                       :key="server.value"
-                      :value="server.value"
+                      :value="server.id"
                     >
-                      {{ server.label }}
+                      {{ server.host }} - {{ server.location }} - {{ server.trunk }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -109,7 +122,7 @@ function onCancel() {
               <Icon class="" name="material-symbols:close" />
               Cancel
             </Button>
-            <Button type="submit" class="w-[50%]">
+            <Button :loading type="submit" class="w-[50%]">
               <Icon class="!text-white" name="material-symbols:language" />
               Whitelist IP
             </Button>

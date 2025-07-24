@@ -14,9 +14,17 @@ interface HeaderProps {
   title?: string
   breadcrumbs?: {
     label: string
-    href?: string
+    href?: string | (() => void)
     active?: boolean
   }[]
+}
+function navigateToPath(val: any) {
+  if (typeof val === 'function') {
+    val()
+  }
+  else {
+    navigateTo(val)
+  }
 }
 </script>
 
@@ -28,7 +36,7 @@ interface HeaderProps {
           <BreadcrumbList>
             <div v-for="(item, index) in breadcrumbs" :key="item.label" class="flex items-center gap-x-2">
               <BreadcrumbItem>
-                <BreadcrumbLink :href="item.href" class="font-normal" :class="item.active && 'text-primary'">
+                <BreadcrumbLink class="font-normal" :class="item.active && 'text-primary'" @click="navigateToPath(item.href)">
                   {{ item.label }}
                 </BreadcrumbLink>
               </BreadcrumbItem>

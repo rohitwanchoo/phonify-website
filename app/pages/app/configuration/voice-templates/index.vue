@@ -29,6 +29,6 @@ const loading = computed(() => voiceTemplateStatus.value === 'pending')
     </BaseHeader>
   </div>
   <div>
-    <ConfigurationVoiceTemplatesTable :loading="loading" :list="voiceTemplateList" />
+    <ConfigurationVoiceTemplatesTable :loading="loading" :list="voiceTemplateList" @refresh="voiceTemplateRefresh" />
   </div>
 </template>
