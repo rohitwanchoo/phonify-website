@@ -5,18 +5,19 @@ import Button from '~/components/ui/button/Button.vue'
 defineProps<Props>()
 
 const router = useRouter()
+const route = useRoute()
 
 interface Props {
   data: {
-    last_name: string
-    first_name: string
-    email: string
-    state: string
-    company_name: string
+    last_name?: string;
+    first_name?: string;
+    email?: string;
+    state?: string;
+    company_name?: string;
   }
 }
 function onEdit() {
-  router.push('/app/lead-management/lead/edit')
+  router.push(`/app/lead-management/lead/${route.params.id}/edit`)
 }
 </script>
 
@@ -34,7 +35,7 @@ function onEdit() {
     </div>
 
     <!-- Details List -->
-    <div class="space-y-2 p-4">
+    <div class="space-y-2 p-4 h-full lg:max-h-[calc(100vh-260px)] overflow-y-auto">
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">Last Name</span><span>{{ data?.last_name || '-' }}</span>
       </div>
@@ -42,37 +43,37 @@ function onEdit() {
         <span class="text-[#162D3AB2]">First Name</span><span>{{ data?.first_name || '-' }}</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">New Label</span><span>Doe</span>
+        <span class="text-[#162D3AB2]">New Label</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">No of Open Loans</span><span>3</span>
+        <span class="text-[#162D3AB2]">No of Open Loans</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Factor Rate</span><span>10%</span>
+        <span class="text-[#162D3AB2]">Factor Rate</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Annual Revenue</span><span>$120,000.00</span>
+        <span class="text-[#162D3AB2]">Annual Revenue</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Business Age</span><span>6Yr</span>
+        <span class="text-[#162D3AB2]">Business Age</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Credit Score</span><span>813</span>
+        <span class="text-[#162D3AB2]">Credit Score</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Current Phone System</span><span>-</span>
+        <span class="text-[#162D3AB2]">Current Phone System</span><span>--</span>
       </div>
       <div class="flex flex-wrap justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Monthly Revenue</span><span>$10,000.00</span>
+        <span class="text-[#162D3AB2]">Monthly Revenue</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Funding Amount</span><span>$20,000.00</span>
+        <span class="text-[#162D3AB2]">Funding Amount</span><span>--</span>
       </div>
       <div class="flex flex-wrap justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">Email</span><span>{{ data?.email || '-' }}</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Zip</span><span>987237</span>
+        <span class="text-[#162D3AB2]">Zip</span><span>--</span>
       </div>
       <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
         <span class="text-[#162D3AB2]">State</span><span>{{ data?.state || '-' }}</span>

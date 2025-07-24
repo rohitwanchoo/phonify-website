@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { Input } from '@/components/ui/input'
+import { useDebounceFn } from '@vueuse/core'
 
-const pageStart = ref(0)
+const start = ref(0)
 const limit = ref(10)
-const searchQuery = ref('')
+const search = ref('')
 
 const showAddDialog = ref(false)
 
 const { data: excludeNumber, status: excludeNumberStatus, refresh: refreshExcludeNumber } = await useLazyAsyncData('exclude-number-list', () =>
   useApi().post('/exclude-number', {
-    lower_limit: pageStart.value,
+    lower_limit: start.value,
     upper_limit: limit.value,
-    search: searchQuery.value,
+    search: search.value,
   }), {
   transform: res => res,
-})
-
-// Watch search query and reset pagination
-watch(searchQuery, () => {
-  refreshExcludeNumber()
-  pageStart.value = 0
 })
 
 const selectedExcludeNumber = ref<null | {
@@ -31,7 +25,7 @@ const selectedExcludeNumber = ref<null | {
 }>(null)
 
 function changePage(page: number) {
-  pageStart.value = Number((page - 1) * limit.value)
+  start.value = Number((page - 1) * limit.value)
   return refreshExcludeNumber()
 }
 
@@ -39,15 +33,21 @@ function changeLimit(val: number) {
   limit.value = Number(val)
   return refreshExcludeNumber()
 }
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshExcludeNumber()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
 </script>
 
 <template>
   <BaseHeader title="Exclude Number">
     <template #actions>
-      <div class="relative mt-4 md:mt-0">
-        <Input v-model="searchQuery" placeholder="Search" class="pr-10" />
-        <Icon class="absolute top-[9px] right-2" name="material-symbols:search" size="20" />
-      </div>
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
       <!-- Upload DNC Dialog -->
       <DoNotCallDncUpload />
       <!-- Add DNC Dialog -->
@@ -55,6 +55,6 @@ function changeLimit(val: number) {
     </template>
   </BaseHeader>
   <div>
-    <DoNotCallExcludeNumberTable :limit="limit" :total-rows="excludeNumber?.record_count" :start="pageStart" :list="excludeNumber?.data" :loading="excludeNumberStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" @refresh="refreshExcludeNumber" />
+    <DoNotCallExcludeNumberTable :limit="limit" :total-rows="excludeNumber?.record_count" :start="start" :list="excludeNumber?.data" :loading="excludeNumberStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" @refresh="refreshExcludeNumber" />
   </div>
 </template>

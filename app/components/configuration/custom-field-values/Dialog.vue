@@ -100,22 +100,24 @@ const onSubmit = handleSubmit(async (values) => {
       })
     }
 
-    showToast({
-      message: res?.message
-        || (res?.success
-          ? (isEditMode.value ? 'Updated successfully' : 'Saved successfully')
-          : (isEditMode.value ? 'Update failed' : 'Failed to save')),
-      type: res.success ? 'success' : 'error',
-    })
-
     if (res?.success) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
       emits('update:open', false)
       props.refresh()
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
     }
   }
   catch (error: any) {
     showToast({
-      message: error?.message,
+      message: `${error.message}`,
       type: 'error',
     })
   }
@@ -190,15 +192,9 @@ function onOpenChange(value: boolean) {
               Cancel
             </DialogClose>
           </Button>
-          <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting">
-            <template v-if="isSubmitting">
-              <Icon name="lucide:ring-resize" size="20" class="mr-2" />
-              {{ isEditMode ? 'Updating...' : 'Saving...' }}
-            </template>
-            <template v-else>
-              <Icon name="material-symbols:save" size="20" class="mr-2" />
-              {{ isEditMode ? 'Update' : 'Save' }}
-            </template>
+          <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting" :loading="isSubmitting">
+            <Icon name="material-symbols:save" size="20" class="mr-2" />
+            {{ isEditMode ? 'Update' : 'Save' }}
           </Button>
         </DialogFooter>
       </form>

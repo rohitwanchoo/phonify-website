@@ -14,14 +14,14 @@ import Textarea from '~/components/ui/textarea/Textarea.vue'
 const open = defineModel<boolean>('open', { default: false })
 
 // extension list options
-const { data: extensionList, refresh: extensionRefresh } = await useLazyAsyncData('extension-group-map', () =>
+const { data: extensionList, status: extensionListStatus, refresh: extensionRefresh } = await useLazyAsyncData('extension-group-map', () =>
   useApi().get('/extension-group-map'), {
   transform: res => res.data,
   immediate: false,
 })
 
 // County list
-const { data: countrylist, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
+const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
   useApi().post('/phone-country-list'), {
   transform: res => res.data,
   immediate: false,
@@ -48,11 +48,9 @@ const formSchema = toTypedSchema(z.object({
   comment: z.string().min(1, 'Comment is required'),
 }))
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: formSchema,
 })
-
-const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
   const payload = {
@@ -62,7 +60,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    loading.value = true
     const response = await useApi().post('/add-dnc', {
       ...payload,
     })
@@ -72,7 +69,6 @@ const onSubmit = handleSubmit(async (values) => {
     })
     resetForm()
     open.value = false
-    loading.value = false
     refreshNuxtData('dnc-list')
   }
   catch (error: any) {
@@ -81,17 +77,14 @@ const onSubmit = handleSubmit(async (values) => {
       type: 'error',
     })
   }
-  finally {
-    loading.value = false
-  }
 })
 </script>
 
 <template>
   <Dialog v-model:open="open" @update:open="onDialogOpen">
     <DialogTrigger as-child>
-      <Button>
-        <Icon class="!text-white" name="lucide:plus" />
+      <Button class="h-11">
+        <Icon class="!text-white" name="material-symbols:add" size="20" />
         Add DNC
       </Button>
     </DialogTrigger>
@@ -127,13 +120,18 @@ const onSubmit = handleSubmit(async (values) => {
 
                             <SelectContent>
                               <SelectGroup>
-                                <SelectItem
-                                  v-for="item in countrylist"
-                                  :key="item.id"
-                                  :value="String(item.phone_code)"
-                                >
-                                  {{ item.country_name }} (+{{ item.phone_code }})
+                                <SelectItem v-if="countrylistStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                                  <Icon name="eos-icons:loading" />
                                 </SelectItem>
+                                <template v-else>
+                                  <SelectItem
+                                    v-for="item in countrylist"
+                                    :key="item.id"
+                                    :value="String(item.phone_code)"
+                                  >
+                                    {{ item.country_name }} (+{{ item.phone_code }})
+                                  </SelectItem>
+                                </template>
                               </SelectGroup>
                             </SelectContent>
                           </Select>
@@ -166,9 +164,14 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select Extension" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in extensionList" :key="option.extension" :value="option.extension">
-                      {{ option.first_name }} {{ option.last_name }}
+                    <SelectItem v-if="extensionListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in extensionList" :key="option.extension" :value="option.extension">
+                        {{ option.first_name }} {{ option.last_name }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -190,11 +193,11 @@ const onSubmit = handleSubmit(async (values) => {
         </div>
         <div class="flex justify-end gap-2 mt-6">
           <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-            <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+            <Icon name="material-symbols:close" size="20" class="mr-1" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
-            <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+          <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
+            <Icon name="material-symbols:save" size="20" class="mr-1" />
             Save
           </Button>
         </div>

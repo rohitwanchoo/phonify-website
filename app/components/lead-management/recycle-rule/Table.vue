@@ -45,33 +45,15 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const {
-  isRevealed: showDeleteConfirm,
-  reveal: revealDeleteConfirm,
-  confirm: deleteConfirm,
-  cancel: deleteCancel,
-} = useConfirmDialog()
-
-const selectedRuleForDelete = ref<{
-  list_id: number | null
-  disposition_id: number | null
-}>({
-  list_id: null,
-  disposition_id: null,
-})
-
-// controls dialog visibility
-const isEditDialogOpen = ref(false)
-// stores the row to edit
-const selectedRowData = ref<recycleRulesList | null>(null)
-
+// Interface for each row in the list
 export interface recycleRulesList {
   id: number
   campaign_id: number
@@ -88,19 +70,32 @@ export interface recycleRulesList {
   disposition: string
 }
 
+// Confirmation dialog for deleting
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+
+const selectedRecycleRuleForDelete = ref()
+const isEditDialogOpen = ref(false)
+const selectedRowData = ref<recycleRulesList | null>(null)
+
 function onEdit(row: recycleRulesList) {
   selectedRowData.value = row
   isEditDialogOpen.value = true
 }
 
 async function handleDelete() {
-  if (!selectedRuleForDelete.value.list_id || !selectedRuleForDelete.value.disposition_id)
+  if (!selectedRecycleRuleForDelete.value)
     return
 
   try {
-    const res = await useApi().post('/delete-leads-rule', {
-      list_id: selectedRuleForDelete.value.list_id,
-      disposition_id: selectedRuleForDelete.value.disposition_id,
+    const res = await useApi().post('/edit-recycle-rule', {
+      recycle_rule_id: selectedRecycleRuleForDelete.value,
+      is_deleted: 1,
     })
 
     if (res.success === 'true') {
@@ -124,13 +119,11 @@ async function handleDelete() {
     })
   }
   finally {
-    selectedRuleForDelete.value = {
-      list_id: null,
-      disposition_id: null,
-    }
+    selectedRecycleRuleForDelete.value = null
   }
 }
 
+// Pagination handlers
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
@@ -226,10 +219,7 @@ const columns = [
         refreshNuxtData('recycle-rule')
       } }, h(Icon, { name: 'material-symbols:autorenew', size: 15 })),
       h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', title: 'Delete', onClick: () => {
-        selectedRuleForDelete.value = {
-          list_id: row.original.list_id,
-          disposition_id: row.original.disposition_id,
-        }
+        selectedRecycleRuleForDelete.value = row.original.id
         revealDeleteConfirm()
       } }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
     ]),

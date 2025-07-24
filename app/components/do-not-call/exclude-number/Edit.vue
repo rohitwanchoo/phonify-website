@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useForm } from 'vee-validate'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
@@ -13,16 +13,14 @@ const props = defineProps<{
 
 const open = defineModel<boolean>('open', { default: false })
 
-const loading = ref(false)
-
 // County list
-const { data: countrylist, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
+const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
   useApi().post('/phone-country-list'), {
   transform: res => res.data,
   immediate: false,
 })
 
-const selectedCountryCode = ref('') // Holds the selected code
+const selectedCountryCode = ref('1') // Holds the selected code
 
 function getCountryLabel(code: string) {
   const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
@@ -36,7 +34,7 @@ function onDialogOpen(val: boolean) {
 }
 
 // Form Setup
-const { handleSubmit, resetForm, setFieldValue } = useForm({
+const { handleSubmit, isSubmitting, resetForm, setFieldValue } = useForm({
   initialValues: {
     number: props.initialData?.number,
     first_name: props.initialData?.first_name,
@@ -56,7 +54,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    loading.value = true
     const response = await useApi().post('/edit-exclude-number', {
       ...payload,
     })
@@ -82,9 +79,6 @@ const onSubmit = handleSubmit(async (values) => {
       message: `${error?.message}`,
       type: 'error',
     })
-  }
-  finally {
-    loading.value = false
   }
 })
 
@@ -197,13 +191,18 @@ watch(open, async (newVal) => {
 
                             <SelectContent>
                               <SelectGroup>
-                                <SelectItem
-                                  v-for="item in countrylist"
-                                  :key="item.id"
-                                  :value="String(item.phone_code)"
-                                >
-                                  {{ item.country_name }} (+{{ item.phone_code }})
+                                <SelectItem v-if="countrylistStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                                  <Icon name="eos-icons:loading" />
                                 </SelectItem>
+                                <template v-else>
+                                  <SelectItem
+                                    v-for="item in countrylist"
+                                    :key="item.id"
+                                    :value="String(item.phone_code)"
+                                  >
+                                    {{ item.country_name }} (+{{ item.phone_code }})
+                                  </SelectItem>
+                                </template>
                               </SelectGroup>
                             </SelectContent>
                           </Select>
@@ -227,11 +226,11 @@ watch(open, async (newVal) => {
 
           <div class="flex justify-end gap-2 mt-6">
             <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-              <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+              <Icon name="material-symbols:close" size="20" class="mr-1" />
               Close
             </Button>
-            <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
-              <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+            <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
+              <Icon name="material-symbols:save" size="20" class="mr-1" />
               Save
             </Button>
           </div>
