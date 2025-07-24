@@ -7,49 +7,11 @@ import { Calendar } from '@/components/ui/calendar'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '~/components/ui/sheet'
-// Define emits
-const emit = defineEmits<{
-  applyFilter: []
-  clearFilter: []
-}>()
 
 // Sheet open state
 const open = ref(false)
-const formValues = defineModel<Record<string, any>>('formValues', {
-  default: {
-    whitelistIp: '',
-    server: '',
-    status: '',
-    fromWeb: '',
-  },
-})
-
-
-// Form validation schema
-
-// const filterValues = defineModel({default :{
-//   whitelistIp: '',
-//   server: '',
-//   status: '', 
-//   fromWeb: '',
-// } })
-
-
-function onSubmit() {
-
-
-  emit('applyFilter')
-  open.value = false
-}
-
-function clearFilters() {
-  resetForm()
-  emit('clearFilter')
-  open.value = false
-}
 </script>
 
 <template>
@@ -75,22 +37,21 @@ function clearFilters() {
                 <div>
                   <label class="text-sm font-medium text-primary">Sender</label>
                   <Select>
-  <SelectTrigger class="w-full !h-11">
-    <SelectValue placeholder="Select" />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem :value="'+1 (333) 123-4567'">
-      +1 (333) 123-4567
-    </SelectItem>
-    <SelectItem :value="'333-987-6543'">
-      +1 (333) 987-6543
-    </SelectItem>
-    <SelectItem :value="'333-555-1122'">
-      +1 (333) 555-1122
-    </SelectItem>
-  </SelectContent>
-</Select>
-
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="+1 (333) 123-4567">
+                        +1 (333) 123-4567
+                      </SelectItem>
+                      <SelectItem value="333-987-6543">
+                        +1 (333) 987-6543
+                      </SelectItem>
+                      <SelectItem value="333-555-1122">
+                        +1 (333) 555-1122
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div class="space-y-1">
@@ -167,7 +128,7 @@ function clearFilters() {
 
       <!-- Sticky footer with buttons -->
       <div class="p-6 bg-white space-y-3">
-        <Button class="w-full h-12 text-md" @click="onSubmit">
+        <Button class="w-full h-12 text-md">
           <Icon name="material-symbols:search" class="text-md" />
           Search
         </Button>
