@@ -15,10 +15,9 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ChevronsUpDown} from 'lucide-vue-next'
+import { ChevronsUpDown } from 'lucide-vue-next'
 
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -42,9 +41,7 @@ import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
 const loading = ref(false)
-const router = useRouter()
 
-// Simplified data with 5 fields after SL No
 const dummyData = ref(Array.from({ length: 10 }, (_, i) => ({
   id: i + 1,
   field1: `Lorem ipsum ${i + 1}`,
@@ -105,7 +102,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 4', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
-  }), 
+  }),
   columnHelper.accessor('field5', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
@@ -114,7 +111,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 5', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
-  }), 
+  }),
 ]
 
 const sorting = ref<SortingState>([])

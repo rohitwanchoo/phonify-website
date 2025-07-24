@@ -3,25 +3,15 @@ import { parseDate } from '@internationalized/date'
 import { toDate } from 'reka-ui/date'
 import { ref } from 'vue'
 import { Calendar } from '@/components/ui/calendar'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '~/components/ui/sheet'
-// Define emits
-const emit = defineEmits<{
-  applyFilter: []
-  clearFilter: []
-}>()
 
 // Sheet open state
 const open = ref(false)
-
-function onSubmit() {
-  emit('applyFilter')
-  open.value = false
-}
 </script>
 
 <template>
@@ -34,7 +24,7 @@ function onSubmit() {
     <SheetContent class="w-full md:min-w-[483px] flex flex-col h-full">
       <SheetHeader class="bg-[#162D3A]">
         <SheetTitle class="text-white">
-          Filter IVR Logs Call Reports
+          Filter Call Reports
         </SheetTitle>
       </SheetHeader>
 
@@ -55,6 +45,19 @@ function onSubmit() {
                 </div>
 
                 <div>
+                  <label class="text-sm font-medium text-primary">Extention List</label>
+                  <Select>
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select Campaign" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem :value="null">
+                        All
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <label class="text-sm font-medium text-primary">Campaign</label>
                   <Select>
                     <SelectTrigger class="w-full !h-11">
@@ -68,7 +71,58 @@ function onSubmit() {
                   </Select>
                 </div>
                 <div>
-                  <label class="text-sm font-medium text-primary">DTMF</label>
+                  <label class="text-sm font-medium text-primary">Disposition</label>
+                  <Select>
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select Campaign" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem :value="null">
+                        All
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-primary">Route</label>
+                  <Select>
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select Campaign" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem :value="null">
+                        All
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-primary">type</label>
+                  <Select>
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select Campaign" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem :value="null">
+                        All
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div><div>
+                  <label class="text-sm font-medium text-primary">DID Lists</label>
+                  <Select>
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select Campaign" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem :value="null">
+                        All
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-primary">Time Zone</label>
                   <Select>
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select Campaign" />
@@ -147,13 +201,30 @@ function onSubmit() {
                     </FormField>
                   </div>
                 </div>
-                <Button variant="outline" class=" w-full h-11 border border-red-600 rounded-sm flex justify-between items-center gap-2 px-3">
-                  <div class="flex gap-2 items-center justify-center text-sm text-primary">
-                    <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
-                    Download PDF
-                  </div>
-                  <Icon name="material-symbols:download" class="text-xl text-primary" />
-                </Button>
+                <div>
+                  <label class="text-sm font-medium text-primary">State / City / Area Codes</label>
+                  <Input
+                    type="number"
+                    class="h-11"
+                    placeholder="Enter Code"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <Button variant="outline" class=" h-11 border border-primary rounded-sm flex justify-between items-center gap-2 px-3 w-[49%]">
+                    <div class="flex gap-2 items-center justify-center text-sm text-primary">
+                      <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
+                      Download PDF
+                    </div>
+                    <Icon name="material-symbols:download" class="text-xl text-primary" />
+                  </Button>
+                  <Button variant="outline" class=" h-11 border border-primary rounded-sm flex justify-between items-center gap-2 px-3 w-[49%]">
+                    <div class="flex gap-2 items-center justify-center text-sm text-primary">
+                      <Icon name="lsicon:file-xls-filled" class="text-green-600 text-xl" />
+                      Download Excel
+                    </div>
+                    <Icon name="material-symbols:download" class="text-xl text-primary" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

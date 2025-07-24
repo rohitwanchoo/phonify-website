@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 </script>
 
@@ -14,10 +13,7 @@ import { Input } from '~/components/ui/input'
         </div>
 
         <!-- Trigger Button -->
-        <Button>
-            <Icon name="material-symbols:add" class="text-xl text-white" />
-          Add Ring Group
-        </Button>
+        <ReportCallTransferFilterSheet />
       </template>
     </BaseHeader>
 
