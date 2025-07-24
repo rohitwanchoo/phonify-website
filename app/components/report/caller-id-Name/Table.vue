@@ -15,8 +15,8 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
-import moment from 'moment'
+import { ChevronsUpDown} from 'lucide-vue-next'
+
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -42,89 +42,33 @@ import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
 const loading = ref(false)
+const router = useRouter()
 
-interface CallRecord {
-  id: number
-  agent: string
-  extension: string
-  number: string
-  route: string
-  campaign: string
-  callType: 'Inbound' | 'Outbound' | 'Missed' | 'Voicemail'
-  startTime: string
-  duration: number
-}
 
-const dummyData = ref<CallRecord[]>([
-  {
-    id: 1,
-    agent: 'John Doe',
-    extension: '101',
-    number: '+15551234567',
-    route: 'Main Queue',
-    campaign: 'Summer Sale',
-    callType: 'Inbound',
-    startTime: '2023-06-15T09:30:00Z',
-    duration: 145,
-  },
-  {
-    id: 2,
-    agent: 'Jane Smith',
-    extension: '102',
-    number: '+15559876543',
-    route: 'Support Line',
-    campaign: 'Tech Support',
-    callType: 'Outbound',
-    startTime: '2023-06-15T10:15:00Z',
-    duration: 327,
-  },
-  {
-    id: 3,
-    agent: 'Robert Johnson',
-    extension: '103',
-    number: '+15555555555',
-    route: 'Sales Direct',
-    campaign: 'New Leads',
-    callType: 'Missed',
-    startTime: '2023-06-15T11:05:00Z',
-    duration: 0,
-  },
-  {
-    id: 4,
-    agent: 'Emily Davis',
-    extension: '104',
-    number: '+15556667777',
-    route: 'Customer Service',
-    campaign: 'Account Management',
-    callType: 'Voicemail',
-    startTime: '2023-06-15T13:22:00Z',
-    duration: 42,
-  },
-  {
-    id: 5,
-    agent: 'Michael Wilson',
-    extension: '105',
-    number: '+15558889999',
-    route: 'Billing Dept',
-    campaign: 'Payment Reminders',
-    callType: 'Inbound',
-    startTime: '2023-06-15T14:10:00Z',
-    duration: 218,
-  },
+const dummyData = ref([
+  { id: 1, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 2, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 3, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 4, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 5, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 6, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 7, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 8, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 9, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 10, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 11, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
+  { id: 12, callerId: '72639163829', callerName: 'LOREM IPSUM', generationDate: '06 Jan 2025', callbackTime: '12:00 AM' },
 ])
 
+// Dummy meta data
 const meta = ref({
   current_page: 1,
-  per_page: 5,
-  last_page: 3,
-  total: 26,
+  per_page: 10,
+  last_page: 5,
+  total: 50,
 })
 
-const columnHelper = createColumnHelper<CallRecord>()
-
-function formatDuration(seconds: number) {
-  return moment.utc(seconds * 1000).format('HH:mm:ss')
-}
+const columnHelper = createColumnHelper<any>()
 
 const columns = [
   columnHelper.display({
@@ -132,82 +76,51 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor(row => `${row.agent} (${row.extension})`, {
-    id: 'agent',
+
+  columnHelper.accessor('callerId', {
     header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-center text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Agent Name (Extension)', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm ' }, `${row.original.agent} (${row.original.extension})`),
+      }, () => ['Caller ID', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.callerId),
   }),
-  columnHelper.accessor('number', {
+
+  columnHelper.accessor('callerName', {
     header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.number),
-    ),
+      }, () => ['Caller ID Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.callerName),
   }),
-  columnHelper.accessor('route', {
+
+  columnHelper.accessor('generationDate', {
     header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Route', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.route),
+      }, () => ['Generation Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
+        h('div', row.original.generationDate),
+      ]),
   }),
-  columnHelper.accessor('campaign', {
+
+  columnHelper.accessor('callbackTime', {
     header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign),
-  }),
-  columnHelper.accessor('callType', {
-    header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Call Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.callType),
-  }),
-  columnHelper.accessor('startTime', {
-    header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Start Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, moment(row.original.startTime).format('MMM D, YYYY h:mm A'),
-    ),
-  }),
-  columnHelper.accessor('duration', {
-    header: ({ column }) =>
-      h(Button, {
-        class: 'text-sm font-normal justify-center w-full',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Duration', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.duration > 0 ? formatDuration(row.original.duration) : '--:--:--',
-    ),
-  }),
-  columnHelper.display({
-    id: 'action',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-    cell: () =>
-      h('div', { class: 'flex justify-center' }, h(Button, {
-        variant: 'ghost',
-        size: 'sm',
-        class: 'h-8 w-8 p-0',
-      }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
+      }, () => ['Callback Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
+        h('div', row.original.callbackTime),
+      ]),
   }),
 ]
 
@@ -239,6 +152,7 @@ const table = useVueTable({
 })
 
 function handlePageChange(page: number) {
+  console.log('Page changed to:', page)
   meta.value.current_page = page
 }
 </script>
@@ -271,13 +185,12 @@ function handlePageChange(page: number) {
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             :data-state="row.getIsSelected() && 'selected'"
-            class="hover:bg-gray-50/50"
           >
             <TableCell
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
               :data-pinned="cell.column.getIsPinned()"
-              class="p-[12px] align-middle text-center"
+              class="p-[12px]"
               :class="cn(
                 { 'sticky bg-background/95': cell.column.getIsPinned() },
                 cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
@@ -291,7 +204,7 @@ function handlePageChange(page: number) {
         <TableRow v-else>
           <TableCell
             :colspan="columns.length"
-            class="h-24 text-center align-middle"
+            class="h-24 text-center"
           >
             No results.
           </TableCell>
