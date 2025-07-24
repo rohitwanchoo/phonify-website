@@ -12,14 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 const open = defineModel<boolean>('open', { default: false })
 
 // campaign list options
-const { data: campaignList, refresh: campaignRefresh } = await useLazyAsyncData('campaign-list', () =>
+const { data: campaignList, status: campaignListStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign-list', () =>
   useApi().post('/campaign'), {
   transform: res => res.data,
   immediate: false,
 })
 
 // County list
-const { data: countrylist, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
+const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
   useApi().post('/phone-country-list'), {
   transform: res => res.data,
   immediate: false,
@@ -47,11 +47,9 @@ const formSchema = toTypedSchema(z.object({
   campaign_id: z.number().min(1, 'Campaign is requires'),
 }))
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: formSchema,
 })
-
-const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
   const payload = {
@@ -63,7 +61,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    loading.value = true
     const response = await useApi().post('/add-exclude-number', {
       ...payload,
     })
@@ -73,7 +70,6 @@ const onSubmit = handleSubmit(async (values) => {
     })
     resetForm()
     open.value = false
-    loading.value = false
     refreshNuxtData('exclude-number-list')
   }
   catch (error: any) {
@@ -82,17 +78,14 @@ const onSubmit = handleSubmit(async (values) => {
       type: 'error',
     })
   }
-  finally {
-    loading.value = false
-  }
 })
 </script>
 
 <template>
   <Dialog v-model:open="open" @update:open="onDialogOpen">
     <DialogTrigger as-child>
-      <Button>
-        <Icon class="!text-white" name="lucide:plus" />
+      <Button class="h-11">
+        <Icon class="!text-white" size="20" name="material-symbols:add" />
         Add Exclude Number
       </Button>
     </DialogTrigger>
@@ -182,13 +175,18 @@ const onSubmit = handleSubmit(async (values) => {
 
                             <SelectContent>
                               <SelectGroup>
-                                <SelectItem
-                                  v-for="item in countrylist"
-                                  :key="item.id"
-                                  :value="String(item.phone_code)"
-                                >
-                                  {{ item.country_name }} (+{{ item.phone_code }})
+                                <SelectItem v-if="countrylistStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                                  <Icon name="eos-icons:loading" />
                                 </SelectItem>
+                                <template v-else>
+                                  <SelectItem
+                                    v-for="item in countrylist"
+                                    :key="item.id"
+                                    :value="String(item.phone_code)"
+                                  >
+                                    {{ item.country_name }} (+{{ item.phone_code }})
+                                  </SelectItem>
+                                </template>
                               </SelectGroup>
                             </SelectContent>
                           </Select>
@@ -221,9 +219,14 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select Campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
-                      {{ option.title }}
+                    <SelectItem v-if="campaignListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -233,11 +236,11 @@ const onSubmit = handleSubmit(async (values) => {
         </div>
         <div class="flex justify-end gap-2 mt-6">
           <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-            <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+            <Icon name="material-symbols:close" size="20" class="mr-1" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
-            <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+          <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
+            <Icon name="material-symbols:save" size="20" class="mr-1" />
             Save
           </Button>
         </div>

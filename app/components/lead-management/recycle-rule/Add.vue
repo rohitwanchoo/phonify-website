@@ -13,28 +13,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 const open = defineModel<boolean>('open', { default: false })
 
 // campaign list options
-const { data: campaignList, refresh: campaignRefresh } = await useLazyAsyncData('campaigns', () =>
+const { data: campaignList, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaigns', () =>
   useApi().get('/campaigns'), {
   transform: res => res.data,
   immediate: false,
 })
 
 // lead management list options
-const { data: leadList, refresh: leadListRefresh } = await useLazyAsyncData('list', () =>
-  useApi().post('list'), {
+const { data: leadList, status: leadListStatus, refresh: leadListRefresh } = await useLazyAsyncData('list', () =>
+  useApi().post('/list'), {
   transform: res => res.data,
   immediate: false,
 })
 
 // disposition options
-const { data: dispositionList, refresh: dispositionRefresh } = await useLazyAsyncData('disposition', () =>
-  useApi().post('disposition'), {
+const { data: dispositionList, status: dispositionListStatus, refresh: dispositionRefresh } = await useLazyAsyncData('disposition', () =>
+  useApi().post('/disposition'), {
   transform: res => res.data,
   immediate: false,
 })
 
 function onDialogOpen(val: boolean) {
-  if(val){
+  if (val) {
     campaignRefresh()
     leadListRefresh()
     dispositionRefresh()
@@ -54,9 +54,20 @@ const dayOptions = [
 
 // call time options
 const callTimeOptions = [
-  { label: '≤ 2', callTime: 2 },
-  { label: '≤ 3', callTime: 3 },
-  { label: '≤ 4', callTime: 4 },
+  { value: 2, label: 'less than or equal to 2' },
+  { value: 3, label: 'less than or equal to 3' },
+  { value: 4, label: 'less than or equal to 4' },
+  { value: 5, label: 'less than or equal to 5' },
+  { value: 6, label: 'less than or equal to 6' },
+  { value: 7, label: 'less than or equal to 7' },
+  { value: 8, label: 'less than or equal to 8' },
+  { value: 9, label: 'less than or equal to 9' },
+  { value: 10, label: 'less than or equal to 10' },
+  { value: 11, label: 'less than or equal to 11' },
+  { value: 12, label: 'less than or equal to 12' },
+  { value: 13, label: 'less than or equal to 13' },
+  { value: 14, label: 'less than or equal to 14' },
+  { value: 15, label: 'less than or equal to 15' },
 ]
 
 const formSchema = toTypedSchema(z.object({
@@ -103,6 +114,7 @@ const onSubmit = handleSubmit(async (values) => {
     open.value = false
     loading.value = false
     refreshNuxtData('recycle-rule')
+    selectedDays.value = []
   }
   catch (error) {
     showToast({
@@ -119,8 +131,8 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <Dialog v-model:open="open" @update:open="onDialogOpen">
     <DialogTrigger as-child>
-      <Button>
-        <Icon class="!text-white" name="lucide:plus" />
+      <Button class="h-11">
+        <Icon class="!text-white" name="material-symbols:add" size="20" />
         Add Recyle Rule
       </Button>
     </DialogTrigger>
@@ -143,9 +155,14 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
-                      {{ option.title }}
+                    <SelectItem v-if="campaignStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -161,9 +178,14 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select list" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in leadList" :key="option.list_id" :value="option.list_id">
-                      {{ option.list }}
+                    <SelectItem v-if="leadListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in leadList" :key="option.list_id" :value="option.list_id">
+                        {{ option.list }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -179,9 +201,14 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select disposition" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in dispositionList" :key="option.id" :value="option.id">
-                      {{ option.title }}
+                    <SelectItem v-if="dispositionListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in dispositionList" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -247,7 +274,7 @@ const onSubmit = handleSubmit(async (values) => {
                     <SelectValue placeholder="Select call time" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in callTimeOptions" :key="option.callTime" :value="option.callTime">
+                    <SelectItem v-for="option in callTimeOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
                     </SelectItem>
                   </SelectContent>
@@ -296,11 +323,11 @@ const onSubmit = handleSubmit(async (values) => {
         </div>
         <div class="flex justify-end gap-2 mt-6">
           <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-            <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+            <Icon name="material-symbols:close" size="20" class="mr-1" />
             Close
           </Button>
           <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
-            <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+            <Icon name="material-symbols:save" size="20" class="mr-1" />
             Save
           </Button>
         </div>

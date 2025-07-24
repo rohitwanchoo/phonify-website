@@ -139,7 +139,7 @@ const columns = [
   columnHelper.accessor('siNo', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
+      return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
     },
   }),
 

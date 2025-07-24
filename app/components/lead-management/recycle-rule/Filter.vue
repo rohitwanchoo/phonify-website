@@ -5,10 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '~/components/ui/button'
 
-const props = defineProps<{
-  recycleRules: Array<Record<string, any>>
-}>()
-
 // Emit event to parent component with filter parameters
 const emit = defineEmits<{
   applyFilter: [filterParams: Record<string, any>]
@@ -57,21 +53,20 @@ const dayOptions = [
 ]
 
 const callTimeOptions = [
-  { value: '1', label: '1' },
-  { value: '2', label: 'less than or equal to 2' },
-  { value: '3', label: 'less than or equal to 3' },
-  { value: '4', label: 'less than or equal to 4' },
-  { value: '5', label: 'less than or equal to 5' },
-  { value: '6', label: 'less than or equal to 6' },
-  { value: '7', label: 'less than or equal to 7' },
-  { value: '8', label: 'less than or equal to 8' },
-  { value: '9', label: 'less than or equal to 9' },
-  { value: '10', label: 'less than or equal to 10' },
-  { value: '11', label: 'less than or equal to 11' },
-  { value: '12', label: 'less than or equal to 12' },
-  { value: '13', label: 'less than or equal to 13' },
-  { value: '14', label: 'less than or equal to 14' },
-  { value: '15', label: 'less than or equal to 15' },
+  { value: 2, label: 'less than or equal to 2' },
+  { value: 3, label: 'less than or equal to 3' },
+  { value: 4, label: 'less than or equal to 4' },
+  { value: 5, label: 'less than or equal to 5' },
+  { value: 6, label: 'less than or equal to 6' },
+  { value: 7, label: 'less than or equal to 7' },
+  { value: 8, label: 'less than or equal to 8' },
+  { value: 9, label: 'less than or equal to 9' },
+  { value: 10, label: 'less than or equal to 10' },
+  { value: 11, label: 'less than or equal to 11' },
+  { value: 12, label: 'less than or equal to 12' },
+  { value: 13, label: 'less than or equal to 13' },
+  { value: 14, label: 'less than or equal to 14' },
+  { value: 15, label: 'less than or equal to 15' },
 ]
 
 // Simple reactive filter values
@@ -140,8 +135,8 @@ function clearFilters() {
 
 <template>
   <div>
-    <Button variant="outline" class="!text-primary" @click="open = true">
-      <Icon name="material-symbols:sort" class="!text-primary" />
+    <Button variant="outline" class="!text-primary h-11" @click="open = true">
+      <Icon name="material-symbols:sort" size="20" class="!text-primary" />
       Filter
     </Button>
     <Sheet v-model:open="open">
@@ -200,7 +195,7 @@ function clearFilters() {
                     <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-if="campaignStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                    <SelectItem v-if="dispositionStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
                       <Icon name="eos-icons:loading" />
                     </SelectItem>
                     <template v-else>
