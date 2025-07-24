@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
+
 </script>
 
 <template>
@@ -8,10 +7,8 @@ import { Input } from '~/components/ui/input'
     <!-- HEADER -->
     <BaseHeader title="IVR Logs Call Reports">
       <template #actions>
-      
-
         <!-- Trigger Button -->
-       <ReportIvrLogsFilterSheet class="bg-black text-white" v-model:form-values="filterValues" @apply-filter="applyFilter" />
+        <ReportIvrLogsFilterSheet class="bg-black text-white" />
       </template>
     </BaseHeader>
 

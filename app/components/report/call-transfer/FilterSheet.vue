@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { parseDate } from '@internationalized/date'
+import { CalendarDate, getLocalTimeZone, parseDate, today } from '@internationalized/date'
+import { toTypedSchema } from '@vee-validate/zod'
+import { CalendarIcon } from 'lucide-vue-next'
 import { toDate } from 'reka-ui/date'
-import { ref } from 'vue'
+import { useForm } from 'vee-validate'
+import { computed, ref } from 'vue'
+import * as zod from 'zod'
 import { Calendar } from '@/components/ui/calendar'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -9,17 +13,49 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '~/components/ui/sheet'
-// Define emits
-const emit = defineEmits<{
-  applyFilter: []
-  clearFilter: []
-}>()
 
-// Sheet open state
 const open = ref(false)
 
-function onSubmit() {
-  emit('applyFilter')
+// Define validation schema
+const filterSchema = zod.object({
+  workPhone: zod.string().optional(),
+  extension: zod.string().optional(),
+  campaign: zod.string().optional(),
+  status: zod.string().optional(),
+  fromDate: zod.date().optional(),
+  toDate: zod.date().optional(),
+}).refine(
+  (data) => {
+    if (data.fromDate && data.toDate) {
+      return data.toDate >= data.fromDate
+    }
+    return true
+  },
+  {
+    message: 'To date must be after or equal to from date',
+    path: ['toDate'],
+  },
+)
+
+const { handleSubmit, resetForm } = useForm({
+  validationSchema: toTypedSchema(filterSchema),
+  initialValues: {
+    workPhone: '',
+    extension: null,
+    campaign: null,
+    status: null,
+    fromDate: undefined,
+    toDate: undefined,
+  },
+})
+
+const onSubmit = handleSubmit((values) => {
+  console.log('Filter Applied', values)
+  open.value = false
+})
+
+function handleReset() {
+  resetForm()
   open.value = false
 }
 </script>
@@ -34,7 +70,7 @@ function onSubmit() {
     <SheetContent class="w-full md:min-w-[483px] flex flex-col h-full">
       <SheetHeader class="bg-[#162D3A]">
         <SheetTitle class="text-white">
-          Filter IVR Logs Call Reports
+          Filter Call Transfer
         </SheetTitle>
       </SheetHeader>
 
@@ -44,43 +80,94 @@ function onSubmit() {
           <div class="flex-1 overflow-y-auto">
             <div class="mx-auto p-6 space-y-6">
               <div class="space-y-4">
-                <!-- IP Address Field -->
-                <div>
-                  <label class="text-sm font-medium text-primary">Phone Number</label>
-                  <Input
-                    type="number"
-                    class="h-11"
-                    placeholder="Enter Phone Number"
-                  />
-                </div>
+                <!-- Work Phone Field -->
+                <FormField v-slot="{ componentField }" name="workPhone">
+                  <FormItem>
+                    <FormLabel class="text-sm font-medium text-primary">
+                      Work Phone
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        class="h-11"
+                        placeholder="Enter Phone Number"
+                        v-bind="componentField"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
 
-                <div>
-                  <label class="text-sm font-medium text-primary">Campaign</label>
-                  <Select>
-                    <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select Campaign" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem :value="null">
-                        All
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label class="text-sm font-medium text-primary">DTMF</label>
-                  <Select>
-                    <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select Campaign" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem :value="null">
-                        All
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <!-- Extension Field -->
+                <FormField v-slot="{ componentField }" name="extension">
+                  <FormItem>
+                    <FormLabel class="text-sm font-medium text-primary">
+                      Extension
+                    </FormLabel>
+                    <Select v-bind="componentField">
+                      <FormControl>
+                        <SelectTrigger class="w-full !h-11">
+                          <SelectValue placeholder="Select Extension" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem :value="null">
+                          All
+                        </SelectItem>
+                        <!-- Add other SelectItem options here as needed -->
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
 
+                <!-- Campaign Field -->
+                <FormField v-slot="{ componentField }" name="campaign">
+                  <FormItem>
+                    <FormLabel class="text-sm font-medium text-primary">
+                      Campaign
+                    </FormLabel>
+                    <Select v-bind="componentField">
+                      <FormControl>
+                        <SelectTrigger class="w-full !h-11">
+                          <SelectValue placeholder="Select Campaign" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem :value="null">
+                          All
+                        </SelectItem>
+                        <!-- Add other SelectItem options here as needed -->
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- Status Field -->
+                <FormField v-slot="{ componentField }" name="status">
+                  <FormItem>
+                    <FormLabel class="text-sm font-medium text-primary">
+                      Status
+                    </FormLabel>
+                    <Select v-bind="componentField">
+                      <FormControl>
+                        <SelectTrigger class="w-full !h-11">
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem :value="null">
+                          All
+                        </SelectItem>
+                        <!-- Add other SelectItem options here as needed -->
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <!-- Date Range -->
                 <div class="space-y-1">
                   <label class="text-sm font-medium text-primary">Date Range</label>
                   <div class="flex flex-col md:flex-row gap-2">
@@ -147,13 +234,6 @@ function onSubmit() {
                     </FormField>
                   </div>
                 </div>
-                <Button variant="outline" class=" w-full h-11 border border-red-600 rounded-sm flex justify-between items-center gap-2 px-3">
-                  <div class="flex gap-2 items-center justify-center text-sm text-primary">
-                    <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
-                    Download PDF
-                  </div>
-                  <Icon name="material-symbols:download" class="text-xl text-primary" />
-                </Button>
               </div>
             </div>
           </div>
