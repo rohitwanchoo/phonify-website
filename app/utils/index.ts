@@ -173,3 +173,22 @@ export const timeZones = [
   { value: 'Pacific/Tongatapu', title: '(GMT+13:00) Nuku\'alofa' },
   { value: 'Pacific/Kiritimati', title: '(GMT+14:00) Kiritimati' },
 ]
+
+export function userAvatarWord(fullName: string) {
+  if (!fullName)
+    return ''
+  const splittedNames = fullName?.trim()?.split(' ')
+  let name = ''
+  if (splittedNames.length >= 2) {
+    splittedNames.map((item: string, index: number) => {
+      if (index < 2 && item[0])
+        name += item[0]
+    })
+  }
+  else {
+    name = fullName[0]
+    if (fullName[1])
+      name += fullName[1]
+  }
+  return name?.toUpperCase()
+}

@@ -59,6 +59,8 @@ const data = {
       { title: 'SMS History', url: '/app/sms/sms-history' },
       { title: 'Text Template', url: '/app/sms/text-template' },
     ] },
+    { title: 'Email', url: '/app/email', icon: 'icons:mailbox' },
+
   ],
   'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
