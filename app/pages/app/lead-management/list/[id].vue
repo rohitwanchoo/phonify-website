@@ -2,6 +2,8 @@
 import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
 
+const downloadList = useDownloadList()
+
 const route = useRoute()
 const id = computed(() => route.params.id)
 
@@ -20,10 +22,9 @@ const name = computed(() => route.query.name?.toString())
 
 const start = ref(0)
 const limit = ref(10)
-const excel = ref(false)
 const search = ref('')
 
-const { data: listLeads, status, refresh: leadsRefresh } = await useLazyAsyncData(
+const { data: listLeads, status: listLeadsStatus, refresh: leadsRefresh } = await useLazyAsyncData(
   'list-view-leads',
   () =>
     useApi().post(`/list-data/${id.value}/content?lower_limit=${start.value}&upper_limit=${limit.value}&search=${search.value}`),
@@ -66,14 +67,12 @@ function searchText() {
   <BaseHeader :title="name" :breadcrumbs>
     <template #actions>
       <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" />
-      <Nuxt-link to="/app/campaign/new-campaign">
-        <Button class="h-11">
-          <Icon class="!text-white" name="lucide:download" />
-          Download
-        </Button>
-      </Nuxt-link>
+      <Button class="h-11" @click="downloadList(Number(id))">
+        <Icon class="!text-white" size="20" name="material-symbols:download" />
+        Download
+      </Button>
     </template>
   </BaseHeader>
 
-  <LeadManagementListsLeadsTable :list="listLeads?.data || []" :limit :start :total-rows="listLeads?.total_records" :list-header="listLeads?.list_header" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+  <LeadManagementListsLeadsTable :list="listLeads?.data || []" :limit :start :total-rows="listLeads?.total_records" :list-header="listLeads?.list_header" :loading="listLeadsStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
 </template>

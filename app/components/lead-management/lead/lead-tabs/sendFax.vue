@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { ref } from 'vue'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -19,6 +18,11 @@ const formSchema = toTypedSchema(z.object({
   agentNumber: z.string().min(1, 'Agent number is required'),
 }))
 
+const { data: faxDidData } = await useLazyAsyncData('fax-did-user', () =>
+  useApi().post('/fax-did-user'), {
+  transform: res => res.data,
+})
+
 const { handleSubmit, isSubmitting } = useForm({
   validationSchema: formSchema,
   initialValues: {
@@ -35,6 +39,7 @@ const onSubmit = handleSubmit((vals) => {
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
+      {{ faxDidData }}
       <div class="flex flex-col justify-between gap-6 md:h-[500px]">
         <!-- Form fields section -->
         <div class="flex-1 space-y-4">

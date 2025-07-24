@@ -13,17 +13,15 @@ const props = defineProps<{
 
 const open = defineModel<boolean>('open', { default: false })
 
-const loading = ref(false)
-
 // extension list options
-const { data: extensionList, refresh: extensionRefresh } = await useLazyAsyncData('extension-group-map', () =>
+const { data: extensionList, status: extensionListStatus, refresh: extensionRefresh } = await useLazyAsyncData('extension-group-map', () =>
   useApi().get('/extension-group-map'), {
   transform: res => res.data,
   immediate: false,
 })
 
 // Form Setup
-const { handleSubmit, resetForm, setFieldValue } = useForm({
+const { handleSubmit, isSubmitting, resetForm, setFieldValue } = useForm({
   initialValues: {
     extension: props.initialData?.extension ?? null,
     comment: props.initialData?.comment ?? null,
@@ -39,7 +37,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    loading.value = true
     const response = await useApi().post('/edit-dnc', {
       ...payload,
     })
@@ -65,9 +62,6 @@ const onSubmit = handleSubmit(async (values) => {
       message: `${error?.message}`,
       type: 'error',
     })
-  }
-  finally {
-    loading.value = false
   }
 })
 
@@ -112,9 +106,14 @@ watch(open, async (newVal) => {
                     <SelectValue placeholder="Select Extension" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="option in extensionList" :key="option.extension" :value="option.extension">
-                      {{ option.first_name }} {{ option.last_name }}
+                    <SelectItem v-if="extensionListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in extensionList" :key="option.extension" :value="option.extension">
+                        {{ option.first_name }} {{ option.last_name }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -136,11 +135,11 @@ watch(open, async (newVal) => {
 
           <div class="flex justify-end gap-2 mt-6">
             <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-              <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+              <Icon name="material-symbols:close" size="20" class="mr-1" />
               Close
             </Button>
-            <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
-              <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+            <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
+              <Icon name="material-symbols:save" size="20" class="mr-1" />
               Save
             </Button>
           </div>

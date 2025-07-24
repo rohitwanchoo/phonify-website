@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { cn } from '@/lib/utils'
 import { Input } from '../ui/input'
@@ -23,6 +24,6 @@ function onClear(){
 <template>
   <div :class="cn('relative', props.class)">
     <Input v-model="model" :placeholder="props.placeholder" class="w-full h-11 pr-[30px]" />
-    <Icon @click="onClear" :name="model ? 'lucide:x' : 'lucide:search'" class="absolute top-1/2 right-0.5 -translate-x-1/2 -translate-y-1/2 cursor-pointer" />
+    <Icon @click="onClear" :name="model ? 'material-symbols:close' : 'material-symbols:search'" size="20" class="absolute top-1/2 right-0.5 -translate-x-1/2 -translate-y-1/2 cursor-pointer" />
   </div>
 </template>
