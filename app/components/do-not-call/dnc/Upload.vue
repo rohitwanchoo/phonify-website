@@ -62,7 +62,7 @@ function onNext() {
 <template>
   <Dialog v-model:open="showDialog">
     <DialogTrigger as-child>
-      <Button variant="outline" @click="openCreateListDialog">
+      <Button variant="outline" class="h-11" @click="openCreateListDialog">
         <Icon name="material-symbols:upload" size="20" />
         Upload Excel
       </Button>

@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import { LeadManagementLeadLeadTabsActivity } from '#components';
+import { LeadManagementLeadLeadTabsActivity } from '#components'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
+
+const props = defineProps({
+  activityData: Object,
+  leadData: Object,
+})
 </script>
+
 <template>
-<div class="border rounded-lg">
+  <div class="border rounded-lg">
     <Tabs default-value="activity" class="w-full gap-0">
       <div class=" border-b pb-4 p-2 md:p-4">
         <TabsList class="grid w-full grid-cols-4 p-0">
@@ -26,24 +32,23 @@ import {
           </TabsTrigger>
         </TabsList>
       </div>
-     
-<div class="p-2 bg-[#FAFAFA]">
-  <TabsContent value="activity">
-       <div class="bg-white  rounded-md border border-[#F4F4F5]">
-        <LeadManagementLeadLeadTabsActivity />
-       </div>
+
+      <div class="p-2 bg-[#FAFAFA] h-full lg:max-h-[calc(100vh-260px)] overflow-y-auto">
+        <TabsContent value="activity">
+          <div class="bg-white  rounded-md border border-[#F4F4F5]">
+            <LeadManagementLeadLeadTabsActivity :lead-activity-data="props.activityData" />
+          </div>
         </TabsContent>
         <TabsContent value="text">
-          <LeadManagementLeadLeadTabsSendText />
+          <LeadManagementLeadLeadTabsSendText :lead-data="leadData" />
         </TabsContent>
         <TabsContent value="email">
-           <LeadManagementLeadLeadTabsSendEmail/>
+          <LeadManagementLeadLeadTabsSendEmail :lead-data="leadData" />
         </TabsContent>
         <TabsContent value="fax">
           <LeadManagementLeadLeadTabsSendFax />
         </TabsContent>
-</div>
-        
-      </Tabs>
-</div>
+      </div>
+    </Tabs>
+  </div>
 </template>

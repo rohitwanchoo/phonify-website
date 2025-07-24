@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table'
-import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
@@ -55,7 +53,7 @@ function generateDynamicColumns(headers: string[] = []) {
     columnHelper.display({
       id: 'slNo',
       header: () => h('div', { class: 'text-center w-full' }, '#'),
-      cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.index + 1),
+      cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, props.start + row.index + 1),
     }),
     ...headers.map((header) => {
       return columnHelper.accessor(header, {

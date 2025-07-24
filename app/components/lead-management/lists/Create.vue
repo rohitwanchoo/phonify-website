@@ -93,8 +93,8 @@ function onModelOpen(val: boolean) {
 <template>
   <Dialog v-model:open="showDialog" @update:open="onModelOpen">
     <DialogTrigger as-child>
-      <Button @click="openCreateListDialog">
-        <Icon class="!text-white" name="lucide:plus" />
+      <Button @click="openCreateListDialog" class="h-11">
+        <Icon class="!text-white" name="material-symbols:add" size="20" />
         Create Lists
       </Button>
     </DialogTrigger>

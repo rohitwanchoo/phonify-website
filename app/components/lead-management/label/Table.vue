@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -79,7 +79,7 @@ async function handleDelete() {
       is_deleted: '1'
     })
 
-    if (res?.success) {
+    if (res?.success === true) {
       showToast({
         type: 'success',
         message: res.message,
@@ -152,7 +152,7 @@ function handlePageChange(page: number) {
 
 function changeLimit(val: number | null) {
   if (val !== null) {
-    emits('changeLimit', val)
+    emits('limitChange', val)
   }
 }
 
@@ -168,7 +168,7 @@ const columns = [
   columnHelper.accessor('id', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
+      return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
     },
   }),
 

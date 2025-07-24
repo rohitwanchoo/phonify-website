@@ -1,9 +1,23 @@
 <script setup lang="ts">
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
 import { Icon } from '#components'
-import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import {
+  createColumnHelper,
+  FlexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useVueTable,
+} from '@tanstack/vue-table'
 import { useConfirmDialog } from '@vueuse/core'
+
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
-import { h, ref } from 'vue'
+import { valueUpdater } from '@/components/ui/table/utils'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import {
@@ -57,9 +71,6 @@ async function handleDelete(row: any) {
   }
   await handleDeleteConfirm()
 }
-
-const sorting = ref([])
-
 const columns = [
   columnHelper.display({
     id: 'siNo',
@@ -156,21 +167,35 @@ const columns = [
   }),
 ]
 
+const sorting = ref<SortingState>([])
+const columnFilters = ref<ColumnFiltersState>([])
+const columnVisibility = ref<VisibilityState>({})
+const rowSelection = ref({})
+
 const table = useVueTable({
-  get data() { return props.list },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  // initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  // pageCount: last_page.value,
+  // rowCount: total.value,
   state: {
+    // pagination: {
+    //   pageIndex: current_page.value,
+    //   pageSize: per_page.value,
+    // },
     get sorting() { return sorting.value },
-  },
-  onSortingChange: (updaterOrValue) => {
-    if (typeof updaterOrValue === 'function') {
-      sorting.value = updaterOrValue(sorting.value)
-    }
-    else {
-      sorting.value = updaterOrValue
-    }
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
   },
 })
 
