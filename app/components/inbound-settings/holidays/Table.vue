@@ -18,7 +18,6 @@ import {
 import { ChevronsUpDown } from 'lucide-vue-next'
 
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -28,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -40,8 +38,6 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const sheet = ref(false)
-const selectedCampaign = ref<any>(null)
 const isDialogOpen = ref(false)
 const selectedRowData = ref<any>(null)
 const loading = ref(false)
@@ -92,20 +88,20 @@ const columns = [
   }),
 
   columnHelper.display({
-  id: 'date',
-  header: ({ column }) =>
-    h('div', { class: 'text-center' }, h(Button, {
-      class: 'text-sm font-normal',
-      variant: 'ghost',
-      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-    }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-  cell: ({ row }) => {
-    const m = row.original.month
-    const d = row.original.day
-    const label = `${monthNames[m]} ${d.padStart(2, '0')}`
-    return h('div', { class: 'text-center font-normal text-sm' }, label)
-  },
-}),
+    id: 'date',
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => {
+      const m = row.original.month
+      const d = row.original.day
+      const label = `${monthNames[m]} ${d.padStart(2, '0')}`
+      return h('div', { class: 'text-center font-normal text-sm' }, label)
+    },
+  }),
 
   columnHelper.display({
     id: 'actions',

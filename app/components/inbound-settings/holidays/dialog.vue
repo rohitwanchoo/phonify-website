@@ -2,21 +2,40 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
+import { computed, watch } from 'vue'
 import * as z from 'zod'
-import { ref, watch, computed } from 'vue'
 
+import { Button } from '~/components/ui/button'
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '~/components/ui/dialog'
-import {
-  FormControl, FormField, FormItem, FormMessage, FormLabel
-} from '~/components/ui/form'
 
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '~/components/ui/select'
-import { Button } from '~/components/ui/button'
+
+const props = defineProps<{
+  open: boolean
+  rowData?: { id: number, name: string, month: string, day: string }
+}>()
+
+const emit = defineEmits(['update:open', 'submit'])
 
 const monthOptions = [
   { value: '01', label: 'January' },
@@ -38,12 +57,6 @@ const dayOptions = Array.from({ length: 31 }, (_, i) => {
   return { value: d, label: d }
 })
 
-const props = defineProps<{
-  open: boolean
-  rowData?: { id: number; name: string; month: string; day: string }
-}>()
-
-const emit = defineEmits(['update:open', 'submit'])
 const isEditMode = computed(() => !!props.rowData)
 
 const formSchema = toTypedSchema(z.object({
@@ -61,9 +74,10 @@ watch(() => props.open, (isOpen) => {
     setValues({
       name: props.rowData.name,
       month: props.rowData.month,
-      day: props.rowData.day
+      day: props.rowData.day,
     })
-  } else {
+  }
+  else {
     resetForm()
   }
 })

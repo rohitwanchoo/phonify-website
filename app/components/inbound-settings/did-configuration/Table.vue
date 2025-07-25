@@ -11,7 +11,6 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
@@ -30,9 +29,7 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -129,24 +126,24 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-  return h('div', { class: 'flex items-center justify-center gap-2' }, [
-    // Phone number
-    h('div', row.original.phone_number),
-    
-    // Three status tags
-    h('div', { class: 'flex gap-1' }, [
-      h('div', { 
-        class: 'bg-blue-50 border border-blue-600 text-primary text-xs px-2 py-0.5 rounded-sm' 
-      }, 'Default'),
-      h('div', { 
-        class: 'bg-green-50 border border-green-600 text-primary text-xs px-2 py-0.5 rounded-sm' 
-      }, 'Voice'),
-      h('div', { 
-        class: 'bg-purple-50 border border-purple-600 text-primary text-xs px-2 py-0.5 rounded-sm' 
-      }, 'Configured')
-    ])
-  ])
-},
+      return h('div', { class: 'flex items-center justify-center gap-2' }, [
+        // Phone number
+        h('div', row.original.phone_number),
+
+        // Three status tags
+        h('div', { class: 'flex gap-1' }, [
+          h('div', {
+            class: 'bg-blue-50 border border-blue-600 text-primary text-xs px-2 py-0.5 rounded-sm',
+          }, 'Default'),
+          h('div', {
+            class: 'bg-green-50 border border-green-600 text-primary text-xs px-2 py-0.5 rounded-sm',
+          }, 'Voice'),
+          h('div', {
+            class: 'bg-purple-50 border border-purple-600 text-primary text-xs px-2 py-0.5 rounded-sm',
+          }, 'Configured'),
+        ]),
+      ])
+    },
   }),
 
   columnHelper.accessor('c_name', {
@@ -245,8 +242,7 @@ const columns = [
           }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
         h(DropdownMenuContent, { align: 'end' }, () => [
           h(DropdownMenuItem, {
-            onClick: () => router.push({path: '/app/inbound-settings/did-configuration/edit',
-    query: { id: row.original.id }}),
+            onClick: () => router.push({ path: '/app/inbound-settings/did-configuration/edit', query: { id: row.original.id } }),
             class: 'flex items-center gap-2',
           }, [
             h(Edit, { class: 'h-4 w-4 text-primary' }),
@@ -367,7 +363,7 @@ function handlePageChange(page: number) {
             <SelectContent>
               <SelectItem v-for="n in 15" :key="n" :value="n">
                 {{ n }}
-            </SelectItem>
+              </SelectItem>
             </SelectContent>
           </Select>
         </span>

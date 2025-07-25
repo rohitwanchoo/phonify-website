@@ -16,6 +16,7 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
 
+const emit = defineEmits(['submit'])
 const speed = ref([1])
 const pitch = ref([0])
 
@@ -25,23 +26,36 @@ const formSchema = toTypedSchema(z.object({
   text: z.string().min(1, 'Text is required'),
 }))
 
-const { handleSubmit } = useForm({
+const { handleSubmit, validate, values } = useForm({
   validationSchema: formSchema,
 })
 
-// const onSubmit = handleSubmit((values) => {
-//   console.log('Text to audio input:', values)
-// })
+// Expose the validate function and form values to parent component
+defineExpose({
+  validateForm: async () => {
+    const { valid, errors } = await validate()
+    return { valid, errors, values }
+  },
+})
+
+// Handle form submission internally if needed
+const onSubmit = handleSubmit((values) => {
+  emit('submit', {
+    ...values,
+    speed: speed.value[0],
+    pitch: pitch.value[0],
+  })
+})
 </script>
 
 <template>
   <form class="space-y-4 w-full h-full flex flex-col mt-4" @submit.prevent="onSubmit">
     <!-- Language and Voice Dropdowns in same row -->
-    <div class="flex gap-4 w-full">
+    <div class="grid grid-cols-2 gap-4 w-full">
       <!-- Language Dropdown -->
-      <FormField v-slot="{ componentField }" name="language" class="flex-1">
-        <FormItem class="w-full">
-          <label class="text-sm font-medium text-primary"> Language</label>
+      <FormField v-slot="{ componentField }" name="language">
+        <FormItem class="w-full flex flex-col justify-start">
+          <label class="text-sm font-medium text-primary">Language</label>
           <FormControl>
             <Select v-bind="componentField">
               <SelectTrigger class="w-full p-5">
@@ -60,13 +74,13 @@ const { handleSubmit } = useForm({
               </SelectContent>
             </Select>
           </FormControl>
-          <FormMessage class="text-xs" />
+          <FormMessage class="text-xs mt-1" />
         </FormItem>
       </FormField>
 
       <!-- Voice Dropdown -->
-      <FormField v-slot="{ componentField }" name="voice" class="flex-1">
-        <FormItem class="w-full">
+      <FormField v-slot="{ componentField }" name="voice">
+        <FormItem class="w-full flex flex-col justify-start">
           <label class="text-sm font-medium text-primary">Voice Name</label>
           <FormControl>
             <Select v-bind="componentField">
@@ -86,7 +100,7 @@ const { handleSubmit } = useForm({
               </SelectContent>
             </Select>
           </FormControl>
-          <FormMessage class="text-xs" />
+          <FormMessage class="text-xs mt-1" />
         </FormItem>
       </FormField>
     </div>
@@ -137,7 +151,9 @@ const { handleSubmit } = useForm({
     <FormField v-slot="{ componentField }" name="text">
       <FormItem class="w-full">
         <label class="text-sm font-medium text-primary">Text</label>
-        <Textarea id="description" placeholder="Enter here..." class="w-full min-h-[100px]" />
+        <FormControl>
+          <Textarea v-bind="componentField" placeholder="Enter here..." class="w-full min-h-[100px]" />
+        </FormControl>
         <FormMessage class="text-xs" />
       </FormItem>
     </FormField>

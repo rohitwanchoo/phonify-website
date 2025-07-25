@@ -2,8 +2,8 @@
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
-import * as z from 'zod'
 import { useRouter } from 'vue-router'
+import * as z from 'zod'
 
 import {
   FormControl,
@@ -92,6 +92,18 @@ function getCountryLabel(phoneCode: string) {
   return country ? `${country.name} (+${country.phonecode})` : 'Select Country'
 }
 
+function formatPhoneInput(e: Event) {
+  const input = e.target as HTMLInputElement
+  // Get raw digits only
+  let value = input.value.replace(/\D/g, '')
+  // Limit to 10 digits
+  value = value.slice(0, 10)
+  // Update the form value with raw digits
+  setFieldValue('phoneNumber', value)
+  // Format the display value
+  input.value = value.length === 10 ? formatNumber(value) : value
+}
+
 const onSubmit = handleSubmit((values) => {
   loading.value = true
   console.log('Form submitted with values:', values)
@@ -99,8 +111,7 @@ const onSubmit = handleSubmit((values) => {
   // Simulate API call
   setTimeout(() => {
     loading.value = false
-    router.push({path: '/app/inbound-settings/did-configuration/edit',
-    query: { id: row.original.id }})
+    router.push({ path: '/app/inbound-settings/did-configuration' })
   }, 1000)
 })
 
@@ -164,11 +175,12 @@ function onCancel() {
                         </FormField>
                         <Input
                           type="tel"
-                          maxlength="10"
+                          inputmode="numeric"
                           placeholder="Enter Phone Number"
                           class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
                           v-bind="componentField"
-                          @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                          :value="values.phoneNumber?.length === 10 ? formatNumber(values.phoneNumber) : values.phoneNumber"
+                          @input="formatPhoneInput"
                         />
                       </div>
                     </div>
