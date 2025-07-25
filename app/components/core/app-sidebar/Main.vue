@@ -59,6 +59,7 @@ const data = {
       { title: 'SMS History', url: '/app/sms/sms-history' },
       { title: 'Text Template', url: '/app/sms/text-template' },
     ] },
+    { title: 'Fax', url: '/app/fax', icon: 'icons:fax' },
     { title: 'Email', url: '/app/email', icon: 'icons:mailbox' },
 
   ],
