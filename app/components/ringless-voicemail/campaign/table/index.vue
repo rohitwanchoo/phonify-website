@@ -62,6 +62,7 @@ const emits = defineEmits(['refresh'])
 const sheet = ref(false)
 const selectedCampaign = ref<any>(null)
 const campaignLoadingId = ref<number | null>(null)
+const statusChangeLoadingId = ref<number | null>(null)
 const router = useRouter()
 
 // Confirmation dialog for deleting
@@ -73,6 +74,7 @@ const {
 } = useConfirmDialog()
 
 const selectedCampaignForDelete = ref<number | null>(null)
+const selectedCampaignForDuplicate = ref<number | null>(null)
 
 function openSheet(id: number) {
   campaignLoadingId.value = id
@@ -126,6 +128,69 @@ async function handleDelete() {
 function deleteConfirmHandler() {
   deleteConfirm()
   handleDelete()
+}
+
+async function handleDuplicate() {
+  if (!selectedCampaignForDuplicate.value)
+    return
+  try {
+    const res = await useApi().post('/ringless/campaign/copy', {
+      c_id: selectedCampaignForDuplicate.value,
+    })
+
+    if (res.success) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message || 'Failed to delete campaign',
+        type: 'error',
+      })
+    }
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedCampaignForDelete.value = null
+  }
+}
+
+async function handleStatusChange(row: any) {
+  statusChangeLoadingId.value = row.original.id // Set loading state
+  try {
+    const res = await useApi().post('/ringless/campaign/update-status', {
+      listId: row.original.id,
+      status: row.original.status == 0 ? '1' : '0',
+    })
+
+    if (!res.success) {
+      throw new Error(res.message || 'Failed to update status')
+    }
+
+    showToast({
+      message: 'Status updated successfully',
+      type: 'success',
+    })
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: err.message || 'Failed to update status',
+      type: 'error',
+    })
+    throw err
+  }
+  finally {
+    statusChangeLoadingId.value = null
+  }
 }
 
 const columnHelper = createColumnHelper<any>()
@@ -231,10 +296,19 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        class: 'data-[state=checked]:bg-green-600 cursor-pointer',
+        class: cn(
+          'data-[state=checked]:bg-green-600',
+          statusChangeLoadingId.value === row.original.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+        ),
         modelValue: row.original.status === '1',
+        disabled: statusChangeLoadingId.value === row.original.id,
+        onClick: () => {
+          if (statusChangeLoadingId.value !== row.original.id) {
+            handleStatusChange(row)
+          }
+        },
       })),
-    sortingFn: (rowA, rowB, columnId) => {
+    sortingFn: (rowA, rowB) => {
       const valueA = rowA.original.status === '1'
       const valueB = rowB.original.status === '1'
       if (valueA === valueB)
@@ -246,7 +320,6 @@ const columns = [
       return 0
     },
   }),
-
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
@@ -279,7 +352,8 @@ const columns = [
           revealDeleteConfirm()
         },
         onDuplicate: () => {
-          console.log('Duplicate campaign:', row.original.id)
+          selectedCampaignForDuplicate.value = row.original.id
+          handleDuplicate()
         },
       }),
     ]),
