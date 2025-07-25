@@ -1,6 +1,28 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+
+const start = ref(0)
+const limit = ref(10)
+
+const { data: didList, status, refresh } = await useLazyAsyncData('did-configuration-list', () =>
+  useApi().post('/did', {
+    // TODO: Dummy pagination
+    start: start.value,
+    limit: limit.value,
+  }), {
+  transform: res => res,
+})
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return refresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refresh()
+}
 </script>
 
 <template>
@@ -23,7 +45,7 @@ import { Input } from '~/components/ui/input'
 
     <!-- TABLE -->
     <div>
-      <InboundSettingsDidConfigurationTable />
+      <InboundSettingsDidConfigurationTable :loading="status === 'pending'" :total-rows="didList?.total_rows " :start :limit :list="didList?.data" @refresh="refresh" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>
