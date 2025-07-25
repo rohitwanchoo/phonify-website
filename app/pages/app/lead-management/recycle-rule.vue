@@ -91,6 +91,6 @@ async function handleClearFilter() {
   </BaseHeader>
   <!-- TABLE -->
   <div>
-    <LeadManagementRecycleRuleTable :limit="limit" :total-rows="recycleRules?.total" :start="start" :list="recycleRules?.data || []" :loading="recycleRuleStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refreshRecycleRule" @edit="openEditDialog" />
+    <LeadManagementRecycleRuleTable :limit="limit" :total-rows="recycleRules?.total" :start="start" :list="recycleRules?.data || []" :loading="recycleRuleStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="openEditDialog" />
   </div>
 </template>
