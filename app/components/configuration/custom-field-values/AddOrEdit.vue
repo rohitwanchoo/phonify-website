@@ -1,44 +1,32 @@
-<!-- components/CustomFieldDialog.vue -->
 <script setup lang="ts">
+import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { computed, watch } from 'vue'
 import * as z from 'zod'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
-const props = defineProps({
-  // Optional prop for edit mode
-  rowData: {
-    type: Object,
-    default: null,
-  },
-  refresh: {
-    type: Function,
-    required: true,
-  },
-})
-const emit = defineEmits(['update:open'])
+const props = defineProps<{
+  initialData: Record<string, any> | null
+}>()
+
+const open = defineModel<boolean>('open', { default: false })
+
+const { user } = useAuth()
+
 // Computed property to determine if we're in edit mode
-const isEditMode = computed(() => Boolean(props.rowData?.id))
+const isEditMode = computed(() => Boolean(props.initialData?.id))
 
-const { data: fieldLabelList, refresh: refreshLabels } = await useLazyAsyncData('field-label-list', () =>
+// field list options
+const { data: fieldLabelList, status: fieldLabelListStatus, refresh: refreshLabels } = await useLazyAsyncData('field-label-list', () =>
   useApi().get('/custom-field-labels', {
   }), {
-  transform: (res) => {
-    return res.data
-  },
+  transform: res => res.data,
   immediate: false,
 })
 
@@ -50,67 +38,57 @@ const formSchema = toTypedSchema(
   }),
 )
 
-const { handleSubmit, resetForm, isSubmitting, setValues } = useForm({
+// Form Setup
+const { handleSubmit, isSubmitting, resetForm, setFieldValue } = useForm({
   validationSchema: formSchema,
-})
-
-// Initialize form with empty values
-resetForm({
-  values: {
-    fieldLabel: '',
-    link: '',
+  initialValues: {
+    fieldLabel: props.initialData?.title_match ?? '',
+    link: props.initialData?.title_links ?? '',
   },
 })
 
-// Populate form when dialog opens or rowData changes
-watch(() => props.open, (isOpen) => {
-  if (isOpen && isEditMode.value) {
-    // Edit mode - populate with rowData
-    setValues({
-      fieldLabel: props.rowData.title_match,
-      link: props.rowData.title_links,
-    })
-  }
-  else {
-    // Add mode - reset form
-    resetForm({
-      values: {
-        fieldLabel: '',
-        link: '',
-      },
-    })
-  }
-}, { immediate: true })
-
-// Handle form submission
+// Submit Handler
 const onSubmit = handleSubmit(async (values) => {
-  try {
-    let res
-    if (isEditMode.value) {
-      res = await useApi().post(`/custom-field-value/${props.rowData.id}`, {
-        title_match: values.fieldLabel,
-        title_links: values.link,
-      })
-    }
-    else {
-      // Add API call
-      res = await useApi().put('custom-field-labels-value', {
-        title_match: values.fieldLabel,
-        title_links: values.link,
-      })
-    }
 
-    if (res?.success) {
+  const payload = ref({})
+  // edit
+  if (isEditMode.value) {
+    payload.value = {
+      title_match: values.fieldLabel,
+      title_links: values.link,
+    }
+  }
+  // add
+  else {
+    payload.value = {
+      title_match: values.fieldLabel,
+      title_links: values.link,
+      is_deleted: false,
+      user_id: user.value?.id,
+    }
+  }
+
+  try {
+    const response = isEditMode.value
+      ? await useApi().post(`/custom-field-value/${props.initialData?.id}`, {
+        ...payload.value,
+      })
+      : await useApi().put('custom-field-labels-value', {
+        ...payload.value,
+      })
+
+    if (response.success === true) {
       showToast({
-        message: res.message,
+        message: response.message,
         type: 'success',
       })
-      emits('update:open', false)
-      props.refresh()
+      resetForm()
+      open.value = false
+      refreshNuxtData('custom-field-list')
     }
     else {
       showToast({
-        message: res.message,
+        message: response.message,
         type: 'error',
       })
     }
@@ -122,20 +100,29 @@ const onSubmit = handleSubmit(async (values) => {
     })
   }
 })
-const open = defineModel('open', { type: Boolean, default: false })
-watch(open, (val) => {
-  if (val) {
-    refreshLabels()
+
+watch(open, async (newVal) => {
+  if (newVal) {
+    await Promise.all([
+      refreshLabels(),
+    ])
+    // Set initial values
+    if (props.initialData?.id) {
+      setFieldValue('fieldLabel', props.initialData.title_match)
+      setFieldValue('link', props.initialData.title_links)
+      resetForm({
+        values: {
+          fieldLabel: props.initialData.title_match,
+          link: props.initialData.title_links,
+        },
+      })
+    }
   }
 })
-
-function onOpenChange(value: boolean) {
-  emit('update:open', value)
-}
 </script>
 
 <template>
-  <Dialog :open="open" @update:open="onOpenChange">
+  <Dialog v-model:open="open">
     <DialogContent>
       <DialogHeader>
         <DialogTitle>
@@ -143,8 +130,7 @@ function onOpenChange(value: boolean) {
         </DialogTitle>
       </DialogHeader>
       <Separator />
-
-      <form class="space-y-4 mt-4" @submit.prevent="onSubmit">
+      <form class="space-y-4 mt-4" @submit="onSubmit">
         <!-- Field Label Dropdown -->
         <FormField v-slot="{ componentField }" name="fieldLabel">
           <FormItem>
@@ -156,13 +142,18 @@ function onOpenChange(value: boolean) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem
-                  v-for="label in fieldLabelList"
-                  :key="label.id"
-                  :value="label.title"
-                >
-                  {{ label.title }}
+                <SelectItem v-if="fieldLabelListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                  <Icon name="eos-icons:loading" />
                 </SelectItem>
+                <template v-else>
+                  <SelectItem
+                    v-for="label in fieldLabelList"
+                    :key="label.id"
+                    :value="label.title"
+                  >
+                    {{ label.title }}
+                  </SelectItem>
+                </template>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -193,8 +184,8 @@ function onOpenChange(value: boolean) {
             </DialogClose>
           </Button>
           <Button type="submit" class="flex-1 h-11" :disabled="isSubmitting" :loading="isSubmitting">
-            <Icon name="material-symbols:save" size="20" class="mr-2" />
-            {{ isEditMode ? 'Update' : 'Save' }}
+            <Icon name="material-symbols:save" size="20" />
+            Update
           </Button>
         </DialogFooter>
       </form>

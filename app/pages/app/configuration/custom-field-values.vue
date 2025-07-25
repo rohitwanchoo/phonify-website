@@ -1,14 +1,41 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button/'
-import { Input } from '~/components/ui/input'
 
-const { data: customFieldList, status: customFieldStatus, refresh: customFieldRefresh } = await useLazyAsyncData('custom-field-list', async () => {
-  const response = await useApi().get('custom-field-labels-values', {})
-  return response
+const start = ref(0)
+const limit = ref(10)
+const search = ref('')
+
+const { data: customFieldList, status: customFieldStatus, refresh: customFieldRefresh } = await useLazyAsyncData('custom-field-list', async () =>
+  useApi().get('/custom-field-labels-values', {
+    lower_limit: start.value,
+    upper_limit: limit.value,
+    search: search.value,
+  }), {
+  transform: res => res,
 })
 
 // Dialog state management
 const addDialogOpen = ref(false)
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return customFieldRefresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return customFieldRefresh()
+}
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  customFieldRefresh()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
 </script>
 
 <template>
@@ -16,31 +43,20 @@ const addDialogOpen = ref(false)
     <!-- HEADER -->
     <BaseHeader title="Custom Field Values">
       <template #actions>
-        <div class="relative mt-2 md:mt-0">
-          <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
         <!-- Add Button triggering the dialog -->
-        <Button @click="addDialogOpen = true">
-          <Icon class="!text-white" name="lucide:plus" />
+        <Button class="h-11" @click="addDialogOpen = true">
+          <Icon class="!text-white" size="20" name="material-symbols:add" />
           Add Custom Field Value
         </Button>
-        <!-- Combined Dialog Component -->
-        <ConfigurationCustomFieldValuesDialog
-          :open="addDialogOpen"
-          :refresh="customFieldRefresh"
-          @update:open="addDialogOpen = $event"
-        />
+        <!-- ADD Custom Fieid Value -->
+        <ConfigurationCustomFieldValuesAddOrEdit v-model:open="addDialogOpen" :initial-data="null" />
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <ConfigurationCustomFieldValuesTable
-        :list="customFieldList?.data"
-        :loading="customFieldStatus === 'pending'"
-        :refresh="customFieldRefresh"
-      />
+      <ConfigurationCustomFieldValuesTable :limit="limit" :total-rows="customFieldList?.data.length" :start="start" :list="customFieldList?.data || []" :loading="customFieldStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>

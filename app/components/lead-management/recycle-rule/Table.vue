@@ -16,7 +16,6 @@ import {
 } from '@tanstack/vue-table'
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { h, ref } from 'vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -47,7 +46,7 @@ const props = withDefaults(defineProps<{
 })
 
 // Computed pagination variables
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const emits = defineEmits(['pageNavigation', 'changeLimit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -110,7 +109,7 @@ async function handleDelete() {
         type: 'error',
       })
     }
-    emits('refresh')
+    refreshNuxtData('recycle-rule')
   }
   catch (err) {
     showToast({

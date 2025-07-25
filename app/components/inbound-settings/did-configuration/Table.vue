@@ -44,62 +44,46 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const loading = ref(false)
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: DidConfiguration
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
+const emits = defineEmits(['pageNavigation', 'changeLimit', 'refresh'])
 const router = useRouter()
 
-// Sample data with the new fields
-const dummyData = ref([
-  {
-    id: 1,
-    phone_number: '+1 (555) 123 4567',
-    c_name: 'John Smith, Jane Doe',
-    destination_type: 'Extension',
-    destination: 'John Doe - 12345',
-    sms: true,
-    status: 'Root Admin - 54321',
-    exclusive_user: true,
-  },
-  {
-    id: 2,
-    phone_number: '+1 (555) 987 6543',
-    c_name: 'Alice Johnson',
-    destination_type: 'DID',
-    destination: 'Alice Johnson - 67890',
-    sms: false,
-    status: 'Admin - 12345',
-    exclusive_user: false,
-  },
-  {
-    id: 3,
-    phone_number: '+1 (555) 456 7890',
-    c_name: 'Bob Williams, Sarah Connor',
-    destination_type: 'Extension',
-    destination: 'Bob Williams - 34567',
-    sms: true,
-    status: 'User - 98765',
-    exclusive_user: true,
-  },
-  {
-    id: 4,
-    phone_number: '+1 (555) 789 0123',
-    c_name: 'Emily Davis',
-    destination_type: 'DID',
-    destination: 'Emily Davis - 45678',
-    sms: false,
-    status: 'Root Admin - 54321',
-    exclusive_user: false,
-  },
-  {
-    id: 5,
-    phone_number: '+1 (555) 234 5678',
-    c_name: 'Michael Brown, Lisa Ray',
-    destination_type: 'Extension',
-    destination: 'Michael Brown - 78901',
-    sms: true,
-    status: 'Admin - 12345',
-    exclusive_user: true,
-  },
-])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
+
+const destinationTypes = {
+  0: 'IVR',
+  1: 'Extension',
+  2: 'Voicemail',
+  3: 'DNC',
+  4: 'DID',
+  5: 'Conferencing',
+  6: 'Fax',
+  8: 'Ring-Group',
+}
+
+interface DidConfiguration {
+  cli: string
+  voice: string
+  status: string
+  default_did: string
+  conf_id: string
+  cnam: string
+  dest_type: string
+  forward_number: string
+  sms: string
+  set_exclusive_for_user: string
+}
 
 // Dummy meta data
 const meta = ref({
@@ -109,7 +93,7 @@ const meta = ref({
   total: 50,
 })
 
-const columnHelper = createColumnHelper<any>()
+const columnHelper = createColumnHelper<DidConfiguration>()
 
 const columns = [
   columnHelper.display({
@@ -118,27 +102,31 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
 
-  columnHelper.accessor('phone_number', {
+  columnHelper.accessor('cli', {
     header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-center text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      h('div', { class: 'text-center' }, 'Phone Number'),
     cell: ({ row }) => {
-      return h('div', { class: 'flex items-center justify-center gap-2' }, [
+      const voice = row.original.voice
+      const default_did = row.original.default_did
+      const conf_id = row.original.conf_id
+      return h('div', { class: 'flex items-center justify-center gap-2 ' }, [
         // Phone number
-        h('div', row.original.phone_number),
+        h('div', formatNumber(row.original.cli)),
 
         // Three status tags
         h('div', { class: 'flex gap-1' }, [
-          h('div', {
+          default_did
+          && h('div', {
             class: 'bg-blue-50 border border-blue-600 text-primary text-xs px-2 py-0.5 rounded-sm',
           }, 'Default'),
-          h('div', {
+
+          voice
+          && h('div', {
             class: 'bg-green-50 border border-green-600 text-primary text-xs px-2 py-0.5 rounded-sm',
           }, 'Voice'),
-          h('div', {
+
+          conf_id
+          && h('div', {
             class: 'bg-purple-50 border border-purple-600 text-primary text-xs px-2 py-0.5 rounded-sm',
           }, 'Configured'),
         ]),
@@ -146,7 +134,7 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('c_name', {
+  columnHelper.accessor('cnam', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -154,11 +142,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['C Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.c_name)
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.cnam || '-')
     },
   }),
 
-  columnHelper.accessor('destination_type', {
+  columnHelper.accessor('dest_type', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -166,11 +154,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Destination Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.destination_type)
+      return h('div', { class: 'text-center font-normal text-sm' }, destinationTypes[Number(row.original.dest_type) as keyof typeof destinationTypes] || '-')
     },
   }),
 
-  columnHelper.accessor('destination', {
+  columnHelper.accessor('extension', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -178,7 +166,8 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Destination', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.destination)
+      // TODO: Need to add bind extension here currently is not available from API
+      return h('div', { class: 'text-center font-normal text-sm' }, '-')
     },
   }),
 
@@ -199,7 +188,6 @@ const columns = [
       }, isSMS ? 'Yes' : 'No')
     },
   }),
-
   columnHelper.accessor('status', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
@@ -208,11 +196,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.status)
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.status || '-')
     },
   }),
 
-  columnHelper.accessor('exclusive_user', {
+  columnHelper.accessor('set_exclusive_for_user', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -220,13 +208,13 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Exclusive User', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const isExclusive = row.original.exclusive_user
+      const isExclusive = row.original.set_exclusive_for_user
       return h('div', {
         class: cn(
           'text-center font-normal text-sm py-1 px-3 inline-flex items-center justify-center w-full',
-          isExclusive ? 'text-green-600' : 'text-red-600',
+          isExclusive === '1' ? 'text-green-600' : 'text-red-600',
         ),
-      }, isExclusive ? 'Yes' : 'No')
+      }, isExclusive === '1' ? 'Yes' : 'No')
     },
   }),
 
@@ -268,7 +256,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value || [] },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -289,8 +277,10 @@ const table = useVueTable({
 })
 
 function handlePageChange(page: number) {
-  console.log('Page changed to:', page)
-  meta.value.current_page = page
+  emits('pageNavigation', page)
+}
+function changeLimit(val: number) {
+  emits('changeLimit', val)
 }
 </script>
 
@@ -350,13 +340,13 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -368,14 +358,14 @@ function handlePageChange(page: number) {
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

@@ -15,8 +15,14 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { useConfirmDialog } from '@vueuse/core'
-
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
@@ -29,19 +35,24 @@ import {
   TableRow,
 } from '~/components/ui/table'
 
-const props = defineProps<{
-  list?: any
-  loading?: boolean
-  refresh: () => void
-}>()
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
 
-const columnHelper = createColumnHelper<any>()
-const editDialogOpen = ref(false)
-const editRow = ref<any>(null)
-const dropdownOpen = ref<number | null>(null)
-const selectedRowForDelete = ref<any>(null)
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'changeLimit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-// Integrated confirm dialog logic from reference code
+// Confirmation dialog for deleting
 const {
   isRevealed: showDeleteConfirm,
   reveal: revealDeleteConfirm,
@@ -49,9 +60,14 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-function openEditDialog(row: any) {
-  editRow.value = row.original
-  editDialogOpen.value = true
+const isEditDialogOpen = ref(false)
+const selectedRowData = ref<any>(null)
+const dropdownOpen = ref<number | null>(null)
+const selectedIdForDelete = ref()
+
+function onEdit(row: any) {
+  selectedRowData.value = row
+  isEditDialogOpen.value = true
 }
 
 function openDropdown(rowIdx: number) {
@@ -62,20 +78,60 @@ function closeDropdown() {
   dropdownOpen.value = null
 }
 
-async function handleDelete(row: any) {
-  selectedRowForDelete.value = row.original
-  const { isCanceled } = await revealDeleteConfirm()
-  if (isCanceled) {
-    selectedRowForDelete.value = null
+async function handleDelete() {
+  if (!selectedIdForDelete.value)
     return
+
+  try {
+    const res = await useApi().get(`/delete-custom-field-value/${selectedIdForDelete.value}`)
+
+    if (res.success === true) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+    refreshNuxtData('custom-field-list')
   }
-  await handleDeleteConfirm()
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedIdForDelete.value = null
+  }
 }
+
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
+
+const columnHelper = createColumnHelper<any>()
 const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Sl. No'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
   columnHelper.accessor('title_match', {
     header: ({ column }) =>
@@ -128,7 +184,7 @@ const columns = [
         size: 'sm',
         variant: 'outline',
         class: 'flex items-center gap-2 border-primary text-primary',
-        onClick: () => openEditDialog(row),
+        onClick: () => onEdit(row.original),
       }, [
         h(Icon, { name: 'material-symbols:edit-square-outline', class: 'text-primary' }),
         'Edit',
@@ -156,7 +212,10 @@ const columns = [
         h(DropdownMenuContent, { align: 'end', class: 'min-w-[120px]' }, [
           h(DropdownMenuItem, {
             class: 'text-red-600 cursor-pointer flex items-center gap-2',
-            onClick: () => handleDelete(row),
+            onClick: () => {
+              selectedIdForDelete.value = row.original.id
+              revealDeleteConfirm()
+            },
           }, [
             h(Icon, { name: 'material-symbols:delete-outline', class: 'text-base' }),
             'Delete',
@@ -166,7 +225,6 @@ const columns = [
     ]),
   }),
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
@@ -183,59 +241,21 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  // initialState: { pagination: { pageSize: props.limit } },
+  initialState: { pagination: { pageSize: props.limit } },
   manualPagination: true,
-  // pageCount: last_page.value,
-  // rowCount: total.value,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
-    // pagination: {
-    //   pageIndex: current_page.value,
-    //   pageSize: per_page.value,
-    // },
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
   },
 })
-
-// Mock pagination meta data
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  total: 120,
-  last_page: 12,
-})
-const loading = ref(false)
-
-function handlePageChange(page: number) {
-  meta.value.current_page = page
-}
-
-async function handleDeleteConfirm() {
-  if (!selectedRowForDelete.value)
-    return
-  const id = selectedRowForDelete.value.id
-  useApi().get(`/delete-custom-field-value/${id}`).then((response) => {
-    showToast({
-      message: response.message,
-      type: response.success ? 'success' : 'error',
-    })
-
-    if (response.success) {
-      if (typeof props.refresh === 'function') {
-        props.refresh()
-      }
-    }
-  }).catch((error) => {
-    console.error('Error deleting custom field value:', error)
-    showToast({
-      message: 'Failed to delete custom field value.',
-      type: 'error',
-    })
-  })
-  selectedRowForDelete.value = null
-}
 </script>
 
 <template>
@@ -280,12 +300,12 @@ async function handleDeleteConfirm() {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="meta.per_page">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -296,29 +316,24 @@ async function handleDeleteConfirm() {
             </SelectContent>
           </Select>
         </span>
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
-      <!-- Replaced with the new combined dialog component -->
-      <ConfigurationCustomFieldValuesDialog
-        v-model:open="editDialogOpen"
-        :row-data="editRow"
-        :refresh="props.refresh"
-        @update:open="val => editDialogOpen = val"
-      />
     </div>
     <div class="space-x-2">
+      <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)"
-        :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)"
-        :last-page="Number(meta?.last_page)"
-        @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
+
+  <!-- EDIT Custom Field Value -->
+  <ConfigurationCustomFieldValuesAddOrEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
+  <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
-    :confirm="deleteConfirm"
+    :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
     title="Delete Custom Field Value"
     description="You are about to delete this custom field value. Do you wish to proceed?"
