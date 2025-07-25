@@ -38,16 +38,14 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
+const props = defineProps<Props>()
 const isDialogOpen = ref(false)
 const selectedRowData = ref<any>(null)
-const loading = ref(false)
-const dummyData = ref([
-  { id: 1, name: 'New Year', month: '01', day: '01' },
-  { id: 2, name: 'Republic Day', month: '01', day: '26' },
-  { id: 3, name: 'Holi', month: '03', day: '08' },
-  { id: 4, name: 'Independence Day', month: '08', day: '15' },
-  { id: 5, name: 'Christmas', month: '12', day: '25' },
-])
+
+interface Props {
+  list: any[]
+  loading: boolean
+}
 const monthNames: Record<string, string> = {
   '01': 'January',
   '02': 'February',
@@ -98,8 +96,8 @@ const columns = [
     cell: ({ row }) => {
       const m = row.original.month
       const d = row.original.day
-      const label = `${monthNames[m]} ${d.padStart(2, '0')}`
-      return h('div', { class: 'text-center font-normal text-sm' }, label)
+      // const label = `${monthNames[m]} ${d.padStart(2, '0')}`
+      return h('div', { class: 'text-center font-normal text-sm' }, 'dsdf')
     },
   }),
 
@@ -132,7 +130,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value || [] },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -162,6 +160,7 @@ function handlePageChange(page: number) {
 </script>
 
 <template>
+  {{ list }}
   <div class="border rounded-lg my-6 overflow-hidden">
     <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
       Call Timing #
@@ -219,35 +218,6 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableBody>
     </Table>
-  </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
-    <div class="flex-1 text-xs text-primary">
-      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
-        <span>
-          <Select :default-value="10">
-            <SelectTrigger class="w-fit gap-x-1 px-2">
-              <SelectValue placeholder="" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
-                {{ n }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </span>
-
-        of {{ meta?.total }} entries
-      </div>
-    </div>
-    <div class="space-x-2">
-      <!-- Pagination Controls -->
-      <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
-      />
-    </div>
   </div>
 
   <InboundSettingsHolidaysDialog
