@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { useFetch } from '#app'
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import * as z from 'zod'
 import {
   Select,
@@ -17,20 +18,21 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 
-const dialogOpen = ref(false)
-const optionsOpen = ref(false)
-const loading = ref(false)
-const formTitle = ref('')
-const formCampaign = ref('')
-
-function onDialogOpen(val: boolean) {
-  if (val)
-    resetForm()
+interface Campaign {
+  id: string
+  title: string
 }
 
+const emits = defineEmits<{
+  (e: 'refresh'): void
+}>()
+
+const api = useApi()
+
+// -- FORM SCHEMA --
 const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Campaign name is required').max(100),
-  campaign: z.string().min(1, 'Phone numbers are required'),
+  campaign: z.string().min(1, 'Campaign is required'),
   file: z.instanceof(File, { message: 'File is required' })
     .refine(file => file.size <= 5 * 1024 * 1024, 'Max file size is 5MB')
     .refine((file) => {
@@ -48,6 +50,27 @@ const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
   },
 })
 
+// -- STATE --
+const dialogOpen = ref(false)
+const optionsOpen = ref(false)
+const loading = ref(false)
+const formTitle = ref('')
+const formCampaign = ref('')
+
+// -- CAMPAIGNS FETCH --
+const {
+  data: campaigns,
+  refresh: campaignRefresh,
+} = await useLazyAsyncData('campaigns', () => api.get('/ringless/campaign'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+onMounted(() => {
+  campaignRefresh()
+})
+
+// -- FILE HANDLER --
 async function handleFileUpdate(files: File[]) {
   if (files.length > 0) {
     setFieldValue('file', files[0])
@@ -59,25 +82,42 @@ async function handleFileUpdate(files: File[]) {
   }
 }
 
-const onSubmit = handleSubmit((values) => {
+// -- FORM SUBMIT --
+const onSubmit = handleSubmit(async (values) => {
   loading.value = true
-  formTitle.value = values.title
-  formCampaign.value = values.campaign
-  console.log('Form submitted with values:', {
-    title: values.title,
-    campaign: values.campaign,
-    fileName: values.file?.name,
-    fileSize: values.file?.size,
-  })
+  try {
+    const payload = {
+      title: values.title,
+      campaign_id: Number.parseInt(values.campaign),
+      file_name: values.file?.name || '',
+    }
 
-  // Simulate API call
-  setTimeout(() => {
-    loading.value = false
+    await api.put('/ringless/list/add', payload)
+
+    showToast({ message: 'List added successfully' })
+    emits('refresh')
+
+    // Set for configure dialog
+    formTitle.value = values.title
+    formCampaign.value = values.campaign
+
     dialogOpen.value = false
     optionsOpen.value = true
     resetForm()
-  }, 1000)
+  }
+  catch (error: any) {
+    showToast({ type: 'error', message: error.message || 'Failed to add list' })
+  }
+  finally {
+    loading.value = false
+  }
 })
+
+// -- RESET ON OPEN --
+function onDialogOpen(val: boolean) {
+  if (val)
+    resetForm()
+}
 </script>
 
 <template>
@@ -138,14 +178,12 @@ const onSubmit = handleSubmit((values) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="summer-sale">
-                      Summer Sale Promotion
-                    </SelectItem>
-                    <SelectItem value="new-product">
-                      New Product Launch
-                    </SelectItem>
-                    <SelectItem value="holiday-special">
-                      Holiday Special Offer
+                    <SelectItem
+                      v-for="campaign in campaigns"
+                      :key="campaign.id"
+                      :value="String(campaign.id)"
+                    >
+                      {{ campaign.title }}
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
