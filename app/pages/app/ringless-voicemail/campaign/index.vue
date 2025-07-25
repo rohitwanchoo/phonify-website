@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+
+const { data: ringlessCampaign, status: ringlessCampaignStatus, refresh: ringlessCampaignRefresh } = await useLazyAsyncData('ringless-campaign', () =>
+  useApi().get('/ringless/campaign', {
+    start: 0,
+    limit: 10,
+    search: '',
+  }), {
+  transform: res => res,
+})
 </script>
 
 <template>
@@ -23,7 +32,7 @@ import { Input } from '~/components/ui/input'
 
     <!-- TABLE -->
     <div>
-      <RinglessVoicemailCampaignTable />
+      <RinglessVoicemailCampaignTable :list="ringlessCampaign?.data || []" :loading="ringlessCampaignStatus === 'pending'" @refresh="ringlessCampaignRefresh" />
     </div>
   </div>
 </template>

@@ -16,32 +16,22 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
-
 import moment from 'moment'
-import { computed, h, ref, watch } from 'vue'
-import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
+import { h, ref } from 'vue'
 
+import { useRouter } from 'vue-router'
+import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
 import { Button } from '@/components/ui/button'
+
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -53,130 +43,41 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import { Separator } from '~/components/ui/separator'
 
-const sheet = ref(false)
-const selectedCampaign = ref<any>(null) // Store the campaign details
-const campaignLoadingId = ref<number | null>(null) // Track loading campaign id
-const actionRowId = ref<number | null>(null) // Track the row ID for the Action menu
-const loading = ref(false)
-const router = useRouter()
-const dummyData = ref([
-  {
-    id: 1,
-    title: 'Marketing Campaign Q3',
-    description: 'Quarterly marketing campaign targeting existing customers',
-    call_time_start: '09:00:00',
-    call_time_end: '17:00:00',
-    group_id: 'Customer List A',
-    min_lead_temp: 150,
-    max_lead_temp: 500,
-    updated: '2023-07-15 14:30:00',
-    status: 1,
-    caller_id: '+1 (555) 123-4567',
-    custom_caller_id: 'Marketing Dept',
-    country_code: 'US (+1)',
-    send_crm: 1,
-    email: 1,
-    sms: 1,
-    send_report: 1,
-  },
-  {
-    id: 2,
-    title: 'Sales Outreach',
-    description: 'Outreach to potential new clients',
-    call_time_start: '10:00:00',
-    call_time_end: '18:00:00',
-    group_id: 'Prospect List B',
-    min_lead_temp: 75,
-    max_lead_temp: 200,
-    updated: '2023-07-16 09:15:00',
-    status: 0,
-    caller_id: '+1 (555) 987-6543',
-    custom_caller_id: 'Sales Team',
-    country_code: 'US (+1)',
-    send_crm: 0,
-    email: 0,
-    sms: 1,
-    send_report: 0,
-  },
-  {
-    id: 3,
-    title: 'Product Feedback',
-    description: 'Gathering feedback on new product features',
-    call_time_start: '11:00:00',
-    call_time_end: '15:00:00',
-    group_id: 'User List C',
-    min_lead_temp: 40,
-    max_lead_temp: 100,
-    updated: '2023-07-14 16:45:00',
-    status: 1,
-    caller_id: '+1 (555) 456-7890',
-    custom_caller_id: 'Product Team',
-    country_code: 'US (+1)',
-    send_crm: 1,
-    email: 1,
-    sms: 0,
-    send_report: 1,
-  },
-  {
-    id: 4,
-    title: 'Customer Retention',
-    description: 'Campaign to retain high-value customers',
-    call_time_start: '08:30:00',
-    call_time_end: '16:30:00',
-    group_id: 'VIP Clients',
-    min_lead_temp: 200,
-    max_lead_temp: 300,
-    updated: '2023-07-13 11:20:00',
-    status: 1,
-    caller_id: '+1 (555) 789-0123',
-    custom_caller_id: 'VIP Support',
-    country_code: 'US (+1)',
-    send_crm: 1,
-    email: 1,
-    sms: 1,
-    send_report: 1,
-  },
-  {
-    id: 5,
-    title: 'New Product Launch',
-    description: 'Announcing our latest product release',
-    call_time_start: '12:00:00',
-    call_time_end: '20:00:00',
-    group_id: 'All Contacts',
-    min_lead_temp: 300,
-    max_lead_temp: 1000,
-    updated: '2023-07-12 13:10:00',
-    status: 0,
-    caller_id: '+1 (555) 234-5678',
-    custom_caller_id: 'Product Launch',
-    country_code: 'US (+1)',
-    send_crm: 0,
-    email: 0,
-    sms: 0,
-    send_report: 0,
-  },
-])
-
-// Dummy meta data
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  last_page: 5,
-  total: 50,
+const props = withDefaults(defineProps<{
+  list: any[]
+  loading: boolean
+  meta?: any
+}>(), {
+  meta: () => ({
+    current_page: 1,
+    per_page: 10,
+    last_page: 1,
+    total: 0,
+  }),
 })
 
-function formatTime(time: string) {
-  return moment(time, 'HH:mm:ss').format('h:mm A')
-}
+const emits = defineEmits(['refresh'])
 
-async function openSheet(id: number) {
+const sheet = ref(false)
+const selectedCampaign = ref<any>(null)
+const campaignLoadingId = ref<number | null>(null)
+const router = useRouter()
+
+// Confirmation dialog for deleting
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const selectedCampaignForDelete = ref<number | null>(null)
+
+function openSheet(id: number) {
   campaignLoadingId.value = id
   try {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    selectedCampaign.value = dummyData.value.find(item => item.id === id)
+    selectedCampaign.value = props.list.find(item => item.id === id)
     sheet.value = true
   }
   catch (error) {
@@ -185,6 +86,46 @@ async function openSheet(id: number) {
   finally {
     campaignLoadingId.value = null
   }
+}
+
+// Delete handler
+async function handleDelete() {
+  if (!selectedCampaignForDelete.value)
+    return
+
+  try {
+    const res = await useApi().post('/ringless/campaign/delete', {
+      campaign_id: selectedCampaignForDelete.value,
+    })
+
+    if (res.success) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message || 'Failed to delete campaign',
+        type: 'error',
+      })
+    }
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedCampaignForDelete.value = null
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm()
+  handleDelete()
 }
 
 const columnHelper = createColumnHelper<any>()
@@ -206,7 +147,8 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
 
-  columnHelper.accessor('group_id', {
+  columnHelper.display({
+    id: 'totalLists',
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -214,19 +156,23 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Total Lists', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.group_id)
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.ringless_list?.length || 0)
     },
   }),
 
   columnHelper.display({
-    id: 'dialed',
+    id: 'dialedLeads',
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`),
+    cell: ({ row }) => {
+      const dialed = row.original.ringless_lead_report_count || 0
+      const total = row.original.ringless_list?.reduce((sum: number, list: any) => sum + (list.total_leads || 0), 0) || 0
+      return h('div', { class: 'text-center font-normal text-center text-sm' }, `${dialed}/${total}`)
+    },
   }),
 
   columnHelper.display({
@@ -266,11 +212,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const updated = row.original.updated
+      const created = row.original.created_at
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : ''),
+        h('div', created ? moment(created).format('YYYY-MM-DD') : ''),
         h('br'),
-        h('div', { class: 'text-xs' }, updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') : ''),
+        h('div', { class: 'text-xs' }, created ? moment(created).format('hh:mm A') : ''),
       ])
     },
   }),
@@ -286,12 +232,11 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
         class: 'data-[state=checked]:bg-green-600 cursor-pointer',
-        modelValue: row.original.status === 1,
-
+        modelValue: row.original.status === '1',
       })),
     sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.original.status === 1
-      const valueB = rowB.original.status === 1
+      const valueA = rowA.original.status === '1'
+      const valueB = rowB.original.status === '1'
       if (valueA === valueB)
         return 0
       if (valueA && !valueB)
@@ -326,11 +271,12 @@ const columns = [
         onEdit: () => {
           router.push({
             path: `/app/ringless-voicemail/campaign/new-campaign`,
-            query: { id: row.original.id,name: row.original.title },
+            query: { id: row.original.id, name: row.original.title },
           })
         },
         onDelete: () => {
-          console.log('Delete campaign:', row.original.id)
+          selectedCampaignForDelete.value = row.original.id
+          revealDeleteConfirm()
         },
         onDuplicate: () => {
           console.log('Duplicate campaign:', row.original.id)
@@ -347,7 +293,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value || [] },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -461,6 +407,14 @@ function handlePageChange(page: number) {
       />
     </div>
   </div>
+
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete Campaign"
+    description="You are about to delete this campaign. This action cannot be undone. Do you wish to proceed?"
+  />
 
   <RinglessVoicemailCampaignTableSheet
     v-model:open="sheet"
