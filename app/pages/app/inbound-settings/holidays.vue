@@ -12,13 +12,6 @@ const { data: holidayList, status, refresh } = await useLazyAsyncData('did-get-a
   }), {
   transform: res => res.data,
 })
-const dummyData = ref([
-  { id: 1, name: 'New Year', month: '01', day: '01' },
-  { id: 2, name: 'Republic Day', month: '01', day: '26' },
-  { id: 3, name: 'Holi', month: '03', day: '08' },
-  { id: 4, name: 'Independence Day', month: '08', day: '15' },
-  { id: 5, name: 'Christmas', month: '12', day: '25' },
-])
 </script>
 
 <template>
@@ -33,13 +26,13 @@ const dummyData = ref([
         </Button>
 
         <!-- Dialog Component -->
-        <InboundSettingsHolidaysDialog v-model:open="isDialogOpen" />
+        <InboundSettingsHolidaysDialog v-model:open="isDialogOpen" @refresh="refresh" />
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <InboundSettingsHolidaysTable :list="holidayList" :loading="status === 'pending'" />
+      <InboundSettingsHolidaysTable :list="holidayList" :loading="status === 'pending'" @refresh="refresh" />
     </div>
   </div>
 </template>
