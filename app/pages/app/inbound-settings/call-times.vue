@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
 import { ref } from 'vue'
+import { Button } from '~/components/ui/button'
 
 const isDialogOpen = ref(false)
 
-
-const handleAddCallTime = (newCallTime: any) => {
+function handleAddCallTime(newCallTime: any) {
   console.log('New call time to be added:', newCallTime)
   isDialogOpen.value = false
 }
+
+// const { data: callTimingList, status, refresh } = await useLazyAsyncData('did-all-call-timing-list', () =>
+//   useApi().post('/get-department-call-timings', {
+
+//   }), {
+//   transform: res => res,
+// })
 </script>
 
 <template>
+  <!-- {{ callTimingList }} -->
   <div>
     <!-- HEADER -->
     <BaseHeader title="Call Times">
@@ -21,9 +28,9 @@ const handleAddCallTime = (newCallTime: any) => {
           <Icon name="material-symbols:add" class="text-xl text-white" />
           Add Call Time
         </Button>
-        
+
         <!-- Dialog Component -->
-        <InboundSettingsCallTimesDialog 
+        <InboundSettingsCallTimesDialog
           v-model:open="isDialogOpen"
           @submit="handleAddCallTime"
         />
@@ -32,7 +39,7 @@ const handleAddCallTime = (newCallTime: any) => {
 
     <!-- TABLE -->
     <div>
-      <InboundSettingsCallTimesList/>
+      <InboundSettingsCallTimesList />
     </div>
   </div>
 </template>
