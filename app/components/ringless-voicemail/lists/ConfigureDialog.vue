@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useFetch } from '#app'
 import { Icon } from '#components'
 import {
   createColumnHelper,
@@ -6,7 +7,7 @@ import {
   getCoreRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { h, ref } from 'vue'
+import { h, onMounted, ref, watch } from 'vue'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
@@ -21,14 +22,67 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open'])
 
-const labelOptions = [
-  { label: 'Label 1', value: 'label1' },
-  { label: 'Label 2', value: 'label2' },
-  { label: 'Label 3', value: 'label3' },
-]
+const api = useApi()
+
+// 🟢 Fetch campaign list
+
+const selectValue = ref(String(props.campaign || ''))
+const campaigns = ref<{ id: string, title: string }[]>([])
+
+// Fetch campaign list
+async function fetchCampaigns() {
+  const { data } = await api.get('/ringless/campaign')
+  campaigns.value = data
+}
+
+// Init campaign data
+onMounted(async () => {
+  await fetchCampaigns()
+
+  // If the campaign ID exists in the list, set it
+  const exists = campaigns.value.some(c => String(c.id) === String(props.campaign))
+  if (exists) {
+    selectValue.value = String(props.campaign)
+  }
+  else {
+    selectValue.value = ''
+  }
+})
+watch(() => props.campaign, (newVal) => {
+  const exists = campaigns.value.some(c => String(c.id) === String(newVal))
+  if (exists) {
+    selectValue.value = String(newVal)
+  }
+})
+watch(() => props.open, (val) => {
+  if (val) {
+    labelRefresh()
+  }
+})
+const labelStart = ref(0)
+const labelLimit = ref(1000) // Get all labels
+const labelSearch = ref('')
+
+const { data: labelData, refresh: labelRefresh } = await useLazyAsyncData('table-labels', () =>
+  api.post('/label', {
+    lower_limit: labelStart.value,
+    upper_limit: labelLimit.value,
+    search: labelSearch.value,
+  }), {
+  transform: res => res.data || [], // Ensure we always return an array
+  immediate: false, // Don't fetch immediately
+})
+
+// Watch for dialog open to fetch labels
+watch(() => props.open, async (val) => {
+  if (val) {
+    await labelRefresh()
+    console.log('Label data:', labelData.value) // Debug: check the data
+  }
+})
 
 const inputValue = ref(props.title || '')
-const selectValue = ref(props.campaign || '')
+
 const dialingColumnValue = ref('')
 
 const tableData = ref([
@@ -39,7 +93,7 @@ const tableData = ref([
 ])
 
 const columnHelper = createColumnHelper<typeof tableData.value[0]>()
-const columns = [
+const columns = computed(() => [
   columnHelper.accessor('slno', {
     header: '#',
     cell: info => info.getValue(),
@@ -73,28 +127,48 @@ const columns = [
     header: 'Label',
     cell: info => h(Select, {
       'modelValue': info.getValue(),
-      'onUpdate:modelValue': (val: string | number | null) => info.row.original.label = val ? String(val) : '',
+      'onUpdate:modelValue': (val: string | number | null) => {
+        info.row.original.label = val ? String(val) : ''
+      },
     }, {
       default: () => [
-        h(SelectTrigger, { class: 'w-full text-xs bg-[#F0F9F8] border-0' }, [
-          h(SelectValue, { placeholder: 'Select label' }),
+        h(SelectTrigger, {
+          class: 'w-full text-xs bg-[#F0F9F8] border-0',
+          onClick: (e) => {
+            e.preventDefault() // Prevent immediate close
+            e.stopPropagation()
+          },
+        }, [
+          h(SelectValue, {
+            placeholder: labelData.value?.length ? 'Select label' : 'Loading...',
+          }),
         ]),
-        h(SelectContent, { class: 'w-full text-xs bg-[#F0F9F8] border-0' }, [
-          labelOptions.map(opt =>
-            h(SelectItem, { value: opt.value, key: opt.value, class: 'text-xs' }, () => opt.label),
-          ),
+        h(SelectContent, {
+          class: 'w-full max-h-60 overflow-y-auto z-50', // Ensure dropdown is above other elements
+        }, [
+          // Show loading state if data isn't ready
+          labelData.value === null ? h('div', { class: 'p-2 text-xs text-gray-500' }, 'Loading...')
+          // Show empty state if no labels
+            : labelData.value?.length === 0 ? h('div', { class: 'p-2 text-xs text-gray-500' }, 'No labels available')
+            // Render label options
+              : (labelData.value || []).map(opt =>
+                  h(SelectItem, {
+                    value: String(opt.id),
+                    key: opt.id,
+                    class: 'text-xs',
+                  }, () => opt.label || `Label ${opt.id}`), // Fallback if label is empty
+                ),
         ]),
       ],
     }),
   }),
-]
+])
 
 const table = useVueTable({
   data: tableData.value,
-  columns,
+  columns: columns.value,
   getCoreRowModel: getCoreRowModel(),
 })
-
 function closeDialog() {
   emit('update:open', false)
 }
@@ -117,11 +191,16 @@ function closeDialog() {
           <label class="text-sm font-medium text-primary mb-1">Campaign</label>
           <Select v-model="selectValue">
             <SelectTrigger class="w-full text-primary">
-              <SelectValue :placeholder="campaign || 'Select campaign'" class="text-primary text-xs md:text-sm" />
+              <SelectValue placeholder="Select campaign" class="text-primary text-xs md:text-sm" />
             </SelectTrigger>
             <SelectContent class="w-full text-primary">
-              <SelectItem v-for="option in labelOptions" :key="option.value" :value="option.value" class="text-primary">
-                {{ option.label }}
+              <SelectItem
+                v-for="option in campaigns"
+                :key="option.id"
+                :value="String(option.id)"
+                class="text-primary"
+              >
+                {{ option.title }}
               </SelectItem>
             </SelectContent>
           </Select>
