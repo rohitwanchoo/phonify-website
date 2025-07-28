@@ -18,13 +18,13 @@ const props = defineProps<{
   open: boolean
   title: string
   campaign: string
+  headers: string[]
 }>()
-
 const emit = defineEmits(['update:open'])
 
 const api = useApi()
 
-// 🟢 Fetch campaign list
+
 
 const selectValue = ref(String(props.campaign || ''))
 const campaigns = ref<{ id: string, title: string }[]>([])
@@ -57,6 +57,17 @@ watch(() => props.campaign, (newVal) => {
 watch(() => props.open, (val) => {
   if (val) {
     labelRefresh()
+  }
+})
+watch(() => props.headers, (newHeaders) => {
+  // Dynamically update tableData based on file headers
+  if (newHeaders && newHeaders.length) {
+    tableData.value = newHeaders.map((header, index) => ({
+      slno: index + 1,
+      fileHeader: header,
+      dialingColumn: false,
+      label: '',
+    }))
   }
 })
 const labelStart = ref(0)
@@ -126,42 +137,43 @@ const columns = computed(() => [
   columnHelper.accessor('label', {
     header: 'Label',
     cell: info => h(Select, {
-      'modelValue': info.getValue(),
-      'onUpdate:modelValue': (val: string | number | null) => {
-        info.row.original.label = val ? String(val) : ''
+      'modelValue': info.row.original.label,
+      'onUpdate:modelValue': (val: string) => {
+        info.row.original.label = val
       },
     }, {
       default: () => [
         h(SelectTrigger, {
           class: 'w-full text-xs bg-[#F0F9F8] border-0',
-          onClick: (e) => {
-            e.preventDefault() // Prevent immediate close
-            e.stopPropagation()
-          },
         }, [
           h(SelectValue, {
             placeholder: labelData.value?.length ? 'Select label' : 'Loading...',
+          }, () => {
+            if (!info.row.original.label)
+              return null
+            const selectedLabel = labelData.value?.find(l => String(l.id) === info.row.original.label)
+            return selectedLabel?.title || selectedLabel?.label || info.row.original.label
           }),
         ]),
         h(SelectContent, {
-          class: 'w-full max-h-60 overflow-y-auto z-50', // Ensure dropdown is above other elements
+          class: 'w-full max-h-60 overflow-y-auto z-50',
         }, [
-          // Show loading state if data isn't ready
-          labelData.value === null ? h('div', { class: 'p-2 text-xs text-gray-500' }, 'Loading...')
-          // Show empty state if no labels
-            : labelData.value?.length === 0 ? h('div', { class: 'p-2 text-xs text-gray-500' }, 'No labels available')
-            // Render label options
+          labelData.value === null
+            ? h('div', { class: 'p-2 text-xs text-gray-500' }, 'Loading...')
+            : labelData.value?.length === 0
+              ? h('div', { class: 'p-2 text-xs text-gray-500' }, 'No labels available')
               : (labelData.value || []).map(opt =>
                   h(SelectItem, {
                     value: String(opt.id),
                     key: opt.id,
                     class: 'text-xs',
-                  }, () => opt.label || `Label ${opt.id}`), // Fallback if label is empty
+                  }, () => opt.title || opt.label || `Label ${opt.id}`),
                 ),
         ]),
       ],
     }),
   }),
+
 ])
 
 const table = useVueTable({

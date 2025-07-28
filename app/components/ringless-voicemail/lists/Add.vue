@@ -4,6 +4,8 @@ import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { onMounted, ref } from 'vue'
+// -- FILE HANDLER --
+import * as XLSX from 'xlsx'
 import * as z from 'zod'
 import {
   Select,
@@ -16,6 +18,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
+
 import { Input } from '~/components/ui/input'
 
 interface Campaign {
@@ -70,15 +73,30 @@ onMounted(() => {
   campaignRefresh()
 })
 
-// -- FILE HANDLER --
+const fileHeaders = ref<string[]>([])
+
 async function handleFileUpdate(files: File[]) {
-  if (files.length > 0) {
-    setFieldValue('file', files[0])
+  const file = files[0]
+
+  if (file) {
+    setFieldValue('file', file)
     await validateField('file')
+
+    const data = await file.arrayBuffer()
+    const workbook = XLSX.read(data, { type: 'array' })
+    const sheetName = workbook.SheetNames[0]
+    const worksheet = workbook.Sheets[sheetName]
+    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) // Get raw rows
+
+    if (json.length > 0) {
+      const headers = json[0] as string[]
+      fileHeaders.value = headers.filter(h => !!h) // clean empty values
+    }
   }
   else {
     setFieldValue('file', null)
     await validateField('file')
+    fileHeaders.value = []
   }
 }
 
@@ -219,5 +237,6 @@ function onDialogOpen(val: boolean) {
     v-model:open="optionsOpen"
     :title="formTitle"
     :campaign="formCampaign"
+    :headers="fileHeaders"
   />
 </template>
