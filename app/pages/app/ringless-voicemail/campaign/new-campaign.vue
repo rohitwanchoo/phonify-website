@@ -29,6 +29,7 @@ import { Switch } from '~/components/ui/switch'
 import { Textarea } from '~/components/ui/textarea'
 
 const route = useRoute()
+const router = useRouter()
 const id = route.query.id
 const Title = route.query.name
 const isEdit = computed(() => !!id)
@@ -55,39 +56,48 @@ const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list',
   },
 })
 
+// list voice template
+const { data: voiceTemplateOptions, refresh: voiceTemplateRefresh, status: voiceTemplateStatus } = await useLazyAsyncData('voice-template-list', () =>
+  useApi().get('/voice-templete', {
+    start: 0,
+    limit: 10,
+  }), {
+    immediate: true,
+  transform: res => res.data,
+})
+
+const { data: sipGatewayOptions, refresh: sipGatewayRefresh, status: sipGatewayStatus } = await useLazyAsyncData('sip-gateway-list', () =>
+  useApi().get('/sip-gateways'), {
+    immediate: true,
+  transform: res => res.data,
+})
+
+const { data: customCallerIdOptions, refresh: refreshCustomCallerIdList, status: customCallerIdListStatus } = await useLazyAsyncData('get-custom-caller-id-list', () =>
+  useApi().post('/did'), {
+    immediate: true,
+  transform: res => res.data,
+})
+
 const callerIdOptions = ref([
   { id: 'areacode', name: 'Area Code' },
   { id: 'random', name: 'Area Code and Randomiser' },
   { id: 'custom', name: 'Custom' },
 ])
 
-const customCallerIdOptions = ref([
-  { id: '1234567890', title: 'Sales Department', cli: '1234567890' },
-  { id: '9876543210', title: 'Support Team', cli: '9876543210' },
+const callerTimeOptions = ref([
+  { id: '1'},
+  { id: '2'},
+  { id: '5' },
+  { id: '10' },
+  { id: '20' },
+  { id: '30' },
 ])
 
-const dialModeOptions = ref([
-  { id: 'predictive', title: 'Predictive Dialing' },
-  { id: 'progressive', title: 'Progressive Dialing' },
-  { id: 'preview', title: 'Preview Dialing' },
-])
 
 const callRatioOptions = ref([
   { id: '1:1', title: '1:1 Ratio' },
   { id: '2:1', title: '2:1 Ratio' },
   { id: '3:1', title: '3:1 Ratio' },
-])
-
-const voiceTemplateOptions = ref([
-  { id: '5', title: 'Welcome Message' },
-  { id: '6', title: 'Sales Pitch' },
-  { id: '7', title: 'Follow-up' },
-])
-
-const sipGatewayOptions = ref([
-  { id: '2', name: 'Standard Gateway' },
-  { id: '3', name: 'Premium Gateway' },
-  { id: '4', name: 'Enterprise Gateway' },
 ])
 
 // Form validation schema with updated field names
@@ -98,12 +108,13 @@ const formSchema = toTypedSchema(
     description: z.string().optional(),
     caller_id: z.string().min(1, 'Caller ID is required'),
     custom_caller_id: z.string().optional(),
+    call_duration: z.string().min(1, 'Call duration is required'),
     call_ratio: z.string().min(1, 'Call ratio is required'),
     call_time_start: z.string().optional(),
     call_time_end: z.string().optional(),
-    voice_template_id: z.string().optional(),
-    sip_gateway_id: z.string().min(1, 'SIP Gateway is required'),
-    time_based_calling: z.boolean().optional(),
+    voice_template_id: z.number().min(1, 'Voice Template is required'),
+    sip_gateway_id:  z.number().min(1, 'SIP Gateway is required'),
+    time_based_calling: z.number().int().min(0).max(1),
     status: z.number().int().min(0).max(1),
   }),
 )
@@ -112,7 +123,7 @@ const { handleSubmit, values, setFieldValue, setValues } = useForm({
   validationSchema: formSchema,
   initialValues: {
     status: 1, // Default to active
-    time_based_calling: false,
+    time_based_calling: 0,
   },
 })
 
@@ -124,14 +135,75 @@ function onSelectCallerId(value: string) {
   }
 }
 
-const onSubmit = handleSubmit((values) => {
+async function fetchCampaignData(){
+  if (!isEdit.value) return
+
+  try{
+   loading.value = true
+    const res = await useApi().post('/ringless/campaign/show', {
+      campaign_id: id
+    })
+    
+    if (res.data && res.data.length > 0) {
+      const campaignData = res.data[0]
+      
+      const formValues = {
+        title: campaignData.title,
+        country_code: campaignData.country_code,
+        description: campaignData.description,
+        caller_id: campaignData.caller_id,
+        custom_caller_id: campaignData.custom_caller_id || '',
+        call_duration: campaignData.call_duration.toString(),
+        call_ratio: campaignData.call_ratio.toString(),
+        call_time_start: campaignData.call_time_start?.substring(0, 5) || '',
+        call_time_end: campaignData.call_time_end?.substring(0, 5) || '',
+        voice_template_id: campaignData.voice_template_id || 0,
+        sip_gateway_id: campaignData.sip_gateway_id || 0,
+        time_based_calling: campaignData.time_based_calling,
+        status: parseInt(campaignData.status)
+      }
+      
+      setValues(formValues)
+    }
+    
+
+  }catch(error){
+console.error('Error fetching campaign data:', error)
+    showToast({
+      message: 'Failed to load campaign data',
+      type: 'error',
+    })
+  }finally {
+    loading.value = false
+  }
+
+}
+
+const onSubmit = handleSubmit(async (values) => {
   loading.value = true
   console.log('Form submitted with values:', values)
-
-  // Simulate API call
-  setTimeout(() => {
+  const res = await useApi().post('/ringless/campaign/add', values)
+  if (res.success) {
+     showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+       showToast({
+        message: res.message || 'Failed to delete campaign',
+        type: 'error',
+      })
+    }
     loading.value = false
-  }, 1000)
+    router.push({
+            path: `/app/ringless-voicemail/campaign`,
+          })
+ 
+})
+
+onMounted(() => {
+  fetchCampaignData()
 })
 </script>
 
@@ -286,7 +358,7 @@ const onSubmit = handleSubmit((values) => {
                         <SelectContent>
                           <SelectGroup>
                             <SelectItem v-for="item in customCallerIdOptions" :key="item.id" :value="item.cli">
-                              {{ item.title }} ({{ item.cli }})
+                              +1 {{ formatNumber(item.cli) }} {{ item.cnam }} {{ item.forward_number }}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -298,6 +370,30 @@ const onSubmit = handleSubmit((values) => {
               </div>
             </div>
             <div class="flex gap-[16px] w-full">
+              <div class="w-1/2">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="values.call_duration" name="call_duration">
+                  <FormItem>
+                    <FormLabel class="font-normal text-sm">
+                      Call Duration
+                    </FormLabel>
+                    <FormControl>
+                      <Select v-bind="componentField">
+                        <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Call Duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem v-for="item in callerTimeOptions" :key="item.id" :value="item.id">
+                              {{ item.id }} minutes
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage class="text-sm" />
+                  </FormItem>
+                </FormField>
+              </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.call_ratio" name="call_ratio">
                   <FormItem>
@@ -328,11 +424,16 @@ const onSubmit = handleSubmit((values) => {
                 <div class="w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_start" name="call_time_start">
                     <FormItem>
-                      <FormLabel class="font-normal text-sm">
+                      <FormLabel class="font-normal text-white text-sm">
                         From
                       </FormLabel>
                       <FormControl>
-                        <Input type="time" v-bind="componentField" class="" />
+                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11 ">
+                          <p class="text-sm">
+                            From
+                          </p>
+                          <Input type="time" v-bind="componentField" class="shadow-none border-none w-[120px]" />
+                        </div>
                       </FormControl>
                       <FormMessage class="text-sm" />
                     </FormItem>
@@ -341,11 +442,16 @@ const onSubmit = handleSubmit((values) => {
                 <div class="w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_end" name="call_time_end">
                     <FormItem>
-                      <FormLabel class="font-normal text-sm">
+                      <FormLabel class="font-normal text-white text-sm">
                         To
                       </FormLabel>
                       <FormControl>
-                        <Input type="time" v-bind="componentField" />
+                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11 ">
+                          <p class="text-sm">
+                            To
+                          </p>
+                          <Input type="time" v-bind="componentField" class="shadow-none border-none w-[120px]" />
+                        </div>
                       </FormControl>
                       <FormMessage class="text-sm" />
                     </FormItem>
@@ -365,8 +471,8 @@ const onSubmit = handleSubmit((values) => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in voiceTemplateOptions" :key="item.id" :value="item.id">
-                              {{ item.title }}
+                            <SelectItem v-for="item in voiceTemplateOptions" :key="item.templete_id" :value="item.templete_id">
+                              {{ item.templete_name }}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -403,7 +509,7 @@ const onSubmit = handleSubmit((values) => {
                         <SelectContent>
                           <SelectGroup>
                             <SelectItem v-for="item in sipGatewayOptions" :key="item.id" :value="item.id">
-                              {{ item.name }}
+                              {{ item.client_name }}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -421,11 +527,11 @@ const onSubmit = handleSubmit((values) => {
                     </FormLabel>
                     <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
                       <p>Enable Time Zone Rule</p>
-                      <Switch
-                        :checked="values.time_based_calling"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('time_based_calling', val)"
-                      />
+                  <Switch
+  :checked="values.time_based_calling === 1"
+  class="data-[state=checked]:bg-green-600"
+  @update:checked="(val) => setFieldValue('time_based_calling', val ? 1 : 0)"
+/>
                     </div>
                     <FormMessage class="text-sm" />
                   </FormItem>
@@ -437,11 +543,11 @@ const onSubmit = handleSubmit((values) => {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4 gap-2 flex ">
-      <Button class="w-1/2 h-[52px]" variant="outline" :loading="loading" @click="onSubmit">
+      <Button class="w-1/2 h-[52px]" variant="outline"  @click="onSubmit">
         <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:close'" size="20" />
         Cancel
       </Button>
-      <Button class="w-1/2 h-[52px]" type="submit" :loading="loading" @click="onSubmit">
+      <Button class="w-1/2 h-[52px]" type="submit"  @click="onSubmit">
         <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" size="20" />
         Save Campaign
       </Button>
