@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
 import type { Campaign } from '~/types/campaign'
-
+import { Button } from '@/components/ui/button'
 
 const route = useRoute()
 const id = route.query.id
@@ -29,7 +28,7 @@ const { data: campaignById, status, refresh } = await useLazyAsyncData('get-camp
   },
   immediate: false,
 })
-const { data: campaignDeposition, refresh:campaignDepositionRefresh  } = await useLazyAsyncData('campaign-deposition-by-id', () =>
+const { data: campaignDeposition, refresh: campaignDepositionRefresh } = await useLazyAsyncData('campaign-deposition-by-id', () =>
   useApi().post('/campaign-disposition', {
     campaign_id: id,
   }), {
@@ -94,6 +93,7 @@ onMounted(() => {
         title: campaignById.value.title,
         country_code: campaignById.value.country_code,
         description: campaignById.value.description,
+        // caller_id: String(campaignById.value?.caller_id),
         caller_id: String(callerIds.find(item => item.value === campaignById.value?.caller_id)?.id),
         dial_mode: campaignById.value.dial_mode,
         group_id: campaignById.value.group_id,
@@ -109,8 +109,8 @@ onMounted(() => {
         send_report: campaignById.value.send_report === 1,
         call_transfer: campaignById.value.call_transfer === '1',
         hopper_mode: campaignById.value.hopper_mode,
-        custom_caller_id: String(campaignById.value.custom_caller_id), 
-        disposition_id: campaignDeposition.value.map(item => item.disposition_id)
+        custom_caller_id: String(campaignById.value.custom_caller_id),
+        disposition_id: campaignDeposition.value.map(item => item.disposition_id),
 
       }
 
