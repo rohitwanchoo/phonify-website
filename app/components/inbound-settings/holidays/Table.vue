@@ -6,6 +6,7 @@ import type {
   VisibilityState,
 } from '@tanstack/vue-table'
 import { Icon } from '#components'
+
 import {
   createColumnHelper,
   FlexRender,
@@ -15,6 +16,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 
 import { h, ref } from 'vue'
@@ -38,16 +40,24 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
+const props = defineProps<Props>()
+
+const emits = defineEmits(['refresh'])
+
 const isDialogOpen = ref(false)
 const selectedRowData = ref<any>(null)
-const loading = ref(false)
-const dummyData = ref([
-  { id: 1, name: 'New Year', month: '01', day: '01' },
-  { id: 2, name: 'Republic Day', month: '01', day: '26' },
-  { id: 3, name: 'Holi', month: '03', day: '08' },
-  { id: 4, name: 'Independence Day', month: '08', day: '15' },
-  { id: 5, name: 'Christmas', month: '12', day: '25' },
-])
+
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+interface Props {
+  list: any[]
+  loading: boolean
+}
 const monthNames: Record<string, string> = {
   '01': 'January',
   '02': 'February',
@@ -61,6 +71,26 @@ const monthNames: Record<string, string> = {
   '10': 'October',
   '11': 'November',
   '12': 'December',
+}
+
+async function deleteHoliday(id: number) {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  useApi().post('/delete-holiday', {
+    holiday_id: id,
+  }).then((response) => {
+    showToast({
+      message: response.message,
+    })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({
+      type: 'error',
+      message: error.message,
+    })
+  })
 }
 const meta = ref({
   current_page: 1,
@@ -96,10 +126,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const m = row.original.month
-      const d = row.original.day
-      const label = `${monthNames[m]} ${d.padStart(2, '0')}`
-      return h('div', { class: 'text-center font-normal text-sm' }, label)
+      const m = monthNames[row.original.month.toString().padStart(2, '0')]
+      const d = row.original.date
+      const date = `${m} ${d}`
+      // const label = `${monthNames[m]} ${d.padStart(2, '0')}`
+      return h('div', { class: 'text-center font-normal text-sm' }, `${date}`)
     },
   }),
 
@@ -119,6 +150,7 @@ const columns = [
           class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
           variant: 'outline',
           size: 'icon',
+          onClick: () => deleteHoliday(row.original.id),
         }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
       ]),
     meta: { className: 'w-[100px] text-center' },
@@ -132,7 +164,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value || [] },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -220,38 +252,10 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
-    <div class="flex-1 text-xs text-primary">
-      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
-        <span>
-          <Select :default-value="10">
-            <SelectTrigger class="w-fit gap-x-1 px-2">
-              <SelectValue placeholder="" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
-                {{ n }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </span>
-
-        of {{ meta?.total }} entries
-      </div>
-    </div>
-    <div class="space-x-2">
-      <!-- Pagination Controls -->
-      <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
-      />
-    </div>
-  </div>
 
   <InboundSettingsHolidaysDialog
     v-model:open="isDialogOpen"
     :row-data="selectedRowData"
   />
+  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Holiday" description="You are about to delete a Holiday. Do you wish to proceed?" />
 </template>
