@@ -90,32 +90,40 @@ async function handleFileUpdate(files: File[]) {
 
     if (json.length > 0) {
       const headers = json[0] as string[]
-      fileHeaders.value = headers.filter(h => !!h) // clean empty values
+      fileHeaders.value = headers.filter(h => !!h)
+    }
+    else {
+      setFieldValue('file', null)
+      await validateField('file')
+      fileHeaders.value = []
     }
   }
-  else {
-    setFieldValue('file', null)
-    await validateField('file')
-    fileHeaders.value = []
-  }
 }
-
 // -- FORM SUBMIT --
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
   try {
-    const payload = {
-      title: values.title,
-      campaign_id: Number.parseInt(values.campaign),
-      file_name: values.file?.name || '',
+    const formData = new FormData()
+    formData.append('title', values.title)
+    formData.append('campaign_id', values.campaign)
+
+    if (values.file) {
+      formData.append('file', values.file)
     }
 
-    await api.put('/ringless/list/add', payload)
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value)
+    }
 
-    showToast({ message: 'List added successfully' })
+    const response = await useApi().put('/ringless/list/add', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    showToast({ message: response.message })
     emits('refresh')
 
-    // Set for configure dialog
     formTitle.value = values.title
     formCampaign.value = values.campaign
 
@@ -124,7 +132,10 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm()
   }
   catch (error: any) {
-    showToast({ type: 'error', message: error.message || 'Failed to add list' })
+    showToast({
+      type: 'error',
+      message: error.response?.data?.message || 'Failed to add list',
+    })
   }
   finally {
     loading.value = false

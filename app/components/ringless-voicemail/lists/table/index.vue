@@ -9,14 +9,20 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-
 import { ChevronsUpDown } from 'lucide-vue-next'
+
 import moment from 'moment'
 import { computed, h, ref } from 'vue'
-import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
 import RinglessVoicemailListsConfigureDialog from '@/components/ringless-voicemail/lists/ConfigureDialog.vue'
+
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -152,26 +158,87 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+    cell: ({ row }) => {
+      const item = row.original
+
+      return h('div', {
+        class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3',
+      }, [
+      // 👁️ Eye Icon Button (opens sheet)
         h(Button, {
           size: 'icon',
-          class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
+          variant: 'ghost',
+          class: `h-8 w-8 p-0 cursor-pointer bg-[#162D3A] text-white hover:bg-[#162D3A] hover:text-white ${campaignLoadingId.value === item.id ? 'loading-state' : ''}`,
           onClick: () => {
-            selectedList.value = row.original
+            selectedList.value = item
             sheet.value = true
           },
         }, h(Icon, {
-          name: campaignLoadingId.value === row.original.id
+          name: campaignLoadingId.value === item.id
             ? 'eos-icons:bubble-loading'
             : 'lucide:eye',
+          size: 16,
         })),
-        h(Action, {
-          onEdit: () => emit('edit', row.original),
+
+        // ⋮ Dropdown Menu (Download, Edit, Delete)
+        h(DropdownMenu, {}, {
+          default: () => [
+            h(DropdownMenuTrigger, {}, () =>
+              h(Button, {
+                variant: 'ghost',
+                size: 'icon',
+                class: 'h-7 w-7',
+              }, h(Icon, { name: 'lucide:more-vertical', size: 16 }))),
+
+            h(DropdownMenuContent, { align: 'end' }, () => [
+            // Download
+              h(DropdownMenuItem, {
+                class: 'cursor-pointer',
+                onClick: () => {
+                  const fileUrl = `/storage/ringless-lists/${item.file_name}`
+                  const a = document.createElement('a')
+                  a.href = fileUrl
+                  a.download = item.file_name
+                  a.click()
+                },
+              }, [
+                h(Icon, { name: 'material-symbols:download', size: 16 }),
+                h('span', 'Download'),
+              ]),
+
+              // Edit
+              h(DropdownMenuItem, {
+                class: 'cursor-pointer',
+                onClick: () => emits('edit', item),
+              }, [
+                h(Icon, { name: 'material-symbols:edit-square-outline', size: 16 }),
+                h('span', 'Edit'),
+              ]),
+
+              // Delete
+              h(DropdownMenuItem, {
+                class: 'text-red-600 cursor-pointer hover:!text-red-500',
+                onClick: () => deleteList(item.id),
+              }, [
+                h(Icon, { name: 'mdi:trash-can-outline', size: 16 }),
+                h('span', 'Delete'),
+              ]),
+            ]),
+          ],
         }),
-      ]),
+      ])
+    },
   }),
+
 ]
+function deleteList(id: number) {
+  useApi().get(`/ringless/list/delete/${id}`).then(() => {
+    showToast({ message: 'List deleted successfully' })
+    emits('refresh') // Refresh data
+  }).catch(() => {
+    showToast({ type: 'error', message: 'Failed to delete list' })
+  })
+}
 
 const table = useVueTable({
   get data() { return tableData.value },
@@ -210,7 +277,7 @@ function changeLimit(val: number | null) {
       <TableBody>
         <TableRow v-if="props.loading">
           <TableCell :colspan="columns.length" class="text-center">
-            Loading...
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
         </TableRow>
 
