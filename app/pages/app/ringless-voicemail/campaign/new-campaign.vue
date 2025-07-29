@@ -80,7 +80,7 @@ const { data: customCallerIdOptions, refresh: refreshCustomCallerIdList, status:
 
 const callerIdOptions = ref([
   { id: 'areacode', name: 'Area Code' },
-  { id: 'random', name: 'Area Code and Randomiser' },
+  { id: 'area_code_random', name: 'Area Code and Randomiser' },
   { id: 'custom', name: 'Custom' },
 ])
 
@@ -143,10 +143,10 @@ async function fetchCampaignData(){
     const res = await useApi().post('/ringless/campaign/show', {
       campaign_id: id
     })
-    
-    if (res.data && res.data.length > 0) {
-      const campaignData = res.data[0]
-      
+
+    if (res && res.length > 0) {
+      const campaignData = res[0]
+          console.log(campaignData)
       const formValues = {
         title: campaignData.title,
         country_code: campaignData.country_code,
