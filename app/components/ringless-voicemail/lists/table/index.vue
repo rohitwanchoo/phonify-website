@@ -12,9 +12,9 @@ import {
 
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
-
 import { computed, h, ref } from 'vue'
 import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
+import RinglessVoicemailListsConfigureDialog from '@/components/ringless-voicemail/lists/ConfigureDialog.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -36,7 +36,8 @@ const props = defineProps<{
   totalRows: number
   loading: boolean
 }>()
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
 function updateStatus(val: { status: boolean, id: number }) {
   useApi().post('/ringless/list/update-status', {
     listId: val.id,
@@ -48,6 +49,7 @@ function updateStatus(val: { status: boolean, id: number }) {
     showToast({ type: 'error', message: error.message })
   })
 }
+const tableData = computed(() => props.list || [])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -172,7 +174,7 @@ const columns = [
 ]
 
 const table = useVueTable({
-  get data() { return props.list || [] },
+  get data() { return tableData.value },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -199,7 +201,6 @@ function changeLimit(val: number | null) {
           <TableHead
             v-for="header in headerGroup.headers"
             :key="header.id"
-            :class="cn({ 'sticky bg-background/95': header.column.getIsPinned() })"
           >
             <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
           </TableHead>
@@ -214,7 +215,11 @@ function changeLimit(val: number | null) {
         </TableRow>
 
         <template v-else-if="table.getRowModel().rows?.length">
-          <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            :data-state="row.getIsSelected() ? 'selected' : undefined"
+          >
             <TableCell
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"

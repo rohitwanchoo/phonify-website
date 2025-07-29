@@ -21,18 +21,26 @@ const { data: ringlessLists, status: ringlessListStatus, refresh: refreshRingles
       },
     }),
   {
-    transform: res => res,
+    transform: res => ({
+      data: res.data || [],
+      total: res.total_rows || 0,
+    }),
   },
 )
 
+onMounted(() => {
+  refreshRinglessLists()
+})
+
 function changePage(page: number) {
   start.value = (page - 1) * limit.value
-  return refreshRinglessLists()
+  refreshRinglessLists()
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  return refreshRinglessLists()
+  start.value = 0 // Reset to first page when changing limit
+  refreshRinglessLists()
 }
 
 const debouncedSearch = useDebounceFn(() => {
@@ -68,7 +76,7 @@ function openEditDialog(item: any) {
     <!-- TABLE -->
     <RinglessVoicemailListsTable
       :limit="limit"
-      :total-rows="ringlessLists?.total"
+      :total-rows="ringlessLists?.total || 0"
       :start="start"
       :list="ringlessLists?.data || []"
       :loading="ringlessListStatus === 'pending'"
