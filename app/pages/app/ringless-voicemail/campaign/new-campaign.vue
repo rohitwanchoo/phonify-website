@@ -31,8 +31,8 @@ import { Textarea } from '~/components/ui/textarea'
 const route = useRoute()
 const router = useRouter()
 const id = route.query.id
-const Title = route.query.name
 const isEdit = computed(() => !!id)
+const pageTitle = ref(isEdit.value ? 'Edit Campaign' : 'Create New Campaign')
 
 const breadcrumbs = [
   {
@@ -45,9 +45,7 @@ const breadcrumbs = [
   },
 ]
 
-const headerTitle = isEdit.value ? Title : 'Create New Campaign'
-
-const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list', () =>
+const { data: countryCodeList, pending: countryCodePending, status:countryCodeStatus } = await useLazyAsyncData('get-country-code-list', () =>
   useApi().post('/country-list', {
 
   }), {
@@ -57,7 +55,7 @@ const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list',
 })
 
 // list voice template
-const { data: voiceTemplateOptions, refresh: voiceTemplateRefresh, status: voiceTemplateStatus } = await useLazyAsyncData('voice-template-list', () =>
+const { data: voiceTemplateOptions, refresh: voiceTemplateRefresh, status: voiceTemplateStatus, pending: voiceTemplatePending } = await useLazyAsyncData('voice-template-list', () =>
   useApi().get('/voice-templete', {
     start: 0,
     limit: 10,
@@ -66,13 +64,13 @@ const { data: voiceTemplateOptions, refresh: voiceTemplateRefresh, status: voice
   transform: res => res.data,
 })
 
-const { data: sipGatewayOptions, refresh: sipGatewayRefresh, status: sipGatewayStatus } = await useLazyAsyncData('sip-gateway-list', () =>
+const { data: sipGatewayOptions, refresh: sipGatewayRefresh, status: sipGatewayStatus, pending: sipGatewayPending } = await useLazyAsyncData('sip-gateway-list', () =>
   useApi().get('/sip-gateways'), {
     immediate: true,
   transform: res => res.data,
 })
 
-const { data: customCallerIdOptions, refresh: refreshCustomCallerIdList, status: customCallerIdListStatus } = await useLazyAsyncData('get-custom-caller-id-list', () =>
+const { data: customCallerIdOptions, refresh: refreshCustomCallerIdList, status: customCallerIdListStatus, pending: customCallerIdPending } = await useLazyAsyncData('get-custom-caller-id-list', () =>
   useApi().post('/did'), {
     immediate: true,
   transform: res => res.data,
@@ -92,7 +90,6 @@ const callerTimeOptions = ref([
   { id: '20' },
   { id: '30' },
 ])
-
 
 const callRatioOptions = ref([
   { id: '1:1', title: '1:1 Ratio' },
@@ -146,7 +143,7 @@ async function fetchCampaignData(){
 
     if (res && res.length > 0) {
       const campaignData = res[0]
-          console.log(campaignData)
+      console.log(campaignData)
       const formValues = {
         title: campaignData.title,
         country_code: campaignData.country_code,
@@ -164,11 +161,12 @@ async function fetchCampaignData(){
       }
       
       setValues(formValues)
+      pageTitle.value = campaignData.title
     }
     
 
   }catch(error){
-console.error('Error fetching campaign data:', error)
+    console.error('Error fetching campaign data:', error)
     showToast({
       message: 'Failed to load campaign data',
       type: 'error',
@@ -176,30 +174,46 @@ console.error('Error fetching campaign data:', error)
   }finally {
     loading.value = false
   }
-
 }
 
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
-  console.log('Form submitted with values:', values)
-  const res = await useApi().post('/ringless/campaign/add', values)
-  if (res.success) {
-     showToast({
+  try {
+    let res
+    if (isEdit.value) {
+      // Edit mode - call update API
+      res = await useApi().post('/ringless/campaign/edit', {
+        ...values,
+        campaign_id: id // Include the campaign ID for update
+      })
+    } else {
+      // Create mode - call add API
+      res = await useApi().post('/ringless/campaign/add', values)
+    }
+
+    if (res.success) {
+      showToast({
         message: res.message,
         type: 'success',
       })
-    }
-    else {
-       showToast({
-        message: res.message || 'Failed to delete campaign',
+      router.push({
+        path: `/app/ringless-voicemail/campaign`,
+      })
+    } else {
+      showToast({
+        message: res.message || (isEdit.value ? 'Failed to update campaign' : 'Failed to create campaign'),
         type: 'error',
       })
     }
+  } catch (error) {
+    console.error('Error submitting form:', error)
+    showToast({
+      message: isEdit.value ? 'Failed to update campaign' : 'Failed to create campaign',
+      type: 'error',
+    })
+  } finally {
     loading.value = false
-    router.push({
-            path: `/app/ringless-voicemail/campaign`,
-          })
- 
+  }
 })
 
 onMounted(() => {
@@ -208,7 +222,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseHeader :title="headerTitle" :breadcrumbs="breadcrumbs">
+  <BaseHeader :title="pageTitle" :breadcrumbs="breadcrumbs">
     <template #actions>
       <Button variant="outline" class="h-11">
         <icon name="material-symbols:save-rounded" size="18" />
@@ -282,9 +296,16 @@ onMounted(() => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in countyCodeList" :key="item.id" :value="item.id">
-                              (+{{ item.phonecode }}) {{ item.name }}
-                            </SelectItem>
+                            <template v-if="countryCodeStatus==='pending'">
+                              <div class="flex items-centeusr justify-center p-4">
+                                <Icon name="eos-icons:loading" size="24" />
+                              </div>
+                            </template>
+                            <template v-else>
+                              <SelectItem v-for="item in countryCodeList" :key="item.id" :value="item.id">
+                                (+{{ item.phonecode }}) {{ item.name }}
+                              </SelectItem>
+                            </template>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -357,9 +378,16 @@ onMounted(() => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in customCallerIdOptions" :key="item.id" :value="item.cli">
-                              +1 {{ formatNumber(item.cli) }} {{ item.cnam }} {{ item.forward_number }}
-                            </SelectItem>
+                            <template v-if="customCallerIdPending">
+                              <div class="flex items-center justify-center p-4">
+                                <Icon name="eos-icons:loading" size="24" />
+                              </div>
+                            </template>
+                            <template v-else>
+                              <SelectItem v-for="item in customCallerIdOptions" :key="item.id" :value="item.cli">
+                                +1 {{ formatNumber(item.cli) }} {{ item.cnam }} {{ item.forward_number }}
+                              </SelectItem>
+                            </template>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -471,9 +499,16 @@ onMounted(() => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in voiceTemplateOptions" :key="item.templete_id" :value="item.templete_id">
-                              {{ item.templete_name }}
-                            </SelectItem>
+                            <template v-if="voiceTemplatePending">
+                              <div class="flex items-center justify-center p-4">
+                                <Icon name="eos-icons:loading" size="24" />
+                              </div>
+                            </template>
+                            <template v-else>
+                              <SelectItem v-for="item in voiceTemplateOptions" :key="item.templete_id" :value="item.templete_id">
+                                {{ item.templete_name }}
+                              </SelectItem>
+                            </template>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -508,9 +543,16 @@ onMounted(() => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in sipGatewayOptions" :key="item.id" :value="item.id">
-                              {{ item.client_name }}
-                            </SelectItem>
+                            <template v-if="sipGatewayPending">
+                              <div class="flex items-center justify-center p-4">
+                                <Icon name="eos-icons:loading" size="24" />
+                              </div>
+                            </template>
+                            <template v-else>
+                              <SelectItem v-for="item in sipGatewayOptions" :key="item.id" :value="item.id">
+                                {{ item.client_name }}
+                              </SelectItem>
+                            </template>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -549,7 +591,7 @@ onMounted(() => {
       </Button>
       <Button class="w-1/2 h-[52px]" type="submit"  @click="onSubmit">
         <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" size="20" />
-        Save Campaign
+        {{isEdit?'Update campaign':'Save Campaign'}}
       </Button>
     </div>
   </div>
