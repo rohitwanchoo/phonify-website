@@ -8,7 +8,6 @@ const isDialogOpen = ref(false)
 
 const { data: holidayList, status, refresh } = await useLazyAsyncData('did-get-all-holidays', () =>
   useApi().post('/get-all-holidays', {
-
   }), {
   transform: res => res.data,
 })
