@@ -104,14 +104,17 @@ const formSchema = toTypedSchema(
     country_code: z.number().min(1, 'Country code is required'),
     description: z.string().optional(),
     caller_id: z.string().min(1, 'Caller ID is required'),
-    custom_caller_id: z.string().optional(),
+    custom_caller_id: z.number().optional(),
     call_duration: z.string().min(1, 'Call duration is required'),
     call_ratio: z.string().min(1, 'Call ratio is required'),
     call_time_start: z.string().optional(),
     call_time_end: z.string().optional(),
     voice_template_id: z.number().min(1, 'Voice Template is required'),
     sip_gateway_id:  z.number().min(1, 'SIP Gateway is required'),
-    time_based_calling: z.number().int().min(0).max(1),
+    time_based_calling: z.union([
+      z.boolean().transform((val) => (val ? 1 : 0)), 
+      z.number().int().min(0).max(1),                
+    ]).optional(),
     status: z.number().int().min(0).max(1),
   }),
 )
@@ -128,7 +131,7 @@ const loading = ref(false)
 
 function onSelectCallerId(value: string) {
   if (value !== 'custom') {
-    setFieldValue('custom_caller_id', '')
+    setFieldValue('custom_caller_id', 0)
   }
 }
 
@@ -143,20 +146,20 @@ async function fetchCampaignData(){
 
     if (res && res.length > 0) {
       const campaignData = res[0]
-      console.log(campaignData)
+
       const formValues = {
         title: campaignData.title,
         country_code: campaignData.country_code,
         description: campaignData.description,
         caller_id: campaignData.caller_id,
-        custom_caller_id: campaignData.custom_caller_id || '',
+        custom_caller_id: campaignData.caller_id === 'custom' ? campaignData.custom_caller_id : 0,
         call_duration: campaignData.call_duration.toString(),
         call_ratio: campaignData.call_ratio.toString(),
         call_time_start: campaignData.call_time_start?.substring(0, 5) || '',
         call_time_end: campaignData.call_time_end?.substring(0, 5) || '',
         voice_template_id: campaignData.voice_template_id || 0,
         sip_gateway_id: campaignData.sip_gateway_id || 0,
-        time_based_calling: campaignData.time_based_calling,
+        time_based_calling: campaignData.time_based_calling===1? true:false,
         status: parseInt(campaignData.status)
       }
       
@@ -178,6 +181,7 @@ async function fetchCampaignData(){
 
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
+  values.time_based_calling=values.time_based_calling? 1:0
   try {
     let res
     if (isEdit.value) {
@@ -200,7 +204,7 @@ const onSubmit = handleSubmit(async (values) => {
         path: `/app/ringless-voicemail/campaign`,
       })
     } else {
-      showToast({
+      showToast({ 
         message: res.message || (isEdit.value ? 'Failed to update campaign' : 'Failed to create campaign'),
         type: 'error',
       })
@@ -219,9 +223,12 @@ const onSubmit = handleSubmit(async (values) => {
 onMounted(() => {
   fetchCampaignData()
 })
+
+
 </script>
 
 <template>
+
   <BaseHeader :title="pageTitle" :breadcrumbs="breadcrumbs">
     <template #actions>
       <Button variant="outline" class="h-11">
@@ -384,7 +391,7 @@ onMounted(() => {
                               </div>
                             </template>
                             <template v-else>
-                              <SelectItem v-for="item in customCallerIdOptions" :key="item.id" :value="item.cli">
+                              <SelectItem v-for="item in customCallerIdOptions" :key="item.id" :value="Number(item.cli)">
                                 +1 {{ formatNumber(item.cli) }} {{ item.cnam }} {{ item.forward_number }}
                               </SelectItem>
                             </template>
@@ -562,22 +569,24 @@ onMounted(() => {
                 </FormField>
               </div>
               <div class="w-1/2">
-                <FormField v-slot="{ componentField }" v-model="values.time_based_calling" name="time_based_calling">
-                  <FormItem>
-                    <FormLabel class="font-normal text-white">
-                      Enable Time Zone
-                    </FormLabel>
-                    <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                      <p>Enable Time Zone Rule</p>
-                  <Switch
-  :checked="values.time_based_calling === 1"
-  class="data-[state=checked]:bg-green-600"
-  @update:checked="(val) => setFieldValue('time_based_calling', val ? 1 : 0)"
-/>
-                    </div>
-                    <FormMessage class="text-sm" />
-                  </FormItem>
-                </FormField>
+            <FormField v-slot="{ value, handleChange }" name="time_based_calling">
+  <FormItem>
+    <FormLabel class="font-normal text-white">
+      Enable Time Zone
+    </FormLabel>
+    <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
+      <p>Enable Time Zone Rule</p>
+      <FormControl>
+        <Switch
+          class="data-[state=checked]:bg-green-600"
+          :model-value="value"
+          @update:model-value="handleChange"
+        />
+      </FormControl>
+    </div>
+    <FormMessage class="text-sm" />
+  </FormItem>
+</FormField>
               </div>
             </div>
           </div>
