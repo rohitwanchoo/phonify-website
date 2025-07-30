@@ -2,10 +2,10 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { onMounted, ref } from 'vue'
-// -- FILE HANDLER --
+import { ref } from 'vue'
 import * as XLSX from 'xlsx'
 import * as z from 'zod'
+
 import {
   Select,
   SelectContent,
@@ -15,33 +15,55 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
-import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
-
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '~/components/ui/dialog'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 
-interface Campaign {
-  id: string
-  title: string
-}
+const props = defineProps<{
+  campaigns: { id: string, title: string }[]
+  loadCampaigns: () => Promise<void>
+}>()
 
-const emits = defineEmits<{
+const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
+// Local state
+const dialogOpen = ref(false)
+const loading = ref(false)
+const fileHeaders = ref<string[]>([])
+const formTitle = ref('')
+const formCampaign = ref('')
+const showConfigureDialog = ref(false)
+
 const api = useApi()
 
-// -- FORM SCHEMA --
-const formSchema = toTypedSchema(z.object({
-  title: z.string().min(1, 'Campaign name is required').max(100),
-  campaign: z.string().min(1, 'Campaign is required'),
-  file: z.instanceof(File, { message: 'File is required' })
-    .refine(file => file.size <= 5 * 1024 * 1024, 'Max file size is 5MB')
-    .refine((file) => {
-      const ext = file.name.split('.').pop()?.toLowerCase()
-      return ['xlsx', 'xls', 'csv'].includes(ext || '')
-    }, 'Only Excel/CSV files allowed'),
-}))
+// zod schema
+const formSchema = toTypedSchema(
+  z.object({
+    title: z.string().min(1, 'Campaign name is required').max(100),
+    campaign: z.string().min(1, 'Campaign is required'),
+    file: z
+      .instanceof(File, { message: 'File is required' })
+      .refine(file => file.size <= 5 * 1024 * 1024, 'Max file size is 5MB')
+      .refine((file) => {
+        const ext = file.name.split('.').pop()?.toLowerCase()
+        return ['xlsx', 'xls', 'csv'].includes(ext || '')
+      }, 'Only Excel/CSV files allowed'),
+  }),
+)
 
 const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
   validationSchema: formSchema,
@@ -52,31 +74,16 @@ const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
   },
 })
 
-// -- STATE --
-const dialogOpen = ref(false)
-const optionsOpen = ref(false)
-const loading = ref(false)
-const formTitle = ref('')
-const formCampaign = ref('')
+async function onDialogOpen(val: boolean) {
+  if (val) {
+    resetForm()
+    await props.loadCampaigns()
+  }
+}
 
-// -- CAMPAIGNS FETCH --
-const {
-  data: campaigns,
-  refresh: campaignRefresh,
-} = await useLazyAsyncData('campaigns', () => api.get('/ringless/campaign'), {
-  transform: res => res.data,
-  immediate: false,
-})
-
-onMounted(() => {
-  campaignRefresh()
-})
-
-const fileHeaders = ref<string[]>([])
-
+// Handle file upload
 async function handleFileUpdate(files: File[]) {
   const file = files[0]
-
   if (file) {
     setFieldValue('file', file)
     await validateField('file')
@@ -85,49 +92,41 @@ async function handleFileUpdate(files: File[]) {
     const workbook = XLSX.read(data, { type: 'array' })
     const sheetName = workbook.SheetNames[0]
     const worksheet = workbook.Sheets[sheetName]
-    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) // Get raw rows
+    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
     if (json.length > 0) {
       const headers = json[0] as string[]
-      fileHeaders.value = headers.filter(h => !!h)
+      fileHeaders.value = headers.filter(Boolean)
     }
     else {
       setFieldValue('file', null)
-      await validateField('file')
       fileHeaders.value = []
     }
   }
 }
-// -- FORM SUBMIT --
+
+// Handle form submit
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
   try {
     const formData = new FormData()
     formData.append('title', values.title)
     formData.append('campaign_id', values.campaign)
-
     if (values.file) {
       formData.append('file', values.file)
     }
 
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value)
-    }
-
-    const response = await useApi().put('/ringless/list/add', formData, {
+    await api.put('/ringless/list/add', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
 
-    showToast({ message: response.message })
-    emits('refresh')
-
+    emit('refresh')
     formTitle.value = values.title
     formCampaign.value = values.campaign
-
     dialogOpen.value = false
-    optionsOpen.value = true
+    showConfigureDialog.value = true
     resetForm()
   }
   catch (error: any) {
@@ -140,15 +139,10 @@ const onSubmit = handleSubmit(async (values) => {
     loading.value = false
   }
 })
-
-// -- RESET ON OPEN --
-function onDialogOpen(val: boolean) {
-  if (val)
-    resetForm()
-}
 </script>
 
 <template>
+  <!-- Add Dialog -->
   <Dialog v-model:open="dialogOpen" @update:open="onDialogOpen">
     <DialogTrigger as-child>
       <Button>
@@ -207,7 +201,7 @@ function onDialogOpen(val: boolean) {
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem
-                      v-for="campaign in campaigns"
+                      v-for="campaign in props.campaigns"
                       :key="campaign.id"
                       :value="String(campaign.id)"
                     >
@@ -231,11 +225,7 @@ function onDialogOpen(val: boolean) {
             <Icon name="material-symbols:close" />
             Discard
           </Button>
-          <Button
-            type="submit"
-            class="w-[50%]"
-            :disabled="loading"
-          >
+          <Button type="submit" class="w-[50%]" :disabled="loading">
             <Icon name="material-symbols:check" />
             {{ loading ? 'Submitting...' : 'Next' }}
           </Button>
@@ -243,10 +233,13 @@ function onDialogOpen(val: boolean) {
       </form>
     </DialogContent>
   </Dialog>
+
+  <!-- Configure Dialog -->
   <RinglessVoicemailListsConfigureDialog
-    v-model:open="optionsOpen"
+    v-model:open="showConfigureDialog"
     :title="formTitle"
-    :campaign="formCampaign"
+    :selected-campaign="formCampaign"
+    :campaigns="props.campaigns"
     :headers="fileHeaders"
   />
 </template>

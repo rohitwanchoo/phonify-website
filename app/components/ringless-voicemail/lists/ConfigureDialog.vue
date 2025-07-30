@@ -1,96 +1,65 @@
 <script setup lang="ts">
-import { useFetch } from '#app'
+import { useLazyAsyncData } from '#app'
 import { Icon } from '#components'
+import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
+import { computed, h, ref, watch } from 'vue'
+
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import {
-  createColumnHelper,
-  FlexRender,
-  getCoreRowModel,
-  useVueTable,
-} from '@tanstack/vue-table'
-import { h, onMounted, ref, watch } from 'vue'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import { Input } from '~/components/ui/input'
+  RadioGroup,
+  RadioGroupItem,
+} from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const props = defineProps<{
   open: boolean
   title: string
-  campaign: string
+  selectedCampaign: string
+  campaigns: { id: string, title: string }[]
   headers: string[]
 }>()
-const emit = defineEmits(['update:open'])
+
+const emit = defineEmits<{
+  (event: 'update:open', value: boolean): void
+}>()
 
 const api = useApi()
 
-
-
-const selectValue = ref(String(props.campaign || ''))
-const campaigns = ref<{ id: string, title: string }[]>([])
-
-// Fetch campaign list
-async function fetchCampaigns() {
-  const { data } = await api.get('/ringless/campaign')
-  campaigns.value = data
-}
-
-// Init campaign data
-onMounted(async () => {
-  await fetchCampaigns()
-
-  // If the campaign ID exists in the list, set it
-  const exists = campaigns.value.some(c => String(c.id) === String(props.campaign))
-  if (exists) {
-    selectValue.value = String(props.campaign)
-  }
-  else {
-    selectValue.value = ''
-  }
-})
-watch(() => props.campaign, (newVal) => {
-  const exists = campaigns.value.some(c => String(c.id) === String(newVal))
-  if (exists) {
-    selectValue.value = String(newVal)
-  }
-})
-watch(() => props.open, (val) => {
+const selectValue = ref(props.selectedCampaign || '')
+watch(() => props.open, async (val) => {
   if (val) {
-    labelRefresh()
+    selectValue.value = props.selectedCampaign
+    inputValue.value = props.title
+    await labelRefresh()
   }
 })
+
 watch(() => props.headers, (newHeaders) => {
-  // Dynamically update tableData based on file headers
-  if (newHeaders && newHeaders.length) {
-    tableData.value = newHeaders.map((header, index) => ({
-      slno: index + 1,
+  if (newHeaders?.length) {
+    tableData.value = newHeaders.map((header, i) => ({
+      slno: i + 1,
       fileHeader: header,
       dialingColumn: false,
       label: '',
     }))
   }
 })
-const labelStart = ref(0)
-const labelLimit = ref(1000) // Get all labels
-const labelSearch = ref('')
 
+// -- LABEL DATA --
 const { data: labelData, refresh: labelRefresh } = await useLazyAsyncData('table-labels', () =>
-  api.post('/label', {
-    lower_limit: labelStart.value,
-    upper_limit: labelLimit.value,
-    search: labelSearch.value,
-  }), {
-  transform: res => res.data || [], // Ensure we always return an array
-  immediate: false, // Don't fetch immediately
-})
-
-// Watch for dialog open to fetch labels
-watch(() => props.open, async (val) => {
-  if (val) {
-    await labelRefresh()
-    console.log('Label data:', labelData.value) // Debug: check the data
-  }
-})
+  useApi().post('/label', {
+    lower_limit: 0,
+    upper_limit: 1000,
+    search: '',
+  }), { transform: res => res.data || [], immediate: false })
 
 const inputValue = ref(props.title || '')
 
@@ -103,6 +72,7 @@ const tableData = ref([
   { slno: 4, fileHeader: 'Email/Fax', dialingColumn: false, label: '' },
 ])
 
+// -- TABLE --
 const columnHelper = createColumnHelper<typeof tableData.value[0]>()
 const columns = computed(() => [
   columnHelper.accessor('slno', {
@@ -173,7 +143,6 @@ const columns = computed(() => [
       ],
     }),
   }),
-
 ])
 
 const table = useVueTable({
@@ -181,6 +150,7 @@ const table = useVueTable({
   columns: columns.value,
   getCoreRowModel: getCoreRowModel(),
 })
+
 function closeDialog() {
   emit('update:open', false)
 }
@@ -188,12 +158,11 @@ function closeDialog() {
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-w-[90vw] sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
+    <DialogContent class="max-w-[90vw] lg:max-w-[900px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle class="text-primary">
-          Configure List
-        </DialogTitle>
+        <DialogTitle>Configure List</DialogTitle>
       </DialogHeader>
+
       <div class="flex gap-4 mb-6">
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Title</label>
@@ -218,31 +187,33 @@ function closeDialog() {
           </Select>
         </div>
       </div>
-      <div class="overflow-x-auto rounded-lg border mb-8">
-        <table class="min-w-full text-sm text-primary">
-          <thead class="bg-gray-50 text-primary">
+
+      <div class="overflow-x-auto border rounded-lg mb-8">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50">
             <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-              <th v-for="header in headerGroup.headers" :key="header.id" class="px-3 py-2 text-center font-medium text-primary align-middle">
+              <th v-for="header in headerGroup.headers" :key="header.id" class="px-3 py-2 text-center">
                 <FlexRender :render="header.column.columnDef.header" :props="header.getContext()" />
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in table.getRowModel().rows" :key="row.id" class="border-t text-primary align-middle">
-              <td v-for="cell in row.getVisibleCells()" :key="cell.id" class="px-3 py-2 text-center text-primary align-middle">
+            <tr v-for="row in table.getRowModel().rows" :key="row.id" class="border-t">
+              <td v-for="cell in row.getVisibleCells()" :key="cell.id" class="px-3 py-2 text-center">
                 <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
       <div class="flex justify-between items-center mt-6">
-        <Button type="button" variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600" @click="closeDialog">
+        <Button variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100" @click="closeDialog">
           <Icon name="lucide:x" class="w-4 h-4 mr-1" />
           Discard
         </Button>
-        <Button type="button" class="w-[49%] bg-primary text-white border-primary hover:bg-primary/90 hover:text-white" @click="closeDialog">
-          <Icon name="lucide:save" class="w-4 h-4 mr-1 text-white" />
+        <Button class="w-[49%] bg-primary text-white hover:bg-primary/90" @click="closeDialog">
+          <Icon name="lucide:save" class="w-4 h-4 mr-1" />
           Save
         </Button>
       </div>

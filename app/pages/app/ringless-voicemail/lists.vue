@@ -27,7 +27,16 @@ const { data: ringlessLists, status: ringlessListStatus, refresh: refreshRingles
     }),
   },
 )
+const campaigns = ref<Campaign[]>([])
+const campaignsLoaded = ref(false)
 
+async function loadCampaigns() {
+  if (!campaignsLoaded.value) {
+    const res = await useApi().get('/ringless/campaign')
+    campaigns.value = res.data || []
+    campaignsLoaded.value = true
+  }
+}
 onMounted(() => {
   refreshRinglessLists()
 })
@@ -69,7 +78,11 @@ function openEditDialog(item: any) {
           placeholder="search"
           @update:model-value="searchText"
         />
-        <RinglessVoicemailListsAdd @refresh="refreshRinglessLists" />
+        <RinglessVoicemailListsAdd
+          :campaigns="campaigns"
+          :load-campaigns="loadCampaigns"
+          @refresh="refreshRinglessLists"
+        />
       </template>
     </BaseHeader>
 
