@@ -119,7 +119,7 @@ const formSchema = toTypedSchema(
   }),
 )
 
-const { handleSubmit, values, setFieldValue, setValues } = useForm({
+const { handleSubmit, values, setFieldValue, setValues,resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
     status: 1, // Default to active
@@ -132,6 +132,18 @@ const loading = ref(false)
 function onSelectCallerId(value: string) {
   if (value !== 'custom') {
     setFieldValue('custom_caller_id', 0)
+  }
+}
+
+function handleCancel(){
+  if(isEdit.value){
+    resetForm()
+    router.push({
+            path: `/app/ringless-voicemail/campaign`,           
+          })
+  }
+  else{
+    resetForm()
   }
 }
 
@@ -594,12 +606,12 @@ onMounted(() => {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4 gap-2 flex ">
-      <Button class="w-1/2 h-[52px]" variant="outline"  @click="onSubmit">
-        <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:close'" size="20" />
+      <Button class="w-1/2 h-[52px]" variant="outline" :loading="loading" :disabled="loading"  @click="handleCancel">
+        <Icon name= 'material-symbols:close' size="20" />
         Cancel
       </Button>
-      <Button class="w-1/2 h-[52px]" type="submit"  @click="onSubmit">
-        <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" size="20" />
+      <Button class="w-1/2 h-[52px]" type="submit" :loading="loading" :disabled="loading" @click="onSubmit">
+        <Icon name='material-symbols:save' size="20" />
         {{isEdit?'Update campaign':'Save Campaign'}}
       </Button>
     </div>
