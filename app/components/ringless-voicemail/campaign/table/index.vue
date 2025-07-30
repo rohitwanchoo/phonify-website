@@ -19,12 +19,10 @@ import {
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
-import { h, ref } from 'vue'
-
+import { h, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
 import { Button } from '@/components/ui/button'
-
 import {
   Select,
   SelectContent,
@@ -47,17 +45,20 @@ import { cn } from '@/lib/utils'
 const props = withDefaults(defineProps<{
   list: any[]
   loading: boolean
-  meta?: any
+  totalRows: number
+  start: number
+  limit?: number
 }>(), {
-  meta: () => ({
-    current_page: 1,
-    per_page: 10,
-    last_page: 1,
-    total: 0,
-  }),
+  limit: 10,
 })
 
-const emits = defineEmits(['refresh'])
+const emits = defineEmits(['refresh', 'pageNavigation', 'changeLimit'])
+
+// Pagination calculations
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const sheet = ref(false)
 const selectedCampaign = ref<any>(null)
@@ -90,7 +91,6 @@ function openSheet(id: number) {
   }
 }
 
-// Delete handler
 async function handleDelete() {
   if (!selectedCampaignForDelete.value)
     return
@@ -146,7 +146,7 @@ async function handleDuplicate() {
     }
     else {
       showToast({
-        message: res.message || 'Failed to delete campaign',
+        message: res.message || 'Failed to duplicate campaign',
         type: 'error',
       })
     }
@@ -159,12 +159,12 @@ async function handleDuplicate() {
     })
   }
   finally {
-    selectedCampaignForDelete.value = null
+    selectedCampaignForDuplicate.value = null
   }
 }
 
 async function handleStatusChange(row: any) {
-  statusChangeLoadingId.value = row.original.id // Set loading state
+  statusChangeLoadingId.value = row.original.id
   try {
     const res = await useApi().post('/ringless/campaign/update-status', {
       listId: row.original.id,
@@ -193,13 +193,21 @@ async function handleStatusChange(row: any) {
   }
 }
 
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number) {
+  emits('changeLimit', val)
+}
+
 const columnHelper = createColumnHelper<any>()
 
 const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
 
   columnHelper.accessor('title', {
@@ -373,27 +381,27 @@ const table = useVueTable({
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
   onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
   state: {
+    pagination: {
+      pageIndex: current_page.value - 1,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
     get expanded() { return expanded.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
-
-function handlePageChange(page: number) {
-  console.log('Page changed to:', page)
-  meta.value.current_page = page
-}
 </script>
 
 <template>
@@ -452,32 +460,33 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="totalRows && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="10">
+          <Select :model-value="per_page" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
+              <SelectItem v-for="n in [2,5,10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
           </Select>
         </span>
-
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
-      <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)"
+        :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)"
+        :last-page="Number(last_page)"
+        @page-change="handlePageChange"
       />
     </div>
   </div>
