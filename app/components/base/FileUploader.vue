@@ -73,7 +73,8 @@ function handleDrop(event: DragEvent) {
 
 const uploadedFileInfo = computed(() => {
   const file = uploadedFiles.value[0]
-  if (!file) return { type: '', size: '' }
+  if (!file)
+    return { type: '', size: '' }
 
   // Get extension from filename
   const extension = file.name.split('.').pop()?.toUpperCase() || 'File'
@@ -82,15 +83,16 @@ const uploadedFileInfo = computed(() => {
   let size = ''
   if (file.size >= 1024 * 1024) {
     size = `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-  } else if (file.size >= 1024) {
+  }
+  else if (file.size >= 1024) {
     size = `${(file.size / 1024).toFixed(1)} KB`
-  } else {
+  }
+  else {
     size = `${file.size} bytes`
   }
 
   return { type: extension, size }
 })
-
 
 function removeFile(index: number) {
   uploadedFiles.value.splice(index, 1)
@@ -140,7 +142,18 @@ function removeFile(index: number) {
       class="flex items-center justify-between px-3 py-2 bg-muted text-sm rounded-md"
     >
       <div class="flex gap-3 items-center">
-        <Icon name="icons:excel" size="26" />
+        <Icon
+          :name="{
+            MP3: 'icons:mp3',
+            PDF: 'icons:pdf',
+            XLSX: 'icons:excel',
+            XLC: 'icons:excel',
+            CSV: 'icons:excel',
+            XLS: 'icons:excel',
+          }[uploadedFileInfo.type] || 'icons:document'"
+          size="26"
+        />
+
         <div>
           <div class="truncate max-w-[300px] mr-3">
             <span class="text-primary font-semibold">{{ uploadedFiles[0]?.name }}</span>

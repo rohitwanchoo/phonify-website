@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
@@ -9,24 +8,19 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
+import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
 import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -41,57 +35,40 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const loading = ref(false)
-const router = useRouter()
-
-const dummyData = ref([
-  {
-    userName: 'John Doe',
-    ip: '122.122.122.122',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
-    loggedIn: '2025-07-14T04:39:15Z',
-  },
-  {
-    userName: 'Jane Smith',
-    ip: '98.76.54.32',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/114.0.0.0 Safari/537.36',
-    loggedIn: '2025-07-13T12:22:45Z',
-  },
-  {
-    userName: 'Ali Khan',
-    ip: '10.0.0.5',
-    userAgent: 'Mozilla/5.0 (Linux; Android 12; SM-G991B) Chrome/108.0.0.0 Mobile Safari/537.36',
-    loggedIn: '2025-07-12T18:15:00Z',
-  },
-  {
-    userName: 'Meera Thomas',
-    ip: '172.16.254.1',
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1',
-    loggedIn: '2025-07-11T08:30:10Z',
-  },
-  {
-    userName: 'Chris Evans',
-    ip: '203.0.113.45',
-    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) Firefox/127.0',
-    loggedIn: '2025-07-10T21:45:32Z',
-  },
-  {
-    userName: 'Fatima Noor',
-    ip: '192.168.1.100',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_4) Chrome/118.0.0.0 Safari/537.36',
-    loggedIn: '2025-07-09T14:12:18Z',
-  },
-])
-
-const meta = ref({
-  current_page: 1,
-  per_page: 5,
-  last_page: 3,
-  total: 26,
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
 })
+const emits = defineEmits(['pageNavigation', 'limitChange'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const columnHelper = createColumnHelper<CallRecord>()
+export interface loginHistoryList {
+  first_name: string
+  last_name: string
+  ip: string
+  user_agent: string
+  created_at: string
+}
 
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('limitChange', val)
+  }
+}
+
+const columnHelper = createColumnHelper<loginHistoryList>()
 const columns = [
   columnHelper.display({
     id: 'siNo',
@@ -101,16 +78,17 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['#', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, props.start + row.index + 1),
   }),
-  columnHelper.accessor('userName', {
+  columnHelper.display({
+    id: 'userName',
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Name', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.userName),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
   }),
   columnHelper.accessor('ip', {
     header: ({ column }) =>
@@ -121,16 +99,16 @@ const columns = [
       }, () => ['IP', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
     cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.ip),
   }),
-  columnHelper.accessor('userAgent', {
+  columnHelper.accessor('user_agent', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Agent', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-xs break-words' }, row.original.userAgent),
+    cell: ({ row }) => h('div', { class: 'text-center text-xs break-words' }, row.original.user_agent),
   }),
-  columnHelper.accessor('loggedIn', {
+  columnHelper.accessor('created_at', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
@@ -140,7 +118,7 @@ const columns = [
     cell: ({ row }) =>
       h('div', {
         class: 'flex justify-center text-sm w-full',
-      }, moment(row.original.loggedIn).format('YYYY-MM-DD HH:mm:ss')),
+      }, moment(row.original.created_at).format('YYYY-MM-DD HH:mm:ss')),
 
   }),
 ]
@@ -149,32 +127,33 @@ const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
   },
 })
-
-function handlePageChange(page: number) {
-  meta.value.current_page = page
-}
 </script>
 
 <template>
@@ -233,13 +212,13 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10">
+          <Select :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -251,17 +230,14 @@ function handlePageChange(page: number) {
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)"
-        :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)"
-        :last-page="Number(meta?.last_page)"
-        @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

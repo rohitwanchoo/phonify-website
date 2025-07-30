@@ -14,8 +14,6 @@ const props = defineProps<{
 
 const open = defineModel<boolean>('open', { default: false })
 
-const loading = ref(false)
-
 // day options
 const dayOptions = [
   { label: 'Monday', day: 'monday' },
@@ -67,7 +65,7 @@ const { data: dispositionList, status: dispositionListStatus, refresh: dispositi
 })
 
 // Form Setup
-const { handleSubmit, resetForm, setFieldValue } = useForm({
+const { handleSubmit, isSubmitting, resetForm, setFieldValue } = useForm({
   initialValues: {
     recycle_rule_id: props.initialData?.id ?? null,
     campaign_id: props.initialData?.campaign_id ?? null,
@@ -93,7 +91,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    loading.value = true
     const response = await useApi().post('/edit-recycle-rule', {
       ...payload,
     })
@@ -119,9 +116,6 @@ const onSubmit = handleSubmit(async (values) => {
       message: `${error}`,
       type: 'error',
     })
-  }
-  finally {
-    loading.value = false
   }
 })
 
@@ -314,7 +308,7 @@ watch(open, async (newVal) => {
             <Icon name="material-symbols:close" size="20" class="mr-1" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
+          <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
             <Icon name="material-symbols:save" size="20" class="mr-1" />
             Save
           </Button>

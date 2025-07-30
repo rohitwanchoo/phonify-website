@@ -5,6 +5,12 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
 const isDialogOpen = ref(false)
+
+const { data: holidayList, status, refresh } = await useLazyAsyncData('did-get-all-holidays', () =>
+  useApi().post('/get-all-holidays', {
+  }), {
+  transform: res => res.data,
+})
 </script>
 
 <template>
@@ -12,7 +18,6 @@ const isDialogOpen = ref(false)
     <!-- HEADER -->
     <BaseHeader title="Holidays">
       <template #actions>
-
         <!-- Dialog Trigger Button -->
         <Button @click="isDialogOpen = true">
           <Icon class="!text-white" name="lucide:plus" />
@@ -20,13 +25,13 @@ const isDialogOpen = ref(false)
         </Button>
 
         <!-- Dialog Component -->
-        <InboundSettingsHolidaysDialog v-model:open="isDialogOpen" />
+        <InboundSettingsHolidaysDialog v-model:open="isDialogOpen" @refresh="refresh" />
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <InboundSettingsHolidaysTable />
+      <InboundSettingsHolidaysTable :list="holidayList" :loading="status === 'pending'" @refresh="refresh" />
     </div>
   </div>
 </template>

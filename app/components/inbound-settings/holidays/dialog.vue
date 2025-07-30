@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
+import moment from 'moment'
 import { useForm } from 'vee-validate'
 import { computed, watch } from 'vue'
 import * as z from 'zod'
@@ -32,10 +33,10 @@ import {
 
 const props = defineProps<{
   open: boolean
-  rowData?: { id: number, name: string, month: string, day: string }
+  rowData?: { id: number, name: string, month: string, date: string }
 }>()
 
-const emit = defineEmits(['update:open', 'submit'])
+const emit = defineEmits(['update:open', 'refresh'])
 
 const monthOptions = [
   { value: '01', label: 'January' },
@@ -52,17 +53,29 @@ const monthOptions = [
   { value: '12', label: 'December' },
 ]
 
-const dayOptions = Array.from({ length: 31 }, (_, i) => {
+const dayOptions = ref(Array.from({ length: 31 }, (_, i) => {
   const d = (i + 1).toString().padStart(2, '0')
-  return { value: d, label: d }
-})
+  return d
+}))
+
+function getDayNumbersInMonth(month: any) {
+  const currentYear = new Date().getFullYear()
+  const date = moment(`${currentYear}-${month}`, 'YYYY-MM')
+  const daysInMonth = date.daysInMonth()
+
+  const days = Array.from({ length: daysInMonth }, (_, i) => {
+    const d = (i + 1).toString().padStart(2, '0')
+    return d
+  })
+  dayOptions.value = days
+}
 
 const isEditMode = computed(() => !!props.rowData)
 
 const formSchema = toTypedSchema(z.object({
   name: z.string().min(1, 'Holiday name is required'),
   month: z.string().min(1, 'Select a month'),
-  day: z.string().min(1, 'Select a date'),
+  date: z.string().min(1, 'Select a date'),
 }))
 
 const { handleSubmit, resetForm, setValues } = useForm({
@@ -74,7 +87,7 @@ watch(() => props.open, (isOpen) => {
     setValues({
       name: props.rowData.name,
       month: props.rowData.month,
-      day: props.rowData.day,
+      date: props.rowData.date,
     })
   }
   else {
@@ -82,9 +95,37 @@ watch(() => props.open, (isOpen) => {
   }
 })
 
+const loading = ref(false)
+
 const onSubmit = handleSubmit((values) => {
-  emit('submit', values)
-  emit('update:open', false)
+  loading.value = true
+  const api = '/save-holiday-detail'
+
+  const payload = {
+    data: {
+      ...values,
+      date: Number(values.date),
+      month: Number(values.month),
+    },
+  }
+  // console.log(payload)
+
+  useApi().post(api, payload).then((response) => {
+    showToast({
+      message: response.message,
+    })
+  }).catch((error) => {
+    showToast({
+      type: 'error',
+      message: error.message,
+    })
+    emit('refresh')
+    emit('update:open', false)
+  }).finally(() => {
+    loading.value = false
+  })
+  // emit('submit', values)
+  // emit('update:open', false)
 })
 </script>
 
@@ -114,8 +155,8 @@ const onSubmit = handleSubmit((values) => {
           <FormItem>
             <FormLabel>Month</FormLabel>
             <FormControl>
-              <Select v-bind="componentField">
-                <SelectTrigger class="h-11 w-full">
+              <Select v-bind="componentField" @update:model-value="(val) => getDayNumbersInMonth(val)">
+                <SelectTrigger class="!h-11 w-full">
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,21 +175,21 @@ const onSubmit = handleSubmit((values) => {
         </FormField>
 
         <!-- Day -->
-        <FormField v-slot="{ componentField }" name="day">
+        <FormField v-slot="{ componentField }" name="date">
           <FormItem>
             <FormLabel>Day</FormLabel>
             <FormControl>
               <Select v-bind="componentField">
-                <SelectTrigger class="h-11 w-full">
+                <SelectTrigger class="!h-11 w-full">
                   <SelectValue placeholder="Select day" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     v-for="day in dayOptions"
-                    :key="day.value"
-                    :value="day.value"
+                    :key="day"
+                    :value="day"
                   >
-                    {{ day.label }}
+                    {{ day }}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -168,7 +209,7 @@ const onSubmit = handleSubmit((values) => {
             <Icon name="material-symbols:close" />
             Cancel
           </Button>
-          <Button type="submit" class="w-[49%]">
+          <Button :loading type="submit" class="w-[49%]">
             <Icon name="material-symbols:save" />
             Save
           </Button>

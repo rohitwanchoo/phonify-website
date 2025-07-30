@@ -60,7 +60,7 @@ export function handleFieldErrors(
  */
 export function formatNumber(number: string) {
   const parsedNumber = parsePhoneNumberFromString(number, 'US')
-  return parsedNumber?.formatNational() || number
+  return parsedNumber ? `+1 ${parsedNumber.formatNational()}` : number
 }
 
 // function for listing countries with the code using libphonenumber-js
