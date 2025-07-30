@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useFetch } from '#app'
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
