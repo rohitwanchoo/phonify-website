@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { useFilter } from 'reka-ui'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
@@ -58,7 +57,7 @@ const { data: countryCodeList, status: countryCodeStatus } = await useLazyAsyncD
 const { data: voiceTemplateOptions, status: voiceTemplateStatus } = await useLazyAsyncData('voice-template-list', () =>
   useApi().get('/voice-templete', {
     start: 0,
-    limit: 10,
+    // limit: 10,
   }), {
   immediate: true,
   transform: res => res.data,
@@ -122,7 +121,7 @@ const formSchema = toTypedSchema(
 const { handleSubmit, values, setFieldValue, setValues, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    status: 1, // Default to active
+    status: 1,
     time_based_calling: 0,
   },
 })

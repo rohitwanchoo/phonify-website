@@ -352,7 +352,7 @@ const columns = [
         onEdit: () => {
           router.push({
             path: `/app/ringless-voicemail/campaign/new-campaign`,
-            query: { id: row.original.id, name: row.original.title },
+            query: { id: row.original.id },
           })
         },
         onDelete: () => {
