@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
 import { useDebounceFn } from '@vueuse/core'
+import { Button } from '~/components/ui/button'
 
 // Pagination and search variables
 const start = ref(0)
@@ -13,7 +13,7 @@ const { data: ringlessCampaign, status: ringlessCampaignStatus, refresh: ringles
       start: start.value,
       limit: limit.value,
       search: search.value,
-    }
+    },
   }), {
   transform: res => res,
 })
@@ -45,7 +45,7 @@ function searchText() {
     <!-- HEADER -->
     <BaseHeader title="Ringless Voicemail Campaigns">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" placeholder="search" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
         <Nuxt-link to="/app/ringless-voicemail/campaign/new-campaign">
           <Button>
             <Icon class="!text-white" name="lucide:plus" />
@@ -57,8 +57,8 @@ function searchText() {
 
     <!-- TABLE -->
     <div>
-      <RinglessVoicemailCampaignTable 
-        :list="ringlessCampaign?.data || []" 
+      <RinglessVoicemailCampaignTable
+        :list="ringlessCampaign?.data || []"
         :loading="ringlessCampaignStatus === 'pending'"
         :limit="limit"
         :total-rows="ringlessCampaign?.total_rows || 0"

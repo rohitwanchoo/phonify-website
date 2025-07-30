@@ -19,7 +19,7 @@ import {
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
-import { h, ref, computed } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Action from '@/components/ringless-voicemail/campaign/table/Action.vue'
 import { Button } from '@/components/ui/button'
@@ -471,7 +471,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [2,5,10, 25, 50, 100]" :key="n" :value="n">
+              <SelectItem v-for="n in [2, 5, 10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
