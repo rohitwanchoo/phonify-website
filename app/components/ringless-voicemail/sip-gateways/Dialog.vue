@@ -15,16 +15,36 @@ const props = defineProps<{
   rowData?: any
 }>()
 
-const emit = defineEmits(['update:open', 'submit'])
+const emits = defineEmits(['update:open', 'refresh'])
 
 const loading = ref(false)
 const isEditMode = computed(() => !!props.rowData)
+const formSchema = toTypedSchema(z.object({
+  client_name: z.string().min(1, 'Client name is required').max(100),
+  sip_trunk_name: z.string().min(1, 'SIP trunk name is required').max(100),
+  sip_trunk_host: z.string().min(1, 'Host is required').max(100),
+  sip_trunk_username: z.string().min(1, 'SIP trunk username is required').max(100),
+  sip_trunk_password: z.string().min(1, 'SIP trunk password is required').max(100),
+  sip_trunk_provider: z.string().min(1, 'SIP trunk provider is required'),
+}))
+
+const { handleSubmit, resetForm } = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    client_name: '',
+    sip_trunk_name: '',
+    sip_trunk_host: '',
+    sip_trunk_username: '',
+    sip_trunk_password: '',
+    sip_trunk_provider: '',
+  },
+})
 
 // SIP Trunk Provider options
 const sipTrunkProviders = [
-  { value: 'TWILIO', label: 'Twilio' },
-  { value: 'PLIVO', label: 'Plivo' },
-  { value: 'BANDWIDTH', label: 'Bandwidth' },
+  { value: 'twilio', label: 'Twilio' },
+  { value: 'plivo', label: 'Plivo' },
+  { value: 'bandwidth', label: 'Bandwidth' },
 ]
 
 // Watch for changes in the open prop to handle form initialization
@@ -33,12 +53,12 @@ watch(() => props.open, (val) => {
     if (isEditMode.value && props.rowData) {
       resetForm({
         values: {
-          clientName: props.rowData.title || '',
-          sipTrunkName: props.rowData.group_id || '',
-          host: props.rowData.host || '',
-          sipTrunkUserName: props.rowData.sipTrunkUserName || '',
-          sipTrunkPassword: props.rowData.sipTrunkPassword || '',
-          sipTrunkProvider: props.rowData.sipTrunkProvider || '',
+          client_name: props.rowData.client_name || '',
+          sip_trunk_name: props.rowData.sip_trunk_name || '',
+          sip_trunk_host: props.rowData.sip_trunk_host || '',
+          sip_trunk_username: props.rowData.sip_trunk_username || '',
+          sip_trunk_password: props.rowData.sip_trunk_password || '',
+          sip_trunk_provider: props.rowData.sip_trunk_provider || '',
         },
       })
     }
@@ -48,37 +68,51 @@ watch(() => props.open, (val) => {
   }
 })
 
-// Form validation schema
-const formSchema = toTypedSchema(z.object({
-  clientName: z.string().min(1, 'Client name is required').max(100),
-  sipTrunkName: z.string().min(1, 'SIP trunk name is required').max(100),
-  host: z.string().min(1, 'Host is required').max(100),
-  sipTrunkUserName: z.string().min(1, 'SIP trunk username is required').max(100),
-  sipTrunkPassword: z.string().min(1, 'SIP trunk password is required').max(100),
-  sipTrunkProvider: z.string().min(1, 'SIP trunk provider is required'),
-}))
-
-const { handleSubmit, resetForm } = useForm({
-  validationSchema: formSchema,
-  initialValues: {
-    clientName: '',
-    sipTrunkName: '',
-    host: '',
-    sipTrunkUserName: '',
-    sipTrunkPassword: '',
-    sipTrunkProvider: '',
-  },
-})
-
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit(async (values) => {
   loading.value = true
-  loading.value = false
-  emit('update:open', false)
+
+  try {
+    let res
+    if (isEditMode.value && props.rowData) {
+      res = await useApi().post('/update-sip-gateways', {
+        ...values,
+        sip_id: props.rowData.id, // Include the sip ID for update
+      })
+    }
+    else {
+      // Add mode
+      res = await useApi().put('/sip-gateway', values)
+    }
+
+    if (res.success) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      emits('update:open', false) // Close the dialog on success
+      emits('refresh')
+    }
+    else {
+      showToast({
+        message: res.message || 'Failed to delete campaign',
+        type: 'error',
+      })
+    }
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    loading.value = false
+  }
 })
 </script>
 
 <template>
-  <Dialog :open="open" @update:open="(val) => emit('update:open', val)">
+  <Dialog :open="open" @update:open="(val) => emits('update:open', val)">
     <DialogContent>
       <DialogHeader>
         <DialogTitle>
@@ -86,7 +120,7 @@ const onSubmit = handleSubmit((values) => {
         </DialogTitle>
       </DialogHeader>
       <form class="space-y-4 py-4" @submit.prevent="onSubmit">
-        <FormField v-slot="{ componentField }" name="clientName">
+        <FormField v-slot="{ componentField }" name="client_name">
           <FormItem>
             <p class="text-primary text-sm">
               Client Name
@@ -102,7 +136,7 @@ const onSubmit = handleSubmit((values) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="sipTrunkName">
+        <FormField v-slot="{ componentField }" name="sip_trunk_name">
           <FormItem>
             <p class="text-primary text-sm">
               SIP Trunk Name
@@ -118,7 +152,7 @@ const onSubmit = handleSubmit((values) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="host">
+        <FormField v-slot="{ componentField }" name="sip_trunk_host">
           <FormItem>
             <p class="text-primary text-sm">
               Host
@@ -134,7 +168,7 @@ const onSubmit = handleSubmit((values) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="sipTrunkUserName">
+        <FormField v-slot="{ componentField }" name="sip_trunk_username">
           <FormItem>
             <p class="text-primary text-sm">
               SIP Trunk User Name
@@ -150,7 +184,7 @@ const onSubmit = handleSubmit((values) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="sipTrunkPassword">
+        <FormField v-slot="{ componentField }" name="sip_trunk_password">
           <FormItem>
             <p class="text-primary text-sm">
               SIP Trunk Password
@@ -167,7 +201,7 @@ const onSubmit = handleSubmit((values) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="sipTrunkProvider">
+        <FormField v-slot="{ componentField }" name="sip_trunk_provider">
           <FormItem>
             <p class="text-primary text-sm">
               SIP Trunk Provider
@@ -193,7 +227,7 @@ const onSubmit = handleSubmit((values) => {
             type="button"
             variant="outline"
             class="w-[50%] border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500"
-            @click="emit('update:open', false)"
+            @click="emits('update:open', false)"
           >
             <Icon name="material-symbols:close" />
             Discard

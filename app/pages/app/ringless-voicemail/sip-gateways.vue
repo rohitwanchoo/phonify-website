@@ -5,6 +5,12 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
 const isDialogOpen = ref(false)
+
+const { data: sipGateway, status: sipGatewayStatus, refresh: sipGatewayRefresh } = await useLazyAsyncData('sip-gateway-list', () =>
+  useApi().get('/sip-gateways'), {
+  immediate: true,
+  transform: res => res,
+})
 </script>
 
 <template>
@@ -24,13 +30,16 @@ const isDialogOpen = ref(false)
         </Button>
 
         <!-- Dialog Component -->
-        <RinglessVoicemailSipGatewaysDialog v-model:open="isDialogOpen" />
+        <RinglessVoicemailSipGatewaysDialog v-model:open="isDialogOpen" @refresh="sipGatewayRefresh" />
       </template>
     </BaseHeader>
-
     <!-- TABLE -->
     <div>
-      <RinglessVoicemailSipGatewaysTable />
+      <RinglessVoicemailSipGatewaysTable
+        :list="sipGateway?.data || []"
+        :loading="sipGatewayStatus === 'pending'"
+        @refresh="sipGatewayRefresh"
+      />
     </div>
   </div>
 </template>

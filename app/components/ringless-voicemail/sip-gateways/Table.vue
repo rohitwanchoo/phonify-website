@@ -15,11 +15,9 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -40,49 +38,18 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const sheet = ref(false)
-const selectedCampaign = ref<any>(null)
+const props = withDefaults(defineProps<{
+  list: any[]
+  loading: boolean
+  limit?: number
+}>(), {
+  limit: 10,
+})
+
+const emits = defineEmits(['refresh'])
+
 const isDialogOpen = ref(false)
 const selectedRowData = ref<any>(null)
-const loading = ref(false)
-
-const dummyData = ref([
-  {
-    id: 1,
-    title: 'Marketing Campaign Q3',
-    group_id: 'Customer List A',
-    status: 1,
-    updated: '2023-07-15 14:30:00',
-  },
-  {
-    id: 2,
-    title: 'Sales Outreach',
-    group_id: 'Prospect List B',
-    status: 0,
-    updated: '2023-07-16 09:15:00',
-  },
-  {
-    id: 3,
-    title: 'Product Feedback',
-    group_id: 'User List C',
-    status: 1,
-    updated: '2023-07-14 16:45:00',
-  },
-  {
-    id: 4,
-    title: 'Customer Retention',
-    group_id: 'VIP Clients',
-    status: 1,
-    updated: '2023-07-13 11:20:00',
-  },
-  {
-    id: 5,
-    title: 'New Product Launch',
-    group_id: 'All Contacts',
-    status: 0,
-    updated: '2023-07-12 13:10:00',
-  },
-])
 
 const meta = ref({
   current_page: 1,
@@ -90,6 +57,55 @@ const meta = ref({
   last_page: 5,
   total: 50,
 })
+
+// Delete confirmation dialog setup
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const selectedRowForDelete = ref<number | null>(null)
+
+// Delete handler - API call placeholder
+async function handleDelete() {
+  if (!selectedRowForDelete.value)
+    return
+
+  try {
+    const res = await useApi().get(`/sip-gateway-delete/${selectedRowForDelete.value}`, {
+    })
+    if (res.success) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message || 'Failed to delete campaign',
+        type: 'error',
+      })
+    }
+
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedRowForDelete.value = null
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm()
+  handleDelete()
+}
 
 const columnHelper = createColumnHelper<any>()
 
@@ -100,17 +116,17 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
   }),
 
-  columnHelper.accessor('title', {
+  columnHelper.accessor('client_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-center text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Client Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.client_name),
   }),
 
-  columnHelper.accessor('group_id', {
+  columnHelper.accessor('sip_trunk_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -118,12 +134,12 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Trunk Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.group_id)
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.sip_trunk_name)
     },
   }),
 
   columnHelper.display({
-    id: 'campaignStatus',
+    id: 'status',
     header: ({ column }) =>
       h('div', { class: 'text-center ' }, h(Button, {
         class: 'text-sm font-normal',
@@ -133,11 +149,11 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
         class: 'data-[state=checked]:bg-green-600 cursor-pointer',
-        modelValue: row.original.status === 1,
+        modelValue: row.original.general_setting === '1',
       })),
     sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.original.status === 1
-      const valueB = rowB.original.status === 1
+      const valueA = rowA.original.general_setting === '1'
+      const valueB = rowB.original.general_setting === '1'
       if (valueA === valueB)
         return 0
       if (valueA && !valueB)
@@ -166,6 +182,10 @@ const columns = [
           class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
           variant: 'outline',
           size: 'icon',
+          onClick: () => {
+            selectedRowForDelete.value = row.original.id
+            revealDeleteConfirm()
+          },
         }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
       ]),
     meta: { className: 'w-[100px] text-center' },
@@ -179,7 +199,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value || [] },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -196,9 +216,6 @@ const table = useVueTable({
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
     get expanded() { return expanded.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
 
@@ -226,7 +243,7 @@ function handlePageChange(page: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-if="loading">
+        <TableRow v-if="props.loading">
           <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
             <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
@@ -264,11 +281,11 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="meta?.current_page && !props.loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing {{ meta?.current_page }} to
-
         <span>
           <Select :default-value="10">
             <SelectTrigger class="w-fit gap-x-1 px-2">
@@ -281,12 +298,10 @@ function handlePageChange(page: number) {
             </SelectContent>
           </Select>
         </span>
-
         of {{ meta?.total }} entries
       </div>
     </div>
     <div class="space-x-2">
-      <!-- Pagination Controls -->
       <TableServerPagination
         :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
         :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
@@ -297,5 +312,13 @@ function handlePageChange(page: number) {
   <RinglessVoicemailSipGatewaysDialog
     v-model:open="isDialogOpen"
     :row-data="selectedRowData"
+  />
+
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete Item"
+    description="Are you sure you want to delete this item? This action cannot be undone."
   />
 </template>
