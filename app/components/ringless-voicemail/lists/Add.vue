@@ -116,7 +116,7 @@ const onSubmit = handleSubmit(async (values) => {
       formData.append('file', values.file)
     }
 
-    await api.put('/ringless/list/add', formData)
+    await useApi().put('/ringless/list/add', formData)
 
     emit('refresh')
     formTitle.value = values.title

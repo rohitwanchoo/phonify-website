@@ -23,7 +23,7 @@ function formatTime(time: string) {
 
 <template>
   <Sheet :open="open" @update:open="value => emit('update:open', value)">
-    <SheetContent class="min-w-[483px]">
+    <SheetContent class="min-w-[483px] overflow-auto">
       <SheetHeader class="bg-[#162D3A]">
         <SheetTitle class="text-white">
           Campaign Details
@@ -74,10 +74,10 @@ function formatTime(time: string) {
             </div>
             <p
               class="font-medium text-[16px]" :class="[
-                campaign.status === 1 ? 'text-green-600' : 'text-red-600',
+                campaign.status ? 'text-green-600' : 'text-red-600',
               ]"
             >
-              {{ campaign.status === 1 ? 'Active' : 'Inactive' }}
+              {{ campaign.status === "1" ? 'Active' : 'Inactive' }}
             </p>
           </div>
 
@@ -89,10 +89,10 @@ function formatTime(time: string) {
             </div>
             <p
               class="font-medium text-[16px]" :class="[
-                campaign.call_time_start ? 'text-green-600' : 'text-red-600',
+                campaign.time_based_calling ? 'text-green-600' : 'text-red-600',
               ]"
             >
-              {{ campaign.call_time_start ? 'Yes' : 'No' }}
+              {{ campaign.time_based_calling ? 'Yes' : 'No' }}
             </p>
           </div>
 
@@ -136,7 +136,7 @@ function formatTime(time: string) {
               <span class="text-sm font-normal">Created Date</span>
             </div>
             <p class="text-gray-700 text-[16px] font-normal">
-              {{ moment(campaign.updated).format('MM/DD/YYYY hh:mm A') }}
+              {{ moment(campaign.created_at).format('MM/DD/YYYY hh:mm A') }}
             </p>
           </div>
 
@@ -147,7 +147,7 @@ function formatTime(time: string) {
               <span class="text-sm font-normal">Total Leads</span>
             </div>
             <p class="text-gray-700 text-[16px] font-normal">
-              {{ campaign.max_lead_temp || 0 }}
+              {{ campaign.ringless_lead_report_count || 0 }}
             </p>
           </div>
         </div>
