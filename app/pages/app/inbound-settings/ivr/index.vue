@@ -14,17 +14,16 @@ const ivrItem = ref({
 const start = ref(0)
 const limit = ref(10)
 
-const { data: ivrList, status, refresh } = await useLazyAsyncData('get-ivr-list', () =>
+const { data: ivrList, status: ivrStatus, refresh: ivrRefresh } = useLazyAsyncData('get-ivr-list', () =>
   useApi().post('/ivr', {
     start: start.value,
     limit: limit.value,
   }), {
-  transform: res => res,
+  transform: res => res?.data || [],
 })
 
 function handleSave(data: { extension: string, audioUrl: string }) {
-  console.log('Saved Ringless:', data)
-  // Optional: send to API or update state here
+  // console.log('Saved Ringless:', data)
 }
 </script>
 
@@ -44,6 +43,7 @@ function handleSave(data: { extension: string, audioUrl: string }) {
           v-model:open="showCreateIvr"
           heading="Create New Call Time"
           :item="ivrItem"
+          mode="create"
           @save="handleSave"
         />
       </template>
@@ -51,7 +51,11 @@ function handleSave(data: { extension: string, audioUrl: string }) {
 
     <!-- TABLE -->
     <div>
-      <InboundSettingsIvrTable />
+      <InboundSettingsIvrTable
+        :list="ivrList || []"
+        :loading="ivrStatus === 'pending'"
+        @refresh="ivrRefresh"
+      />
     </div>
   </div>
 </template>
