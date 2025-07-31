@@ -127,6 +127,7 @@ const { handleSubmit, values, setFieldValue, setValues, resetForm } = useForm({
 })
 
 const loading = ref(false)
+const fetchLoading = ref(false)
 
 function onSelectCallerId(value: string) {
   if (value !== 'custom') {
@@ -152,9 +153,8 @@ function handleCancel() {
 async function fetchCampaignData() {
   if (!isEdit.value)
     return
-
   try {
-    loading.value = true
+    fetchLoading.value = true
     const res = await useApi().post('/ringless/campaign/show', {
       campaign_id: id,
     })
@@ -190,7 +190,7 @@ async function fetchCampaignData() {
     })
   }
   finally {
-    loading.value = false
+    fetchLoading.value = false
   }
 }
 
@@ -408,7 +408,7 @@ onMounted(() => {
                             </template>
                             <template v-else>
                               <SelectItem v-for="item in customCallerIdOptions" :key="item.id" :value="Number(item.cli)">
-                                +1 {{ formatNumber(item.cli) }} {{ item.cnam }} {{ item.forward_number }}
+                                {{ formatNumber(item.cli) }} {{ item.cnam }} {{ item.forward_number }}
                               </SelectItem>
                             </template>
                           </SelectGroup>
@@ -610,11 +610,11 @@ onMounted(() => {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4 gap-2 flex ">
-      <Button class="w-1/2 h-[52px]" variant="outline" :loading="loading" :disabled="loading" @click="handleCancel">
+      <Button class="w-1/2 h-[52px]" variant="outline" :disabled="loading || fetchLoading" @click="handleCancel">
         <Icon name="material-symbols:close" size="20" />
         Cancel
       </Button>
-      <Button class="w-1/2 h-[52px]" type="submit" :loading="loading" :disabled="loading" @click="onSubmit">
+      <Button class="w-1/2 h-[52px]" type="submit" :loading="loading" :disabled="fetchLoading" @click="onSubmit">
         <Icon name="material-symbols:save" size="20" />
         {{ isEdit ? 'Update campaign' : 'Save Campaign' }}
       </Button>
