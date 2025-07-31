@@ -3,7 +3,7 @@ import { useLazyAsyncData } from '#app'
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { computed, h, ref, watch } from 'vue'
-
+import { useApi } from '@/composables/useApi'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,7 @@ const props = defineProps<{
   selectedCampaign: string
   campaigns: { id: string, title: string }[]
   headers: string[]
+  listId: number 
 }>()
 
 const emit = defineEmits<{
@@ -34,24 +35,58 @@ const emit = defineEmits<{
 const api = useApi()
 
 const selectValue = ref(props.selectedCampaign || '')
+const inputValue = ref(props.title || '')
+const dialingColumnValue = ref('')
+
+// Initialize table data with empty array
+const tableData = ref<Array<{
+  slno: number
+  fileHeader: string
+  dialingColumn: boolean
+  label: string
+}>>([])
+
+// Watch for dialog open state
 watch(() => props.open, async (val) => {
   if (val) {
     selectValue.value = props.selectedCampaign
     inputValue.value = props.title
     await labelRefresh()
+    
+    // Initialize table data when dialog opens
+    initializeTableData()
   }
 })
 
+// Watch for changes in headers prop
 watch(() => props.headers, (newHeaders) => {
-  if (newHeaders?.length) {
-    tableData.value = newHeaders.map((header, i) => ({
+  console.log('Headers changed:', newHeaders) // Debug log
+  if (props.open) {
+    initializeTableData()
+  }
+}, { immediate: true, deep: true })
+
+// Initialize table data based on headers
+function initializeTableData() {
+  if (props.headers && props.headers.length > 0) {
+    tableData.value = props.headers.map((header, i) => ({
       slno: i + 1,
       fileHeader: header,
-      dialingColumn: false,
+      dialingColumn: i === 0, // Set first column as dialing column by default
       label: '',
     }))
+    
+    // Set the first column as dialing column by default
+    if (tableData.value.length > 0) {
+      dialingColumnValue.value = tableData.value[0].slno.toString()
+    }
+    
+    console.log('Table data initialized:', tableData.value) // Debug log
+  } else {
+    tableData.value = []
+    dialingColumnValue.value = ''
   }
-})
+}
 
 // -- LABEL DATA --
 const { data: labelData, refresh: labelRefresh } = await useLazyAsyncData('table-labels', () =>
@@ -59,21 +94,14 @@ const { data: labelData, refresh: labelRefresh } = await useLazyAsyncData('table
     lower_limit: 0,
     upper_limit: 1000,
     search: '',
-  }), { transform: res => res.data || [], immediate: false })
+  }), { 
+    transform: res => res.data || [], 
+    immediate: false 
+  })
 
-const inputValue = ref(props.title || '')
-
-const dialingColumnValue = ref('')
-
-const tableData = ref([
-  { slno: 1, fileHeader: 'Phone Number', dialingColumn: false, label: '' },
-  { slno: 2, fileHeader: 'Owner Name', dialingColumn: false, label: '' },
-  { slno: 3, fileHeader: 'Business Name', dialingColumn: false, label: '' },
-  { slno: 4, fileHeader: 'Email/Fax', dialingColumn: false, label: '' },
-])
-
-// -- TABLE --
+// -- TABLE CONFIGURATION --
 const columnHelper = createColumnHelper<typeof tableData.value[0]>()
+
 const columns = computed(() => [
   columnHelper.accessor('slno', {
     header: '#',
@@ -89,7 +117,10 @@ const columns = computed(() => [
       'modelValue': dialingColumnValue.value,
       'onUpdate:modelValue': (val: string) => {
         dialingColumnValue.value = val
-        tableData.value.forEach(row => row.dialingColumn = row.slno.toString() === val)
+        // Update all rows - only one can be selected
+        tableData.value.forEach(row => {
+          row.dialingColumn = row.slno.toString() === val
+        })
       },
       'class': 'flex justify-center',
     }, {
@@ -100,7 +131,6 @@ const columns = computed(() => [
           'data-[state=checked]:border-[#16A34A] border-2',
           '[&_[data-slot=radio-group-indicator]>svg]:!fill-[#16A34A]',
         ].join(' '),
-        checked: dialingColumnValue.value === info.row.original.slno.toString(),
       }),
     }),
   }),
@@ -119,8 +149,7 @@ const columns = computed(() => [
           h(SelectValue, {
             placeholder: labelData.value?.length ? 'Select label' : 'Loading...',
           }, () => {
-            if (!info.row.original.label)
-              return null
+            if (!info.row.original.label) return null
             const selectedLabel = labelData.value?.find(l => String(l.id) === info.row.original.label)
             return selectedLabel?.title || selectedLabel?.label || info.row.original.label
           }),
@@ -145,28 +174,84 @@ const columns = computed(() => [
   }),
 ])
 
-const table = useVueTable({
+// Create table instance
+const table = computed(() => useVueTable({
   data: tableData.value,
   columns: columns.value,
   getCoreRowModel: getCoreRowModel(),
-})
+}))
 
 function closeDialog() {
   emit('update:open', false)
 }
+
+// Save configuration
+async function saveConfiguration() {
+  try {
+    if (!inputValue.value.trim()) {
+      showToast({ type: 'error', message: 'Title is required' })
+      return
+    }
+
+    if (!selectValue.value) {
+      showToast({ type: 'error', message: 'Campaign is required' })
+      return
+    }
+
+    if (!dialingColumnValue.value) {
+      showToast({ type: 'error', message: 'Please select a dialing column' })
+      return
+    }
+
+    // Prepare request payload
+    const requestPayload = {
+  title: inputValue.value.trim(),
+  campaign_id: Number(selectValue.value),
+  list_header: tableData.value.map(row => ({
+    id: row.slno,
+    is_dialing: row.dialingColumn ? 1 : 0,
+    ...(row.label ? { label_id: Number(row.label) } : {}),
+  }))
+}
+console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
+    console.log('Sending update payload:', requestPayload)
+
+    // Call the update API
+    await useApi().post(`/ringless/list/update/${props.listId}`, requestPayload)
+
+    showToast({
+      type: 'success',
+      message: 'List updated successfully',
+    })
+
+    closeDialog()
+  } catch (error: any) {
+    console.error('Error saving configuration:', error)
+    showToast({
+      type: 'error',
+      message: error.response?.data?.message,
+    })
+  }
+}
+
 </script>
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent class="max-w-[90vw] lg:max-w-[900px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Configure List</DialogTitle>
+        <DialogTitle>Edit Configure List</DialogTitle>
       </DialogHeader>
 
+      <!-- Form Fields -->
       <div class="flex gap-4 mb-6">
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Title</label>
-          <Input v-model="inputValue" :placeholder="title || 'Enter title'" class="text-primary placeholder:text-primary text-xs md:text-sm" />
+          <Input 
+            v-model="inputValue" 
+            :placeholder="title || 'Enter title'" 
+            class="text-primary placeholder:text-primary text-xs md:text-sm" 
+          />
         </div>
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Campaign</label>
@@ -188,17 +273,18 @@ function closeDialog() {
         </div>
       </div>
 
-      <div class="overflow-x-auto border rounded-lg mb-8">
+      <!-- Table -->
+      <div v-if="tableData.length > 0" class="overflow-x-auto border rounded-lg mb-8">
         <table class="min-w-full text-sm">
           <thead class="bg-gray-50">
             <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-              <th v-for="header in headerGroup.headers" :key="header.id" class="px-3 py-2 text-center">
+              <th v-for="header in headerGroup.headers" :key="header.id" class="px-3 py-2 text-center font-medium">
                 <FlexRender :render="header.column.columnDef.header" :props="header.getContext()" />
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in table.getRowModel().rows" :key="row.id" class="border-t">
+            <tr v-for="row in table.getRowModel().rows" :key="row.id" class="border-t hover:bg-gray-50">
               <td v-for="cell in row.getVisibleCells()" :key="cell.id" class="px-3 py-2 text-center">
                 <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
               </td>
@@ -207,12 +293,26 @@ function closeDialog() {
         </table>
       </div>
 
+      <!-- No headers message -->
+      <div v-else class="py-8 text-center text-gray-500 border rounded-lg">
+          <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+      </div>
+
+      <!-- Action Buttons -->
       <div class="flex justify-between items-center mt-6">
-        <Button variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100" @click="closeDialog">
+        <Button 
+          variant="outline" 
+          class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100" 
+          @click="closeDialog"
+        >
           <Icon name="lucide:x" class="w-4 h-4 mr-1" />
           Discard
         </Button>
-        <Button class="w-[49%] bg-primary text-white hover:bg-primary/90" @click="closeDialog">
+        <Button 
+          class="w-[49%] bg-primary text-white hover:bg-primary/90" 
+          @click="saveConfiguration"
+          :disabled="tableData.length === 0"
+        >
           <Icon name="lucide:save" class="w-4 h-4 mr-1" />
           Save
         </Button>

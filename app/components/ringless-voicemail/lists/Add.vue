@@ -77,32 +77,86 @@ const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
 async function onDialogOpen(val: boolean) {
   if (val) {
     resetForm()
+    fileHeaders.value = [] // Clear headers when opening dialog
     await props.loadCampaigns()
   }
 }
 
-// Handle file upload
+// Handle file upload and extract headers
 async function handleFileUpdate(files: File[]) {
   const file = files[0]
-  if (file) {
+  if (!file) {
+    fileHeaders.value = []
+    return
+  }
+
+  try {
     setFieldValue('file', file)
     await validateField('file')
 
-    const data = await file.arrayBuffer()
-    const workbook = XLSX.read(data, { type: 'array' })
-    const sheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[sheetName]
-    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-
-    if (json.length > 0) {
-      const headers = json[0] as string[]
-      fileHeaders.value = headers.filter(Boolean)
+    // Extract headers based on file type
+    const fileExtension = file.name.split('.').pop()?.toLowerCase()
+    
+    if (fileExtension === 'csv') {
+      // Handle CSV files
+      const text = await file.text()
+      const lines = text.split('\n')
+      if (lines.length > 0) {
+        // Parse CSV header row (handle commas within quotes)
+        const headerLine = lines[0].trim()
+        const headers = parseCSVLine(headerLine)
+        fileHeaders.value = headers.filter(header => header && header.trim() !== '')
+      }
+    } else if (['xlsx', 'xls'].includes(fileExtension || '')) {
+      // Handle Excel files
+      const data = await file.arrayBuffer()
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[sheetName]
+      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+      
+      if (json.length > 0) {
+        const headers = json[0] as string[]
+        fileHeaders.value = headers
+          .filter(header => header !== null && header !== undefined && String(header).trim() !== '')
+          .map(header => String(header).trim())
+      }
     }
-    else {
-      setFieldValue('file', null)
-      fileHeaders.value = []
+
+    console.log('Extracted headers:', fileHeaders.value) // Debug log
+    
+  } catch (error) {
+    console.error('Error processing file:', error)
+    setFieldValue('file', null)
+    fileHeaders.value = []
+    showToast({
+      type: 'error',
+      message: 'Failed to process file. Please check the file format.',
+    })
+  }
+}
+
+// Simple CSV line parser (handles basic cases)
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
     }
   }
+  
+  result.push(current.trim())
+  return result
 }
 
 // Handle form submit
@@ -113,7 +167,7 @@ const onSubmit = handleSubmit(async (values) => {
     formData.append('title', values.title)
     formData.append('campaign_id', values.campaign)
     if (values.file) {
-      formData.append('file', values.file)
+      formData.append('file_name', values.file)
     }
 
     await useApi().put('/ringless/list/add', formData)
@@ -122,6 +176,8 @@ const onSubmit = handleSubmit(async (values) => {
     formTitle.value = values.title
     formCampaign.value = values.campaign
     dialogOpen.value = false
+    
+    // Show configure dialog with extracted headers
     showConfigureDialog.value = true
     resetForm()
   }
@@ -181,6 +237,7 @@ const onSubmit = handleSubmit(async (values) => {
               />
             </FormControl>
             <FormMessage class="ml-2 text-xs" />
+          
           </FormItem>
         </FormField>
 
