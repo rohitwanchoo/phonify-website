@@ -116,11 +116,7 @@ const onSubmit = handleSubmit(async (values) => {
       formData.append('file', values.file)
     }
 
-    await api.put('/ringless/list/add', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    await api.put('/ringless/list/add', formData)
 
     emit('refresh')
     formTitle.value = values.title
@@ -145,7 +141,7 @@ const onSubmit = handleSubmit(async (values) => {
   <!-- Add Dialog -->
   <Dialog v-model:open="dialogOpen" @update:open="onDialogOpen">
     <DialogTrigger as-child>
-      <Button>
+      <Button class="h-11">
         <Icon class="!text-white" name="lucide:plus" />
         Create Ringless Campaign
       </Button>
