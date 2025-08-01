@@ -3,7 +3,6 @@ import { useLazyAsyncData } from '#app'
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { computed, h, ref, watch } from 'vue'
-import { useApi } from '@/composables/useApi'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -18,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useApi } from '@/composables/useApi'
 
 const props = defineProps<{
   open: boolean
@@ -25,7 +25,7 @@ const props = defineProps<{
   selectedCampaign: string
   campaigns: { id: string, title: string }[]
   headers: string[]
-  listId: number 
+  listId: number
 }>()
 
 const emit = defineEmits<{
@@ -52,7 +52,7 @@ watch(() => props.open, async (val) => {
     selectValue.value = props.selectedCampaign
     inputValue.value = props.title
     await labelRefresh()
-    
+
     // Initialize table data when dialog opens
     initializeTableData()
   }
@@ -75,14 +75,15 @@ function initializeTableData() {
       dialingColumn: i === 0, // Set first column as dialing column by default
       label: '',
     }))
-    
+
     // Set the first column as dialing column by default
     if (tableData.value.length > 0) {
       dialingColumnValue.value = tableData.value[0].slno.toString()
     }
-    
+
     console.log('Table data initialized:', tableData.value) // Debug log
-  } else {
+  }
+  else {
     tableData.value = []
     dialingColumnValue.value = ''
   }
@@ -94,10 +95,10 @@ const { data: labelData, refresh: labelRefresh } = await useLazyAsyncData('table
     lower_limit: 0,
     upper_limit: 1000,
     search: '',
-  }), { 
-    transform: res => res.data || [], 
-    immediate: false 
-  })
+  }), {
+  transform: res => res.data || [],
+  immediate: false,
+})
 
 // -- TABLE CONFIGURATION --
 const columnHelper = createColumnHelper<typeof tableData.value[0]>()
@@ -118,7 +119,7 @@ const columns = computed(() => [
       'onUpdate:modelValue': (val: string) => {
         dialingColumnValue.value = val
         // Update all rows - only one can be selected
-        tableData.value.forEach(row => {
+        tableData.value.forEach((row) => {
           row.dialingColumn = row.slno.toString() === val
         })
       },
@@ -149,7 +150,8 @@ const columns = computed(() => [
           h(SelectValue, {
             placeholder: labelData.value?.length ? 'Select label' : 'Loading...',
           }, () => {
-            if (!info.row.original.label) return null
+            if (!info.row.original.label)
+              return null
             const selectedLabel = labelData.value?.find(l => String(l.id) === info.row.original.label)
             return selectedLabel?.title || selectedLabel?.label || info.row.original.label
           }),
@@ -205,15 +207,15 @@ async function saveConfiguration() {
 
     // Prepare request payload
     const requestPayload = {
-  title: inputValue.value.trim(),
-  campaign_id: Number(selectValue.value),
-  list_header: tableData.value.map(row => ({
-    id: row.slno,
-    is_dialing: row.dialingColumn ? 1 : 0,
-    ...(row.label ? { label_id: Number(row.label) } : {}),
-  }))
-}
-console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
+      title: inputValue.value.trim(),
+      campaign_id: Number(selectValue.value),
+      list_header: tableData.value.map(row => ({
+        id: row.slno,
+        is_dialing: row.dialingColumn ? 1 : 0,
+        ...(row.label ? { label_id: Number(row.label) } : {}),
+      })),
+    }
+    console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
     console.log('Sending update payload:', requestPayload)
 
     // Call the update API
@@ -225,7 +227,8 @@ console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
     })
 
     closeDialog()
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Error saving configuration:', error)
     showToast({
       type: 'error',
@@ -233,7 +236,6 @@ console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
     })
   }
 }
-
 </script>
 
 <template>
@@ -247,16 +249,16 @@ console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
       <div class="flex gap-4 mb-6">
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Title</label>
-          <Input 
-            v-model="inputValue" 
-            :placeholder="title || 'Enter title'" 
-            class="text-primary placeholder:text-primary text-xs md:text-sm" 
+          <Input
+            v-model="inputValue"
+            :placeholder="title || 'Enter title'"
+            class="text-primary placeholder:text-primary text-xs md:text-sm h-11"
           />
         </div>
         <div class="w-1/2 flex flex-col gap-1">
           <label class="text-sm font-medium text-primary mb-1">Campaign</label>
           <Select v-model="selectValue">
-            <SelectTrigger class="w-full text-primary">
+            <SelectTrigger class="w-full text-primary !h-11">
               <SelectValue placeholder="Select campaign" class="text-primary text-xs md:text-sm" />
             </SelectTrigger>
             <SelectContent class="w-full text-primary">
@@ -295,23 +297,25 @@ console.log('requestPayload:', JSON.stringify(requestPayload, null, 2))
 
       <!-- No headers message -->
       <div v-else class="py-8 text-center text-gray-500 border rounded-lg">
-          <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+        <p class="text-sm">
+          No headers available
+        </p>
       </div>
 
       <!-- Action Buttons -->
       <div class="flex justify-between items-center mt-6">
-        <Button 
-          variant="outline" 
-          class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100" 
+        <Button
+          variant="outline"
+          class="w-[49%] h-11 border-red-500 text-red-500 bg-red-50 hover:bg-red-100"
           @click="closeDialog"
         >
           <Icon name="lucide:x" class="w-4 h-4 mr-1" />
           Discard
         </Button>
-        <Button 
-          class="w-[49%] bg-primary text-white hover:bg-primary/90" 
-          @click="saveConfiguration"
+        <Button
+          class="w-[49%] h-11 bg-primary text-white hover:bg-primary/90"
           :disabled="tableData.length === 0"
+          @click="saveConfiguration"
         >
           <Icon name="lucide:save" class="w-4 h-4 mr-1" />
           Save

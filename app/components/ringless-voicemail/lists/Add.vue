@@ -96,7 +96,7 @@ async function handleFileUpdate(files: File[]) {
 
     // Extract headers based on file type
     const fileExtension = file.name.split('.').pop()?.toLowerCase()
-    
+
     if (fileExtension === 'csv') {
       // Handle CSV files
       const text = await file.text()
@@ -107,14 +107,15 @@ async function handleFileUpdate(files: File[]) {
         const headers = parseCSVLine(headerLine)
         fileHeaders.value = headers.filter(header => header && header.trim() !== '')
       }
-    } else if (['xlsx', 'xls'].includes(fileExtension || '')) {
+    }
+    else if (['xlsx', 'xls'].includes(fileExtension || '')) {
       // Handle Excel files
       const data = await file.arrayBuffer()
       const workbook = XLSX.read(data, { type: 'array' })
       const sheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[sheetName]
       const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-      
+
       if (json.length > 0) {
         const headers = json[0] as string[]
         fileHeaders.value = headers
@@ -124,8 +125,8 @@ async function handleFileUpdate(files: File[]) {
     }
 
     console.log('Extracted headers:', fileHeaders.value) // Debug log
-    
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error processing file:', error)
     setFieldValue('file', null)
     fileHeaders.value = []
@@ -141,20 +142,22 @@ function parseCSVLine(line: string): string[] {
   const result: string[] = []
   let current = ''
   let inQuotes = false
-  
+
   for (let i = 0; i < line.length; i++) {
     const char = line[i]
-    
+
     if (char === '"') {
       inQuotes = !inQuotes
-    } else if (char === ',' && !inQuotes) {
+    }
+    else if (char === ',' && !inQuotes) {
       result.push(current.trim())
       current = ''
-    } else {
+    }
+    else {
       current += char
     }
   }
-  
+
   result.push(current.trim())
   return result
 }
@@ -176,7 +179,7 @@ const onSubmit = handleSubmit(async (values) => {
     formTitle.value = values.title
     formCampaign.value = values.campaign
     dialogOpen.value = false
-    
+
     // Show configure dialog with extracted headers
     showConfigureDialog.value = true
     resetForm()
@@ -237,7 +240,6 @@ const onSubmit = handleSubmit(async (values) => {
               />
             </FormControl>
             <FormMessage class="ml-2 text-xs" />
-          
           </FormItem>
         </FormField>
 
@@ -248,7 +250,7 @@ const onSubmit = handleSubmit(async (values) => {
             </p>
             <FormControl>
               <Select v-bind="componentField">
-                <SelectTrigger class="h-11 w-full">
+                <SelectTrigger class="!h-11 w-full">
                   <SelectValue placeholder="Select a campaign" />
                 </SelectTrigger>
                 <SelectContent>
