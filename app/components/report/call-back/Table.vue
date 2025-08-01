@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
@@ -9,7 +8,6 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -18,15 +16,11 @@ import {
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
 import moment from 'moment'
 import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
 import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -41,75 +35,49 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const loading = ref(false)
-const router = useRouter()
-
-const dummyData = ref<CallRecord[]>([
-  {
-    id: 1,
-    agent: 'John Doe',
-    extension: '101',
-    number: '+15551234567',
-    route: 'Main Queue',
-    campaign: 'Summer Sale',
-    callType: 'Inbound',
-    startTime: '2023-06-15T09:30:00Z',
-    duration: 145,
-  },
-  {
-    id: 2,
-    agent: 'Jane Smith',
-    extension: '102',
-    number: '+15559876543',
-    route: 'Support Line',
-    campaign: 'Tech Support',
-    callType: 'Outbound',
-    startTime: '2023-06-15T10:15:00Z',
-    duration: 327,
-  },
-  {
-    id: 3,
-    agent: 'Robert Johnson',
-    extension: '103',
-    number: '+15555555555',
-    route: 'Sales Direct',
-    campaign: 'New Leads',
-    callType: 'Missed',
-    startTime: '2023-06-15T11:05:00Z',
-    duration: 0,
-  },
-  {
-    id: 4,
-    agent: 'Emily Davis',
-    extension: '104',
-    number: '+15556667777',
-    route: 'Customer Service',
-    campaign: 'Account Management',
-    callType: 'Voicemail',
-    startTime: '2023-06-15T13:22:00Z',
-    duration: 42,
-  },
-  {
-    id: 5,
-    agent: 'Michael Wilson',
-    extension: '105',
-    number: '+15558889999',
-    route: 'Billing Dept',
-    campaign: 'Payment Reminders',
-    callType: 'Inbound',
-    startTime: '2023-06-15T14:10:00Z',
-    duration: 218,
-  },
-])
-
-const meta = ref({
-  current_page: 1,
-  per_page: 5,
-  last_page: 3,
-  total: 26,
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
 })
 
-const columnHelper = createColumnHelper<CallRecord>()
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'changeLimit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
+
+const loading = ref(false)
+
+export interface callRecord {
+  id: number
+  agent: string
+  extension: string
+  number: string
+  route: string
+  campaign: string
+  callType: string
+  startTime: string
+  duration: number
+}
+
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+const columnHelper = createColumnHelper<callRecord>()
 
 const columns = [
   columnHelper.display({
@@ -181,37 +149,37 @@ const columns = [
       }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
   }),
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value },
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
   },
 })
-
-function handlePageChange(page: number) {
-  meta.value.current_page = page
-}
 </script>
 
 <template>
@@ -270,13 +238,12 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -287,18 +254,14 @@ function handlePageChange(page: number) {
             </SelectContent>
           </Select>
         </span>
-
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)"
-        :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)"
-        :last-page="Number(meta?.last_page)"
-        @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

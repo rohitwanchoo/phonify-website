@@ -20,7 +20,6 @@ import { ChevronsUpDown } from 'lucide-vue-next'
 
 import moment from 'moment'
 import { h, ref } from 'vue'
-import * as XLSX from 'xlsx'
 import { Button } from '@/components/ui/button'
 import {
   Select,

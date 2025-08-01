@@ -19,6 +19,50 @@ const df = new DateFormatter('en-US', {
 const startDate = ref<DateValue>()
 const endDate = ref<DateValue>()
 
+// Helper function to format DateValue to required API format
+function formatDateForAPI(dateValue: DateValue | undefined): string {
+  if (!dateValue) {
+    // Return default date or current date if no date is selected
+    return new Date().toISOString().slice(0, 19).replace('T', ' ')
+  }
+
+  // Convert DateValue to JavaScript Date
+  const jsDate = dateValue.toDate(getLocalTimeZone())
+
+  // Format to 'YYYY-MM-DD HH:mm:ss' format
+  const year = jsDate.getFullYear()
+  const month = String(jsDate.getMonth() + 1).padStart(2, '0')
+  const day = String(jsDate.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day} 00:00:00`
+}
+
+const { data: agentWiseDialerCallStatistics, status: agentWiseDialerCallStatisticsStatus, refresh: agentWiseDialerCallStatisticsRefresh } = await useLazyAsyncData('dialer-all-count-crm', () =>
+  useApi().post('/dialer-all-count-crm', {
+    start_date: formatDateForAPI(startDate.value),
+    end_date: formatDateForAPI(endDate.value),
+  }), {
+  transform: res => res,
+  immediate: false,
+})
+
+function filterData() {
+  // Validate that both dates are selected
+  if (!startDate.value || !endDate.value) {
+    // You might want to show an error message here
+    console.warn('Please select both start and end dates')
+    return
+  }
+
+  // Validate that start date is before end date
+  if (startDate.value.compare(endDate.value) > 0) {
+    console.warn('Start date must be before end date')
+    return
+  }
+
+  agentWiseDialerCallStatisticsRefresh()
+}
+
 const callsData = [
   {
     text: 'Total Number Of Outbound Calls Made Manually',
@@ -111,8 +155,8 @@ const reportData = [
           </PopoverContent>
         </Popover>
         <!-- Trigger Button -->
-        <Button>
-          <Icon name="material-symbols:search" class="text-xl text-white" />
+        <Button :disabled="agentWiseDialerCallStatisticsStatus === 'pending'" :loading="agentWiseDialerCallStatisticsStatus === 'pending'" @click="filterData">
+          <Icon name="material-symbols:search" size="20" class="text-white" />
           Search
         </Button>
         <Button class="" variant="outline">
@@ -130,7 +174,7 @@ const reportData = [
 
     <!-- tables here -->
     <div>
-      <ReportCountTableAgeWise />
+      <ReportCountTableAgeWise :agent-wise-dialer-call-data="agentWiseDialerCallStatistics?.data" />
       <ReportCountTableDidWise />
       <ReportCountTableAreaWise />
     </div>

@@ -3,8 +3,44 @@ import { ref } from 'vue'
 import { Switch } from '@/components/ui/switch'
 
 const enableCallbackReminder = ref(false)
-const filterValues = ref({})
-function applyFilter() {}
+const showSheet = ref(false)
+const activeFilters = ref<Record<string, any>>({})
+
+const start = ref(0)
+const limit = ref(10)
+
+const { data: callbackData, status: callbackStatus, refresh: callbackRefresh } = await useLazyAsyncData('callback', () =>
+  useApi().post('/callback', {
+    ...activeFilters.value,
+    lower_limit: start.value,
+    upper_limit: limit.value,
+  }), {
+  transform: res => res,
+})
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return callbackRefresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return callbackRefresh()
+}
+
+// Handle filter application
+async function handleApplyFilter(filterParams: Record<string, any>) {
+  activeFilters.value = filterParams
+  start.value = 0 // Reset pagination
+  await callbackRefresh() // Refresh data with new filters
+}
+
+// Handle filter clearing
+async function handleClearFilter() {
+  activeFilters.value = {}
+  start.value = 0 // Reset pagination
+  await callbackRefresh() // Refresh data without filters
+}
 </script>
 
 <template>
@@ -27,17 +63,16 @@ function applyFilter() {}
 
           <!-- Existing Filter Sheet -->
           <ReportCallBackFilterSheet
-            v-model:form-values="filterValues"
-            class="bg-black text-white"
-            @apply-filter="applyFilter"
+            v-model:open="showSheet"
+            @apply-filter="handleApplyFilter"
+            @clear-filter="handleClearFilter"
           />
         </div>
       </template>
     </BaseHeader>
-
     <!-- TABLE -->
     <div>
-      <ReportCallBackTable />
+      <ReportCallBackTable :limit="limit" :total-rows="callbackData?.total" :start="start" :list="callbackData?.data || []" :loading="callbackStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>
