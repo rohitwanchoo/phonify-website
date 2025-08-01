@@ -17,7 +17,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -32,6 +31,7 @@ const router = useRouter()
 const id = route.query.id
 const isEdit = computed(() => !!id)
 const pageTitle = ref(isEdit.value ? 'Edit Campaign' : 'Create New Campaign')
+const nameInputRef = ref<any>(null)
 
 const breadcrumbs = [
   {
@@ -240,8 +240,11 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-onMounted(() => {
-  fetchCampaignData()
+onMounted(async () => {
+  await fetchCampaignData()
+  nextTick(() => {
+    nameInputRef.value?.$el?.focus()
+  })
 })
 </script>
 
@@ -293,21 +296,27 @@ onMounted(() => {
             </div>
           </div>
           <div class="p-5 space-y-5 w-full">
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2">
+            <div class="flex flex-col sm:flex-row gap-[16px] w-full">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField }" v-model="values.title" name="title">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Name
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
+                      <Input
+                        ref="nameInputRef"
+                        type="text"
+                        class="text-sm font-normal placeholder:text-sm h-11"
+                        placeholder="Enter Campaign Name"
+                        v-bind="componentField"
+                      />
                     </FormControl>
                     <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.country_code" name="country_code">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -364,8 +373,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="p-5 space-y-5 w-full">
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2">
+            <div class="flex flex-col sm:flex-row gap-[16px] w-full">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.caller_id" name="caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -389,7 +398,7 @@ onMounted(() => {
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.custom_caller_id" name="custom_caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -421,8 +430,8 @@ onMounted(() => {
                 </FormField>
               </div>
             </div>
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2">
+            <div class="flex flex-col sm:flex-row gap-[16px] w-full">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.call_duration" name="call_duration">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -446,7 +455,7 @@ onMounted(() => {
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.call_ratio" name="call_ratio">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -471,38 +480,50 @@ onMounted(() => {
                 </FormField>
               </div>
             </div>
-            <div class="flex gap-[16px] w-full flex-col">
-              <div class="w-1/2 flex gap-2 justify-between items-center">
-                <div class="w-1/2">
+            <div class="flex flex-col md:flex-row gap-4 w-full">
+              <!-- Time Range Section -->
+              <div class="flex flex-col md:flex-row gap-2 md:justify-between md:items-center w-full md:w-1/2">
+                <!-- From Time -->
+                <div class="w-full md:w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_start" name="call_time_start">
                     <FormItem>
                       <FormLabel class="font-normal text-white text-sm">
                         From
                       </FormLabel>
                       <FormControl>
-                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11 ">
+                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11">
                           <p class="text-sm">
                             From
                           </p>
-                          <Input type="time" v-bind="componentField" class="shadow-none border-none w-[120px]" />
+                          <Input
+                            type="time"
+                            v-bind="componentField"
+                            class="shadow-none border-none w-full max-w-[120px]"
+                          />
                         </div>
                       </FormControl>
                       <FormMessage class="text-sm" />
                     </FormItem>
                   </FormField>
                 </div>
-                <div class="w-1/2">
+
+                <!-- To Time -->
+                <div class="w-full md:w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_end" name="call_time_end">
                     <FormItem>
                       <FormLabel class="font-normal text-white text-sm">
                         To
                       </FormLabel>
                       <FormControl>
-                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11 ">
+                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11">
                           <p class="text-sm">
                             To
                           </p>
-                          <Input type="time" v-bind="componentField" class="shadow-none border-none w-[120px]" />
+                          <Input
+                            type="time"
+                            v-bind="componentField"
+                            class="shadow-none border-none w-full max-w-[120px]"
+                          />
                         </div>
                       </FormControl>
                       <FormMessage class="text-sm" />
@@ -510,16 +531,28 @@ onMounted(() => {
                   </FormField>
                 </div>
               </div>
-              <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" v-model="values.voice_template_id" name="voice_template_id">
+
+              <!-- Voice Template Section -->
+              <div class="w-full md:w-1/2">
+                <FormField
+                  v-slot="{ componentField, errorMessage }"
+                  v-model="values.voice_template_id"
+                  name="voice_template_id"
+                >
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Voice Template
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
-                        <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Voice Template" />
+                        <SelectTrigger
+                          :class="errorMessage && 'border-red-600'"
+                          class="w-full !h-11"
+                        >
+                          <SelectValue
+                            class="text-sm data-[placeholder]:text-muted-foreground"
+                            placeholder="Select Voice Template"
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -529,7 +562,11 @@ onMounted(() => {
                               </div>
                             </template>
                             <template v-else>
-                              <SelectItem v-for="item in voiceTemplateOptions" :key="item.templete_id" :value="item.templete_id">
+                              <SelectItem
+                                v-for="item in voiceTemplateOptions"
+                                :key="item.templete_id"
+                                :value="item.templete_id"
+                              >
                                 {{ item.templete_name }}
                               </SelectItem>
                             </template>
@@ -553,8 +590,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="p-5">
-            <div class=" gap-x-5 w-full flex items-start">
-              <div class="w-1/2">
+            <div class="w-full flex flex-col sm:flex-row items-start">
+              <div class="w-full sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.sip_gateway_id" name="sip_gateway_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -585,13 +622,13 @@ onMounted(() => {
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="w-full sm:w-1/2">
                 <FormField v-slot="{ value, handleChange }" name="time_based_calling">
                   <FormItem>
                     <FormLabel class="font-normal text-white">
                       Enable Time Zone
                     </FormLabel>
-                    <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
+                    <div class="w-full bg-[#00A0860D] h-11 sm:m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
                       <p>Enable Time Zone Rule</p>
                       <FormControl>
                         <Switch
