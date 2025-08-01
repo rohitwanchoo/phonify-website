@@ -62,7 +62,7 @@ watch(() => meta.value.per_page, () => {
               <TabsTrigger
                 value="sent"
                 class="text-white whitespace-normal text-sm shadow-none
-                data-[state=active]:text-primary lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
+                data-[state=active]:text-primary max-h-10 lg:px-4 lg:w-full block lg:mb-2 rounded-[4px] hover:bg-secondary/10 cursor-pointer transition-all duration-200 "
               >
                 <div class="flex justify-center lg:justify-start items-center gap-2">
                   <Icon name="material-symbols:send-outline" size="18" class="hidden sm:block" />
@@ -72,7 +72,7 @@ watch(() => meta.value.per_page, () => {
               <TabsTrigger
                 value="password"
                 class="text-white whitespace-normal text-sm
-                data-[state=active]:text-primary lg:max-h-14 lg:px-4 lg:w-full block lg:mb-2"
+                data-[state=active]:text-primary max-h-10 lg:px-4 lg:w-full block lg:mb-2 rounded-[4px] hover:bg-secondary/10 cursor-pointer transition-all duration-200 "
               >
                 <div class="flex justify-center lg:justify-start items-center gap-2">
                   <Icon name="material-symbols:inbox" class="hidden sm:block" />
