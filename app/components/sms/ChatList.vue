@@ -74,12 +74,12 @@ function handleTabSelect(groupId: number) {
             class="h-11 w-11 border transition-all duration-200"
             :class="isFilterOpen
               ? 'bg-white text-black border-white hover:bg-white hover:text-black'
-              : 'bg-[#1717170d] text-white border-white hover:bg-[#1717170d] hover:text-white'"
+              : 'bg-[#1717170d] text-white border-white hover:bg-[#605f5f64] hover:text-white'"
           >
             <Icon
               :name="isFilterOpen ? 'material-symbols:menu' : 'material-symbols:sort'"
               size="23"
-            />
+            />  
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent class="w-56 p-2 bg-white rounded-lg shadow-md">
