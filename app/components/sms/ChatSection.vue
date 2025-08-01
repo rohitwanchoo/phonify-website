@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import Button from '../ui/button/Button.vue'
+
 const props = defineProps({
   contact: {
     type: Object,
@@ -13,6 +14,18 @@ const props = defineProps({
 })
 
 const messageInputRef = ref<HTMLInputElement | null>(null)
+// Store drafts for all contacts using contact ID as key
+const messageDrafts = ref<Record<number, string>>({})
+
+// Computed property for current draft that reacts to contact changes
+const currentDraft = computed({
+  get() {
+    return messageDrafts.value[props.contact.id] || ''
+  },
+  set(val: string) {
+    messageDrafts.value[props.contact.id] = val
+  },
+})
 
 function focusInput() {
   nextTick(() => {
@@ -23,9 +36,12 @@ function focusInput() {
 onMounted(() => {
   focusInput()
 })
-watch(() => props.contact, () => {
-  focusInput()
-})
+
+
+watch(() => props.contact.id, () => {
+  nextTick(focusInput)
+}, { immediate: true })
+
 const emit = defineEmits(['open-dialer'])
 
 // Chat messages for saved contacts
@@ -73,7 +89,7 @@ function openDialer() {
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <Button class="bg-green-600 hover:bg-green-500 text-white text-sm p-[12px] h-11 rounded-md gap-1 flex cursor-pointer" @click="openDialer ">
+          <Button class="bg-green-600 hover:bg-green-500 text-white text-sm p-[12px] h-11 rounded-md gap-1 flex cursor-pointer" @click="openDialer">
             <Icon name="material-symbols:call" class="text-white" size="20" />
             Call
           </Button>
@@ -158,15 +174,21 @@ function openDialer() {
       <div class="bg-white border-t border-muted py-2">
         <div class="relative w-full flex items-center">
           <Input
-           ref="messageInputRef"
+            :key="contact.id"
+            v-model="currentDraft"
+            ref="messageInputRef"
             placeholder="Send a message..."
-            class="w-full pr-[200px]  px-[24px] py-5 border-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:shadow-none"
+            class="w-full pr-[200px] px-[24px] py-5 border-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:shadow-none"
+       
           />
           <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-4">
             <button type="button" class="text-muted-foreground hover:text-black border border-black h-10 w-10 flex items-center justify-center rounded-sm">
               <Icon name="material-symbols:attach-file" size="20" />
             </button>
-            <button type="button" class="bg-[#0B2C3F] hover:bg-[#093142] text-white h-10 w-10 flex items-center justify-center rounded-sm">
+            <button 
+              type="button" 
+              class="bg-[#0B2C3F] hover:bg-[#093142] text-white h-10 w-10 flex items-center justify-center rounded-sm"
+            >
               <Icon name="material-symbols:send-outline" size="20" />
             </button>
           </div>

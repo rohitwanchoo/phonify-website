@@ -4,7 +4,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
-
+import { onMounted } from 'vue'
 import {
   FormControl,
   FormField,
@@ -27,13 +27,19 @@ import { Button } from '~/components/ui/button'
 const labelOptions = ['Transactional', 'Welcome', 'Promotion']
 const customPlaceholderOptions = ['company_name', 'appointment_date']
 const senderPlaceholders = ['first_name', 'last_name', 'email', 'mobile', 'company_name']
+const templateNameInputRef = ref<any>(null)
 
+onMounted(() => {
+  // Focus the input after DOM is ready
+  templateNameInputRef.value?.$el?.focus?.()
+})
 // Schema
 const formSchema = toTypedSchema(z.object({
   template_name: z.string().min(1, 'Template name is required'),
-  leadPlaceholder: z.string().optional(),
-  senderPlaceholder: z.string().optional(),
-  customPlaceholder: z.string().optional(),
+  leadPlaceholder: z.string().min(1, 'Label is required'),
+senderPlaceholder: z.string().min(1, 'Sender detail is required'),
+customPlaceholder: z.string().min(1, 'Custom placeholder is required'),
+
   template_html: z.string().min(1, 'Template content is required'),
 }))
 
@@ -122,7 +128,7 @@ const onSubmit = handleSubmit(() => {
       </div>
 
       <form class="w-full flex-1 overflow-x-auto" @submit="onSubmit">
-        <div class="p-5 flex flex-col gap-5 pb-28">
+        <div class="p-5 flex flex-col gap-5 ">
           <!-- Row 1 -->
           <div class="flex flex-col md:flex-row gap-4">
             <!-- Template Name -->
@@ -133,9 +139,10 @@ const onSubmit = handleSubmit(() => {
                 </FormLabel>
                 <FormControl>
                   <Input
+                    ref="templateNameInputRef"
                     v-bind="componentField"
                     placeholder="Enter Template Name"
-                    class="px-3 py-2 h-9 bg-white rounded-lg outline outline-zinc-200 text-sm"
+                    class="px-3 py-2 h-11 bg-white rounded-lg outline outline-zinc-200 text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -149,8 +156,8 @@ const onSubmit = handleSubmit(() => {
                   Labels
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
-                    <SelectTrigger class="w-full h-11 px-3 py-2 bg-white rounded-lg outline outline-zinc-200">
+                  <Select v-bind="componentField">
+                    <SelectTrigger class="w-full !h-11 px-3 py-2 bg-white rounded-lg outline outline-zinc-200">
                       <SelectValue placeholder="Select Labels" class="text-sm text-slate-800" />
                     </SelectTrigger>
                     <SelectContent>
@@ -174,8 +181,8 @@ const onSubmit = handleSubmit(() => {
                   Sender Details
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
-                    <SelectTrigger class="w-full h-11 px-3 py-2 bg-white rounded-lg outline outline-zinc-200">
+                  <Select v-bind="componentField">
+                    <SelectTrigger class="w-full !h-11 px-3 py-2 bg-white rounded-lg outline outline-zinc-200">
                       <SelectValue placeholder="Select Sender Details" class="text-sm text-slate-800" />
                     </SelectTrigger>
                     <SelectContent>
@@ -196,8 +203,8 @@ const onSubmit = handleSubmit(() => {
                   Custom Placeholders
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
-                    <SelectTrigger class="w-full h-11 px-3 py-2 bg-white rounded-lg outline outline-zinc-200">
+                  <Select v-bind="componentField">
+                    <SelectTrigger class="w-full !h-11 px-3 py-2 bg-white rounded-lg outline outline-zinc-200">
                       <SelectValue placeholder="Select Placeholder" class="text-sm text-slate-800" />
                     </SelectTrigger>
                     <SelectContent>
@@ -224,7 +231,7 @@ const onSubmit = handleSubmit(() => {
                     ref="textareaRef"
                     v-bind="componentField"
                     placeholder="SMS Template..."
-                    class="w-full h-full lg:min-h-[250px] lg:max-h-[350px] text-sm"
+                    class="w-full h-full lg:min-h-[350px] lg:max-h-[350px] text-sm"
                     @focus="setFocus('template')"
                     @click="(e) => trackCursor(e, 'template')"
                     @keyup="(e) => trackCursor(e, 'template')"

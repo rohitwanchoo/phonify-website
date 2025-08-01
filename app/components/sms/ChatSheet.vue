@@ -32,6 +32,7 @@ import { Textarea } from '~/components/ui/textarea'
 const open = ref(false)
 const uploadedFiles = ref<File[]>([])
 
+
 // Country codes with USA first
 const countryCodes = [
   { id: 2, name: 'USA', phonecode: '+1' }, // USA first
