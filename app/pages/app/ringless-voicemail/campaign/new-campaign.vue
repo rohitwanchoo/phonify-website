@@ -56,7 +56,7 @@ const { data: countryCodeList, status: countryCodeStatus } = await useLazyAsyncD
 // list voice template
 const { data: voiceTemplateOptions, status: voiceTemplateStatus } = await useLazyAsyncData('voice-template-list', () =>
   useApi().get('/voice-templete', {
-    start: 0,
+    // start: 0,
     // limit: 10,
   }), {
   immediate: true,
@@ -90,16 +90,17 @@ const callerTimeOptions = ref([
   { id: '30' },
 ])
 
-const callRatioOptions = ref([
-  { id: '1:1', title: '1:1 Ratio' },
-  { id: '2:1', title: '2:1 Ratio' },
-  { id: '3:1', title: '3:1 Ratio' },
-])
+const callRatioOptions = ref(
+  Array.from({ length: 30 }, (_, i) => ({
+    id: `${i + 1}`,
+    title: `${i + 1}`,
+  })),
+)
 
 // Form validation schema with updated field names
 const formSchema = toTypedSchema(
   z.object({
-    title: z.string().min(3, 'Name must be at least 3 characters'),
+    title: z.string().min(1, 'Name must be at least 3 characters'),
     country_code: z.number().min(1, 'Country code is required'),
     description: z.string().optional(),
     caller_id: z.string().min(1, 'Caller ID is required'),
@@ -470,8 +471,8 @@ onMounted(() => {
                 </FormField>
               </div>
             </div>
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2 flex gap-2 flex-between items-center">
+            <div class="flex gap-[16px] w-full flex-col">
+              <div class="w-1/2 flex gap-2 justify-between items-center">
                 <div class="w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_start" name="call_time_start">
                     <FormItem>

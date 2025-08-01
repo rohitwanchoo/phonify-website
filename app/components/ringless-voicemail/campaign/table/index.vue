@@ -471,7 +471,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [2, 5, 10, 25, 50, 100]" :key="n" :value="n">
+              <SelectItem v-for="n in [10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
