@@ -21,10 +21,6 @@ const { data: ivrList, status: ivrStatus, refresh: ivrRefresh } = useLazyAsyncDa
   }), {
   transform: res => res?.data || [],
 })
-
-function handleSave(data: { extension: string, audioUrl: string }) {
-  // console.log('Saved Ringless:', data)
-}
 </script>
 
 <template>
