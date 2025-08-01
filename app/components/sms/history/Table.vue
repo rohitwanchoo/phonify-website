@@ -16,6 +16,15 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 
