@@ -95,7 +95,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.receiver),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.receiver)),
     enableSorting: true,
   }),
   columnHelper.accessor('sender', {
@@ -109,7 +109,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.sender),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.sender)),
     enableSorting: true,
   }),
   columnHelper.accessor('message', {
