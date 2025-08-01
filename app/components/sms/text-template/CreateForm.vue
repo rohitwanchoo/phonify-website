@@ -231,7 +231,7 @@ const onSubmit = handleSubmit(() => {
                     ref="textareaRef"
                     v-bind="componentField"
                     placeholder="SMS Template..."
-                    class="w-full h-full lg:min-h-[350px] lg:max-h-[350px] text-sm"
+                    class="w-full h-full lg:min-h-[380px] lg:max-h-[380px] text-sm"
                     @focus="setFocus('template')"
                     @click="(e) => trackCursor(e, 'template')"
                     @keyup="(e) => trackCursor(e, 'template')"
@@ -249,7 +249,7 @@ const onSubmit = handleSubmit(() => {
             shadow-[0_-6px_12px_-4px_rgba(0,0,0,0.15)]">
   <Button
     type="submit"
-    class="flex-1"
+    class="flex-1 h-12"
     :loading="loading"
     :disabled="loading"
     @click="onSubmit"
