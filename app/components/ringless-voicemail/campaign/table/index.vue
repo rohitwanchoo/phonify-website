@@ -40,6 +40,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
@@ -333,18 +339,35 @@ const columns = [
     header: () => h('div', { class: 'text-center' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
       h(
-        Button,
-        {
-          size: 'icon',
-          class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
-          onClick: () => openSheet(row.original.id),
-        },
-        h(
-          Icon,
+        TooltipProvider,
+        { delayDuration: 1000 },
+        () => h(
+          Tooltip,
+          {},
           {
-            name: campaignLoadingId.value === row.original.id
-              ? 'eos-icons:bubble-loading'
-              : 'lucide:eye',
+            default: () => [
+              h(
+                TooltipTrigger,
+                { asChild: true },
+                () => h(
+                  Button,
+                  {
+                    size: 'icon',
+                    class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
+                    onClick: () => openSheet(row.original.id),
+                  },
+                  h(
+                    Icon,
+                    {
+                      name: campaignLoadingId.value === row.original.id
+                        ? 'eos-icons:bubble-loading'
+                        : 'lucide:eye',
+                    },
+                  ),
+                ),
+              ),
+              h(TooltipContent, { class: 'bg-gray-800 text-white' }, 'View Campaign Details'),
+            ],
           },
         ),
       ),
