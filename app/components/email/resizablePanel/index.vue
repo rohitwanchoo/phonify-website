@@ -30,7 +30,7 @@ const isCollapsed = ref(false)
     </ResizablePanel>
     <ResizableHandle id="handle-demo-handle-2" with-handle />
 
-    <ResizablePanel id="handle-demo-panel-3" :default-size="655">
+    <ResizablePanel id="handle-demo-panel-3" :min-size="32" :default-size="655">
       <div class="flex h-full justify-center p-3 bg-gray-50">
         <EmailResizablePanelCompose />
       </div>
