@@ -67,7 +67,7 @@ function handleClose() {
         <ResizableHandle with-handle />
 
         <!-- Chat Section -->
-        <ResizablePanel :default-size="75" :min-size="50">
+        <ResizablePanel :default-size="75" :max-size="78" :min-size="30">
           <SmsChatSection
             :contact="currentContact || {
               title: 'Unknown',

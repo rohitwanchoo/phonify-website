@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
+import { ref, onMounted, nextTick } from 'vue'
+import Button from '../ui/button/Button.vue'
 const props = defineProps({
   contact: {
     type: Object,
@@ -12,6 +12,20 @@ const props = defineProps({
   },
 })
 
+const messageInputRef = ref<HTMLInputElement | null>(null)
+
+function focusInput() {
+  nextTick(() => {
+    messageInputRef.value?.focus()
+  })
+}
+
+onMounted(() => {
+  focusInput()
+})
+watch(() => props.contact, () => {
+  focusInput()
+})
 const emit = defineEmits(['open-dialer'])
 
 // Chat messages for saved contacts
@@ -59,15 +73,15 @@ function openDialer() {
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <Button class="bg-green-600 hover:bg-green-600 text-white text-sm p-[12px] rounded-md gap-1 flex cursor-pointer" @click="openDialer ">
+          <Button class="bg-green-600 hover:bg-green-500 text-white text-sm p-[12px] h-11 rounded-md gap-1 flex cursor-pointer" @click="openDialer ">
             <Icon name="material-symbols:call" class="text-white" size="20" />
             Call
           </Button>
-          <Button class="text-sm p-[12px] h-[44px] rounded-md text-black bg-white hover:bg-white border border-black flex gap-1 items-center cursor-pointer">
+          <Button class="text-sm p-[12px] h-[44px] rounded-md text-black bg-white hover:bg-[#F8F8F8] border border-black flex gap-1 items-center cursor-pointer">
             <Icon name="material-symbols:demography" class="text-black" size="20" />
             Lead Activity
           </Button>
-          <Button class="h-[44px] flex items-center">
+          <Button class="h-[44px] p-0 flex items-center bg-white shadow-none hover:bg-white">
             <Icon name="material-symbols:more-vert" class="text-black" size="20" />
           </Button>
         </div>
@@ -144,6 +158,7 @@ function openDialer() {
       <div class="bg-white border-t border-muted py-2">
         <div class="relative w-full flex items-center">
           <Input
+           ref="messageInputRef"
             placeholder="Send a message..."
             class="w-full pr-[200px]  px-[24px] py-5 border-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:shadow-none"
           />
