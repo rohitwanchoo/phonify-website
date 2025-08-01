@@ -118,7 +118,7 @@ const onSubmit = handleSubmit(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(102vh-200px)]">
     <!-- Left section -->
     <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
