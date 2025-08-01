@@ -36,22 +36,21 @@ const dummyData = ref<any[]>([])
 // Then populate it with your data
 dummyData.value = [
   { id: 'FAX-00345', sender: 'FAX-002', inboundFax: '(333) 111-2222', date: '2023-04-22'},
-  { id: 'FAX-004', sender: '(333) 333-4444', inboundFax: '(555) 234-5678', date: '2023-04-22'},
-  { id: 'FAX-006', sender: '(333) 555-6666', inboundFax: '(555) 343-6789', date: '2023-05-30' },
-  { id: 'FAX-008', sender: '(333) 777-8888', inboundFax: '(555) 012-3456', date: '2023-06-14'},
-  { id: 'FAX-0062', sender: '(333) 999-0000', inboundFax: '(555) 466-7890', date: '2023-07-19'},
+  { id: 'FAX-004', sender: '+1 (333) 333-4444', inboundFax: '(555) 234-5678', date: '2023-04-22'},
+  { id: 'FAX-006', sender: '+1 (333) 555-6666', inboundFax: '(555) 343-6789', date: '2023-05-30' },
+  { id: 'FAX-008', sender: '+1 (333) 777-8888', inboundFax: '(555) 012-3456', date: '2023-06-14'},
+  { id: 'FAX-0062', sender: '+1 (333) 999-0000', inboundFax: '(555) 466-7890', date: '2023-07-19'},
 ]
 
 const columnHelper = createColumnHelper<any>()
     const columns = [
   columnHelper.display({
     id: 'siNo',
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, h(Button, {
         variant: 'ghost',
         class: 'text-sm font-normal',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['#', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['#'])),
     cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.index + 1),
   }),
 
@@ -72,7 +71,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Inbound Fax No', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.inboundFax),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.inboundFax)),
   }),
 
   columnHelper.accessor('date', {

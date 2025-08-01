@@ -36,10 +36,10 @@ const dummyData = ref<any[]>([])
 // Then populate it with your data
 dummyData.value = [
   { id: 'FAX-00345', sender: 'FAX-002', recipientFax: '(333) 111-2222', date: '2023-04-22', status: 'Success' },
-  { id: 'FAX-004', sender: '(333) 333-4444', recipientFax: '(555) 234-5678', date: '2023-04-22', status: 'Failed' },
-  { id: 'FAX-006', sender: '(333) 555-6666', recipientFax: '(555) 343-6789', date: '2023-05-30', status: 'Success' },
-  { id: 'FAX-008', sender: '(333) 777-8888', recipientFax: '(555) 012-3456', date: '2023-06-14', status: 'Success' },
-  { id: 'FAX-0062', sender: '(333) 999-0000', recipientFax: '(555) 466-7890', date: '2023-07-19', status: 'Success' },
+  { id: 'FAX-004', sender: '+1 (333) 333-4444', recipientFax: '(555) 234-5678', date: '2023-04-22', status: 'Failed' },
+  { id: 'FAX-006', sender: '+1 (333) 555-6666', recipientFax: '(555) 343-6789', date: '2023-05-30', status: 'Success' },
+  { id: 'FAX-008', sender: '+1 (333) 777-8888', recipientFax: '(555) 012-3456', date: '2023-06-14', status: 'Success' },
+  { id: 'FAX-0062', sender: '+1 (333) 999-0000', recipientFax: '(555) 466-7890', date: '2023-07-19', status: 'Success' },
 ]
 
 const columnHelper = createColumnHelper<any>()
@@ -82,7 +82,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Recipient Fax', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.recipientFax),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.recipientFax)),
   }),
 
   columnHelper.accessor('date', {
