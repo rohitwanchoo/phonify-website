@@ -10,7 +10,7 @@ import {
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-
+import Button from '~/components/ui/button/Button.vue'
 const { user, logout } = useAuth()
 const router = useRouter()
 
@@ -52,9 +52,9 @@ const userInitials = computed(() => {
     <div class="flex gap-3 text-xs md:text-sm items-center">
       <!-- Notifications Button -->
       <nuxt-link to="/app/notifications">
-        <button class="bg-white px-3 py-2 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
-          <Icon name="material-symbols-light:notifications" class="text-xl md:text-2xl" />
-        </button>
+        <Button class="bg-white px-3 py-2 h-12 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
+          <Icon name="material-symbols-light:notifications" class="text-xl md:text-2xl text-black" />
+        </Button>
       </nuxt-link>
       <!-- User Dropdown -->
       <DropdownMenu>
