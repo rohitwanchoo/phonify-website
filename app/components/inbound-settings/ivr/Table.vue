@@ -114,14 +114,7 @@ const columns = [
   }),
 
   columnHelper.accessor('audioUrl', {
-    header: ({ column }) => h('div', { class: 'text-center w-full inline-flex items-center justify-center gap-1' }, [
-      'File',
-      h(Button, {
-        class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(),
-      }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-    ]),
+    header: () => h('div', { class: 'text-center w-full' }, 'File'),
     cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, [
       h('audio', {
         controls: true,
