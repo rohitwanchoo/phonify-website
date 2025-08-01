@@ -44,7 +44,6 @@ const { handleSubmit, resetForm } = useForm({
 const sipTrunkProviders = [
   { value: 'twilio', label: 'Twilio' },
   { value: 'plivo', label: 'Plivo' },
-  { value: 'bandwidth', label: 'Bandwidth' },
 ]
 
 // Watch for changes in the open prop to handle form initialization
@@ -208,7 +207,7 @@ const onSubmit = handleSubmit(async (values) => {
             </p>
             <FormControl>
               <Select v-bind="componentField">
-                <SelectTrigger class="h-11 w-full">
+                <SelectTrigger class="!h-11 w-full">
                   <SelectValue placeholder="Select a provider" />
                 </SelectTrigger>
                 <SelectContent>
@@ -226,7 +225,7 @@ const onSubmit = handleSubmit(async (values) => {
           <Button
             type="button"
             variant="outline"
-            class="w-[50%] border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500"
+            class="w-[50%] h-11 border-red-500 text-red-500 bg-red-50 hover:bg-white hover:text-red-500"
             @click="emits('update:open', false)"
           >
             <Icon name="material-symbols:close" />
@@ -234,7 +233,7 @@ const onSubmit = handleSubmit(async (values) => {
           </Button>
           <Button
             type="submit"
-            class="w-[50%]"
+            class="w-[50%] h-11"
             :disabled="loading"
           >
             <Icon name="material-symbols:check" />
