@@ -120,7 +120,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.phone_number) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row?.original?.phone_number || '') || '-'),
   }),
   columnHelper.accessor('email', {
     header: ({ column }) =>
