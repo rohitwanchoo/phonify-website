@@ -13,11 +13,11 @@ const props = defineProps({
   <div class="w-full bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 inline-flex flex-col justify-start items-start overflow-hidden">
     <div default-value="desktop" class="w-full gap-0">
       <!-- Header with triggers -->
-      <div class="flex items-center justify-between px-5 py-3 bg-white border-b border-zinc-100">
+      <div class="flex items-center justify-between px-5 py-4 bg-white border-b border-zinc-100">
         <div class="text-slate-800 text-base font-medium">
           Template Preview
         </div>
-        <div class="flex space-x-1 bg-slate-800/10 rounded-md p-0.5">
+        <div class="flex items-center space-x-1 bg-slate-800/10 rounded-md p-0.5">
           <div
             class="bg-slate-800  text-white shadow text-sm py-1 px-3 flex items-center  rounded-md"
           >
@@ -27,7 +27,7 @@ const props = defineProps({
       </div>
 
       <!-- Content -->
-      <div class="h-[calc(100vh-250px)]">
+      <div class="h-[calc(100vh-245px)]">
         <div class="h-full">
           <div class="h-full p-3 flex justify-center items-center">
        <div class="w-[450px] h-full relative bg-contain bg-center bg-no-repeat" 

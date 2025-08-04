@@ -47,7 +47,7 @@ function searchText() {
       <template #actions>
         <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
         <Nuxt-link to="/app/ringless-voicemail/campaign/new-campaign">
-          <Button>
+          <Button class="h-11">
             <Icon class="!text-white" name="lucide:plus" />
             Create Campaign
           </Button>

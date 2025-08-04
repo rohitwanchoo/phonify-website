@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
+
 </script>
 
 <template>
@@ -8,11 +8,8 @@ import { Input } from '~/components/ui/input'
     <!-- HEADER -->
     <BaseHeader title="SMS History">
       <template #actions>
-        <div class="relative">
-          <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
-        <Button>
+        <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" placeholder="search" />
+        <Button class="h-11">
           <Icon class="!text-white" name="lucide:upload" />
           Export
         </Button>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown, Eye, Pencil, Trash2 } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
 import {
   Table,
   TableBody,
@@ -15,18 +15,31 @@ import {
 } from '@/components/ui/table'
 import Button from '~/components/ui/button/Button.vue'
 
-const dummyData = ref([
-  { id: 1, extension: 'Lorem ipsum dolor sit amet consectetur. Est id facilisis in sit id nibh neque neque.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 2, extension: 'Libero nunc semper mauris duis sapien malesuada.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 3, extension: 'Tempus vel sed ac et quis ipsum et.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 4, extension: 'Bibendum id mi etiam amet est facilisis vitae.', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-])
+const props = withDefaults(defineProps<{
+  list: any[]
+  loading: boolean
+  totalRows: number
+  start: number
+  limit?: number
+}>(), {
+  limit: 10,
+})
 
+const emits = defineEmits(['refresh'])
 const showCreateIvr = ref(false)
-const currentEditItem = ref<typeof dummyData.value[0] | null>(null)
+const currentEditItem = ref<typeof props.list[0] | null>(null)
 const ringlessDialogMode = ref<'create' | 'edit'>('create')
-const campaignLoadingId = ref<number | null>(null)
 const router = useRouter()
+
+// Delete confirmation setup
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const selectedItemForDelete = ref<number | null>(null)
 
 const emptyRinglessItem = {
   id: 0,
@@ -34,7 +47,49 @@ const emptyRinglessItem = {
   audioUrl: '',
 }
 
-const columnHelper = createColumnHelper<typeof dummyData.value[0]>()
+async function handleDelete(id: number) {
+  selectedItemForDelete.value = id
+  revealDeleteConfirm()
+}
+
+async function deleteConfirmHandler() {
+  if (!selectedItemForDelete.value)
+    return
+
+  try {
+    // Replace with your actual API endpoint
+    const res = await useApi().post('/delete-ivr', {
+      auto_id: selectedItemForDelete.value,
+    })
+
+    if (res.success) {
+      showToast({
+        message: res.message || 'Item deleted successfully',
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message || 'Failed to delete item',
+        type: 'error',
+      })
+    }
+    emits('refresh')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedItemForDelete.value = null
+    deleteConfirm()
+  }
+}
+
+// Rest of your existing code remains the same...
+const columnHelper = createColumnHelper<typeof props.list[0]>()
 
 const columns = [
   columnHelper.display({
@@ -44,7 +99,7 @@ const columns = [
     meta: { className: 'w-[40px] text-center' },
   }),
 
-  columnHelper.accessor('extension', {
+  columnHelper.accessor('description', {
     header: ({ column }) => h('div', { class: 'text-center w-full inline-flex items-center justify-center gap-1' }, [
       'Description',
       h(Button, {
@@ -53,27 +108,20 @@ const columns = [
         onClick: () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-light text-left' }, row.original.extension),
+    cell: ({ row }) => h('div', { class: 'text-sm font-light text-center' }, row.original.ivr_desc),
     sortingFn: 'alphanumeric',
     meta: { className: 'w-[50%]' },
   }),
 
   columnHelper.accessor('audioUrl', {
-    header: ({ column }) => h('div', { class: 'text-center w-full inline-flex items-center justify-center gap-1' }, [
-      'File',
-      h(Button, {
-        class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(),
-      }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-    ]),
+    header: () => h('div', { class: 'text-center w-full' }, 'File'),
     cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, [
       h('audio', {
         controls: true,
         class: 'w-full max-w-xl',
       }, [
         h('source', {
-          src: row.original.audioUrl,
+          src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
           type: 'audio/mpeg',
         }),
         'Browser not supported',
@@ -126,40 +174,25 @@ const columns = [
 ]
 
 const table = useVueTable({
-  data: dummyData.value,
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
 })
 
-function handleEdit(item: typeof dummyData.value[0]) {
+function handleEdit(item: typeof props.list[0]) {
   currentEditItem.value = { ...item }
   ringlessDialogMode.value = 'edit'
   showCreateIvr.value = true
 }
 
-function handleDelete(id: number) {
-  dummyData.value = dummyData.value.filter(item => item.id !== id)
-}
-
 function handleSave(data: { extension: string, audioUrl: string }) {
-  if (currentEditItem.value?.id) {
-    const index = dummyData.value.findIndex(item => item.id === currentEditItem.value?.id)
-    if (index !== -1) {
-      dummyData.value[index] = { ...currentEditItem.value, ...data }
-    }
-  }
-  else {
-    const newId = Math.max(...dummyData.value.map(item => item.id), 0) + 1
-    dummyData.value.push({ id: newId, ...data })
-  }
-
-  showCreateIvr.value = false
-  currentEditItem.value = null
+  console.log('save initiated')
+  emits('refresh')
 }
 </script>
 
 <template>
-  <div class="w-full overflow-x-auto border rounded-xl bg-white mt-8">
+  <div class="w-full overflow-x-auto border rounded-xl bg-white mt-8 max-h-[85vh]">
     <!-- Header -->
     <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
       Call Timing #
@@ -183,22 +216,36 @@ function handleSave(data: { extension: string, audioUrl: string }) {
           </TableHead>
         </TableRow>
       </TableHeader>
-
       <TableBody>
-        <TableRow
-          v-for="row in table.getRowModel().rows"
-          :key="row.id"
-          class="hover:bg-[#FAFAFA]"
-        >
-          <TableCell
-            v-for="cell in row.getVisibleCells()"
-            :key="cell.id"
-            class="text-center px-8 py-3 align-middle"
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows?.length">
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            class="hover:bg-[#FAFAFA]"
           >
-            <FlexRender
-              :render="cell.column.columnDef.cell"
-              :props="cell.getContext()"
-            />
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="text-center px-8 py-3 align-middle"
+            >
+              <FlexRender
+                :render="cell.column.columnDef.cell"
+                :props="cell.getContext()"
+              />
+            </TableCell>
+          </TableRow>
+        </template>
+        <TableRow v-else>
+          <TableCell
+            :colspan="columns.length"
+            class="h-24 text-center"
+          >
+            No results.
           </TableCell>
         </TableRow>
       </TableBody>
@@ -211,6 +258,15 @@ function handleSave(data: { extension: string, audioUrl: string }) {
       :mode="ringlessDialogMode"
       heading="Create New Call Time"
       @save="handleSave"
+    />
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmAction
+      v-model="showDeleteConfirm"
+      :confirm="deleteConfirmHandler"
+      :cancel="deleteCancel"
+      title="Delete Item"
+      description="You are about to delete this item. This action cannot be undone. Do you wish to proceed?"
     />
   </div>
 </template>

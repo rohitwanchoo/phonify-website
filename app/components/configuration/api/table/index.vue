@@ -8,6 +8,7 @@ import ConfigurationApiActionDropdown from '@/components/configuration/api/Actio
 import ConfirmAction from '@/components/ConfirmAction.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
+import moment from 'moment'
 import {
   Table,
   TableBody,
@@ -170,15 +171,7 @@ const columns = [
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('url', {
-    header: ({ column }) => h('div', { class: 'inline-flex items-center justify-center gap-0.5 w-full' }, [
-      'URL',
-      h(Button, {
-        'class': 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none align-middle',
-        'variant': 'ghost',
-        'aria-label': 'Sort',
-        'onClick': () => column.toggleSorting(),
-      }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-    ]),
+    header: () => h('div', { class: 'inline-flex items-center justify-center w-full' }, 'URL'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.url),
     sortingFn: 'alphanumeric',
   }),
@@ -244,7 +237,7 @@ const columns = [
         'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.updated_at),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.updated_at).format('DD/MM/YYYY HH:MM A')),
     sortingFn: 'datetime',
   }),
   columnHelper.display({

@@ -95,12 +95,11 @@ const columnHelper = createColumnHelper<CallRecord>()
 const columns = [
   columnHelper.display({
     id: 'siNo',
-    header: ({ column }) =>
+    header: () =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['#', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
+      }, () => '#'),
     cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.index + 1),
   }),
   columnHelper.accessor('userName', {
@@ -113,12 +112,11 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.userName),
   }),
   columnHelper.accessor('ip', {
-    header: ({ column }) =>
+    header: () =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['IP', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
+      }, () => ['IP']),
     cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.ip),
   }),
   columnHelper.accessor('userAgent', {
