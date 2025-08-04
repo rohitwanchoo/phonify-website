@@ -31,6 +31,7 @@ const router = useRouter()
 const id = route.query.id
 const isEdit = computed(() => !!id)
 const pageTitle = ref(isEdit.value ? 'Edit Campaign' : 'Create New Campaign')
+const nameInputRef = ref<any>(null)
 
 const breadcrumbs = [
   {
@@ -241,6 +242,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 onMounted(async () => {
   await fetchCampaignData()
+  nameInputRef.value?.$el?.focus?.()
 })
 </script>
 
@@ -301,7 +303,7 @@ onMounted(async () => {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        autofocus
+                        ref="nameInputRef"
                         type="text"
                         class="text-sm font-normal placeholder:text-sm h-11"
                         placeholder="Enter Campaign Name"
