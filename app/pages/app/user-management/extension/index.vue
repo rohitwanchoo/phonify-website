@@ -35,15 +35,16 @@ function changeLimit(val: number) {
     <BaseHeader title="Extension List">
       <template #actions>
         <div class="relative w-full md:w-auto ">
-          <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
+          <BaseInputSearch></BaseInputSearch>
+          <!-- <Input placeholder="Search List" />
+          <Icon class="absolute top-[9px] right-2" name="lucide:search" /> -->
         </div>
-        <Button variant="outline" class="text-black bg-white" @click="toastTest">
+        <Button variant="outline" class="text-black bg-white h-11" @click="toastTest">
           <Icon class="!text-black" name="lucide:download" />
           Excel
         </Button>
         <NuxtLink to="/app/user-management/extension/create">
-          <Button>
+          <Button class="h-11">
             <Icon class="!text-white" name="lucide:plus" />
             Add Extensions
           </Button>
