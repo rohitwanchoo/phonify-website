@@ -37,7 +37,7 @@ const id = route.query.id
 const isEdit = !!id
 
 const countries = await getCountriesAll()
-console.log('countries', countries)
+// console.log('countries', countries)
 
 const breadcrumbs = computed(() => [
   {
@@ -175,7 +175,7 @@ const formSchema = toTypedSchema(z.object({
 }),
 )
 
-const { handleSubmit, values, errors, setFieldValue } = useForm({
+const { handleSubmit, values, errors, setFieldValue, setFieldError } = useForm({
   validationSchema: formSchema,
   initialValues: {
     timezone: 'America/New_York',
@@ -260,11 +260,16 @@ const onSubmit = handleSubmit((values) => {
       showToast({
         message: res.message,
       })
+
+     navigateTo('/app/user-management/extension')
     }).catch((err) => {
+      handleFieldErrors(err.data, setFieldError)
+
       showToast({
         message: err.message,
         type: 'error',
       })
+      // handleFieldErrors(err.)
     }).finally(() => {
       loading.value = false
     })
@@ -279,10 +284,13 @@ const onSubmit = handleSubmit((values) => {
 
     navigateTo('/app/user-management/extension')
   }).catch((err) => {
+    handleFieldErrors(err.data, setFieldError)
+
     showToast({
       message: err.message,
       type: 'error',
     })
+    console.log(err)
   }).finally(() => {
     loading.value = false
   })
@@ -448,7 +456,7 @@ onMounted(() => {
                 <FormControl>
                   <div class="relative">
                     <Input type="text" :disabled="isEdit && !emailEdit" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type E-mail" v-bind="componentField" />
-                    <div class="sm:absolute top-1/2 sm:-translate-y-1/2 right-1 mt-1 sm:mt-0">
+                    <div v-if="isEdit" class="sm:absolute top-1/2 sm:-translate-y-1/2 right-1 mt-1 sm:mt-0">
                       <Button v-if="!emailEdit" type="button" class="rounded" @click="emailEdit = true">
                         Edit
                       </Button>
