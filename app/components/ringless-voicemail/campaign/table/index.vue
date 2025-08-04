@@ -337,58 +337,45 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(
-        TooltipProvider,
-        { delayDuration: 1000 },
-        () => h(
-          Tooltip,
-          {},
-          {
-            default: () => [
-              h(
-                TooltipTrigger,
-                { asChild: true },
-                () => h(
-                  Button,
-                  {
-                    size: 'icon',
-                    class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
-                    onClick: () => openSheet(row.original.id),
-                  },
-                  h(
-                    Icon,
-                    {
-                      name: campaignLoadingId.value === row.original.id
-                        ? 'eos-icons:bubble-loading'
-                        : 'lucide:eye',
-                    },
-                  ),
-                ),
-              ),
-              h(TooltipContent, { class: 'bg-gray-800 text-white' }, 'View Campaign Details'),
-            ],
+    cell: ({ row }) => {
+      const item = row.original
+      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+        h(TooltipProvider, { delayDuration: 1000 }, [
+          h(Tooltip, {}, [
+            h(TooltipTrigger, { as: 'div' }, [
+              h(Button, {
+                size: 'icon',
+                class: ``,
+                onClick: () => openSheet(item.id),
+              }, h(Icon, {
+                name: campaignLoadingId.value === item.id
+                  ? 'eos-icons:bubble-loading'
+                  : 'lucide:eye',
+              })),
+            ]),
+            h(TooltipContent, { }, 'View Campaign Details'),
+          ]),
+        ]),
+        h(Action, {
+          onEdit: () => {
+            router.push({
+              path: `/app/ringless-voicemail/campaign/new-campaign`,
+              query: { id: item.id },
+            })
           },
-        ),
-      ),
-      h(Action, {
-        onEdit: () => {
-          router.push({
-            path: `/app/ringless-voicemail/campaign/new-campaign`,
-            query: { id: row.original.id },
-          })
-        },
-        onDelete: () => {
-          selectedCampaignForDelete.value = row.original.id
-          revealDeleteConfirm()
-        },
-        onDuplicate: () => {
-          selectedCampaignForDuplicate.value = row.original.id
-          handleDuplicate()
-        },
-      }),
-    ]),
+          onDelete: () => {
+            selectedCampaignForDelete.value = item.id
+            revealDeleteConfirm()
+          },
+          onDuplicate: () => {
+            selectedCampaignForDuplicate.value = item.id
+            handleDuplicate()
+          },
+        }),
+      ])
+    },
   }),
+
 ]
 
 const sorting = ref<SortingState>([])

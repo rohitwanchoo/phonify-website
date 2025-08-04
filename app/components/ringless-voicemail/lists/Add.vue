@@ -202,7 +202,7 @@ const onSubmit = handleSubmit(async (values) => {
     <DialogTrigger as-child>
       <Button class="h-11">
         <Icon class="!text-white" name="lucide:plus" />
-        Create Ringless Campaign
+        Create Ringless List
       </Button>
     </DialogTrigger>
     <DialogContent>

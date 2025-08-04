@@ -9,7 +9,6 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 import { computed, h, ref } from 'vue'
@@ -21,8 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -32,6 +31,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useApi } from '@/composables/useApi'
 import { cn } from '@/lib/utils'
 
@@ -196,18 +201,23 @@ const columns = [
     cell: ({ row }) => {
       const item = row.original
       return h('div', { class: 'flex justify-end pr-3 gap-x-1' }, [
-        h(Button, {
-          size: 'icon',
-          variant: 'ghost',
-          class: 'h-8 w-8 bg-[#162D3A] text-white hover:bg-[#162D3A]',
-          onClick: () => {
-            selectedList.value = item
-            sheet.value = true
-          },
-        }, h(Icon, {
-          name: campaignLoadingId.value === item.id ? 'eos-icons:bubble-loading' : 'lucide:eye',
-          size: 16,
-        })),
+        h(TooltipProvider, { delayDuration: 1000 }, [
+          h(Tooltip, {}, [
+            h(TooltipTrigger, { as: 'div' }, [
+              h(Button, {
+                size: 'icon',
+                class: '',
+                onClick: () => {
+                  selectedList.value = item
+                  sheet.value = true
+                },
+              }, h(Icon, {
+                name: campaignLoadingId.value === item.id ? 'eos-icons:bubble-loading' : 'lucide:eye',
+              })),
+            ]),
+            h(TooltipContent, {}, 'View List Details'),
+          ]),
+        ]),
 
         h(DropdownMenu, {}, {
           default: () => [
@@ -311,7 +321,7 @@ function changeLimit(val: number | null) {
           <Select :default-value="10" :model-value="limit" @update:model-value="val => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">{{ n }}</SelectItem>
+              <SelectItem v-for="n in [10, 25, 50, 100]" :key="n" :value="n">{{ n }}</SelectItem>
             </SelectContent>
           </Select>
         </span>
