@@ -39,16 +39,16 @@ const isEdit = !!id
 const countries = await getCountriesAll()
 console.log('countries', countries)
 
-const breadcrumbs = [
+const breadcrumbs = computed(() => [
   {
     label: 'Extension List',
     href: '/app/user-management/extension',
   },
   {
-    label: 'Add Extension',
+    label: isEdit ? 'Update Extension' : 'Add Extension',
     active: true,
   },
-]
+])
 // fetch voice servers
 const { data: voiceServers } = await useLazyAsyncData('get-voice-servers', () =>
   useApi().post('client_ip_list'), {
@@ -381,7 +381,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseHeader title="Add Extension" :breadcrumbs />
+  <BaseHeader :title="isEdit ? 'Update Extension' : 'Add Extension'" :breadcrumbs />
 
   <form class="space-y-4 relative h-[calc(100vh-165px)] overflow-y-auto">
     <!-- User Information -->
