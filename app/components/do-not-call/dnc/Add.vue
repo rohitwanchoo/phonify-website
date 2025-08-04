@@ -11,6 +11,7 @@ import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import Textarea from '~/components/ui/textarea/Textarea.vue'
 
+
 const open = defineModel<boolean>('open', { default: false })
 
 // extension list options
@@ -27,8 +28,6 @@ const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } 
   immediate: false,
 })
 
-const selectedCountryCode = ref('') // Holds the selected code
-
 function getCountryLabel(code: string) {
   const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
   return country ? `${country.country_code} (+${country.phone_code})` : ''
@@ -38,23 +37,38 @@ function onDialogOpen(val: boolean) {
   if (val) {
     extensionRefresh()
     countryRefresh()
+
+    nextTick(() => {
+      resetForm()
+    })
   }
 }
 
 const formSchema = toTypedSchema(z.object({
   country_code: z.string().min(1, 'Country code is required'),
-  number: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(10, 'maximum 10 character allowed'),
+  number: z.string().min(1, 'phone number is required'),
   extension: z.number().int().min(1, 'Extension is required'),
   comment: z.string().min(1, 'Comment is required'),
 }))
 
-const { handleSubmit, isSubmitting, resetForm } = useForm({
+const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    country_code: '1',
+    number: '',
+    extension: 0,
+    comment: '',
+  },
+  validateOnInput: true,
 })
 
+
 const onSubmit = handleSubmit(async (values) => {
+  // Clean the phone number - remove formatting before sending to API
+  const cleanNumber = values.number.replace(/\D/g, '')
+  
   const payload = {
-    number: values.number,
+    number: cleanNumber,
     extension: values.extension,
     comment: values.comment,
   }
@@ -67,6 +81,7 @@ const onSubmit = handleSubmit(async (values) => {
       message: response.message,
       type: response.success ? 'success' : 'error',
     })
+    
     resetForm()
     open.value = false
     refreshNuxtData('dnc-list')
@@ -75,6 +90,14 @@ const onSubmit = handleSubmit(async (values) => {
     showToast({
       message: `${error.message}`,
       type: 'error',
+    })
+  }
+})
+
+watch(open, (newVal) => {
+  if (!newVal) {
+    nextTick(() => {
+      resetForm()
     })
   }
 })
@@ -90,12 +113,12 @@ const onSubmit = handleSubmit(async (values) => {
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Add Recycle Rule</DialogTitle>
+        <DialogTitle>Add DNC</DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
-          <FormField v-slot="{ componentField, errorMessage }" class="" name="number">
+          <FormField v-slot="{ componentField, errorMessage }" class="" name="number"  :validate-on-input="true" >
             <FormItem>
               <FormLabel class="font-normal text-sm">
                 Phone Number
@@ -106,14 +129,14 @@ const onSubmit = handleSubmit(async (values) => {
                     <FormField v-slot="{ componentField: countryCodeComponentField, errorMessage: countryCodeErrorMessage }" name="country_code" class="relative">
                       <FormItem>
                         <FormControl>
-                          <Select v-bind="countryCodeComponentField" v-model="selectedCountryCode">
+                          <Select v-bind="countryCodeComponentField">
                             <SelectTrigger
                               class="w-fit rounded-r-none bg-gray-100 !h-11"
                               :class="countryCodeErrorMessage && errorMessage && 'border-red-600 border'"
                             >
                               <SelectValue>
                                 <span class="text-sm text-nowrap">
-                                  {{ getCountryLabel(selectedCountryCode) }}
+                                  {{ getCountryLabel(countryCodeComponentField.modelValue || '1') }}
                                 </span>
                               </SelectValue>
                             </SelectTrigger>
@@ -139,17 +162,17 @@ const onSubmit = handleSubmit(async (values) => {
                       </FormItem>
                     </FormField>
                     <Input
+                   v-maska="'(###) ###-####'"
                       type="tel"
-                      maxlength="10"
                       placeholder="Enter Phone Number"
                       class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
                       v-bind="componentField"
-                      @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                     
                     />
                   </div>
                 </div>
               </FormControl>
-              <FormMessage class="text-sm text-right" />
+              <FormMessage class="text-sm text-left" />
             </FormItem>
           </FormField>
           <FormField
@@ -160,7 +183,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormLabel>Extension</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select Extension" />
                   </SelectTrigger>
                   <SelectContent>
@@ -175,7 +198,7 @@ const onSubmit = handleSubmit(async (values) => {
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage />
+              <FormMessage class="text-sm text-left" />
             </FormItem>
           </FormField>
           <FormField
@@ -187,17 +210,17 @@ const onSubmit = handleSubmit(async (values) => {
               <FormControl>
                 <Textarea v-bind="componentField" type="text" placeholder="Comment here" class="px-3 py-[14px] min-h-[104px]" />
               </FormControl>
-              <FormMessage />
+              <FormMessage class="text-sm text-left" />
             </FormItem>
           </FormField>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-            <Icon name="material-symbols:close" size="20" class="mr-1" />
+          <Button class="flex-1 text-primary h-11" variant="outline" @click="open = false">
+            <Icon name="material-symbols:close" size="20" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
-            <Icon name="material-symbols:save" size="20" class="mr-1" />
+          <Button type="submit" class="flex-1 h-11" :loading="isSubmitting" :disabled="isSubmitting">
+            <Icon name="material-symbols:save" size="20"/>
             Save
           </Button>
         </div>
