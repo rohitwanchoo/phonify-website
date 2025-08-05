@@ -126,28 +126,28 @@ const formSchema = toTypedSchema(z.object({
 
   extension: isEdit
     ? z.string().optional()
-    : z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(5, 'maximum 5 character allowed'),
+    : z.string().regex(/^\d+$/, 'must be a number').min(1, 'Required').max(5, 'maximum 5 character allowed'),
 
-  first_name: z.string().min(1, 'required').max(50),
-  last_name: z.string().min(1, 'required').max(50),
+  first_name: z.string().min(1, 'First Name is required').max(50),
+  last_name: z.string().min(1, 'Last Name is required').max(50),
 
-  email: z.string().min(1, 'required').email('invalid email format').max(50),
+  email: z.string().min(1, 'Email is required').email('invalid email format').max(50),
 
   country_code: z.string().min(1, 'required'),
-  mobile: z.string().min(1, 'required'),
+  mobile: z.string().min(1, 'Phone Number is required'),
   follow_me: z.boolean(),
   call_forward: z.boolean(),
   voicemail: z.boolean(),
-  vm_pin: z.string().min(1, 'required'),
+  vm_pin: z.string().min(1, 'Voicemail Pin is required'),
   voicemail_send_to_email: z.boolean(),
   twinning: z.boolean(),
 
   asterisk_server_id: isEdit
     ? z.number().optional()
-    : z.number().min(1, 'required'),
+    : z.number().min(1, 'Voice Server is required'),
 
   timezone: z.string().min(1, 'required'),
-  cli_setting: z.string().min(0, 'required'),
+  cli_setting: z.string().min(0, 'CLI Setting is required'),
   cli: z.string().min(1, 'required').optional().superRefine((val, ctx) => {
     if (values.cli_setting === '1' && !val) {
       ctx.addIssue({
@@ -159,9 +159,9 @@ const formSchema = toTypedSchema(z.object({
   }),
   password: isEdit
     ? z.string().optional()
-    : z.string().min(1, 'required').max(10, 'maximum 10 character allowed'),
+    : z.string().min(1, 'Password is required').max(10, 'maximum 10 character allowed'),
 
-  extension_type: z.string().min(1, 'required'),
+  extension_type: z.string().min(1, 'Extension Type is required'),
   sms_setting_id: z.number().min(1, 'required'),
   receive_sms_on_email: z.boolean(),
   receive_sms_on_mobile: z.boolean(),
@@ -172,15 +172,25 @@ const formSchema = toTypedSchema(z.object({
 
   package_id: isEdit
     ? z.number().optional()
-    : z.number().min(1, 'required'),
+    : z.number().min(1, 'Package is required'),
 
-  group_id: z.array(z.number()).min(1, 'At least one group must be selected'),
+  group_id: z.array(z.number()).min(1, 'Group is required'),
 }),
 )
 
 const { handleSubmit, values, errors, setFieldValue, setFieldError, validateField, validate } = useForm({
   validationSchema: formSchema,
   initialValues: {
+    first_name: '',
+    last_name: '',
+    email: '',
+    mobile: '',
+    password: '',
+    asterisk_server_id: 0,
+    vm_pin: '',
+    extension_type: '',
+    package_id: 0,
+    group_id: [],
     timezone: 'America/New_York',
     country_code: '+1',
     app_status: false,
@@ -412,7 +422,7 @@ onMounted(() => {
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="first_name">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   First Name
                 </FormLabel>
@@ -425,7 +435,7 @@ onMounted(() => {
           </div>
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" class="" name="last_name">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Last Name
                 </FormLabel>
@@ -440,7 +450,7 @@ onMounted(() => {
         <div class="flex gap-[16px] w-full flex-wrap md:flex-nowrap">
           <div class="w-full md:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="extension">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Extension
                 </FormLabel>
@@ -454,19 +464,22 @@ onMounted(() => {
                     </Button>
                   </div>
                 </FormControl>
-                <FormMessage class="text-sm" />
+                <div v-if="errorMessage" class="text-sm text-red-600">
+                  {{ errorMessage === 'Required' ? 'Extension is required' : errorMessage }}
+                </div>
+                <!-- <FormMessage class="text-sm" /> -->
               </FormItem>
             </FormField>
           </div>
           <div class="w-full md:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="email">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   E-mail
                 </FormLabel>
                 <FormControl>
                   <div class="relative">
-                    <Input type="text" :disabled="isEdit && !emailEdit" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type E-mail" v-bind="componentField" />
+                    <Input type="text" :disabled="isEdit && !emailEdit" :class="errorMessage && 'border-red-600'" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type E-mail" v-bind="componentField" />
                     <div v-if="isEdit" class="sm:absolute top-1/2 sm:-translate-y-1/2 right-1 mt-1 sm:mt-0">
                       <Button v-if="!emailEdit" type="button" class="rounded" @click="emailEdit = true">
                         Edit
@@ -491,7 +504,7 @@ onMounted(() => {
         <div class="flex flex-col sm:flex-row  gap-[16px] w-full">
           <div v-if="!isEdit" class="sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="password">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Password
                 </FormLabel>
@@ -509,7 +522,7 @@ onMounted(() => {
           </div>
           <div class="sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="asterisk_server_id">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Voice Server
                 </FormLabel>
@@ -543,7 +556,7 @@ onMounted(() => {
       <div class="p-5 space-y-5">
         <div class="">
           <FormField v-slot="{ componentField, errorMessage }" class="" name="vm_pin">
-            <FormItem>
+            <FormItem v-auto-animate>
               <FormLabel class="font-normal text-sm">
                 VoiceMail Pin
               </FormLabel>
@@ -700,8 +713,8 @@ onMounted(() => {
       <div class="p-5 space-y-5">
         <ul v-auto-animate="{ duration: 150 }" class="flex flex-col sm:flex-row gap-x-3 items-start">
           <li class="w-full sm:w-1/2">
-            <FormField v-slot="{ componentField, errorMessage, value }" class="" name="mobile">
-              <FormItem>
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="mobile">
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Phone Number
                 </FormLabel>
@@ -709,7 +722,7 @@ onMounted(() => {
                   <div class="flex">
                     <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
                       <FormField v-slot="{ componentField: countryCodeComponentField, errorMessage: countryCodeErrorMessage }" name="country_code" class="relative">
-                        <FormItem>
+                        <FormItem v-auto-animate>
                           <FormControl>
                             <Select v-bind="countryCodeComponentField">
                               <SelectTrigger class="w-min rounded-r-none bg-gray-100 !h-11 overflow-hidden" :class="countryCodeErrorMessage && !errorMessage ? 'border-red-600 border' : 'border-none'">
@@ -748,7 +761,7 @@ onMounted(() => {
 
           <li class="w-full sm:w-1/2 mt-2 sm:mt-0">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="cli_setting">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   CLI Setting
                 </FormLabel>
@@ -766,13 +779,16 @@ onMounted(() => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage class="text-sm" />
+                <div v-if="errorMessage" class="text-sm text-red-600">
+                  {{ errorMessage === 'Required' ? 'CLI Setting is required' : errorMessage }}
+                </div>
+                <!-- <FormMessage class="text-sm" /> -->
               </FormItem>
             </FormField>
           </li>
           <li v-if="values.cli_setting === '1'" class="w-full sm:w-1/2 mt-2 sm:mt-0">
             <FormField v-slot="{ componentField }" class="" name="cli">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Custom CLI
                 </FormLabel>
@@ -808,14 +824,14 @@ onMounted(() => {
         <div class="flex flex-col sm:flex-row gap-x-3 items-start">
           <div class="w-full sm:w-1/2">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="extension_type">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Extension Type
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger class="w-full !h-11">
-                      <SelectValue :class="errorMessage && 'border-red-500'" class="text-sm placeholder:text-[#ef698180]" placeholder="Select Extension Type" />
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Extension Type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -831,14 +847,14 @@ onMounted(() => {
             </FormField>
           </div>
           <div v-if="!isEdit" class="w-full mt-2 sm:mt-0 sm:w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="package_id">
-              <FormItem>
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="package_id">
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Select Package
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger class="w-full !h-11">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
                       <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Please Select Package" />
                     </SelectTrigger>
                     <SelectContent>
@@ -858,14 +874,14 @@ onMounted(() => {
         </div>
         <div class="flex flex-col md:flex-row gap-x-3 items-start">
           <div class="w-full md:w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="group_id">
-              <FormItem>
+            <FormField v-slot="{ componentField, errorMessage }" class="" name="group_id">
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Group
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField" multiple>
-                    <SelectTrigger class="w-full !h-11">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
                       <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Group" />
                     </SelectTrigger>
                     <SelectContent>
@@ -883,7 +899,7 @@ onMounted(() => {
           </div>
           <div class="w-full md:w-1/2 mt-2 sm:mt-0">
             <FormField v-slot="{ componentField }" class="" name="timezone">
-              <FormItem>
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Times Zone
                 </FormLabel>
