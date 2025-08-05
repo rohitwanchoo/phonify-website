@@ -156,7 +156,7 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        class: 'data-[state=checked]:bg-green-600 cursor-pointer',
+        class: 'data-[state=checked]:bg-green-600 cursor-not-allowed',
         modelValue: row.original.general_setting === '1',
       })),
     sortingFn: (rowA, rowB, columnId) => {
@@ -295,7 +295,7 @@ const table = useVueTable({
   <div v-if="total && !props.loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :model-value="per_page" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">

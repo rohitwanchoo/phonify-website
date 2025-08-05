@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import { ChevronsUpDown, Trash2 } from 'lucide-vue-next'
+import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import CreateRingless from '@/components/ringless-voicemail/voice-templates/CreateRinglessVoiceMail.vue'
 import {
@@ -24,12 +24,6 @@ const dummyData = ref([
 const showCreateRingless = ref(false)
 const currentEditItem = ref<typeof dummyData.value[0] | null>(null)
 const ringlessDialogMode = ref<'create' | 'edit'>('create')
-
-function openCreateDialog() {
-  currentEditItem.value = null
-  ringlessDialogMode.value = 'create'
-  showCreateRingless.value = true
-}
 
 const emptyRinglessItem = {
   id: 0,
@@ -102,7 +96,7 @@ const columns = [
         variant: 'outline',
         size: 'icon',
         onClick: () => handleDelete(row.original.id),
-      }, h(Trash2, { class: 'h-3 w-3' })),
+      }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
     ]),
     meta: { className: 'w-[100px] text-center' },
   }),
@@ -122,6 +116,7 @@ function handleEdit(item: typeof dummyData.value[0]) {
 
 function handleDelete(id: number) {
   dummyData.value = dummyData.value.filter(item => item.id !== id)
+  console.log(`Deleted item with id: ${id}`)
 }
 
 function handleSave(data: { description: string, audioUrl: string }) {
