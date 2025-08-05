@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import type { Extension } from '~/types/extension'
 import { toTypedSchema } from '@vee-validate/zod'
+import { templateRef } from '@vueuse/core'
 import { useForm } from 'vee-validate'
-import * as z from 'zod'
 
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
+
 import { Checkbox } from '@/components/ui/checkbox'
 
 import {
@@ -16,7 +18,6 @@ import {
 } from '@/components/ui/form'
 
 import { Input } from '@/components/ui/input'
-
 import {
   Select,
   SelectContent,
@@ -35,6 +36,8 @@ const route = useRoute()
 const id = route.query.id
 
 const isEdit = !!id
+
+const firstNameRef = templateRef<HTMLInputElement>('firstNameRef')
 
 const countries = await getCountriesAll()
 // console.log('countries', countries)
@@ -131,7 +134,7 @@ const formSchema = toTypedSchema(z.object({
   email: z.string().min(1, 'required').email('invalid email format').max(50),
 
   country_code: z.string().min(1, 'required'),
-  mobile: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(10, 'maximum 10 character allowed'),
+  mobile: z.string().min(1, 'required'),
   follow_me: z.boolean(),
   call_forward: z.boolean(),
   voicemail: z.boolean(),
@@ -175,7 +178,7 @@ const formSchema = toTypedSchema(z.object({
 }),
 )
 
-const { handleSubmit, values, errors, setFieldValue, setFieldError } = useForm({
+const { handleSubmit, values, errors, setFieldValue, setFieldError, validateField, validate } = useForm({
   validationSchema: formSchema,
   initialValues: {
     timezone: 'America/New_York',
@@ -243,6 +246,7 @@ const onSubmit = handleSubmit((values) => {
     app_status: values.app_status ? '1' : '0',
     voicemail: values.voicemail ? '1' : '0',
     voicemail_send_to_email: values.voicemail_send_to_email ? '1' : '0',
+    mobile: values.mobile.replace(/[-\s()]/g, ''),
     // country_code: selectedCountry.value.dial_code
   }
 
@@ -261,7 +265,7 @@ const onSubmit = handleSubmit((values) => {
         message: res.message,
       })
 
-     navigateTo('/app/user-management/extension')
+      navigateTo('/app/user-management/extension')
     }).catch((err) => {
       handleFieldErrors(err.data, setFieldError)
 
@@ -306,6 +310,13 @@ const { data: extensionById, refresh: refreshExtensionById, status: extensionByI
     return res.data || {}
   },
   immediate: false,
+})
+
+const { data: countriesList, status: countriesListStatus } = await useLazyAsyncData('get-country-list', () =>
+  useApi().post('/country-list'), {
+  transform: (res) => {
+    return res.data || {}
+  },
 })
 
 function prefixWithPlus(code?: number): string {
@@ -385,12 +396,12 @@ onMounted(() => {
     // if edit
     setFieldValues()
   }
+  firstNameRef.value?.$el?.focus()
 })
 </script>
 
 <template>
   <BaseHeader :title="isEdit ? 'Update Extension' : 'Add Extension'" :breadcrumbs />
-
   <form class="space-y-4 relative h-[calc(100vh-165px)] overflow-y-auto">
     <!-- User Information -->
     <div class="border rounded-lg">
@@ -406,7 +417,7 @@ onMounted(() => {
                   First Name
                 </FormLabel>
                 <FormControl>
-                  <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type Fist Name" v-bind="componentField" />
+                  <Input ref="firstNameRef" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Type Fist Name" v-bind="componentField" />
                 </FormControl>
                 <FormMessage class="text-sm" />
               </FormItem>
@@ -689,7 +700,7 @@ onMounted(() => {
       <div class="p-5 space-y-5">
         <ul v-auto-animate="{ duration: 150 }" class="flex flex-col sm:flex-row gap-x-3 items-start">
           <li class="w-full sm:w-1/2">
-            <FormField v-slot="{ componentField, errorMessage }" class="" name="mobile">
+            <FormField v-slot="{ componentField, errorMessage, value }" class="" name="mobile">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
                   Phone Number
@@ -721,12 +732,11 @@ onMounted(() => {
                         </FormItem>
                       </FormField>
                       <Input
-                        type="tel"
-                        maxlength="10"
+                        v-maska="phoneMask[countries.find(c => c.dial_code === values.country_code)?.code || '']"
                         placeholder="Enter Phone Number"
                         class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
                         v-bind="componentField"
-                        @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                        @input="validateField('mobile')"
                       />
                     </div>
                   </div>
