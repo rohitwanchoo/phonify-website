@@ -48,6 +48,8 @@ import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
 import { Textarea } from '~/components/ui/textarea'
 
+const props = defineProps<Props>()
+
 const emits = defineEmits([
   'completed',
 ])
@@ -59,6 +61,10 @@ const id = route.query.id
 const isEdit = computed(() => !!id)
 const accordion = ref('')
 const accordion2 = ref('')
+
+interface Props {
+  dataLoading: boolean
+}
 
 const CallerIds = [
   {
@@ -528,7 +534,7 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, values, resetField, errors, setFieldValue } = useForm({
+const { handleSubmit, values, resetField, errors, setFieldValue, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
     time_based_calling: false,
@@ -550,7 +556,6 @@ function onSelectCallerId(val: any) {
 const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
-
   if (isEdit.value) {
     emits('completed')
     return
@@ -580,8 +585,7 @@ const onSubmit = handleSubmit(async (values) => {
   const cleanedPayload = Object.fromEntries(
     Object.entries(payload).filter(([_, v]) => v !== undefined),
   )
-  console.log(cleanedPayload)
-  useApi().post('/add-campaign', cleanedPayload).then(async(res: any) => {
+  useApi().post('/add-campaign', cleanedPayload).then(async (res: any) => {
     if (res.data.status) {
       await navigateTo({ query: { id: res.data.id } })
       emits('completed')
@@ -589,7 +593,6 @@ const onSubmit = handleSubmit(async (values) => {
     showToast({
       message: res.data.message,
     })
-
   }).catch((err: any) => {
     showToast({
       type: 'error',
@@ -631,6 +634,12 @@ function onSelectDialMode(val: any): void {
 watch(() => formState.value?.time_based_calling, (newVal) => {
   if (newVal && isEdit.value) {
     accordion.value = 'item-1'
+  }
+})
+
+onMounted(() => {
+  if (!isEdit.value) {
+    resetForm()
   }
 })
 </script>
@@ -1578,9 +1587,8 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" type="submit" :loading="loading" @click="onSubmit">
+      <Button class="w-full h-[52px]" type="submit" :loading="loading || dataLoading" @click="onSubmit">
         Continue
-        <Icon :name="loading ? 'eos-icons:loading' : 'lucide:arrow-right'" size="20" />
       </Button>
     </div>
   </div>

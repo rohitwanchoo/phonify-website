@@ -1,15 +1,5 @@
 <script setup lang="ts">
 import MainBar from '@/components/core/app-sidebar/Main.vue'
-
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
@@ -25,7 +15,7 @@ import {
           <CoreNavbar />
         </div>
       </header>
-      <div class="flex flex-1 flex-col gap-4 p-4 pt-5 md:rounded-tl-xl bg-white mt-7">
+      <div class="p-4 pt-5 md:rounded-tl-xl bg-white mt-7 md:h-[calc(100vh-70px)] overflow-y-auto">
         <slot />
       </div>
     </SidebarInset>
