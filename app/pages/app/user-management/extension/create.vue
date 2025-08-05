@@ -412,7 +412,7 @@ onMounted(() => {
 
 <template>
   <BaseHeader :title="isEdit ? 'Update Extension' : 'Add Extension'" :breadcrumbs />
-  <form class="space-y-4 relative h-[calc(100vh-165px)] overflow-y-auto">
+  <form class="space-y-4 relative h-[calc(100vh-165px)] overflow-y-auto mt-3">
     <!-- User Information -->
     <div class="border rounded-lg">
       <div class="px-5 pt-5 pb-3 text-[16px] font-medium border-b">
