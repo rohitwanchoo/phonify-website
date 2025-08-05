@@ -60,7 +60,7 @@ function changeLimit(val: number) {
 
         <!-- Dialog Trigger Button -->
         <Button class="h-11" @click="isDialogOpen = true">
-          <Icon class="!text-white" name="lucide:plus" />
+          <Icon class="!text-white" name="lucide:plus" size="20" />
           Add SIP Gateways
         </Button>
 

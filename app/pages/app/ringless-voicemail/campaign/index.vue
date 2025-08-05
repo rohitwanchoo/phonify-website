@@ -45,10 +45,10 @@ function searchText() {
     <!-- HEADER -->
     <BaseHeader title="Ringless Voicemail Campaigns">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search List" @update:model-value="searchText" />
         <Nuxt-link to="/app/ringless-voicemail/campaign/new-campaign">
           <Button class="h-11">
-            <Icon class="!text-white" name="lucide:plus" />
+            <Icon class="!text-white" name="lucide:plus" size="20" />
             Create Campaign
           </Button>
         </Nuxt-link>

@@ -18,67 +18,16 @@ const emit = defineEmits<{
 
 // Sheet open state
 const open = ref(false)
-const formValues = defineModel<Record<string, any>>('formValues', {
-  default: {
-    whitelistIp: '',
-    server: '',
-    status: '',
-    fromWeb: '',
-  },
-})
 
-// Dummy data for dropdown options
-const serverOptions = [
-  { label: 'All', value: 'null' },
-]
-
-const statusOptions = [
-  { value: '0', label: 'Pending' },
-  { value: '1', label: 'Approved' },
-  { value: '-1', label: 'Rejected' },
-]
-
-const fromWebOptions = [
-  { label: 'All', value: null },
-  { label: 'Yes', value: '1' },
-  { label: 'No', value: '0' },
-]
-
-// Form validation schema
-
-// const filterValues = defineModel({default :{
-//   whitelistIp: '',
-//   server: '',
-//   status: '',
-//   fromWeb: '',
-// } })
-
-// Submit handler
 function onSubmit() {
-  // Build filter parameters object with only filled values
-
   emit('applyFilter')
-  open.value = false
-}
-
-// const formValues = ref({
-//   whitelistIp: '',
-//   server: '',
-//   status: '',
-//   fromWeb: '',
-// })
-
-// Clear filters
-function clearFilters() {
-  resetForm()
-  emit('clearFilter')
   open.value = false
 }
 </script>
 
 <template>
-  <Button variant="outline" class="!text-white bg-black hover:bg-black" @click="open = true">
-    <Icon name="material-symbols:sort" class="!text-white" />
+  <Button class="h-11" @click="open = true">
+    <Icon name="material-symbols:sort" class="!text-white" size="20" />
     Filter
   </Button>
 
