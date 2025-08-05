@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 </script>
 
@@ -12,7 +11,7 @@ import { Input } from '~/components/ui/input'
           <Input placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
-        <RinglessVoicemailReportsFilterSheet class="bg-black text-white" v-model:form-values="filterValues" @apply-filter="applyFilter" />
+        <RinglessVoicemailReportsFilterSheet v-model:form-values="filterValues" class="bg-black text-white" @apply-filter="applyFilter" />
       </template>
     </BaseHeader>
 
