@@ -25,7 +25,7 @@ const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } 
   immediate: false,
 })
 
-const selectedCountryCode = ref('1') // Holds the selected code
+const selectedCountryCode = ref('1')
 
 function getCountryLabel(code: string) {
   const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
@@ -56,7 +56,6 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     company_name: '',
     campaign_id: 0,
   },
-  validateOnInput: true,
 })
 
 const onSubmit = handleSubmit(async (values) => {
@@ -116,7 +115,7 @@ const onSubmit = handleSubmit(async (values) => {
                   <Input
                     v-bind="componentField"
                     placeholder="Enter First Name"
-                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal  placeholder:text-slate-800/50"
                   />
                 </FormControl>
                 <FormMessage />
@@ -133,7 +132,7 @@ const onSubmit = handleSubmit(async (values) => {
                   <Input
                     v-bind="componentField"
                     placeholder="Enter Last Name"
-                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-slate-800/50"
                   />
                 </FormControl>
                 <FormMessage />
@@ -151,7 +150,7 @@ const onSubmit = handleSubmit(async (values) => {
                 <Input
                   v-bind="componentField"
                   placeholder="Enter Company Name"
-                  class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                  class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-slate-800/50"
                 />
               </FormControl>
               <FormMessage />
@@ -205,7 +204,7 @@ const onSubmit = handleSubmit(async (values) => {
                       v-maska="'(###) ###-####'"
                       type="tel"
                       placeholder="Enter Phone Number"
-                      class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
+                      class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-slate-800/50 h-11"
                       v-bind="componentField"
                     />
                   </div>

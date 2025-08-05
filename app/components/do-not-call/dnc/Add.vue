@@ -11,7 +11,6 @@ import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import Textarea from '~/components/ui/textarea/Textarea.vue'
 
-
 const open = defineModel<boolean>('open', { default: false })
 
 // extension list options
@@ -51,7 +50,7 @@ const formSchema = toTypedSchema(z.object({
   comment: z.string().min(1, 'Comment is required'),
 }))
 
-const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
+const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
     country_code: '1',
@@ -59,14 +58,12 @@ const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
     extension: 0,
     comment: '',
   },
-  validateOnInput: true,
 })
-
 
 const onSubmit = handleSubmit(async (values) => {
   // Clean the phone number - remove formatting before sending to API
   const cleanNumber = values.number.replace(/\D/g, '')
-  
+
   const payload = {
     number: cleanNumber,
     extension: values.extension,
@@ -81,7 +78,7 @@ const onSubmit = handleSubmit(async (values) => {
       message: response.message,
       type: response.success ? 'success' : 'error',
     })
-    
+
     resetForm()
     open.value = false
     refreshNuxtData('dnc-list')
@@ -118,7 +115,7 @@ watch(open, (newVal) => {
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
-          <FormField v-slot="{ componentField, errorMessage }" class="" name="number"  :validate-on-input="true" >
+          <FormField v-slot="{ componentField, errorMessage }" class="" name="number" :validate-on-input="true">
             <FormItem>
               <FormLabel class="font-normal text-sm">
                 Phone Number
@@ -162,12 +159,11 @@ watch(open, (newVal) => {
                       </FormItem>
                     </FormField>
                     <Input
-                   v-maska="'(###) ###-####'"
+                      v-maska="'(###) ###-####'"
                       type="tel"
                       placeholder="Enter Phone Number"
                       class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
                       v-bind="componentField"
-                     
                     />
                   </div>
                 </div>
@@ -220,7 +216,7 @@ watch(open, (newVal) => {
             Close
           </Button>
           <Button type="submit" class="flex-1 h-11" :loading="isSubmitting" :disabled="isSubmitting">
-            <Icon name="material-symbols:save" size="20"/>
+            <Icon name="material-symbols:save" size="20" />
             Save
           </Button>
         </div>
