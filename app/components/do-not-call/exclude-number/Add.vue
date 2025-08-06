@@ -25,7 +25,7 @@ const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } 
   immediate: false,
 })
 
-const selectedCountryCode = ref('1') // Holds the selected code
+const selectedCountryCode = ref('1')
 
 function getCountryLabel(code: string) {
   const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
@@ -43,12 +43,19 @@ const formSchema = toTypedSchema(z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   company_name: z.string().min(1, 'Company name is required'),
-  number: z.string().regex(/^\d+$/, 'must be a number').min(1, 'required').max(10, 'maximum 10 character allowed'),
+  number: z.string().min(1, 'phone number is required'),
   campaign_id: z.number().min(1, 'Campaign is requires'),
 }))
 
 const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    first_name: '',
+    last_name: '',
+    number: '',
+    company_name: '',
+    campaign_id: 0,
+  },
 })
 
 const onSubmit = handleSubmit(async (values) => {
@@ -91,7 +98,7 @@ const onSubmit = handleSubmit(async (values) => {
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Add Recycle Rule</DialogTitle>
+        <DialogTitle>Add Exclude Number</DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
@@ -108,7 +115,7 @@ const onSubmit = handleSubmit(async (values) => {
                   <Input
                     v-bind="componentField"
                     placeholder="Enter First Name"
-                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal  placeholder:text-slate-800/50"
                   />
                 </FormControl>
                 <FormMessage />
@@ -125,7 +132,7 @@ const onSubmit = handleSubmit(async (values) => {
                   <Input
                     v-bind="componentField"
                     placeholder="Enter Last Name"
-                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-slate-800/50"
                   />
                 </FormControl>
                 <FormMessage />
@@ -143,14 +150,14 @@ const onSubmit = handleSubmit(async (values) => {
                 <Input
                   v-bind="componentField"
                   placeholder="Enter Company Name"
-                  class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-xs placeholder:text-slate-800/50"
+                  class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-slate-800/50"
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
           <!-- Number -->
-          <FormField v-slot="{ componentField, errorMessage }" name="number">
+          <FormField v-slot="{ componentField, errorMessage }" name="number" :validate-on-input="true">
             <FormItem>
               <FormLabel class="font-normal text-sm">
                 Phone Number
@@ -194,17 +201,16 @@ const onSubmit = handleSubmit(async (values) => {
                       </FormItem>
                     </FormField>
                     <Input
+                      v-maska="'(###) ###-####'"
                       type="tel"
-                      maxlength="10"
                       placeholder="Enter Phone Number"
-                      class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
+                      class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-slate-800/50 h-11"
                       v-bind="componentField"
-                      @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '').slice(0, 10)"
                     />
                   </div>
                 </div>
               </FormControl>
-              <FormMessage class="text-sm text-right" />
+              <FormMessage class="text-sm text-left" />
             </FormItem>
           </FormField>
           <FormField
@@ -215,7 +221,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormLabel>Campaign</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select Campaign" />
                   </SelectTrigger>
                   <SelectContent>
@@ -235,12 +241,12 @@ const onSubmit = handleSubmit(async (values) => {
           </FormField>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-            <Icon name="material-symbols:close" size="20" class="mr-1" />
+          <Button class="flex-1 h-11 text-primary" variant="outline" @click="open = false">
+            <Icon name="material-symbols:close" size="20" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
-            <Icon name="material-symbols:save" size="20" class="mr-1" />
+          <Button type="submit" class="flex-1 h-11" :loading="isSubmitting" :disabled="isSubmitting">
+            <Icon name="material-symbols:save" size="20" />
             Save
           </Button>
         </div>
