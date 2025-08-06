@@ -646,7 +646,7 @@ onMounted(async () => {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4 gap-2 flex ">
-      <Button class="w-1/2 h-[52px]" variant="outline" :disabled="loading || fetchLoading" @click="handleCancel">
+      <Button class="w-1/2 h-[52px]" variant="outline" :loading="loading" :disabled="fetchLoading" @click="handleCancel">
         <Icon name="material-symbols:close" size="20" />
         Cancel
       </Button>

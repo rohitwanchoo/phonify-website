@@ -25,19 +25,19 @@ export function useCreateCampaign() {
       call_ratio: '',
       duration: '',
       automated_duration: false,
-      no_agent_available_action: null,
+      no_agent_available_action: 0,
       amd: false,
       amd_drop_action: null,
       audio_message_amd: null,
       voice_message_amd: null,
-      voicedrop_no_agent_available_action: null,
-      inbound_ivr_no_agent_available_action: null,
+      voicedrop_no_agent_available_action: 0,
+      inbound_ivr_no_agent_available_action: 0,
       redirect_to: null,
       outbound_ai_dropdown_audio_message: null,
       outbound_ai_dropdown_voice_message: null,
       outbound_ai_dropdown_extension: null,
       outbound_ai_dropdown_ring_group: null,
-      outbound_ai_dropdown_ivr: null,
+      outbound_ai_dropdown_ivr: 0,
     })
   }
   const formState = useState('create-campaign-state', initialState)
