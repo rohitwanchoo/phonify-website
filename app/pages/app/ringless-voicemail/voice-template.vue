@@ -23,14 +23,11 @@ function handleSave(data: { extension: string, audioUrl: string }) {
     <!-- HEADER -->
     <BaseHeader title="Ringless Voice Template">
       <template #actions>
-        <div class="relative">
-          <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch class="w-[300px]" placeholder="Search List" />
 
         <!-- Trigger Button -->
-        <Button @click="showCreateRingless = true">
-          <Icon name="lucide:plus" class="mr-1" />
+        <Button class="h-11" @click="showCreateRingless = true">
+          <Icon name="lucide:plus" size="20" />
           Add Voice Template
         </Button>
 

@@ -225,12 +225,12 @@ watch(open, async (newVal) => {
           </FormField>
 
           <div class="flex justify-end gap-2 mt-6">
-            <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-              <Icon name="material-symbols:close" size="20" class="mr-1" />
+            <Button class="flex-1 h-11 text-primary" variant="outline" @click="open = false">
+              <Icon name="material-symbols:close" size="20" />
               Close
             </Button>
-            <Button type="submit" class="w-[50%]" :loading="isSubmitting" :disabled="isSubmitting">
-              <Icon name="material-symbols:save" size="20" class="mr-1" />
+            <Button type="submit" class="flex-1 h-11" :loading="isSubmitting" :disabled="isSubmitting">
+              <Icon name="material-symbols:save" size="20" />
               Save
             </Button>
           </div>

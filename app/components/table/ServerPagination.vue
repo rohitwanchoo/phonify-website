@@ -70,7 +70,7 @@ function changePage(page: number) {
         <PaginationEllipsis v-else :key="item.type" :index="index" />
       </template>
 
-      <PaginationNext class="w-7 h-7 sm:w-10 sm:h-10 p-0" @click="changePage(currentPage + 1)">
+      <PaginationNext class="w-7 h-7 sm:w-10 sm:h-10 p-0 ml-2" @click="changePage(currentPage + 1)">
         <Button variant="outline" size="icon">
           <Icon name="lucide:chevron-right" size="20" />
         </Button>

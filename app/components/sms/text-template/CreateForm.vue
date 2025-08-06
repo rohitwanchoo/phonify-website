@@ -2,9 +2,8 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { nextTick, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { z } from 'zod'
-import { onMounted } from 'vue'
 import {
   FormControl,
   FormField,
@@ -37,8 +36,8 @@ onMounted(() => {
 const formSchema = toTypedSchema(z.object({
   template_name: z.string().min(1, 'Template name is required'),
   leadPlaceholder: z.string().min(1, 'Label is required'),
-senderPlaceholder: z.string().min(1, 'Sender detail is required'),
-customPlaceholder: z.string().min(1, 'Custom placeholder is required'),
+  senderPlaceholder: z.string().min(1, 'Sender detail is required'),
+  customPlaceholder: z.string().min(1, 'Custom placeholder is required'),
 
   template_html: z.string().min(1, 'Template content is required'),
 }))
@@ -118,9 +117,9 @@ const onSubmit = handleSubmit(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(102vh-200px)]">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 ">
     <!-- Left section -->
-    <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
+    <div class="h-[calc(102vh-200px)] relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
         <div class="text-slate-800 mt-1 text-[16px] font-medium">
           Template Details
@@ -231,7 +230,7 @@ const onSubmit = handleSubmit(() => {
                     ref="textareaRef"
                     v-bind="componentField"
                     placeholder="SMS Template..."
-                    class="w-full h-full lg:min-h-[380px] lg:max-h-[380px] text-sm"
+                    class="w-full  h-[100px] md:h-[250px] xl:h-[330px] text-sm"
                     @focus="setFocus('template')"
                     @click="(e) => trackCursor(e, 'template')"
                     @keyup="(e) => trackCursor(e, 'template')"
@@ -245,19 +244,21 @@ const onSubmit = handleSubmit(() => {
       </form>
 
       <!-- Save Button -->
-<div class="bottom-0 left-0 w-full p-5 bg-white flex justify-between z-10 
-            shadow-[0_-6px_12px_-4px_rgba(0,0,0,0.15)]">
-  <Button
-    type="submit"
-    class="flex-1 h-12"
-    :loading="loading"
-    :disabled="loading"
-    @click="onSubmit"
-  >
-    <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
-    Save
-  </Button>
-</div>
+      <div
+        class="bottom-0 left-0 w-full p-5 bg-white flex justify-between z-10
+            shadow-[0_-6px_12px_-4px_rgba(0,0,0,0.15)]"
+      >
+        <Button
+          type="submit"
+          class="flex-1 h-12"
+          :loading="loading"
+          :disabled="loading"
+          @click="onSubmit"
+        >
+          <Icon name="material-symbols:save" class="w-5 h-5 text-white" />
+          Save
+        </Button>
+      </div>
     </div>
 
     <!-- Right Preview Section -->

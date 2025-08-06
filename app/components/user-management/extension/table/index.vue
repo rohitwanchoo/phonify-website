@@ -197,7 +197,7 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Phone Number'),
     cell: ({ row }) => {
       const mobile = row.original.country_code + row.original.mobile
-      return h('div', { class: 'text-center font-normal text-sm' }, mobile || '-')
+      return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(mobile) || '-')
     },
   }),
 

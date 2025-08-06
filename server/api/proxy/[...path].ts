@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   delete headers.referer
 
   // Construct the target URL
-  const targetUrl = `https://api.voiptella.com/${path || ''}`
+  const targetUrl = `https://api.phonify.com/${path || ''}`
 
   try {
     // Make the request to the external API

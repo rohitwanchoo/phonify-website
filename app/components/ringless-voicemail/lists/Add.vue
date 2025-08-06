@@ -201,8 +201,8 @@ const onSubmit = handleSubmit(async (values) => {
   <Dialog v-model:open="dialogOpen" @update:open="onDialogOpen">
     <DialogTrigger as-child>
       <Button class="h-11">
-        <Icon class="!text-white" name="lucide:plus" />
-        Create Ringless Campaign
+        <Icon class="!text-white" name="lucide:plus" size="20" />
+        Create Ringless List
       </Button>
     </DialogTrigger>
     <DialogContent>

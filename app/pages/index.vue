@@ -144,7 +144,7 @@ definePageMeta({
                 External API
               </h3>
               <p class="text-gray-600">
-                Integrated with VoipTella API for authentication
+                Integrated with Phonify API for authentication
               </p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow">

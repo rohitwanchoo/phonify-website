@@ -40,6 +40,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
@@ -331,41 +337,45 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(
-        Button,
-        {
-          size: 'icon',
-          class: `cursor-pointer ${campaignLoadingId.value === row.original.id ? 'loading-state' : ''}`,
-          onClick: () => openSheet(row.original.id),
-        },
-        h(
-          Icon,
-          {
-            name: campaignLoadingId.value === row.original.id
-              ? 'eos-icons:bubble-loading'
-              : 'lucide:eye',
+    cell: ({ row }) => {
+      const item = row.original
+      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+        h(TooltipProvider, { delayDuration: 1000 }, [
+          h(Tooltip, {}, [
+            h(TooltipTrigger, { as: 'div' }, [
+              h(Button, {
+                size: 'icon',
+                class: ``,
+                onClick: () => openSheet(item.id),
+              }, h(Icon, {
+                name: campaignLoadingId.value === item.id
+                  ? 'eos-icons:bubble-loading'
+                  : 'lucide:eye',
+              })),
+            ]),
+            h(TooltipContent, { }, 'View Campaign Details'),
+          ]),
+        ]),
+        h(Action, {
+          onEdit: () => {
+            router.push({
+              path: `/app/ringless-voicemail/campaign/new-campaign`,
+              query: { id: item.id },
+            })
           },
-        ),
-      ),
-      h(Action, {
-        onEdit: () => {
-          router.push({
-            path: `/app/ringless-voicemail/campaign/new-campaign`,
-            query: { id: row.original.id },
-          })
-        },
-        onDelete: () => {
-          selectedCampaignForDelete.value = row.original.id
-          revealDeleteConfirm()
-        },
-        onDuplicate: () => {
-          selectedCampaignForDuplicate.value = row.original.id
-          handleDuplicate()
-        },
-      }),
-    ]),
+          onDelete: () => {
+            selectedCampaignForDelete.value = item.id
+            revealDeleteConfirm()
+          },
+          onDuplicate: () => {
+            selectedCampaignForDuplicate.value = item.id
+            handleDuplicate()
+          },
+        }),
+      ])
+    },
   }),
+
 ]
 
 const sorting = ref<SortingState>([])
@@ -464,14 +474,14 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :model-value="per_page" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [2, 5, 10, 25, 50, 100]" :key="n" :value="n">
+              <SelectItem v-for="n in [2, 10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>

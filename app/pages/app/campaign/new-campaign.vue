@@ -19,7 +19,7 @@ const breadcrumbs = [
   },
 ]
 
-const { data: campaignById, status, refresh } = await useLazyAsyncData('get-campaign-by-id', () =>
+const { data: campaignById, status: campaignByIdStatus, refresh } = await useLazyAsyncData('get-campaign-by-id', () =>
   useApi().post('/campaign-by-id', {
     campaign_id: id,
   }), {
@@ -128,7 +128,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseHeader title="Create New Campaign" :breadcrumbs="breadcrumbs">
+  <BaseHeader :title="isEdit ? 'Update Campaign'  :'Create New Campaign'" :breadcrumbs="breadcrumbs">
     <template #actions>
       <Button variant="outline" class="h-11">
         <icon name="material-symbols:save-rounded" size="18" />
@@ -137,6 +137,6 @@ onMounted(() => {
     </template>
   </BaseHeader>
   <CampaignStepper :stepper="stepper">
-    <component :is="stepper.current.value.component" @completed="(e: any) => stepper.goToNext()" @go-to="(e: any) => stepper.goTo(e)" />
+    <component :is="stepper.current.value.component" :data-loading="campaignByIdStatus === 'pending'" @completed="(e: any) => stepper.goToNext()" @go-to="(e: any) => stepper.goTo(e)" />
   </CampaignStepper>
 </template>

@@ -3,7 +3,7 @@ import type { Campaign } from '~/types/campaign'
 import { toTypedSchema } from '@vee-validate/zod'
 import moment from 'moment'
 import { useFilter } from 'reka-ui'
-import { useForm } from 'vee-validate'
+import { useForm, validate } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -48,6 +48,8 @@ import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
 import { Textarea } from '~/components/ui/textarea'
 
+const props = defineProps<Props>()
+
 const emits = defineEmits([
   'completed',
 ])
@@ -59,6 +61,10 @@ const id = route.query.id
 const isEdit = computed(() => !!id)
 const accordion = ref('')
 const accordion2 = ref('')
+
+interface Props {
+  dataLoading: boolean
+}
 
 const CallerIds = [
   {
@@ -366,10 +372,10 @@ function onSelectRedirectTo(val: any) {
 }
 
 const formSchema = toTypedSchema(z.object({
-  title: z.string().min(1, 'required').max(50),
-  country_code: z.number().min(1, 'required'),
-  description: z.string().min(1, 'required').max(255),
-  caller_id: z.string().min(1, 'required'),
+  title: z.string().min(1, 'Name is required').max(50),
+  country_code: z.number().min(1, 'Country code is required'),
+  description: z.string().min(1, 'Descriptions is required').max(255),
+  caller_id: z.string().min(1, 'Caller ID is required'),
   custom_caller_id: z.string().max(50).optional().superRefine((val, ctx) => {
     if (formState.value.caller_id === '1' && !val) {
       ctx.addIssue({
@@ -378,8 +384,8 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  dial_mode: z.string().min(1, 'required'),
-  group_id: z.number().min(1, 'required').max(50),
+  dial_mode: z.string().min(1, 'Dialing mode is required'),
+  group_id: z.number().min(1, 'Caller group is required').max(50),
   time_based_calling: z.boolean(),
   call_time: z.object({ id: z.number(), name: z.string() }).optional().superRefine((val, ctx) => {
     if (values.time_based_calling && !val) {
@@ -389,13 +395,13 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  email: z.number().min(0, 'required'),
+  email: z.number().min(0, 'Email is required'),
   sms: z.boolean(),
   send_report: z.boolean(),
   call_transfer: z.boolean(),
-  disposition_id: z.array(z.number()).min(1, 'At least one disposition must be selected'),
-  hopper_mode: z.number().min(0, 'required'),
-  voip_configurations: z.number().min(1, 'required'),
+  disposition_id: z.array(z.number()).min(1, 'Disposition is required'),
+  hopper_mode: z.number().min(0, 'Hopper Mode is required'),
+  voip_configurations: z.number().min(1, 'Outbound Line is required'),
 
   // if dial_mode is predictive_dial
   call_ratio: z.string().optional().superRefine((val, ctx) => {
@@ -528,10 +534,23 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, values, resetField, errors, setFieldValue } = useForm({
+const { handleSubmit, values, resetField, errors, setFieldValue, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
+    title: '',
+    country_code: 0,
+    description: '',
+    caller_id: '',
+    dial_mode: '',
+    group_id: 0,
+    voip_configurations: 0,
+    disposition_id:[],
+    call_time: {},
     time_based_calling: false,
+    inbound_ivr_no_agent_available_action:0,
+    voicedrop_no_agent_available_action: 0,
+    no_agent_available_action: 0,
+    outbound_ai_dropdown_ivr: 0,
     sms: false,
     send_report: false,
     call_transfer: false,
@@ -550,7 +569,6 @@ function onSelectCallerId(val: any) {
 const loading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
-
   if (isEdit.value) {
     emits('completed')
     return
@@ -580,8 +598,7 @@ const onSubmit = handleSubmit(async (values) => {
   const cleanedPayload = Object.fromEntries(
     Object.entries(payload).filter(([_, v]) => v !== undefined),
   )
-  console.log(cleanedPayload)
-  useApi().post('/add-campaign', cleanedPayload).then(async(res: any) => {
+  useApi().post('/add-campaign', cleanedPayload).then(async (res: any) => {
     if (res.data.status) {
       await navigateTo({ query: { id: res.data.id } })
       emits('completed')
@@ -589,7 +606,6 @@ const onSubmit = handleSubmit(async (values) => {
     showToast({
       message: res.data.message,
     })
-
   }).catch((err: any) => {
     showToast({
       type: 'error',
@@ -633,6 +649,12 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
     accordion.value = 'item-1'
   }
 })
+
+onMounted(() => {
+  if (!isEdit.value) {
+    resetForm()
+  }
+})
 </script>
 
 <template>
@@ -666,7 +688,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
                 <FormField v-slot="{ componentField }" v-model="formState.title" class="" name="title">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Name
                     </FormLabel>
@@ -679,7 +701,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.country_code" name="country_code">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Country Code
                     </FormLabel>
@@ -705,7 +727,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
 
             <div class="w-full">
               <FormField v-slot="{ componentField }" v-model="formState.description" class="" name="description">
-                <FormItem>
+                <FormItem v-auto-animate>
                   <FormLabel class="font-normal text-sm">
                     Description
                   </FormLabel>
@@ -730,7 +752,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.caller_id" name="caller_id">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Caller Id
                     </FormLabel>
@@ -754,7 +776,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.custom_caller_id" name="custom_caller_id">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Custom Caller Id
                     </FormLabel>
@@ -783,7 +805,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div class="flex gap-[16px] w-full">
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.dial_mode" name="dial_mode">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Dialing Mode
                     </FormLabel>
@@ -807,7 +829,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.group_id" name="group_id">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Caller Group
                     </FormLabel>
@@ -835,7 +857,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div v-if="values.dial_mode === 'predictive_dial'" class="grid grid-cols-2 gap-4">
               <div class="">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.call_ratio" name="call_ratio">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Call Ratio
                     </FormLabel>
@@ -858,15 +880,15 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                 </FormField>
               </div>
               <div class="">
-                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.duration" name="duration">
-                  <FormItem>
+                <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.duration" name="duration">
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Duration in Sec
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
                         <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Duration" />
+                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Duration" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -883,7 +905,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <div class="">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.no_agent_available_action" name="no_agent_available_action">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       No Agent available Action
                     </FormLabel>
@@ -928,7 +950,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div v-if="values.dial_mode === 'outbound_ai'" class="grid grid-cols-2 gap-4">
               <div>
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.call_ratio" name="call_ratio">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Simultaneous Calls
                     </FormLabel>
@@ -952,7 +974,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <div>
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.duration" name="duration">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Time Interval
                     </FormLabel>
@@ -976,7 +998,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <div>
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to" name="redirect_to">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Redirect To
                     </FormLabel>
@@ -1001,7 +1023,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <!-- If Redirect to is audio message -->
               <div v-if="values.redirect_to === 1">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_audio_message" name="outbound_ai_dropdown_audio_message">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Audio Message
                     </FormLabel>
@@ -1029,7 +1051,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <!-- If Redirect to is voice template -->
               <div v-if="values.redirect_to === 2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_voice_message" name="outbound_ai_dropdown_voice_message">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Voice Template
                     </FormLabel>
@@ -1057,7 +1079,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <!-- If Redirect to is extension -->
               <div v-if="values.redirect_to === 3">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_extension" name="outbound_ai_dropdown_extension">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Extension
                     </FormLabel>
@@ -1085,7 +1107,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <!-- If Redirect to is ring group -->
               <div v-if="values.redirect_to === 4">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_ring_group" name="outbound_ai_dropdown_ring_group">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Ring Group
                     </FormLabel>
@@ -1112,8 +1134,9 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <!-- If Redirect to is ivr -->
               <div v-if="values.redirect_to === 5">
-                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_ivr" name="outbound_ai_dropdown_ivr">
-                  <FormItem>
+                <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.outbound_ai_dropdown_ivr" name="outbound_ai_dropdown_ivr">
+                  {{ value }}
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       IVR
                     </FormLabel>
@@ -1145,7 +1168,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <!-- if no_agent_available_action is 2(voice drop) -->
               <div v-if="values.no_agent_available_action === 2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_no_agent_available_action" name="voicedrop_no_agent_available_action">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Voice Drop Option
                     </FormLabel>
@@ -1173,7 +1196,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <!-- if no_agent_available_action is 3(inbound ivr) -->
               <div v-if="values.no_agent_available_action === 3">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.inbound_ivr_no_agent_available_action" name="inbound_ivr_no_agent_available_action">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Inbound IVR Option
                     </FormLabel>
@@ -1221,7 +1244,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               </div>
               <!-- If AMD is ON -->
               <FormField v-if="values.amd" v-slot="{ componentField, errorMessage }" v-model="formState.amd_drop_action" name="amd_drop_action">
-                <FormItem>
+                <FormItem v-auto-animate>
                   <FormLabel class="font-normal text-sm">
                     AMD Drop Action
                   </FormLabel>
@@ -1245,7 +1268,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
               <div>
                 <!-- When AMD Drop action is Audio Message -->
                 <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.audio_message_amd" name="audio_message_amd">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Audio Message AMD
                     </FormLabel>
@@ -1272,7 +1295,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
 
                 <!-- When AMD Drop action is voice template -->
                 <FormField v-if="values.amd_drop_action === 3" v-slot="{ componentField, errorMessage }" v-model="formState.voice_message_amd" name="voice_message_amd">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Voice Template AMD
                     </FormLabel>
@@ -1333,13 +1356,18 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                   <Accordion v-model="accordion2" collapsible class="">
                     <AccordionItem value="item-2" class="">
                       <FormField v-slot="{ errorMessage }" v-model="formState.call_time" name="call_time">
-                        <FormItem>
+                        <FormItem v-auto-animate>
                           <FormControl>
                             <AccordionTrigger :class="[(formState.call_time && Object.keys(formState.call_time).length) && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
                               {{ formState.call_time && Object.keys(formState.call_time).length ? formState.call_time.name : 'Select Call Time' }}
                             </AccordionTrigger>
                           </FormControl>
-                          <FormMessage class="text-sm" />
+                          <div v-if="errorMessage" class="text-red-600 text-sm">
+                            {{ errorMessage === 'Required' ? 'Call Time is required' : errorMessage }}
+                          </div>
+                          <!-- <FormMessage class="text-sm">
+                            hiii
+                          </FormMessage> -->
                         </FormItem>
                       </FormField>
 
@@ -1386,7 +1414,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div class="w-1/2">
               <!-- <Label class="text-sm font-normal mb-5">Send Email</Label> -->
               <FormField v-slot="{ componentField, errorMessage }" v-model="formState.email" name="email">
-                <FormItem>
+                <FormItem v-auto-animate>
                   <FormLabel class="font-normal text-sm">
                     Send Email
                   </FormLabel>
@@ -1404,7 +1432,10 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                       </SelectContent>
                     </Select>
                   </FormControl>
-                  <FormMessage class="text-sm" />
+                  <!-- <FormMessage class="text-sm" /> -->
+                  <div v-if="errorMessage" class="text-red-600 text-sm">
+                    {{ errorMessage === 'Required' ? 'Email is required' : errorMessage }}
+                  </div>
                 </FormItem>
               </FormField>
             </div>
@@ -1474,7 +1505,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div class=" gap-x-5 w-full flex items-start">
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.hopper_mode" name="hopper_mode">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Hopper Mode Type
                     </FormLabel>
@@ -1492,13 +1523,16 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage class="text-sm" />
+                    <div v-if="errorMessage" class="text-red-600 text-sm">
+                      {{errorMessage === 'Required' ? 'Hopper Mode is required' : errorMessage}}
+                    </div>
+                    <!-- <FormMessage class="text-sm" /> -->
                   </FormItem>
                 </FormField>
               </div>
               <div class="w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voip_configurations" name="voip_configurations">
-                  <FormItem>
+                  <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       OutBound Line
                     </FormLabel>
@@ -1525,7 +1559,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
             <div class="mt-5">
               <Label class="text-sm font-normal">Disposition</Label>
               <FormField v-slot="{ errorMessage }" v-model="formState.disposition_id" name="disposition_id">
-                <FormItem>
+                <FormItem v-auto-animate>
                   <FormControl>
                     <Combobox v-model="formState.disposition_id" v-model:open="open" :ignore-filter="true">
                       <ComboboxAnchor as-child>
@@ -1578,9 +1612,8 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" type="submit" :loading="loading" @click="onSubmit">
+      <Button class="w-full h-[52px]" type="submit" :disabled="dataLoading" :loading="loading" @click="onSubmit">
         Continue
-        <Icon :name="loading ? 'eos-icons:loading' : 'lucide:arrow-right'" size="20" />
       </Button>
     </div>
   </div>
