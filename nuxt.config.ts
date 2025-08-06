@@ -68,7 +68,7 @@ export default defineNuxtConfig({
     // Configure development proxy to avoid CORS issues
     devProxy: {
       '/api/proxy': {
-        target: 'https://api.voiptella.com',
+        target: 'https://api.phonify.com',
         changeOrigin: true,
         prependPath: false,
       },
