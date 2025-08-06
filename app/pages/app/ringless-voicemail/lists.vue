@@ -75,7 +75,7 @@ function openEditDialog(item: any) {
         <BaseInputSearch
           v-model="search"
           class="w-[300px]"
-          placeholder="search"
+          placeholder="Search List"
           @update:model-value="searchText"
         />
         <RinglessVoicemailListsAdd

@@ -1,38 +1,39 @@
 <script setup lang="ts">
+import type { ColumnFiltersState, ExpandedState, SortingState, VisibilityState } from '@tanstack/vue-table'
 import {
+
   createColumnHelper,
+
+  FlexRender,
   getCoreRowModel,
-  getSortedRowModel,
   getFilteredRowModel,
+
+  getSortedRowModel,
   useVueTable,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  type ExpandedState,
+
 } from '@tanstack/vue-table'
-import { FlexRender } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
-import { ref, h, watch } from 'vue'
+import { h, ref, watch } from 'vue'
+import TableServerPagination from '@/components/table/ServerPagination.vue'
 import { Button } from '@/components/ui/button'
 import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from '@/components/ui/table'
-import TableServerPagination from '@/components/table/ServerPagination.vue'
-import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils' // Add this import
+import { cn } from '@/lib/utils'
 
 const dummyData = ref(
   Array.from({ length: 12 }).map((_, i) => ({
@@ -46,7 +47,7 @@ const dummyData = ref(
     endTime: '06:00 PM',
     recording: `audio_${i + 1}.mp3`,
     audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-  }))
+  })),
 )
 
 const meta = ref({
@@ -184,7 +185,7 @@ const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
   get data() {
-    return paginatedData.value 
+    return paginatedData.value
   },
   columns,
   getCoreRowModel: getCoreRowModel(),
@@ -210,8 +211,8 @@ const table = useVueTable({
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-          <TableHead 
-            v-for="header in headerGroup.headers" 
+          <TableHead
+            v-for="header in headerGroup.headers"
             :key="header.id"
             :class="cn(
               'text-center',
@@ -229,13 +230,13 @@ const table = useVueTable({
       </TableHeader>
       <TableBody>
         <template v-if="table.getRowModel().rows.length">
-          <TableRow 
-            v-for="row in table.getRowModel().rows" 
+          <TableRow
+            v-for="row in table.getRowModel().rows"
             :key="row.id"
             :data-state="row.getIsSelected() && 'selected'"
           >
-            <TableCell 
-              v-for="cell in row.getVisibleCells()" 
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
               :key="cell.id"
               :class="cn(
                 'text-center text-sm',
@@ -272,7 +273,7 @@ const table = useVueTable({
 
       <span class="flex items-center gap-2">
         |
-        <Select v-model="meta.per_page" @update:modelValue="handlePageChange(1)">
+        <Select v-model="meta.per_page" @update:model-value="handlePageChange(1)">
           <SelectTrigger class="w-fit h-7 gap-x-1 px-2 text-xs">
             <SelectValue />
           </SelectTrigger>

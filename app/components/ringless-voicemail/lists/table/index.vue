@@ -9,21 +9,10 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-
-import { computed, ref, h } from 'vue'
-import moment from 'moment'
 import { ChevronsUpDown } from 'lucide-vue-next'
-
-import { cn } from '@/lib/utils'
-import { useApi } from '@/composables/useApi'
-
-import RinglessVoicemailListsConfigureDialog from '@/components/ringless-voicemail/lists/ConfigureDialog.vue'
-import RinglessVoicemailListsTableSheet from '@/components/ringless-voicemail/lists/table/Sheet.vue'
+import moment from 'moment'
+import { computed, h, ref } from 'vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
-
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -32,7 +21,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { Switch } from '@/components/ui/switch'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { useApi } from '@/composables/useApi'
+import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   list: any[]
@@ -49,7 +55,7 @@ const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
-
+const statusChangeLoadingId = ref<number | null>(null)
 // Dialog State
 const sheet = ref(false)
 const selectedList = ref<any>(null)
@@ -62,6 +68,7 @@ const editListId = ref<number | null>(null)
 const campaignLoadingId = ref<number | null>(null)
 
 function updateStatus(val: { status: boolean, id: number }) {
+  statusChangeLoadingId.value = val.id // Set loading state
   useApi().post('/ringless/list/update-status', {
     listId: val.id,
     status: val.status ? 1 : 0,
@@ -70,9 +77,11 @@ function updateStatus(val: { status: boolean, id: number }) {
     emits('refresh')
   }).catch((error) => {
     showToast({ type: 'error', message: error.message })
+    // Optional: Revert the toggle if the API fails
+  }).finally(() => {
+    statusChangeLoadingId.value = null // Clear loading state
   })
 }
-
 function deleteList(id: number) {
   useApi().get(`/ringless/list/delete/${id}`).then(() => {
     showToast({ message: 'List deleted successfully' })
@@ -145,8 +154,7 @@ const columns = [
     cell: ({ row }) => {
       const isScheduled = row.original.is_dialing
       return h('div', {
-        class: cn('text-center font-normal text-sm',
-          isScheduled === '1' ? 'text-green-600' : 'text-red-600'),
+        class: cn('text-center font-normal text-sm', isScheduled === '1' ? 'text-green-600' : 'text-red-600'),
       }, isScheduled === '1' ? 'Yes' : 'No')
     },
   }),
@@ -160,12 +168,32 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'class': cn(
+          'data-[state=checked]:bg-green-600',
+          statusChangeLoadingId.value === row.original.id
+            ? 'opacity-50 cursor-not-allowed'
+            : 'cursor-pointer',
+        ),
         'modelValue': row.original.status === '1',
+        'disabled': statusChangeLoadingId.value === row.original.id,
         'onUpdate:modelValue': (val: boolean) => {
-          updateStatus({ status: val, id: row.original.id })
+          if (statusChangeLoadingId.value !== row.original.id) {
+            updateStatus({ status: val, id: row.original.id })
+          }
         },
       })),
+    // Add sorting function here
+    sortingFn: (rowA, rowB) => {
+      const valueA = rowA.original.status === '1'
+      const valueB = rowB.original.status === '1'
+      if (valueA === valueB)
+        return 0
+      if (valueA && !valueB)
+        return -1
+      if (!valueA && valueB)
+        return 1
+      return 0
+    },
   }),
   columnHelper.display({
     id: 'actions',
@@ -173,24 +201,28 @@ const columns = [
     cell: ({ row }) => {
       const item = row.original
       return h('div', { class: 'flex justify-end pr-3 gap-x-1' }, [
-        h(Button, {
-          size: 'icon',
-          variant: 'ghost',
-          class: 'h-8 w-8 bg-[#162D3A] text-white hover:bg-[#162D3A]',
-          onClick: () => {
-            selectedList.value = item
-            sheet.value = true
-          },
-        }, h(Icon, {
-          name: campaignLoadingId.value === item.id ? 'eos-icons:bubble-loading' : 'lucide:eye',
-          size: 16,
-        })),
+        h(TooltipProvider, { delayDuration: 1000 }, [
+          h(Tooltip, {}, [
+            h(TooltipTrigger, { as: 'div' }, [
+              h(Button, {
+                size: 'icon',
+                class: '',
+                onClick: () => {
+                  selectedList.value = item
+                  sheet.value = true
+                },
+              }, h(Icon, {
+                name: campaignLoadingId.value === item.id ? 'eos-icons:bubble-loading' : 'lucide:eye',
+              })),
+            ]),
+            h(TooltipContent, {}, 'View List Details'),
+          ]),
+        ]),
 
         h(DropdownMenu, {}, {
           default: () => [
             h(DropdownMenuTrigger, {}, () =>
-              h(Button, { variant: 'ghost', size: 'icon', class: 'h-7 w-7' },
-                h(Icon, { name: 'lucide:more-vertical', size: 16 })
+              h(Button, { variant: 'ghost', size: 'icon', class: 'h-7 w-7' }, h(Icon, { name: 'lucide:more-vertical', size: 16 }),
               )),
 
             h(DropdownMenuContent, { align: 'end' }, () => [
@@ -240,7 +272,8 @@ function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
 function changeLimit(val: number | null) {
-  if (val !== null) emits('changeLimit', val)
+  if (val !== null)
+    emits('changeLimit', val)
 }
 </script>
 
@@ -265,14 +298,15 @@ function changeLimit(val: number | null) {
         <template v-else-if="table.getRowModel().rows.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="p-3 text-sm leading-tight">
-
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </TableCell>
           </TableRow>
         </template>
 
         <TableRow v-else>
-          <TableCell :colspan="columns.length" class="text-center">No results found.</TableCell>
+          <TableCell :colspan="columns.length" class="text-center">
+            No results found.
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>
@@ -282,12 +316,12 @@ function changeLimit(val: number | null) {
   <div v-if="!loading" class="flex items-center justify-end space-x-2 py-1 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="val => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">{{ n }}</SelectItem>
+              <SelectItem v-for="n in [10, 25, 50, 100]" :key="n" :value="n">{{ n }}</SelectItem>
             </SelectContent>
           </Select>
         </span>

@@ -17,7 +17,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -32,6 +31,7 @@ const router = useRouter()
 const id = route.query.id
 const isEdit = computed(() => !!id)
 const pageTitle = ref(isEdit.value ? 'Edit Campaign' : 'Create New Campaign')
+const nameInputRef = ref<any>(null)
 
 const breadcrumbs = [
   {
@@ -56,7 +56,7 @@ const { data: countryCodeList, status: countryCodeStatus } = await useLazyAsyncD
 // list voice template
 const { data: voiceTemplateOptions, status: voiceTemplateStatus } = await useLazyAsyncData('voice-template-list', () =>
   useApi().get('/voice-templete', {
-    start: 0,
+    // start: 0,
     // limit: 10,
   }), {
   immediate: true,
@@ -90,16 +90,17 @@ const callerTimeOptions = ref([
   { id: '30' },
 ])
 
-const callRatioOptions = ref([
-  { id: '1:1', title: '1:1 Ratio' },
-  { id: '2:1', title: '2:1 Ratio' },
-  { id: '3:1', title: '3:1 Ratio' },
-])
+const callRatioOptions = ref(
+  Array.from({ length: 30 }, (_, i) => ({
+    id: `${i + 1}`,
+    title: `${i + 1}`,
+  })),
+)
 
 // Form validation schema with updated field names
 const formSchema = toTypedSchema(
   z.object({
-    title: z.string().min(3, 'Name must be at least 3 characters'),
+    title: z.string().min(1, 'Name must be at least 3 characters'),
     country_code: z.number().min(1, 'Country code is required'),
     description: z.string().optional(),
     caller_id: z.string().min(1, 'Caller ID is required'),
@@ -239,8 +240,9 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-onMounted(() => {
-  fetchCampaignData()
+onMounted(async () => {
+  await fetchCampaignData()
+  nameInputRef.value?.$el?.focus?.()
 })
 </script>
 
@@ -253,7 +255,7 @@ onMounted(() => {
       </Button>
     </template>
   </BaseHeader>
-  <div class=" relative h-[calc(100vh-190px)] overflow-y-auto">
+  <div class=" relative h-[calc(100vh-190px)] overflow-y-auto mt-5">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
         <!-- CAMPAIGN DETAILS -->
@@ -292,21 +294,27 @@ onMounted(() => {
             </div>
           </div>
           <div class="p-5 space-y-5 w-full">
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2">
+            <div class="flex flex-col sm:flex-row gap-[16px] w-full">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField }" v-model="values.title" name="title">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Name
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
+                      <Input
+                        ref="nameInputRef"
+                        type="text"
+                        class="text-sm font-normal placeholder:text-sm h-11"
+                        placeholder="Enter Campaign Name"
+                        v-bind="componentField"
+                      />
                     </FormControl>
                     <FormMessage class="text-sm" />
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.country_code" name="country_code">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -363,8 +371,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="p-5 space-y-5 w-full">
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2">
+            <div class="flex flex-col sm:flex-row gap-[16px] w-full">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.caller_id" name="caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -388,7 +396,7 @@ onMounted(() => {
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.custom_caller_id" name="custom_caller_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -420,8 +428,8 @@ onMounted(() => {
                 </FormField>
               </div>
             </div>
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2">
+            <div class="flex flex-col sm:flex-row gap-[16px] w-full">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.call_duration" name="call_duration">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -445,7 +453,7 @@ onMounted(() => {
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.call_ratio" name="call_ratio">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -470,38 +478,50 @@ onMounted(() => {
                 </FormField>
               </div>
             </div>
-            <div class="flex gap-[16px] w-full">
-              <div class="w-1/2 flex gap-2 flex-between items-center">
-                <div class="w-1/2">
+            <div class="flex flex-col md:flex-row gap-4 w-full">
+              <!-- Time Range Section -->
+              <div class="flex flex-col md:flex-row gap-2 md:justify-between md:items-center w-full md:w-1/2">
+                <!-- From Time -->
+                <div class="w-full md:w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_start" name="call_time_start">
                     <FormItem>
                       <FormLabel class="font-normal text-white text-sm">
                         From
                       </FormLabel>
                       <FormControl>
-                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11 ">
+                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11">
                           <p class="text-sm">
                             From
                           </p>
-                          <Input type="time" v-bind="componentField" class="shadow-none border-none w-[120px]" />
+                          <Input
+                            type="time"
+                            v-bind="componentField"
+                            class="shadow-none border-none w-full max-w-[120px]"
+                          />
                         </div>
                       </FormControl>
                       <FormMessage class="text-sm" />
                     </FormItem>
                   </FormField>
                 </div>
-                <div class="w-1/2">
+
+                <!-- To Time -->
+                <div class="w-full md:w-1/2">
                   <FormField v-slot="{ componentField }" v-model="values.call_time_end" name="call_time_end">
                     <FormItem>
                       <FormLabel class="font-normal text-white text-sm">
                         To
                       </FormLabel>
                       <FormControl>
-                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11 ">
+                        <div class="flex justify-between w-full items-center border px-3 rounded-sm h-11">
                           <p class="text-sm">
                             To
                           </p>
-                          <Input type="time" v-bind="componentField" class="shadow-none border-none w-[120px]" />
+                          <Input
+                            type="time"
+                            v-bind="componentField"
+                            class="shadow-none border-none w-full max-w-[120px]"
+                          />
                         </div>
                       </FormControl>
                       <FormMessage class="text-sm" />
@@ -509,16 +529,28 @@ onMounted(() => {
                   </FormField>
                 </div>
               </div>
-              <div class="w-1/2">
-                <FormField v-slot="{ componentField, errorMessage }" v-model="values.voice_template_id" name="voice_template_id">
+
+              <!-- Voice Template Section -->
+              <div class="w-full md:w-1/2">
+                <FormField
+                  v-slot="{ componentField, errorMessage }"
+                  v-model="values.voice_template_id"
+                  name="voice_template_id"
+                >
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
                       Voice Template
                     </FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
-                        <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                          <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Voice Template" />
+                        <SelectTrigger
+                          :class="errorMessage && 'border-red-600'"
+                          class="w-full !h-11"
+                        >
+                          <SelectValue
+                            class="text-sm data-[placeholder]:text-muted-foreground"
+                            placeholder="Select Voice Template"
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -528,7 +560,11 @@ onMounted(() => {
                               </div>
                             </template>
                             <template v-else>
-                              <SelectItem v-for="item in voiceTemplateOptions" :key="item.templete_id" :value="item.templete_id">
+                              <SelectItem
+                                v-for="item in voiceTemplateOptions"
+                                :key="item.templete_id"
+                                :value="item.templete_id"
+                              >
                                 {{ item.templete_name }}
                               </SelectItem>
                             </template>
@@ -552,8 +588,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="p-5">
-            <div class=" gap-x-5 w-full flex items-start">
-              <div class="w-1/2">
+            <div class="w-full flex flex-col sm:flex-row items-start">
+              <div class="w-full sm:w-1/2">
                 <FormField v-slot="{ componentField, errorMessage }" v-model="values.sip_gateway_id" name="sip_gateway_id">
                   <FormItem>
                     <FormLabel class="font-normal text-sm">
@@ -584,13 +620,13 @@ onMounted(() => {
                   </FormItem>
                 </FormField>
               </div>
-              <div class="w-1/2">
+              <div class="w-full sm:w-1/2">
                 <FormField v-slot="{ value, handleChange }" name="time_based_calling">
                   <FormItem>
                     <FormLabel class="font-normal text-white">
                       Enable Time Zone
                     </FormLabel>
-                    <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
+                    <div class="w-full bg-[#00A0860D] h-11 sm:m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
                       <p>Enable Time Zone Rule</p>
                       <FormControl>
                         <Switch

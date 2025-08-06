@@ -60,7 +60,7 @@ function changeLimit(val: number) {
 
         <!-- Dialog Trigger Button -->
         <Button class="h-11" @click="isDialogOpen = true">
-          <Icon class="!text-white" name="lucide:plus" />
+          <Icon class="!text-white" name="lucide:plus" size="20" />
           Add SIP Gateways
         </Button>
 
@@ -74,7 +74,7 @@ function changeLimit(val: number) {
         :list="sipGateway?.data"
         :loading="sipGatewayStatus === 'pending'"
         :limit="limit"
-        :total-rows="sipGateway?.total_rows || 0"
+        :total-rows="sipGateway?.total_rows || sipGateway?.data?.length || 0"
         :start="start"
         @refresh="sipGatewayRefresh"
         @page-navigation="changePage"

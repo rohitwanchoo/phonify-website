@@ -37,6 +37,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
@@ -156,7 +162,7 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        class: 'data-[state=checked]:bg-green-600 cursor-pointer',
+        class: 'data-[state=checked]:bg-green-600 cursor-not-allowed',
         modelValue: row.original.general_setting === '1',
       })),
     sortingFn: (rowA, rowB, columnId) => {
@@ -177,24 +183,41 @@ const columns = [
     header: () => h('div', { class: 'text-center' }, 'Action'),
     cell: ({ row }) =>
       h('div', { class: 'flex justify-center space-x-2' }, [
-        h(Button, {
-          class: 'bg-white text-black border border-black px-2.5 hover:bg-white',
-          onClick: () => {
-            selectedRowData.value = row.original
-            isDialogOpen.value = true
-          },
-        }, [
-          h(Icon, { name: 'material-symbols:edit-square', size: 16 }),
+      // Edit Button with separate Tooltip
+        h(TooltipProvider, { delayDuration: 1000 }, [
+          h(Tooltip, {}, [
+            h(TooltipTrigger, { as: 'div' }, [
+              h(Button, {
+                class: 'bg-white text-black border border-black px-2.5 hover:bg-white',
+                onClick: () => {
+                  selectedRowData.value = row.original
+                  isDialogOpen.value = true
+                },
+              }, [
+                h(Icon, { name: 'material-symbols:edit-square', size: 16 }),
+              ]),
+            ]),
+            h(TooltipContent, { side: 'top', align: 'center' }, 'Edit'),
+          ]),
         ]),
-        h(Button, {
-          class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
-          variant: 'outline',
-          size: 'icon',
-          onClick: () => {
-            selectedRowForDelete.value = row.original.id
-            revealDeleteConfirm()
-          },
-        }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
+
+        // Delete Button with separate Tooltip
+        h(TooltipProvider, { delayDuration: 1000 }, [
+          h(Tooltip, {}, [
+            h(TooltipTrigger, { as: 'div' }, [
+              h(Button, {
+                class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
+                variant: 'outline',
+                size: 'icon',
+                onClick: () => {
+                  selectedRowForDelete.value = row.original.id
+                  revealDeleteConfirm()
+                },
+              }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
+            ]),
+            h(TooltipContent, { side: 'top', align: 'center' }, 'Delete'),
+          ]),
+        ]),
       ]),
     meta: { className: 'w-[100px] text-center' },
   }),
@@ -295,7 +318,7 @@ const table = useVueTable({
   <div v-if="total && !props.loading" class="flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :model-value="per_page" @update:model-value="changeLimit">
             <SelectTrigger class="w-fit gap-x-1 px-2">
