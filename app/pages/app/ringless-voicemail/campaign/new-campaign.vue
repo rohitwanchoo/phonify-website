@@ -255,7 +255,7 @@ onMounted(async () => {
       </Button>
     </template>
   </BaseHeader>
-  <div class=" relative h-[calc(100vh-190px)] overflow-y-auto">
+  <div class=" relative h-[calc(100vh-190px)] overflow-y-auto mt-5">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
         <!-- CAMPAIGN DETAILS -->
