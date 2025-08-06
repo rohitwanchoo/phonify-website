@@ -6,7 +6,7 @@ This document explains the comprehensive authentication system implemented for t
 
 The authentication system provides:
 - Secure session management with encrypted cookies
-- Integration with external VoipTella API
+- Integration with external Phonify API
 - Route protection middleware
 - Type-safe API calls
 - Automatic token handling
@@ -17,7 +17,7 @@ The authentication system provides:
 ### Components
 
 1. **nuxt-auth-utils**: Core authentication module
-2. **External API**: VoipTella API at `https://api.voiptella.com`
+2. **External API**: Phonify API at `https://api.phonify.com`
 3. **Session Management**: Encrypted cookie-based sessions
 4. **Middleware**: Route protection and guest-only routes
 5. **Composables**: Reusable authentication logic
@@ -68,7 +68,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     sessionPassword: process.env.NUXT_SESSION_PASSWORD || '',
     public: {
-      apiBaseUrl: 'https://api.voiptella.com',
+      apiBaseUrl: 'https://api.phonify.com',
     }
   }
 })

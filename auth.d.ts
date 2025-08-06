@@ -41,7 +41,7 @@ export interface LoginRequest {
   device: string
 }
 
-// VoipTella API response structure
+// Phonify API response structure
 export interface VoipTellaApiResponse {
   success: boolean
   message: string
