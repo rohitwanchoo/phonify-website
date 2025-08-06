@@ -87,7 +87,7 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.totalCalls),
+      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalCalls)),
   }),
 ]
 
@@ -171,7 +171,7 @@ const total = computed(() => {
           <TableCell class="text-center" />
           <TableCell class="text-center" />
           <TableCell class="text-center">
-            {{ total.totalCalls }}
+            {{ formatWithCommas(total.totalCalls) }}
           </TableCell>
         </TableRow>
       </TableBody>

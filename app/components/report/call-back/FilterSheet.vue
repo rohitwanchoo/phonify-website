@@ -165,7 +165,7 @@ function clearFilters() {
                             class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
                             :class="!filters.start_date ? 'text-muted-foreground' : ''"
                           >
-                            <span>{{ filters.start_date ? parseDateString(filters.start_date)?.toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                            <span>{{ filters.start_date ? parseDateString(filters.start_date)?.toLocaleDateString('en-GB') : 'From:' }}</span>
                             <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
                           </Button>
                         </PopoverTrigger>
@@ -191,7 +191,7 @@ function clearFilters() {
                             class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
                             :class="!filters.end_date ? 'text-muted-foreground' : ''"
                           >
-                            <span>{{ filters.end_date ? parseDateString(filters.end_date)?.toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                            <span>{{ filters.end_date ? parseDateString(filters.end_date)?.toLocaleDateString('en-GB') : 'To:' }}</span>
                             <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
                           </Button>
                         </PopoverTrigger>
@@ -217,12 +217,11 @@ function clearFilters() {
 
       <!-- Sticky footer with buttons -->
       <div class="p-6 bg-white space-y-3">
-        <Button type="button" class="w-full" @click="onSubmit">
-          <Icon name="material-symbols:search" class="mr-1" />
-          Apply Filter
+        <Button type="button" class="w-full h-11" @click="onSubmit">
+          <Icon name="material-symbols:search" size="20" />
+          Search
         </Button>
-        <Button type="button" variant="outline" class="w-full" @click="clearFilters">
-          <Icon name="material-symbols:clear" class="mr-1" />
+        <Button type="button" variant="outline" class="w-full h-11" @click="clearFilters">
           Clear Filters
         </Button>
       </div>

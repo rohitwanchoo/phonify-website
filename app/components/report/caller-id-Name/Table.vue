@@ -58,6 +58,26 @@ export interface cliReportList {
   callback_time: string
 }
 
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString)
+    if (Number.isNaN(date.getTime())) {
+      return dateString // Return original if invalid date
+    }
+
+    const options: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }
+
+    return date.toLocaleDateString('en-GB', options)
+  }
+  catch {
+    return dateString // Return original if formatting fails
+  }
+}
+
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
@@ -105,7 +125,7 @@ const columns = [
       }, () => ['Generation Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
-        h('div', row.original.created_at),
+        h('div', formatDate(row.original.created_at)),
       ]),
   }),
 

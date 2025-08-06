@@ -168,7 +168,7 @@ function clearFilters() {
     <SheetContent class="w-full md:min-w-[483px] flex flex-col h-full">
       <SheetHeader class="bg-[#162D3A]">
         <SheetTitle class="text-white">
-          Filter Call Reports
+          Count Report
         </SheetTitle>
       </SheetHeader>
 
@@ -194,7 +194,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">Extention List</label>
                   <Select v-model="filters.extension">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select an extension" />
+                      <SelectValue placeholder="Select an Extension" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-if="extensionStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
@@ -233,7 +233,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">Disposition</label>
                   <Select v-model="filters.disposition">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select a disposition" />
+                      <SelectValue placeholder="Select a Disposition" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-if="dispositionStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
@@ -253,7 +253,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">Route</label>
                   <Select v-model="filters.route">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select Campaign" />
+                      <SelectValue placeholder="Select a Route" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="IN">
@@ -274,7 +274,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">Type</label>
                   <Select v-model="filters.type">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select a type" />
+                      <SelectValue placeholder="Select a Type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-if="campaignTypeStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
@@ -312,7 +312,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">Time Zone</label>
                   <Select>
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select Campaign" />
+                      <SelectValue placeholder="Select a Time Zone" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem :value="null">
@@ -335,7 +335,7 @@ function clearFilters() {
                             class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
                             :class="!filters.start_date ? 'text-muted-foreground' : ''"
                           >
-                            <span>{{ filters.start_date ? parseDateString(filters.start_date)?.toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                            <span>{{ filters.start_date ? parseDateString(filters.start_date)?.toLocaleDateString('en-GB') : 'From:' }}</span>
                             <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
                           </Button>
                         </PopoverTrigger>
@@ -361,7 +361,7 @@ function clearFilters() {
                             class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
                             :class="!filters.end_date ? 'text-muted-foreground' : ''"
                           >
-                            <span>{{ filters.end_date ? parseDateString(filters.end_date)?.toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                            <span>{{ filters.end_date ? parseDateString(filters.end_date)?.toLocaleDateString('en-GB') : 'To:' }}</span>
                             <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
                           </Button>
                         </PopoverTrigger>
@@ -383,7 +383,7 @@ function clearFilters() {
                   <label class="text-sm font-medium text-primary">State / City / Area Codes</label>
                   <Select v-model="filters.state_list">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select a DID" />
+                      <SelectValue placeholder="Select State / City / Area Code" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-if="stateListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
@@ -421,12 +421,11 @@ function clearFilters() {
 
       <!-- Sticky footer with buttons -->
       <div class="p-6 bg-white space-y-3">
-        <Button type="button" class="w-full" @click="onSubmit">
-          <Icon name="material-symbols:search" class="mr-1" />
-          Apply Filter
+        <Button type="button" class="w-full h-11" @click="onSubmit">
+          <Icon name="material-symbols:search" size="20" />
+          Search
         </Button>
-        <Button type="button" variant="outline" class="w-full" @click="clearFilters">
-          <Icon name="material-symbols:clear" class="mr-1" />
+        <Button type="button" variant="outline" class="w-full h-11" @click="clearFilters">
           Clear Filters
         </Button>
       </div>

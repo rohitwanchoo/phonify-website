@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { Switch } from '@/components/ui/switch'
 
-const enableCallbackReminder = ref(false)
+const enableCallbackReminder = ref<boolean>()
 const showSheet = ref(false)
 const activeFilters = ref<Record<string, any>>({})
 
@@ -14,8 +14,22 @@ const { data: callbackData, status: callbackStatus, refresh: callbackRefresh } =
     ...activeFilters.value,
     lower_limit: start.value,
     upper_limit: limit.value,
+    reminder: enableCallbackReminder.value,
   }), {
   transform: res => res,
+})
+
+// Watch for changes in API data and update the reminder state
+watch(callbackData, (newData) => {
+  if (newData && typeof newData.reminder !== 'undefined') {
+    enableCallbackReminder.value = newData.reminder
+  }
+}, { immediate: true })
+
+// Watch for changes in the switch and refresh data when toggled
+watch(enableCallbackReminder, async (newValue) => {
+  activeFilters.value.reminder = newValue
+  await callbackRefresh()
 })
 
 function changePage(page: number) {
@@ -57,7 +71,7 @@ async function handleClearFilter() {
             <Switch
               id="callback-reminder"
               v-model="enableCallbackReminder"
-              class="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
+              class="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300 cursor-pointer"
             />
           </div>
 

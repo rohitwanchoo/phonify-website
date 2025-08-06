@@ -60,7 +60,7 @@ async function handleClearFilter() {
 
     <!-- TABLE -->
     <div>
-      <ReportCallDataTable :limit="limit" :total-rows="report?.record_count" :start="start" :list="report?.data || []" :loading="reportStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+      <ReportCallDataTable :limit="limit" :total-rows="report?.record_count" :start="start" :list="report?.data || []" :loading="reportStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" />
     </div>
   </div>
 </template>

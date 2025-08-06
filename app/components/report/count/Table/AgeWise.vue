@@ -14,7 +14,6 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ChevronsUpDown } from 'lucide-vue-next'
 import { computed, h, ref } from 'vue'
 import {
   Table,
@@ -79,19 +78,19 @@ const columns = [
   }),
   columnHelper.accessor('totalcalls', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.totalcalls),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalcalls)),
   }),
   columnHelper.accessor('dialer_call', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Outbound Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.dialer_call),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.dialer_call)),
   }),
   columnHelper.accessor('c2c_call', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'C2C Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.c2c_call),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.c2c_call)),
   }),
   columnHelper.accessor('desktop_call', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.desktop_call),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.desktop_call)),
   }),
   columnHelper.display({
     id: 'totalCallTime',
@@ -113,12 +112,12 @@ const columns = [
   columnHelper.display({
     id: 'sms_sent',
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.sms_sent ?? 0),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.sms_sent ?? 0)),
   }),
   columnHelper.display({
     id: 'sms_received',
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'SMS Received'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.sms_received ?? 0),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.sms_received ?? 0)),
   }),
 ]
 
@@ -239,16 +238,16 @@ const total = computed(() => {
             </TableCell>
             <TableCell />
             <TableCell class="text-center">
-              {{ total.totalCalls }}
+              {{ formatWithCommas(total.totalCalls) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.outbound }}
+              {{ formatWithCommas(total.outbound) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.c2c }}
+              {{ formatWithCommas(total.c2c) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.inbound }}
+              {{ formatWithCommas(total.inbound) }}
             </TableCell>
             <TableCell class="text-center">
               {{ total.totalCallTime }}
@@ -257,10 +256,10 @@ const total = computed(() => {
               {{ total.avgHandleTime }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.smsSent }}
+              {{ formatWithCommas(total.smsSent) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.smsReceived }}
+              {{ formatWithCommas(total.smsReceived) }}
             </TableCell>
           </TableRow>
         </template>

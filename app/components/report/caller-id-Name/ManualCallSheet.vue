@@ -10,7 +10,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '~/components/ui/sh
 const open = ref(false)
 
 const formSchema = toTypedSchema(z.object({
-  number: z.string().min(1, 'Phone number is required'),
+  number: z.string().min(1, 'Phone number is required').refine((value) => {
+    const digits = stripPhoneFormatting(value)
+    return digits.length === 10
+  }, 'Phone number must be exactly 10 digits').refine((value) => {
+    const digits = stripPhoneFormatting(value)
+    return /^\d{10}$/.test(digits)
+  }, 'Phone number must contain only digits'),
 }))
 
 const { handleSubmit, isSubmitting } = useForm({

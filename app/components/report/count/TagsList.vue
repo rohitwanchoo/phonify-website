@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps({
+defineProps({
   heading: {
     type: String,
     default: 'Heading Here',
@@ -33,8 +33,8 @@ const props = defineProps({
             {{ item.text }}
           </p>
         </div>
-        <p class="font-semibold">
-          {{ item.number }}
+        <p class="font-semibold ml-3">
+          {{ formatWithCommas(item.number) }}
         </p>
       </div>
     </div>

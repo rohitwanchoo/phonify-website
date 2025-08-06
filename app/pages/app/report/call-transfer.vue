@@ -59,7 +59,7 @@ async function handleClearFilter() {
     <!-- HEADER -->
     <BaseHeader title="Call Transfer">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
 
         <!-- Trigger Button -->
         <ReportCallTransferFilterSheet
