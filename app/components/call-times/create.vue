@@ -356,12 +356,12 @@ function onModelOpen(val: boolean) {
           <DialogFooter>
             <DialogClose class="w-full sm:w-1/2">
               <Button variant="outline" class="h-11  w-full">
-                <Icon name="mdi:close" />
+                <Icon name="material-symbols:close" size="20" />
                 Close
               </Button>
             </DialogClose>
-            <Button for="form" :disabled="loading" class="h-11 w-full sm:w-1/2" type="submit" @click="onSubmit">
-              <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save' " size="18" />
+            <Button for="form" :disabled="loading" :loading="loading" class="h-11 w-full sm:w-1/2" type="submit" @click="onSubmit">
+              <Icon v-if="!loading" name="material-symbols:save" size="20" />
               Save
             </Button>
           </DialogFooter>
