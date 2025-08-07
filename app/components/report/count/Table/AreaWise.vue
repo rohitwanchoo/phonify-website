@@ -69,7 +69,7 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.did),
+      h('div', { class: 'text-sm text-center' }, formatNumber(row.original.did)),
   }),
   columnHelper.accessor('cnam', {
     header: () =>

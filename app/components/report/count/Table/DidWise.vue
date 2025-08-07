@@ -70,7 +70,7 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID Number'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm font-normal text-center' }, row.original.didNumber),
+      h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.didNumber)),
   }),
   columnHelper.accessor('inboundCalls', {
     header: () =>
