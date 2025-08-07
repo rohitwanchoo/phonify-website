@@ -64,7 +64,7 @@ const onSubmit = handleSubmit(async (values) => {
   <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <Button class="h-11">
-        <Icon class="!text-white" name="lucide:plus" />
+        <Icon class="!text-white" name="material-symbols:add" size="20" />
         Add Label
       </Button>
     </DialogTrigger>
@@ -89,12 +89,12 @@ const onSubmit = handleSubmit(async (values) => {
           </FormField>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
-            <Icon name="lucide:x" class="w-4 h-4 mr-1" />
+          <Button class="flex-1 h-11 text-primary" variant="outline" @click="open = false">
+            <Icon name="material-symbols:close" size="20" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
-            <Icon name="material-symbols:save" class="w-4 h-4 mr-1" />
+          <Button type="submit" class="flex-1 h-11" :loading="loading" :disabled="loading">
+            <Icon name="material-symbols:save" size="20" />
             Save
           </Button>
         </div>
