@@ -17,7 +17,7 @@ The authentication system provides:
 ### Components
 
 1. **nuxt-auth-utils**: Core authentication module
-2. **External API**: Phonify API at `https://api.phonify.com`
+2. **External API**: Phonify API (configurable via `NUXT_API_BASE_URL` environment variable)
 3. **Session Management**: Encrypted cookie-based sessions
 4. **Middleware**: Route protection and guest-only routes
 5. **Composables**: Reusable authentication logic
@@ -68,7 +68,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     sessionPassword: process.env.NUXT_SESSION_PASSWORD || '',
     public: {
-      apiBaseUrl: 'https://api.phonify.com',
+      apiBaseUrl: process.env.NUXT_API_BASE_URL || 'https://api.phonify.com',
     }
   }
 })

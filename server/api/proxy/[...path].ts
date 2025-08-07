@@ -18,8 +18,8 @@ export default defineEventHandler(async (event) => {
   delete headers.origin
   delete headers.referer
 
-  // Construct the target URL
-  const targetUrl = `https://api.phonify.com/${path || ''}`
+  // Construct the target URL using environment variable
+  const targetUrl = `${config.apiBaseUrl}/${path || ''}`
 
   try {
     // Make the request to the external API
