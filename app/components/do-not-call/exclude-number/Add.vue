@@ -43,7 +43,7 @@ const formSchema = toTypedSchema(z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   company_name: z.string().min(1, 'Company name is required'),
-  number: z.string().min(1, 'phone number is required'),
+  number: z.string().min(1, 'Phone number is required'),
   campaign_id: z.number().min(1, 'Campaign is requires'),
 }))
 
