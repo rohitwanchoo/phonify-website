@@ -176,7 +176,7 @@ const columns = [
         size: 'sm',
         class: 'bg-[#162D3A] text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white',
       }, [
-        h(Icon, { name: 'material-symbols:call-log', filled: true, class: 'text-base text-white' }),
+        h(Icon, { name: 'material-symbols:call-log-outline', filled: true, class: 'text-base text-white' }),
         'Call Record',
       ]),
     ]),
