@@ -34,7 +34,6 @@ const emits = defineEmits(['refresh', 'closed'])
 
 const modelOpen = defineModel<boolean>('open', { default: false })
 
-// Computed dialog title
 const dialogTitle = computed(() =>
   props.mode === 'edit' ? 'Edit Custom Field Label' : 'Add Custom Field Label',
 )
@@ -43,30 +42,40 @@ const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required'),
 }))
 
+// Initialize form with validateOnMount: false
 const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    title: '',
+  },
+  validateOnMount: false,
 })
 
 const loading = ref(false)
 
-// Watch initial data and fill form when editing
 watch(
   () => props.initialData,
   (data) => {
     if (data && props.mode === 'edit') {
       setValues({ title: data.title })
     }
-    else {
-      resetForm()
-    }
   },
   { immediate: true },
 )
 
-// Reset form when dialog closes
+// Reset everything when dialog opens/closes
 watch(modelOpen, (isOpen) => {
-  if (!isOpen) {
-    resetForm()
+  if (isOpen) {
+    // Reset when opening
+    resetForm({
+      values: {
+        title: props.mode === 'edit' && props.initialData?.title ? props.initialData.title : '',
+      },
+      errors: {},
+    })
+  }
+  else {
+    // Clean up when closing
     emits('closed')
   }
 })
@@ -125,19 +134,22 @@ const onSubmit = handleSubmit(async (values) => {
         Add Custom Field Label
       </Button>
     </DialogTrigger>
-    <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
+    <DialogContent
+      class="max-h-[90vh] h-fit overflow-y-auto"
+    >
       <DialogHeader>
         <DialogTitle>{{ dialogTitle }}</DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
-      <form id="form" @submit="onSubmit">
+      <form id="form" @submit.prevent="onSubmit">
         <div class="space-y-4">
-          <FormField v-slot="{ componentField }" name="title">
+          <FormField v-slot="{ field }" name="title">
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input
-                  v-bind="componentField"
+                  class="h-11"
+                  v-bind="field"
                   placeholder="Label Name"
                 />
               </FormControl>
@@ -146,7 +158,12 @@ const onSubmit = handleSubmit(async (values) => {
           </FormField>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button class="flex-1 h-11 text-primary" variant="outline" @click="modelOpen = false">
+          <Button
+            class="flex-1 h-11 text-primary"
+            variant="outline"
+            type="button"
+            @click="modelOpen = false"
+          >
             <Icon name="material-symbols:close" size="20" />
             Close
           </Button>
