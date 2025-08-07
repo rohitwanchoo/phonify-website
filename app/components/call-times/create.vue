@@ -224,8 +224,8 @@ function onModelOpen(val: boolean) {
   <Dialog v-model:open="open" @update:open="onModelOpen">
     <DialogTrigger as-child>
       <slot>
-        <Button class="">
-          <Icon class="!text-white" name="lucide:plus" />
+        <Button class="h-11">
+          <Icon class="!text-white" size="20" name="material-symbols:add" />
           Create Call Time
         </Button>
       </slot>
@@ -235,7 +235,7 @@ function onModelOpen(val: boolean) {
         <DialogTitle class="text-[16px] font-medium flex items-center justify-between">
           {{ idEdit ? 'Edit Call Time' : 'Create Call Time' }}
           <DialogClose class="cursor-pointer">
-            <Icon name="mdi:close" size="20" />
+            <Icon name="material-symbols:close" size="20" />
           </DialogClose>
         </DialogTitle>
         <Separator />
