@@ -70,13 +70,13 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID Number'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm font-normal text-center' }, row.original.didNumber),
+      h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.didNumber)),
   }),
   columnHelper.accessor('inboundCalls', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, row.original.inboundCalls),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.inboundCalls)),
   }),
   columnHelper.accessor('totalCallTime', {
     header: () =>
@@ -94,13 +94,13 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, row.original.smsSent),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.smsSent)),
   }),
   columnHelper.accessor('smsReceived', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Received'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, row.original.smsReceived),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.smsReceived)),
   }),
 ]
 
@@ -187,7 +187,7 @@ const total = computed(() => {
             Total
           </TableCell>
           <TableCell class="text-center">
-            {{ total.calls }}
+            {{ formatWithCommas(total.calls) }}
           </TableCell>
           <TableCell class="text-center">
             {{ total.totalCallTime }}
@@ -196,10 +196,10 @@ const total = computed(() => {
             {{ total.avgHandleTime }}
           </TableCell>
           <TableCell class="text-center">
-            {{ total.smsSent }}
+            {{ formatWithCommas(total.smsSent) }}
           </TableCell>
           <TableCell class="text-center">
-            {{ total.smsReceived }}
+            {{ formatWithCommas(total.smsReceived) }}
           </TableCell>
         </TableRow>
       </TableBody>
