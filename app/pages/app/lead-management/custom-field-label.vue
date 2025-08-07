@@ -32,6 +32,11 @@ function handleEdit(rowData: any) {
   showDialog.value = true
 }
 
+function handleDialogClosed() {
+  selectedRowData.value = null
+  editMode.value = 'add'
+}
+
 function changePage(page: number) {
   start.value = Number((page - 1) * limit.value)
   return customfieldlabelRefresh()
@@ -61,6 +66,7 @@ function searchText() {
         :mode="editMode"
         :initial-data="selectedRowData"
         @refresh="handleAddRefresh"
+        @closed="handleDialogClosed"
       />
     </template>
   </BaseHeader>

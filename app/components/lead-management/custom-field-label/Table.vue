@@ -79,17 +79,14 @@ async function handleDelete() {
     return
 
   try {
-    const res = await useApi().post('/edit-label', {
-      label_id: selectedLabelIdForDelete.value,
-      is_deleted: '1',
-    })
+    const res = await useApi().get(`/delete-custom-field-label/${selectedLabelIdForDelete.value}`)
 
     if (res?.success === true) {
       showToast({
         type: 'success',
         message: res.message,
       })
-      emits('refresh') // properly emit refresh
+      emits('refresh')
     }
     else {
       showToast({
@@ -116,11 +113,6 @@ export interface labelList {
   status: string
   actions?: string
 }
-
-// function onEdit(row: labelList) {
-//   selectedRowData.value = row
-//   isEditDialogOpen.value = true
-// }
 
 async function updateStatus(id: number, status: string) {
   try {
@@ -378,7 +370,7 @@ const table = useVueTable({
     v-model="showDeleteConfirm"
     :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
-    title="Delete Label"
+    title="Delete Custom Field Label"
     description="You are about to delete this label. Do you wish to proceed?"
   />
 </template>

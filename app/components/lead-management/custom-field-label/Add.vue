@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<{
   mode: 'add',
 })
 
-const emits = defineEmits(['refresh'])
+const emits = defineEmits(['refresh', 'closed'])
 
 const modelOpen = defineModel<boolean>('open', { default: false })
 
@@ -67,6 +67,7 @@ watch(
 watch(modelOpen, (isOpen) => {
   if (!isOpen) {
     resetForm()
+    emits('closed')
   }
 })
 
