@@ -91,21 +91,32 @@ export interface callTimingList {
 
 const sheet = ref(false)
 
-const edit = ref(false)
-const create = ref(false)
-
 const selectedRowData = ref<callTimingList | null>(null)
 
 const editRowData = ref<callTimingList | null>(null)
 
+function editMethod(original: callTimingList) {
+  editRowData.value = original
+  // edit.value = true\
+  emits('edit', original)
+}
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
 const columnHelper = createColumnHelper<callTimingList>()
-
 const columns = [
-
   columnHelper.accessor('id', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.index + 1)
+      return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
     },
   }),
 
@@ -233,22 +244,6 @@ const table = useVueTable({
     },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-
-function changeLimit(val: number | null) {
-  if (val !== null) {
-    emits('changeLimit', val)
-  }
-}
-
-function editMethod(original: callTimingList) {
-  editRowData.value = original
-  // edit.value = true\
-  emits('edit', original)
-}
 </script>
 
 <template>

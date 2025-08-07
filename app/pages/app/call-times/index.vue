@@ -1,64 +1,38 @@
 <script setup lang="ts">
-import { Input } from '~/components/ui/input'
+import { useDebounceFn } from '@vueuse/core'
 
-// export interface callTimingList {
-//   id: number
-//   day: string
-//   from_time: string
-//   to_time: string
-//   department_id: number
-//   name: string
-//   description: string
-//   calltimeStatus: boolean
-//   actions?: string
-// }
-
-const meta = {
-  current_page: 1,
-  per_page: 10,
-  last_page: 1,
-  total: 20,
-}
-
-const pageStart = ref(0)
+const start = ref(0)
 const limit = ref(10)
-const searchQuery = ref('')
+const search = ref('')
 
-const { data: callTimingList, status, refresh } = await useLazyAsyncData('get-call-timings', () =>
+const { data: callTimingList, status: callTimingListStatus, refresh: refreshCallTimingList } = await useLazyAsyncData('get-call-timings', () =>
   useApi().post('/get-call-timings', {
     body: {
-      start: pageStart.value,
+      start: start.value,
       limit: limit.value,
     },
   }), {
-  transform: (res) => {
-    return res
-  },
+  transform: res => res,
 })
 
 function changePage(page: number) {
-  pageStart.value = Number((page - 1) * limit.value)
-  return refresh()
+  start.value = Number((page - 1) * limit.value)
+  return refreshCallTimingList()
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  return refresh()
+  return refreshCallTimingList()
 }
 
-const filteredCallTimes = computed(() => {
-  if (!callTimingList.value?.data)
-    return []
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshCallTimingList()
+}, 1000, { maxWait: 5000 })
 
-  return callTimingList.value.data.filter((item: { name: string, day: string, description: string }) => {
-    const query = searchQuery.value.toLowerCase()
-    return (
-      item.name?.toLowerCase().includes(query)
-      || item.day?.toLowerCase().includes(query)
-      || item.description?.toLowerCase().includes(query)
-    )
-  })
-})
+function searchText() {
+  debouncedSearch()
+}
 
 const open = ref(false)
 const editRowData = ref({})
@@ -78,19 +52,16 @@ watch(() => open.value, (val) => {
     <!-- HEADER -->
     <BaseHeader title="Call Times">
       <template #actions>
-        <div class="relative">
-          <Input v-model="searchQuery" placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search List" @update:model-value="searchText" />
         <div>
-          <CallTimesCreate v-model:open="open" :data="editRowData" @complete="refresh" />
+          <CallTimesCreate v-model:open="open" :data="editRowData" @complete="refreshCallTimingList" />
         </div>
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :limit="limit" :total-rows="filteredCallTimes.length" :start="pageStart" :list="filteredCallTimes || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" />
+      <CallTimesTable :limit="limit" :total-rows="callTimingList?.record_count" :start="start" :list="callTimingList?.data || []" :loading="callTimingListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" />
     </div>
   </div>
 </template>
