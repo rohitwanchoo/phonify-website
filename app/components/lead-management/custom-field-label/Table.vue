@@ -154,8 +154,8 @@ function changeLimit(val: number | null) {
 }
 
 function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
+  deleteConfirm()
+  handleDelete()
 }
 
 const columnHelper = createColumnHelper<labelList>()
@@ -164,13 +164,8 @@ const columns = [
 
   // #
   columnHelper.accessor('id', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['#', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
+    header: () =>
+      h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
@@ -206,20 +201,22 @@ const columns = [
 
   // Status
   columnHelper.accessor('status', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
         variant: 'ghost',
+        class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => {
+      const status = row.index % 2 === 0 ? 'Active' : 'Inactive'
+
+      return h('div', { class: 'flex justify-center' }, h('span', {
+        class: cn(
+          'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
+          status === 'Active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
+        ),
+      }, status))
     },
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === '1',
-        'onUpdate:modelValue': (val: boolean) =>
-          updateStatus(row.original.id, val ? '1' : '0'),
-      })),
   }),
 
   // Action (no chevron, not sortable)

@@ -75,7 +75,7 @@ function searchText() {
   <div class="w-full h-[calc(100vh-165px)] overflow-y-auto mt-4">
     <LeadManagementCustomFieldLabelTable
       :limit="limit"
-      :total-rows="customfieldlabelData?.record_count || 0"
+      :total-rows="customfieldlabelData?.record_count"
       :start="start"
       :list="customfieldlabelData?.data || []"
       :loading="customfieldlabelStatus === 'pending'"
