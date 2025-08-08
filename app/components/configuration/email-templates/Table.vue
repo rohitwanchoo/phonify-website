@@ -52,6 +52,7 @@ const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
+const statusUpdatingId = ref<number | null>(null)
 
 const {
   isRevealed: showDeleteConfirm,
@@ -85,6 +86,7 @@ export interface emailTemplateList {
 const sheet = ref(false)
 
 async function updateStatus(id: number, status: string) {
+  statusUpdatingId.value = id // Start loading for this row
   try {
     const res = await useApi().post('/status-update-email-template', {
       listId: id,
@@ -92,24 +94,18 @@ async function updateStatus(id: number, status: string) {
     })
 
     if (res.success === 'true') {
-      showToast({
-        message: res.message,
-        type: 'success',
-      })
+      showToast({ message: res.message, type: 'success' })
       refreshNuxtData('email-templates')
     }
     else {
-      showToast({
-        message: res.message,
-        type: 'error',
-      })
+      showToast({ message: res.message, type: 'error' })
     }
   }
   catch (err) {
-    showToast({
-      message: `${err}`,
-      type: 'error',
-    })
+    showToast({ message: `${err}`, type: 'error' })
+  }
+  finally {
+    statusUpdatingId.value = null // Reset loading
   }
 }
 
@@ -209,9 +205,15 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'class': [
+          'data-[state=checked]:bg-green-600',
+          statusUpdatingId.value === row.original.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        ],
         'modelValue': row.original.status === '1',
+        'disabled': statusUpdatingId.value === row.original.id, // disable when loading
         'onUpdate:modelValue': (val: boolean) => {
+          if (statusUpdatingId.value === row.original.id)
+            return // Prevent click during update
           updateStatus(row.original.id, val ? '1' : '0')
         },
       })),

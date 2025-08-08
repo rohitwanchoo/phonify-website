@@ -186,7 +186,7 @@ const columns = [
         class: 'flex items-center gap-2 border-primary text-primary',
         onClick: () => onEdit(row.original),
       }, [
-        h(Icon, { name: 'material-symbols:edit-square-outline', class: 'text-primary' }),
+        h(Icon, { name: 'material-symbols:edit-square', class: 'text-primary' }),
         'Edit',
       ]),
       h(DropdownMenu, {
