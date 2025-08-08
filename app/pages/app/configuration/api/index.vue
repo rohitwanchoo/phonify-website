@@ -34,7 +34,7 @@ const filteredList = computed(() => {
         <BaseInputSearch v-model="searchQuery" class="w-[300px]" />
         <NuxtLink to="/app/configuration/api/create">
           <Button class="h-11">
-            <Icon class="!text-white" name="lucide:plus" />
+            <Icon class="!text-white" name="lucide:plus" size="20px" />
             Add API
           </Button>
         </NuxtLink>

@@ -128,8 +128,8 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm ' }, h(Switch, {
+        'class': 'data-[state=checked]:bg-green-600 cursor-not-allowed',
         'modelValue': row.original.status === true || row.original.status === 1,
         'onUpdate:modelValue': (val: boolean) => {
           row.original.status = val ? 1 : 0

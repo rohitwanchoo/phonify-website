@@ -149,17 +149,6 @@ function insertPlaceholder(value: any) {
       + newText
       + currentText?.substring(endPos)
 
-  const breadcrumbs = [
-    {
-      label: 'Voice Templates',
-      href: '/app/configuration/voice-templates',
-    },
-    {
-      label: isEdit.value ? 'Update Campaign' : 'Create New Campaign',
-      active: true,
-    },
-  ]
-
   setFieldValue('templete_desc', updated)
 
   const newCursorPos = startPos + newText.length
@@ -201,30 +190,24 @@ onMounted(() => {
   if (editId.value)
     setEditValues()
 })
+
+const breadcrumbs = [
+  {
+    label: 'Voice Templates',
+    href: '/app/configuration/voice-templates',
+  },
+  {
+    label: 'Add Voice Templates',
+    active: true,
+  },
+]
 </script>
 
 <template>
-  <Breadcrumb>
-    <BreadcrumbList>
-      <div class="flex items-center gap-x-2">
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/app/configuration/voice-templates" class="font-normal">
-            Voice Templates
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>
-            Add Voice Templates
-          </BreadcrumbPage>
-        </BreadcrumbItem>
-      </div>
-    </BreadcrumbList>
-  </Breadcrumb>
-  <BaseHeader title="Add Voice Templates" />
+  <BaseHeader title="Add Voice Templates" :breadcrumbs="breadcrumbs" />
 
-  <form class="w-full relative h-full border border-gray-200 rounded-xl py-4 md:py-6 flex flex-col gap-4 pb-4" @submit.prevent="onSubmit">
-    <div class="overflow-y-auto max-h-[88%]">
+  <form class="w-full relative h-[calc(100vh-190px)] border border-gray-200 rounded-xl py-4 md:py-6 flex flex-col gap-4 pb-4 mt-4" @submit.prevent="onSubmit">
+    <div class="overflow-y-auto">
       <div class="flex items-center justify-between px-4 md:px-6 pb-3">
         <h2 class="text-lg font-semibold text-primary">
           Voice Template details

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 
 const showDialog = ref(false)
 
