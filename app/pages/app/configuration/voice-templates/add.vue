@@ -149,6 +149,17 @@ function insertPlaceholder(value: any) {
       + newText
       + currentText?.substring(endPos)
 
+  const breadcrumbs = [
+    {
+      label: 'Voice Templates',
+      href: '/app/configuration/voice-templates',
+    },
+    {
+      label: isEdit.value ? 'Update Campaign' : 'Create New Campaign',
+      active: true,
+    },
+  ]
+
   setFieldValue('templete_desc', updated)
 
   const newCursorPos = startPos + newText.length
@@ -181,7 +192,7 @@ function setEditValues() {
       speed: [Number(data.speed)],
       pitch: [Number(data.pitch)],
     })
-  }).finally(()=>{
+  }).finally(() => {
     fetchValuesLoading.value = false
   })
 }
