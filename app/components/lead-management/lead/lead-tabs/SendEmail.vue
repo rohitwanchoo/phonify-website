@@ -303,8 +303,8 @@ const onSubmit = handleSubmit(async (vals) => {
         </div>
         <!-- Button section -->
         <div>
-          <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full">
-            <Icon name="material-symbols:mail" class="mr-1" />
+          <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full h-11">
+            <Icon name="material-symbols:mail" size="20"/>
             Send Email
           </Button>
         </div>

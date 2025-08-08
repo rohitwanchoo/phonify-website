@@ -221,8 +221,8 @@ const onSubmit = handleSubmit(async (vals) => {
         </div>
         <!-- Button section -->
         <div>
-          <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full">
-            <Icon name="material-symbols:chat" class="mr-1 !h-11" />
+          <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full h-11">
+            <Icon name="material-symbols:chat" size="20" />
             Send Text
           </Button>
         </div>

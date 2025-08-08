@@ -81,8 +81,8 @@ const onSubmit = handleSubmit((vals) => {
         </div>
         <!-- Button section -->
         <div>
-          <Button type="submit" :disabled="isSubmitting" class="w-full">
-            <Icon name="material-symbols:fax" class="mr-1" />
+          <Button type="submit" :disabled="isSubmitting" class="w-full h-11">
+            <Icon name="material-symbols:fax" size="20"/>
             Send Fax
           </Button>
         </div>
