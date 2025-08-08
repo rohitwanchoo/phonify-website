@@ -1,4 +1,4 @@
-import { getCountries, parsePhoneNumberFromString } from 'libphonenumber-js'
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { toast } from 'vue-sonner'
 
 interface ToastOptions {
@@ -79,6 +79,28 @@ export function copyToClipboard(value: any, name?: string) {
 
 export function formatWithCommas(value: number | string): string {
   return new Intl.NumberFormat().format(Number(value))
+}
+
+// Simple utility functions for dialer control
+export function openDialer() {
+  if (import.meta.client) {
+    const { openDialer } = useDialer()
+    openDialer()
+  }
+}
+
+export function closeDialer() {
+  if (import.meta.client) {
+    const { closeDialer } = useDialer()
+    closeDialer()
+  }
+}
+
+export function toggleDialer() {
+  if (import.meta.client) {
+    const { toggleDialer } = useDialer()
+    toggleDialer()
+  }
 }
 
 export const timeZones = [
@@ -186,7 +208,7 @@ export function userAvatarWord(fullName: string) {
     })
   }
   else {
-    name = fullName[0]
+    name = fullName[0] || ''
     if (fullName[1])
       name += fullName[1]
   }
