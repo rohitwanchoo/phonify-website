@@ -12,7 +12,7 @@ defineProps<{
 
 const emit = defineEmits<{
   close: []
-  call: [phoneNumber: string, countryCode: string]
+  call: [phoneNumber: string, countryCode: string, leadId?: string | number | null]
 }>()
 
 // Reactive state
@@ -81,7 +81,7 @@ function backspace() {
 function makeCall() {
   if (phoneNumber.value.trim()) {
     calling.value = true
-    emit('call', phoneNumber.value, currentCountry.value.code)
+    emit('call', phoneNumber.value, currentCountry.value?.code || '+1')
   }
 }
 
@@ -192,10 +192,11 @@ const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
             <!-- Phone Number Input -->
             <div class="flex items-center space-x-2 bg-[#00A08633] rounded-md px-3">
               <span class="text-white text-sm font-medium border-r pr-2.5 border-[#1F1E1C]">
-                {{ currentCountry.flag }} {{ currentCountry.code }}
+                {{ currentCountry?.flag }} {{ currentCountry?.code }}
               </span>
               <Input
                 v-model="phoneNumber"
+                v-maska="'(###) ###-####'"
                 type="tel"
                 placeholder="Enter phone number"
                 class="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus:ring-0 focus:outline-none p-0"
@@ -209,7 +210,7 @@ const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
               <Icon name="material-symbols:person" class="text-2xl text-white" />
             </div>
             <div class="mt-4 flex flex-col items-center gap-0.5">
-              <span v-if="!addOnDigits" class="text-white text-base font-semibold">{{ currentCountry.code }} {{ phoneNumber }}</span>
+              <span v-if="!addOnDigits" class="text-white text-base font-semibold">{{ currentCountry?.code }} {{ phoneNumber }}</span>
               <span v-else class="text-white text-base font-semibold">{{ addOnDigits }}</span>
 
               <span class="text-xs text-gray-300">Connecting...</span>

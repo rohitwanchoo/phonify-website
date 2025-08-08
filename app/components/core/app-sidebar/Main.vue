@@ -1,34 +1,13 @@
 <script setup lang="ts">
 import type { SidebarProps } from '@/components/ui/sidebar'
 
-import {
-  BookOpen,
-  Bot,
-  BotMessageSquare,
-  Frame,
-  LayoutDashboard,
-  Mailbox,
-  Megaphone,
-  MessageSquareMore,
-  MessageSquareText,
-  Settings2,
-  UserRoundCog,
-  UsersRound,
-  Voicemail,
-} from 'lucide-vue-next'
-
 import NavMain from '@/components/core/app-sidebar/NavMain.vue'
-import NavProjects from '@/components/core/app-sidebar/NavProjects.vue'
-import NavUser from '@/components/core/app-sidebar/NavUser.vue'
-import TeamSwitcher from '@/components/core/app-sidebar/TeamSwitcher.vue'
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
-  SidebarSeparator,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 
@@ -36,12 +15,20 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
 
+const route = useRoute()
+
+watch(() => route.path, (path) => {
+  if (path === '/app/start-dialing') {
+    navigateTo('/app/start-dialing/lead-details')
+  }
+})
+
 const data = {
   'Main Menu': [
     { title: 'Dashboard', url: '/app/dashboard', icon: 'material-symbols:dashboard' },
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai' },
     { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai' },
-    { title: 'Start Dailing', url: '/app/start-dialing/lead-details', icon: 'icons:start-dialing' },
+    { title: 'Start Dialing', url: '/app/start-dialing', icon: 'icons:start-dialing' },
     { title: 'Ringless Voicemail', url: '/app/ringless-voicemail', icon: 'material-symbols:voicemail-2', items: [
       { title: 'Campaign', url: '/app/ringless-voicemail/campaign' },
       { title: 'Lists', url: '/app/ringless-voicemail/lists' },
