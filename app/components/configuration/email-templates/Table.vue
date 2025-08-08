@@ -220,7 +220,7 @@ const columns = [
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+      return h('div', { class: 'text-center font-normal text-sm flex justify-end pr-1' }, [
         h(Button, {
           variant: 'outline',
           class: 'px-2',
@@ -230,7 +230,7 @@ const columns = [
           },
         }, [
           h(Icon, { name: 'material-symbols:visibility', size: '16' }),
-          h('span', { class: 'text-xs font-normal' }, 'View'),
+          h('span', { class: 'text-sm font-normal' }, 'View'),
         ]),
         h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(ConfigurationEmailTemplatesAction, {
           onEdit: () => {
@@ -338,14 +338,14 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
+              <SelectItem v-for="n in [10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>

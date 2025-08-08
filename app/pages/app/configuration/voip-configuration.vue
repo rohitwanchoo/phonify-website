@@ -12,10 +12,7 @@ const { data: voipData, status, refresh } = await useLazyAsyncData('voip-configu
 <template>
   <BaseHeader title="VoIP Configuration">
     <template #actions>
-      <div class="relative mt-[10px] md:mt-0">
-        <Input placeholder="Search Config." />
-        <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-      </div>
+      <BaseInputSearch class="w-[300px]" placeholder="search" />
       <ConfigurationVoipConfigurationCreate />
     </template>
   </BaseHeader>

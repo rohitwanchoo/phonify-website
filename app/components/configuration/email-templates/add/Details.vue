@@ -363,7 +363,7 @@ function insertPlaceholder(value: any) {
         <Button
 
           type="submit"
-          class="flex-1"
+          class="flex-1 h-11"
           :loading="loading"
           :disabled="loading"
           @click="onSubmit"

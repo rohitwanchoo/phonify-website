@@ -7,7 +7,8 @@ const searchQuery = ref('')
 //  API call for
 const { data: apiList, status, refresh } = await useLazyAsyncData('api-list', async () => {
   const response = await useApi().post('api-data', {
-    params: {},
+    params: {
+    },
   })
   return response
 })
@@ -30,12 +31,9 @@ const filteredList = computed(() => {
     <!-- HEADER -->
     <BaseHeader title="API">
       <template #actions>
-        <div class="relative mt-4 md:mt-0">
-          <Input v-model="searchQuery" placeholder="Search API" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch v-model="searchQuery" class="w-[300px]" />
         <NuxtLink to="/app/configuration/api/create">
-          <Button>
+          <Button class="h-11">
             <Icon class="!text-white" name="lucide:plus" />
             Add API
           </Button>

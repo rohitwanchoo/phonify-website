@@ -59,7 +59,7 @@ function onCancel() {
 
 <template>
   <div>
-    <Button @click="showWhitelistDialog = true">
+    <Button class="h-11" @click="showWhitelistDialog = true">
       <Icon class="!text-white" name="material-symbols:language" />
       Whitelist IP
     </Button>
