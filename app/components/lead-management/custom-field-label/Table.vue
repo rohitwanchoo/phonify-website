@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon } from '#components'
+import { Icon, LeadManagementLabelEdit } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -39,18 +39,22 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
-import Action from './Action.vue'
 
 const props = withDefaults(defineProps<{
   loading: boolean
   totalRows: number
   list: any[]
-  start: number // pagination start
-  limit?: number // pagination limit
+  start: number
+  limit?: number
 }>(), {
-  limit: 10, // Set default limit to 10
+  limit: 10,
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange', 'edit'])
+
+function onEdit(row: labelList) {
+  emits('edit', row)
+}
+
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -63,42 +67,80 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-async function deleteMethod(_original: callTimingList) {
-  const { isCanceled } = await revealDeleteConfirm()
-  if (isCanceled) {
-    return false
-  }
-  // console.log(row)
-  // TODO: API CALL HERE
+const selectedLabelIdForDelete = ref<number | null>(null)
 
-  showToast({
-    type: 'success',
-    message: 'Call times deleted successfully',
-  })
+// controls dialog visibility
+const isEditDialogOpen = ref(false)
+// stores the row to edit
+const selectedRowData = ref<labelList | null>(null)
+
+async function handleDelete() {
+  if (!selectedLabelIdForDelete.value)
+    return
+
+  try {
+    const res = await useApi().get(`/delete-custom-field-label/${selectedLabelIdForDelete.value}`)
+
+    if (res?.success === true) {
+      showToast({
+        type: 'success',
+        message: res.message,
+      })
+      emits('refresh')
+    }
+    else {
+      showToast({
+        type: 'error',
+        message: res.message,
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      type: 'error',
+      message: `${err.message}`,
+    })
+  }
+  finally {
+    selectedLabelIdForDelete.value = null
+  }
 }
 
-export interface callTimingList {
+export interface labelList {
   id: number
-  day: string
-  from_time: string
-  to_time: string
-  department_id: number
-  name: string
-  description: string
-  calltimeStatus: boolean
+  title: string
+  updated_at: string
+  status: string
   actions?: string
 }
 
-const sheet = ref(false)
+async function updateStatus(id: number, status: string) {
+  try {
+    const res = await useApi().post('/status-update-label', {
+      listId: id,
+      status,
+    })
 
-const selectedRowData = ref<callTimingList | null>(null)
-
-const editRowData = ref<callTimingList | null>(null)
-
-function editMethod(original: callTimingList) {
-  editRowData.value = original
-  // edit.value = true\
-  emits('edit', original)
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('customfieldlabel')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
 }
 
 function handlePageChange(page: number) {
@@ -107,52 +149,42 @@ function handlePageChange(page: number) {
 
 function changeLimit(val: number | null) {
   if (val !== null) {
-    emits('changeLimit', val)
+    emits('limitChange', val)
   }
 }
 
-const columnHelper = createColumnHelper<callTimingList>()
+function deleteConfirmHandler() {
+  deleteConfirm()
+  handleDelete()
+}
+
+const columnHelper = createColumnHelper<labelList>()
+
 const columns = [
+
+  // #
   columnHelper.accessor('id', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
-    },
+    header: () =>
+      h('div', { class: 'text-center text-sm font-normal' }, '#'),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
 
-  columnHelper.accessor('name', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('name'))
-    },
-  }),
-
-  columnHelper.accessor('from_time', {
+  // Name
+  columnHelper.accessor('title', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Default Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${moment(row.original.from_time, 'HH:mm:ss').format('h:mm A')} to ${moment(row.original.to_time, 'HH:mm:ss').format('h:mm A')}`),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title')),
   }),
 
-  columnHelper.accessor('department_id', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['No. Used Campaigns', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, '-')
-    },
-  }),
-  columnHelper.accessor('day', {
+  // Created Date
+  columnHelper.accessor('updated_at', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -162,50 +194,52 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, '-'),
+        h('div', { class: 'text-xs' }, moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')),
       ])
     },
   }),
 
-  columnHelper.accessor('calltimeStatus', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center ' }, h(Button, {
-        class: 'text-sm font-normal',
+  // Status
+  columnHelper.accessor('status', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
         variant: 'ghost',
+        class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.original.calltimeStatus, 'onUpdate:modelValue': (val: boolean) => {
-        row.original.calltimeStatus = val
-      } }))
+      const status = row.index % 2 === 0 ? 'Active' : 'Inactive'
+
+      return h('div', { class: 'flex justify-center' }, h('span', {
+        class: cn(
+          'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
+          status === 'Active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
+        ),
+      }, status))
     },
   }),
 
+  // Action (no chevron, not sortable)
   columnHelper.accessor('actions', {
-    header: () => {
-      return h('div', { class: 'text-center' }, 'Actions')
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+    cell: ({ row }) =>
+      h('div', { class: 'flex justify-center gap-x-1' }, [
         h(Button, {
           size: 'icon',
-          class: 'cursor-pointer',
+          variant: 'outline',
+          onClick: () => onEdit(row.original),
+        }, h(Icon, { name: 'material-symbols:edit-square' })),
+
+        h(Button, {
+          size: 'icon',
+          variant: 'outline',
+          class: 'border-red-600 text-red-600 hover:text-red-600/80',
           onClick: () => {
-            selectedRowData.value = row.original
-            sheet.value = true
+            selectedLabelIdForDelete.value = row.original.id
+            revealDeleteConfirm()
           },
-        }, h(Icon, { name: 'lucide:eye' })),
-        h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Action, {
-          onEdit: () => {
-            editMethod(row?.original)
-          },
-          onDelete: () => {
-            deleteMethod(row?.original)
-          },
-        })),
-      ])
-    },
+        }, h(Icon, { name: 'material-symbols:delete' })),
+      ]),
   }),
 
 ]
@@ -239,15 +273,12 @@ const table = useVueTable({
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg overflow-hidden">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -329,9 +360,14 @@ const table = useVueTable({
     </div>
   </div>
 
-  <!---->
-  <CallTimesTableSheet v-model:open="sheet" :schedule="selectedRowData || {}" />
+  <LeadManagementLabelEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
 
   <!-- CONFIRM DELETE -->
-  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Call Times" description="You are about to delete call time. Do you wish to proceed?" />
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete Custom Field Label"
+    description="You are about to delete this label. Do you wish to proceed?"
+  />
 </template>

@@ -76,6 +76,7 @@ const data = {
     ] },
     { title: 'Lead Management', url: '/app/lead-management', icon: 'icons:lead-management', items: [
       { title: 'Label', url: '/app/lead-management/label' },
+      { title: 'Custom Field Label', url: '/app/lead-management/custom-field-label' },
       { title: 'Lead', url: '/app/lead-management/lead' },
       { title: 'List', url: '/app/lead-management/list' },
       { title: 'Recycle Rule', url: '/app/lead-management/recycle-rule' },

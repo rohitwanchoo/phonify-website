@@ -78,7 +78,7 @@ const onSubmit = handleSubmit(async (values) => {
   <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <Button class="h-11">
-        <Icon class="!text-white" name="lucide:plus" />
+        <Icon class="!text-white" name="material-symbols:add" size="20" />
         Add Label
       </Button>
     </DialogTrigger>
