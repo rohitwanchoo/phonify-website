@@ -18,11 +18,13 @@ const senderType = 'user' // Fixed sender type
 
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
-  to: z.string().email('Enter a valid email').min(1, 'Lead email is required'),
-  from: z.string().email('Select a valid agent email').min(1, 'Agent email is required'),
-  template: z.string().optional(),
-  subject: z.string().min(1, 'Subject is required'),
-  templateContent: z.string().min(1, 'Template review is required').max(500, 'Max 500 characters'),
+  to: z.string().email('Lead Mail Id is required'),
+  from: z.string().email('Agent Mail Id is required'),
+  template: z.string().min(1, 'Please select a template').optional(),
+  LeadPlaceholders: z.string().min(1, 'Please select a lead placeholder'),
+  SenderPlaceholders: z.string().min(1, 'Please select a sender placeholder'),
+  subject: z.string().min(1, 'Subject is required').max(100, 'Subject cannot exceed 100 characters'),
+  templateContent: z.string().min(1, 'Template Preview is required')
 }))
 
 // Fetch sender details (agent emails)
@@ -38,6 +40,8 @@ const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
     to: props?.leadData?.email,
     from: '',
     template: '',
+    LeadPlaceholders: '',
+    SenderPlaceholders: '',
     subject: '',
     templateContent: '',
   },
@@ -159,7 +163,7 @@ const onSubmit = handleSubmit(async (vals) => {
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col justify-between gap-6 md:h-[500px]">
+      <div class="flex flex-col justify-between gap-6 md:h-[550px]">
         <!-- Form fields section -->
         <div class="flex-1 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,28 +171,28 @@ const onSubmit = handleSubmit(async (vals) => {
             <FormField v-slot="{ componentField }" name="to">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
-                  Recipient Email
+                  To
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter lead email"
+                    placeholder="Lead Mail Id"
                     v-bind="componentField"
-                    class="border-gray-200"
+                    class="border-gray-200 h-11"
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage class="text-red-500" />
               </FormItem>
             </FormField>
             <!-- Agent -->
             <FormField v-slot="{ componentField }" name="from">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
-                  Agent
+                  From
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger class="w-full h-11">
-                      <SelectValue placeholder="Select agent email" />
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Agent Mail Id" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in emailSenderData" :key="option.id" :value="option.from_email">
@@ -197,7 +201,7 @@ const onSubmit = handleSubmit(async (vals) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage />
+                <FormMessage class="text-red-500" />
               </FormItem>
             </FormField>
           </div>
@@ -207,7 +211,7 @@ const onSubmit = handleSubmit(async (vals) => {
               <FormLabel>Template</FormLabel>
               <FormControl>
                 <Select v-bind="componentField" :disabled="emailTemplateData.length === 0">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue :placeholder="emailTemplateData.length === 0 ? 'No templates available' : 'Select template'" />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,40 +221,81 @@ const onSubmit = handleSubmit(async (vals) => {
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage />
+              <FormMessage class="text-red-500" />
             </FormItem>
           </FormField>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Lead Placeholders -->
+            <FormField v-slot="{ componentField }" name="LeadPlaceholders">
+              <FormItem class="flex flex-col gap-1">
+                <FormLabel class="text-sm font-medium text-gray-700">
+                  Lead Placeholders
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Select Placeholder"
+                    v-bind="componentField"
+                    class="border-gray-200 h-11"
+                  />
+                </FormControl>
+                <FormMessage class="text-red-500" />
+              </FormItem>
+            </FormField>
+            <!-- Sender Placeholders -->
+            <FormField v-slot="{ componentField }" name="SenderPlaceholders">
+              <FormItem class="flex flex-col gap-1">
+                <FormLabel class="text-sm font-medium text-gray-700">
+                  Sender Placeholders
+                </FormLabel>
+                <FormControl>
+                  <Select v-bind="componentField">
+                    <SelectTrigger class="w-full !h-11">
+                      <SelectValue placeholder="Select Placeholder" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="option in emailSenderData" :key="option.id" :value="option.from_email">
+                        {{ option.from_name }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage class="text-red-500" />
+              </FormItem>
+            </FormField>
+          </div>
+
           <!-- Subject (full width) -->
           <FormField v-slot="{ componentField }" name="subject">
             <FormItem>
               <FormLabel>Subject</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter subject"
+                  placeholder="Enter Mail Subject"
                   v-bind="componentField"
-                  class="border-gray-200"
+                  class="border-gray-200 h-11"
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage class="text-red-500" />
             </FormItem>
           </FormField>
           <!-- Message (full width) -->
           <FormField v-slot="{ componentField }" name="templateContent">
             <FormItem>
-              <FormLabel>Message</FormLabel>
+              <FormLabel>Template Preview</FormLabel>
               <FormControl>
                 <Textarea
                   v-bind="componentField"
-                  placeholder="Type your email content"
+                  placeholder="Enter message here..."
                   maxlength="500"
                   rows="8"
                   class="resize-y pr-14 min-h-[100px]"
                 />
               </FormControl>
               <div class="flex justify-between">
-                <FormMessage class="w-full" />
+                <FormMessage class="text-red-500 w-70" />
                 <span class="w-full text-right text-xs text-muted-foreground select-none">
-                  {{ templateContentLength }}/500
+                  {{ templateContentLength }}/500 Characters
                 </span>
               </div>
             </FormItem>

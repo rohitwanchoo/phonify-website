@@ -27,8 +27,8 @@ const phoneCountryCode = ref(1)
 // Form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
   leadContact: z.string().min(1, 'Lead contact number is required'),
-  agentContact: z.number().min(1, 'Agent contact number is required'),
-  template: z.number().min(1, 'Template is required'),
+  agentContact: z.union([z.string(), z.number()]).refine(val => val !== '', 'Agent contact number is required'),
+  template: z.union([z.string(), z.number()]).refine(val => val !== '', 'Template is required'),
   templateMessage: z.string().min(1, 'Message is required').max(200, 'Max 200 characters'),
 }))
 
@@ -57,9 +57,9 @@ function getCountryLabel(code: string) {
 const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    leadContact: props?.leadData?.phone_number,
-    agentContact: undefined,
-    template: undefined,
+    leadContact: props?.leadData?.phone_number || '',
+    agentContact: '',
+    template: '',
     templateMessage: '',
   },
 })
@@ -165,7 +165,7 @@ const onSubmit = handleSubmit(async (vals) => {
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select agent" />
+                      <SelectValue placeholder="Agent Contact No." />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in agentOptions" :key="option.value" :value="option.value">
@@ -213,7 +213,7 @@ const onSubmit = handleSubmit(async (vals) => {
               <div class="flex justify-between">
                 <FormMessage class="w-full" />
                 <span class="text-xs text-muted-foreground select-none w-full text-end">
-                  {{ messageLength }}/200
+                  {{ messageLength }}/200 Characters
                 </span>
               </div>
             </FormItem>
