@@ -6,7 +6,7 @@ function copyToClipboard(text: string) {
 }
 
 // Use dialer composable
-const { openDialer } = useDialer()
+const { openDialer, closeDialer } = useDialer()
 
 const leadId = ref(247)
 
@@ -152,7 +152,12 @@ const data = computed(() => [
         <Icon name="material-symbols:dialpad" size="20" />
         Dial-pad
       </Button>
-      <StartDialingLeadDetailsSelectDisposition />
+      <StartDialingLeadDetailsSelectDisposition>
+        <Button variant="destructive" name="hangup" class="w-full flex-1 cursor-pointer hidden" @click="closeDialer">
+          <Icon name="material-symbols:call-end" size="20" />
+          Hangup
+        </Button>
+      </StartDialingLeadDetailsSelectDisposition>
       <Button class="w-full flex-1 cursor-pointer bg-green-600" name="call" @click="openDialer">
         <Icon name="material-symbols:call" size="20" />
         Call

@@ -12,8 +12,6 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Switch } from '~/components/ui/switch'
 
-const { closeDialer } = useDialer()
-
 const selectedDisposition = ref('')
 
 const disposition = [
@@ -104,12 +102,7 @@ function handleSave() {
 <template>
   <Dialog>
     <DialogTrigger as-child>
-      <slot>
-        <Button variant="destructive" name="hangup" class="w-full flex-1 cursor-pointer hidden" @click="closeDialer">
-          <Icon name="material-symbols:call-end" size="20" />
-          Hangup
-        </Button>
-      </slot>
+      <slot />
     </DialogTrigger>
     <DialogContent class="rounded-[12px] w-full sm:max-w-[715px]">
       <DialogHeader class="pb-3 border-b border-b-[#0000000D]">
