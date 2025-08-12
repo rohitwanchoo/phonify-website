@@ -60,7 +60,7 @@ export default defineNuxtConfig({
     // Private keys (only available on the server-side)
     // These will be automatically overridden by NUXT_SESSION_PASSWORD and NUXT_API_BASE_URL environment variables
     sessionPassword: '',
-    apiBaseUrl: 'http://52.70.140.162',
+    apiBaseUrl: 'https://api.phonify.com',
     // Public keys (exposed to the client-side)
     public: {
       apiBaseUrl: '/api/proxy',
@@ -71,7 +71,7 @@ export default defineNuxtConfig({
     devProxy: {
       '/api/proxy': {
         // eslint-disable-next-line node/prefer-global/process
-        target: process.env.NUXT_API_BASE_URL || 'http://52.70.140.162',
+        target: process.env.NUXT_API_BASE_URL || 'https://api.phonify.com',
         changeOrigin: true,
         prependPath: false,
       },

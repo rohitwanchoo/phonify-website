@@ -68,7 +68,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     sessionPassword: process.env.NUXT_SESSION_PASSWORD || '',
     public: {
-      apiBaseUrl: process.env.NUXT_API_BASE_URL || 'http://52.70.140.162',
+      apiBaseUrl: process.env.NUXT_API_BASE_URL || 'https://api.phonify.com',
     }
   }
 })
