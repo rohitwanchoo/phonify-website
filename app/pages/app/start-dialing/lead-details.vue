@@ -1,19 +1,34 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
 
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text)
-}
-
 // Use dialer composable
-const { openDialer, closeDialer } = useDialer()
+const { openDialer, callState, endCall, closeDialer, startCall } = useDialer()
 
 const leadId = ref(247)
+
+const openDisposition = ref(false)
+
+// Track previous call state to detect when call ends
+const previousCallState = ref(false)
 
 const { data: leadData, status: leadDataStatus } = await useLazyAsyncData('lead-details', () =>
   useApi().get(`/lead/${leadId.value}`), {
   transform: res => res.data,
 })
+
+// Watch for call state changes to auto-open disposition dialog
+watch(() => callState.value.isActive, (currentState, previousState) => {
+  // Call just ended (was active, now inactive)
+  if (previousState === true && currentState === false) {
+    // Small delay to ensure UI transitions smoothly
+    nextTick(() => {
+      openDisposition.value = true
+    })
+  }
+
+  // Update previous state
+  previousCallState.value = currentState
+}, { immediate: true })
 
 // Use computed instead of ref for reactive data
 const data = computed(() => [
@@ -29,7 +44,7 @@ const data = computed(() => [
   },
   {
     label: 'Phone Number',
-    value: formatNumber(leadData.value?.phone_number || ''),
+    value: leadData.value?.phone_number || '',
     copy: true,
   },
   {
@@ -83,6 +98,61 @@ const data = computed(() => [
     copy: false,
   },
 ])
+
+function handleHangup() {
+  endCall()
+  closeDialer()
+  // Don't manually open disposition here - the watcher will handle it
+}
+
+// Handle disposition dialog close
+function handleDispositionClose() {
+  openDisposition.value = false
+}
+
+// Handle manual call initiation
+function handleCallStart() {
+  // Close disposition if it's open when starting a new call
+  if (openDisposition.value) {
+    openDisposition.value = false
+  }
+
+  openDialer({
+    phoneNumber: leadData.value?.phone_number,
+    leadId: leadId.value,
+  })
+}
+
+// Handle redial functionality
+function handleRedial() {
+  // Close the disposition dialog first
+  openDisposition.value = false
+
+  // Small delay to ensure dialog closes smoothly before starting new call
+  nextTick(() => {
+    // Check if we have a valid phone number
+    if (!leadData.value?.phone_number) {
+      showToast({
+        message: 'No phone number available for redial',
+        type: 'warning',
+      })
+      return
+    }
+
+    // Initiate the new call
+    openDialer({
+      phoneNumber: leadData.value.phone_number,
+      leadId: leadId.value,
+    })
+
+    // Start the redial call directly
+    startCall(
+      leadData.value.phone_number,
+      '+1', // Default country code, you might want to make this dynamic
+      leadId.value,
+    )
+  })
+}
 </script>
 
 <template>
@@ -113,13 +183,15 @@ const data = computed(() => [
           <div v-for="(item, index) in data" :key="index" class="flex flex-col gap-2">
             <span class="text-gray-500 text-xs">{{ item.label }}</span>
             <div class="flex items-center gap-2">
-              <span class="text-sm text-primary">{{ item.value }}</span>
+              <span class="text-sm text-primary">
+                {{ item.label === 'Phone Number' ? formatNumber(item.value) : item.value }}
+              </span>
               <Icon
-                v-if="item.copy && item.value && item.value !== 'N/A'"
-                name="material-symbols-outlined:content-copy"
+                v-if="item.copy === true"
+                name="material-symbols:content-copy-outline"
                 size="16"
-                class="cursor-pointer"
-                @click="copyToClipboard(item.value)"
+                class="cursor-pointer text-black hover:text-green-800"
+                @click="copyToClipboard(item.value, item.label)"
               />
             </div>
           </div>
@@ -135,6 +207,7 @@ const data = computed(() => [
         />
       </div>
     </div>
+
     <div class="sticky bottom-0 p-5 flex gap-4 justify-between bg-white shadow-md overflow-x-auto">
       <Button variant="outline" name="transfer" class="w-full flex-1 cursor-pointer">
         <Icon name="material-symbols:sync-alt" size="20" />
@@ -152,16 +225,34 @@ const data = computed(() => [
         <Icon name="material-symbols:dialpad" size="20" />
         Dial-pad
       </Button>
-      <StartDialingLeadDetailsSelectDisposition>
-        <Button variant="destructive" name="hangup" class="w-full flex-1 cursor-pointer hidden" @click="closeDialer">
-          <Icon name="material-symbols:call-end" size="20" />
-          Hangup
-        </Button>
-      </StartDialingLeadDetailsSelectDisposition>
-      <Button class="w-full flex-1 cursor-pointer bg-green-600" name="call" @click="openDialer">
+
+      <!-- Dynamic Call/Hangup Button -->
+      <Button
+        v-if="callState.isActive"
+        variant="destructive"
+        name="hangup"
+        class="w-full flex-1 cursor-pointer"
+        @click="handleHangup"
+      >
+        <Icon name="material-symbols:call-end" size="20" />
+        Hangup
+      </Button>
+      <Button
+        v-else
+        class="w-full flex-1 cursor-pointer bg-green-600 hover:bg-green-500"
+        name="call"
+        @click="handleCallStart"
+      >
         <Icon name="material-symbols:call" size="20" />
         Call
       </Button>
     </div>
+
+    <!-- Disposition Dialog - Always present, controlled by openDisposition -->
+    <StartDialingLeadDetailsSelectDisposition
+      :is-open="openDisposition"
+      @close="handleDispositionClose"
+      @redial="handleRedial"
+    />
   </div>
 </template>

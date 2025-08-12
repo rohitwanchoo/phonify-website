@@ -82,10 +82,10 @@ export function formatWithCommas(value: number | string): string {
 }
 
 // Simple utility functions for dialer control
-export function openDialer() {
+export function openDialer(phoneNumber?: string) {
   if (import.meta.client) {
     const { openDialer } = useDialer()
-    openDialer()
+    openDialer({ phoneNumber })
   }
 }
 

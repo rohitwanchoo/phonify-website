@@ -12,7 +12,43 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Switch } from '~/components/ui/switch'
 
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits<{
+  close: []
+  save: [disposition: string, title?: string, pauseCalling?: boolean]
+  redial: []
+}>()
+
 const selectedDisposition = ref('')
+const title = ref('')
+const pauseCalling = ref(false)
+
+const open = ref(props.isOpen)
+
+// Watch for prop changes and sync internal state
+watch(() => props.isOpen, (newVal) => {
+  open.value = newVal
+
+  // Reset form when dialog opens
+  if (newVal) {
+    selectedDisposition.value = ''
+    title.value = ''
+    pauseCalling.value = false
+  }
+}, { immediate: true })
+
+// Watch for internal open state changes to emit close event
+watch(open, (newVal) => {
+  if (!newVal && props.isOpen) {
+    emit('close')
+  }
+})
 
 const disposition = [
   {
@@ -94,13 +130,28 @@ const disposition = [
 ]
 
 function handleSave() {
-  console.log('Selected:', selectedDisposition.value)
-  // Trigger save/emit/api call here
+  if (!selectedDisposition.value) {
+    // You might want to show an error message here
+    return
+  }
+
+  emit('save', selectedDisposition.value, title.value, pauseCalling.value)
+  open.value = false
+}
+
+function handleRedial() {
+  emit('redial')
+  open.value = false
+}
+
+// Handle dialog close via escape key or click outside
+function handleDialogClose() {
+  open.value = false
 }
 </script>
 
 <template>
-  <Dialog>
+  <Dialog v-model:open="open" @update:open="handleDialogClose">
     <DialogTrigger as-child>
       <slot />
     </DialogTrigger>
@@ -110,43 +161,66 @@ function handleSave() {
           Select Disposition
         </DialogTitle>
       </DialogHeader>
-      <div class="grid grid-cols-4 gap-3">
-        <Label
-          v-for="(item, index) in disposition"
-          :key="index"
-          :for="`disposition-${index}`"
-          class="h-11 text-sm text-primary rounded-lg flex gap-2 items-center justify-between px-3 cursor-pointer border border-[#00A0861A]" :class="[
-            selectedDisposition === item.value ? 'bg-[#00A086] text-white' : 'bg-[#00A0860D]',
-          ]"
-        >
-          {{ item.label }}
-          <input
-            :id="`disposition-${index}`"
-            v-model="selectedDisposition"
-            type="radio"
-            name="disposition"
-            :value="item.value"
-            class="ml-2 appearance-none size-4 checked:size-3 p-1 border border-primary rounded-full checked:bg-white checked:border-3 checked:border-[#00A086] checked:ring-1 ring-white"
+
+      <div class="space-y-4">
+        <!-- Disposition Selection Grid -->
+        <div class="grid grid-cols-4 gap-3">
+          <Label
+            v-for="(item, index) in disposition"
+            :key="index"
+            :for="`disposition-${index}`"
+            class="h-11 text-sm text-primary rounded-lg flex gap-2 items-center justify-between px-3 cursor-pointer border border-[#00A0861A] transition-colors"
+            :class="[
+              selectedDisposition === item.value ? 'bg-[#00A086] text-white' : 'bg-[#00A0860D] hover:bg-[#00A08620]',
+            ]"
           >
-        </Label>
-      </div>
+            {{ item.label }}
+            <input
+              :id="`disposition-${index}`"
+              v-model="selectedDisposition"
+              type="radio"
+              name="disposition"
+              :value="item.value"
+              class="ml-2 appearance-none size-4 checked:size-3 p-1 border border-primary rounded-full checked:bg-white checked:border-3 checked:border-[#00A086] checked:ring-1 ring-white"
+            >
+          </Label>
+        </div>
 
-      <div>
-        <Label class="text-xs text-[#162D3A] mb-1">Title</Label>
-        <Input type="datetime-local" class="w-full placeholder:text-[#162D3A80]" />
-      </div>
+        <!-- Title Input -->
+        <div>
+          <Label class="text-xs text-[#162D3A] mb-1 block">Title</Label>
+          <Input
+            v-model="title"
+            type="datetime-local"
+            class="w-full placeholder:text-[#162D3A80]"
+            placeholder="Optional title or notes"
+          />
+        </div>
 
-      <div class="flex items-center justify-between">
-        <Label class="text-xs text-[#162D3A]">Pause Calling</Label>
-        <Switch class="data-[state=checked]:bg-green-600" />
+        <!-- Pause Calling Toggle -->
+        <div class="flex items-center justify-between">
+          <Label class="text-xs text-[#162D3A]">Pause Calling</Label>
+          <Switch
+            v-model:checked="pauseCalling"
+            class="data-[state=checked]:bg-green-600"
+          />
+        </div>
       </div>
 
       <DialogFooter class="flex gap-3 justify-between items-center">
-        <Button variant="outline" class="w-full flex-1 cursor-pointer">
+        <Button
+          variant="outline"
+          class="w-full flex-1 cursor-pointer"
+          @click="handleRedial"
+        >
           <Icon name="material-symbols:call" size="20" />
           Redial
         </Button>
-        <Button class="w-full flex-1 cursor-pointer" @click="handleSave">
+        <Button
+          class="w-full flex-1 cursor-pointer"
+          :disabled="!selectedDisposition"
+          @click="handleSave"
+        >
           <Icon name="material-symbols:save" size="20" />
           Save
         </Button>
