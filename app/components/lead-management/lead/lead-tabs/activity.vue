@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select'
 
 const props = defineProps({
-  leadActivityData: Object
+  leadActivityData: Object,
 })
 
 const callLogs = [
@@ -74,7 +74,6 @@ const countryCode = [
   { id: 3, name: 'Canada' },
 ]
 
-
 // Track selected value for each log by id
 const selectedCountryCodes = ref<{ [id: number]: string }>({})
 
@@ -108,7 +107,7 @@ function toggleAudio(id: number) {
       :key="log.id"
       class="border border-[#F4F4F5] rounded-md p-2 gap-4 bg-white"
     >
-    {{ props.leadActivityData }}
+      <!-- {{ props.leadActivityData }} -->
       <!-- Top Row: Avatar + Details + Actions -->
       <div class="flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
@@ -141,7 +140,7 @@ function toggleAudio(id: number) {
                     v-model="selectedCountryCodes[log.id]"
                   >
                     <SelectTrigger class="min-w-[150px] !h-8">
-                      <SelectValue class="text-[12px] placeholder:text-[#ef698180]" placeholder="Select Code" />
+                      <SelectValue class="text-[12px] placeholder:text-[#ef698180]" placeholder="Select Disposition" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>

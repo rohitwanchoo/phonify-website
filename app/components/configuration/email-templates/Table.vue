@@ -52,6 +52,7 @@ const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
+const statusUpdatingId = ref<number | null>(null)
 
 const {
   isRevealed: showDeleteConfirm,
@@ -85,6 +86,7 @@ export interface emailTemplateList {
 const sheet = ref(false)
 
 async function updateStatus(id: number, status: string) {
+  statusUpdatingId.value = id // Start loading for this row
   try {
     const res = await useApi().post('/status-update-email-template', {
       listId: id,
@@ -92,24 +94,18 @@ async function updateStatus(id: number, status: string) {
     })
 
     if (res.success === 'true') {
-      showToast({
-        message: res.message,
-        type: 'success',
-      })
+      showToast({ message: res.message, type: 'success' })
       refreshNuxtData('email-templates')
     }
     else {
-      showToast({
-        message: res.message,
-        type: 'error',
-      })
+      showToast({ message: res.message, type: 'error' })
     }
   }
   catch (err) {
-    showToast({
-      message: `${err}`,
-      type: 'error',
-    })
+    showToast({ message: `${err}`, type: 'error' })
+  }
+  finally {
+    statusUpdatingId.value = null // Reset loading
   }
 }
 
@@ -209,9 +205,15 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'class': [
+          'data-[state=checked]:bg-green-600',
+          statusUpdatingId.value === row.original.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        ],
         'modelValue': row.original.status === '1',
+        'disabled': statusUpdatingId.value === row.original.id, // disable when loading
         'onUpdate:modelValue': (val: boolean) => {
+          if (statusUpdatingId.value === row.original.id)
+            return // Prevent click during update
           updateStatus(row.original.id, val ? '1' : '0')
         },
       })),
@@ -220,7 +222,7 @@ const columns = [
     id: 'actions',
     header: () => h('div', { class: 'text-center' }, 'Actions'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+      return h('div', { class: 'text-center font-normal text-sm flex justify-end pr-1' }, [
         h(Button, {
           variant: 'outline',
           class: 'px-2',
@@ -230,7 +232,7 @@ const columns = [
           },
         }, [
           h(Icon, { name: 'material-symbols:visibility', size: '16' }),
-          h('span', { class: 'text-xs font-normal' }, 'View'),
+          h('span', { class: 'text-sm font-normal' }, 'View'),
         ]),
         h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(ConfigurationEmailTemplatesAction, {
           onEdit: () => {
@@ -338,14 +340,14 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
+              <SelectItem v-for="n in [10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>

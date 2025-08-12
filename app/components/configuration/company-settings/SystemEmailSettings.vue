@@ -49,7 +49,7 @@ function goToAddSmtp() {
         System Email Setting
       </h2>
       <Button
-        class="inline-flex items-center gap-2 border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 mt-2 lg hover:bg-white hover:text-gray-700"
+        class="inline-flex items-center mb-2 gap-2 border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 mt-2 lg hover:bg-white hover:text-gray-700"
         type="button"
         @click="goToAddSmtp"
       >

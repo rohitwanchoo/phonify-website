@@ -9,11 +9,11 @@ const route = useRoute()
 
 interface Props {
   data: {
-    last_name?: string;
-    first_name?: string;
-    email?: string;
-    state?: string;
-    company_name?: string;
+    last_name?: string
+    first_name?: string
+    email?: string
+    state?: string
+    company_name?: string
   }
 }
 function onEdit() {
@@ -28,8 +28,8 @@ function onEdit() {
       <h2 class="text-lg lg:text-base xl:text-lg font-semibold text-gray-800">
         Lead Details
       </h2>
-      <Button class="bg-white text-black border border-black hover:bg-white" @click="onEdit">
-        <Icon name="material-symbols:edit-square" />
+      <Button class="bg-white text-black border border-black h-11 p-3 hover:bg-white" @click="onEdit">
+        <Icon name="material-symbols:edit-square" size="20" />
         Edit
       </Button>
     </div>

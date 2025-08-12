@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-
 const route = useRoute()
 const editId = computed(() => route.query.id ? Number(route.query.id) : null)
 
@@ -16,29 +14,24 @@ const { data: emailTemplate, status } = await useLazyAsyncData('email-template',
 // Page title based on mode
 const pageTitle = computed(() => editId.value ? emailTemplate.value?.template_name : 'Add Email Template')
 const breadcrumbTitle = computed(() => editId.value ? 'Edit Email Template' : 'Add Email Template')
+const breadcrumbs = [
+  {
+    label: 'Email Template list',
+    href: '/app/configuration/email-templates',
+  },
+  {
+    label: breadcrumbTitle.value,
+    active: true,
+  },
+]
 </script>
 
 <template>
-  <Breadcrumb>
-    <BreadcrumbList>
-      <div class="flex items-center gap-x-2">
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/app/configuration/email-templates" class="font-normal">
-            Email Template List
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>
-            {{ breadcrumbTitle }}
-          </BreadcrumbPage>
-        </BreadcrumbItem>
-      </div>
-    </BreadcrumbList>
-  </Breadcrumb>
-  <BaseHeader :title="pageTitle" />
-  <ConfigurationEmailTemplatesAddDetails
-    :email-template="emailTemplate"
-    :email-template-status="status"
-  />
+  <BaseHeader :title="pageTitle" :breadcrumbs="breadcrumbs" />
+  <div class="pt-4">
+    <ConfigurationEmailTemplatesAddDetails
+      :email-template="emailTemplate"
+      :email-template-status="status"
+    />
+  </div>
 </template>

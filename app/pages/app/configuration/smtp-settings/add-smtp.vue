@@ -239,7 +239,7 @@ onMounted(() => {
   <Verified v-model:open="showVerifiedDialog" @close="showVerifiedDialog = false" />
   <Failed v-model:open="showFailedDialog" @close="showFailedDialog = false" />
 
-  <form class="w-full relative h-[calc(100vh-190px)] border border-gray-200 rounded-xl flex flex-col overflow-hidden" @submit.prevent="onSubmit">
+  <form class="w-full relative h-[calc(100vh-190px)] border border-gray-200 rounded-xl flex flex-col overflow-hidden mt-4" @submit.prevent="onSubmit">
     <!-- Scrollable area: includes heading, separator, and fields -->
     <div class="overflow-y-auto flex-1 pb-40">
       <div class="flex items-center justify-between px-6 pt-6">

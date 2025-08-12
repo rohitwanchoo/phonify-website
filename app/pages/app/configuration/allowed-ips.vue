@@ -52,10 +52,7 @@ function changeLimit(val: number) {
     <!-- HEADER -->
     <BaseHeader title="Allowed IPs">
       <template #actions>
-        <div class="relative">
-          <Input v-model="searchQuery" placeholder="Search List" class="pr-8" />
-          <Icon class="absolute top-[9px] right-2" name="material-symbols:search" size="20" />
-        </div>
+        <BaseInputSearch v-model="searchQuery" class="w-[300px]" placeholder="Search Allowed IPs" />
         <ConfigurationAllowedIpsAdd />
       </template>
     </BaseHeader>

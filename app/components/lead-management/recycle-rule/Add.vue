@@ -38,6 +38,7 @@ function onDialogOpen(val: boolean) {
     campaignRefresh()
     leadListRefresh()
     dispositionRefresh()
+    resetForm()
   }
 }
 
@@ -82,6 +83,15 @@ const formSchema = toTypedSchema(z.object({
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    campaign: 0,
+    list: 0,
+    disposition: 0,
+    day: [],
+    callTime: 2,
+    fromTime: '',
+    toTime: '',
+  },
 })
 
 const selectedDays = ref<string[]>([])
@@ -126,6 +136,7 @@ const onSubmit = handleSubmit(async (values) => {
     loading.value = false
   }
 })
+
 </script>
 
 <template>

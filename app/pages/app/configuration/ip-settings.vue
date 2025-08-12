@@ -53,10 +53,7 @@ function clearFilter() {
 <template>
   <BaseHeader title="IP Approval List">
     <template #actions>
-      <div class="relative">
-        <Input placeholder="Search List" />
-        <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-      </div>
+      <BaseInputSearch class="w-[300px]" placeholder="search" />
       <ConfigurationIpSettingsFilterSheet v-model:form-values="filterValues" @apply-filter="applyFilter" @clear-filter="clearFilter" />
       <ConfigurationIpSettingsWhiteListIpDialog @refresh="refreshIpSettingList()" />
     </template>
