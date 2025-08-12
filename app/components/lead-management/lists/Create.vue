@@ -41,9 +41,14 @@ const formSchema = z.object({
   checkDuplicates: z.boolean().optional(),
 })
 
-const { handleSubmit, values } = useForm({
+const { handleSubmit, resetForm } = useForm({
   validationSchema: toTypedSchema(formSchema),
-
+initialValues: {
+    title: '',
+    file: [],
+    campaign_id: 0,
+    checkDuplicates: false,
+  },
 })
 
 const { setValue: setFile } = useField('file')
@@ -87,6 +92,7 @@ function onNext() {
 function onModelOpen(val: boolean) {
   if (val)
     refreshCampaigns()
+    resetForm()
 }
 </script>
 

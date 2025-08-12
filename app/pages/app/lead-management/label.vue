@@ -44,7 +44,7 @@ function searchText() {
     </template>
   </BaseHeader>
 
-  <div class="flex gap-4 justify-between">
+  <div class="flex gap-4 justify-between mt-6">
     <!-- TABLE -->
     <div class="w-full h-[calc(100vh-165px)] overflow-y-auto">
       <LeadManagementLabelTable :limit="limit" :total-rows="labelData?.record_count" :start="start" :list="labelData?.data || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" />

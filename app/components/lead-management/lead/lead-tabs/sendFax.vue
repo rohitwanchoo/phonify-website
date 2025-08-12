@@ -50,7 +50,7 @@ const onSubmit = handleSubmit((vals) => {
                 <FormLabel>From</FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger class="w-full">
+                    <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Agent Number" class="text-xs md:text-sm" />
                     </SelectTrigger>
                     <SelectContent>
@@ -68,7 +68,7 @@ const onSubmit = handleSubmit((vals) => {
               <FormItem class="flex flex-col gap-1">
                 <FormLabel>Recipient Fax Number</FormLabel>
                 <FormControl>
-                  <Input v-bind="componentField" type="tel" placeholder="Fax Number" />
+                  <Input v-bind="componentField" type="tel" placeholder="Fax Number" class="h-11"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -81,8 +81,8 @@ const onSubmit = handleSubmit((vals) => {
         </div>
         <!-- Button section -->
         <div>
-          <Button type="submit" :disabled="isSubmitting" class="w-full">
-            <Icon name="material-symbols:fax" class="mr-1" />
+          <Button type="submit" :disabled="isSubmitting" class="w-full h-11">
+            <Icon name="material-symbols:fax" size="20"/>
             Send Fax
           </Button>
         </div>

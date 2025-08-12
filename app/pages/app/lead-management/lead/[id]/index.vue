@@ -57,7 +57,7 @@ const breadcrumbs = [
       </Button>
     </template>
   </BaseHeader>
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
     <div class="lg:col-span-4">
       <LeadManagementLeadDetails :data="leadData" />
     </div>
