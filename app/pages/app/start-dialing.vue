@@ -16,6 +16,8 @@ const show = computed(() => {
   return sidePanel
 })
 
+const selectedCampaign = ref()
+
 const sidePanel = ref([
   {
     title: 'Lead Details',
@@ -56,31 +58,54 @@ onMounted(() => {
     navigateTo('/app/start-dialing/lead-details')
   }
 })
+
+const { data: campaignList, status: campaignListStatus } = await useLazyAsyncData('campaign-list', () =>
+  useApi().post('/campaign'), {
+  transform: res => res.data,
+  immediate: true,
+})
 </script>
 
 <template>
   <div class="h-full overflow-y-auto">
     <!-- HEADER -->
-    <BaseHeader title="Campaign 1">
+    <BaseHeader :title="selectedCampaign">
       <template #actions>
-        <Select>
-          <SelectTrigger class="lg:min-w-[300px]">
-            <SelectValue placeholder="Web Phone" class="text-xs" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="web-phone">
-                Web Phone
+        <div class="flex gap-3 items-center">
+          <Select v-model="selectedCampaign">
+            <SelectTrigger class="lg:min-w-[300px] !h-11">
+              <SelectValue placeholder="Select a Campaign" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-if="campaignListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                <Icon name="eos-icons:loading" />
               </SelectItem>
-              <SelectItem value="mobile-app">
-                Mobile App
-              </SelectItem>
-              <SelectItem value="desk-phone">
-                Desk Phone
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+              <template v-else>
+                <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
+                  {{ option.title }}
+                </SelectItem>
+              </template>
+            </SelectContent>
+          </Select>
+          <Select>
+            <SelectTrigger class="lg:min-w-[300px] !h-11">
+              <SelectValue placeholder="Web Phone" class="text-xs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="web-phone">
+                  Web Phone
+                </SelectItem>
+                <SelectItem value="mobile-app">
+                  Mobile App
+                </SelectItem>
+                <SelectItem value="desk-phone">
+                  Desk Phone
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </template>
     </BaseHeader>
 
