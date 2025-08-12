@@ -176,7 +176,7 @@ const columns = [
         size: 'sm',
         class: 'bg-[#162D3A] text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white',
       }, [
-        h(Icon, { name: 'material-symbols:call-log', filled: true, class: 'text-base text-white' }),
+        h(Icon, { name: 'material-symbols:call-log-outline', filled: true, class: 'text-base text-white' }),
         'Call Record',
       ]),
     ]),
@@ -254,7 +254,7 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
 
         <span>
           <Select :model-value="limit" @update:model-value="val => changeLimit(Number(val))">

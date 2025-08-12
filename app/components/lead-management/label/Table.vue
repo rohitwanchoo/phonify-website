@@ -6,6 +6,13 @@ import type {
 } from '@tanstack/vue-table'
 import { Icon, LeadManagementLabelEdit } from '#components'
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
+import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
@@ -213,15 +220,49 @@ const columns = [
   }),
 
   columnHelper.accessor('actions', {
-    header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => onEdit(row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => {
-        selectedLabelIdForDelete.value = row.original.id
-        revealDeleteConfirm()
-      } }, h(Icon, { name: 'material-symbols:delete' })),
+  header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
+  cell: ({ row }) =>
+    h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+
+      // Edit button with tooltip
+      h(TooltipProvider, { delayDuration: 1000 }, () =>
+        h(Tooltip, null, {
+          default: () => [
+            h(TooltipTrigger, { asChild: true }, 
+              h(Button, {
+                size: 'icon',
+                variant: 'outline',
+                class: 'cursor-pointer',
+                onClick: () => onEdit(row.original)
+              }, h(Icon, { name: 'material-symbols:edit-square' }))
+            ),
+            h(TooltipContent, { side: 'top' }, 'Edit Label')
+          ]
+        })
+      ),
+
+      // Delete button with tooltip
+      h(TooltipProvider, { delayDuration: 1000 }, () =>
+        h(Tooltip, null, {
+          default: () => [
+            h(TooltipTrigger, { asChild: true }, 
+              h(Button, {
+                size: 'icon',
+                variant: 'outline',
+                class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80',
+                onClick: () => {
+                  selectedLabelIdForDelete.value = row.original.id
+                  revealDeleteConfirm()
+                }
+              }, h(Icon, { name: 'material-symbols:delete' }))
+            ),
+            h(TooltipContent, { side: 'top' }, 'Delete Label')
+          ]
+        })
+      ),
     ]),
-  }),
+})
+
 
 ]
 
@@ -314,7 +355,7 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing 
 
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">

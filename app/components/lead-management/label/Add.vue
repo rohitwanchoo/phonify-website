@@ -17,9 +17,23 @@ const formSchema = toTypedSchema(z.object({
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    title: '',
+  },
 })
 
 const loading = ref(false)
+
+watch(open, (newVal) => {
+  if (newVal) {
+    resetForm({
+      values: {
+        title: '',
+      },
+      errors: {},
+    })
+  }
+})
 
 const onSubmit = handleSubmit(async (values) => {
   const payload = {
@@ -80,6 +94,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input
+                  class="h-11"
                   v-bind="componentField"
                   placeholder="Label Name"
                 />

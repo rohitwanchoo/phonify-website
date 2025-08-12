@@ -16,49 +16,81 @@ const phoneCountryCode = ref(1)
 const workPhoneCountryCode = ref(1)
 
 const formSchema = toTypedSchema(z.object({
-  first_name: z.string().min(1).min(2),
-  last_name: z.string().min(1).min(2),
-  phone_number: z.string().min(1).regex(/^\d{10,15}$/),
-  email: z.string().min(1).email(),
-  work_phone: z.string().optional().refine(val => !val || /^\d{10,15}$/.test(val), {
-    message: 'Please enter a valid work phone number (10-15 digits)',
-  }),
+  first_name: z.string().min(1, 'First name is required').min(2, 'First name must be at least 2 characters'),
+  last_name: z.string().min(1, 'Last name is required').min(2, 'Last name must be at least 2 characters'),
+  phone_number: z.string()
+    .min(1, 'Phone number is required')
+    .regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
+  email: z.string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  work_phone: z.string()
+    .optional()
+    .refine(val => !val || /^\d{10,15}$/.test(val), {
+      message: 'Work phone must be 10-15 digits if provided',
+    }),
   education: z.string().optional(),
-  extension: z.string().optional().refine(val => !val || /^\d{1,6}$/.test(val), {
-    message: 'Extension must be numeric and up to 6 digits',
-  }),
-  company_name: z.string().min(1).min(2),
+  extension: z.string()
+    .optional()
+    .refine(val => !val || /^\d{1,6}$/.test(val), {
+      message: 'Extension must be numeric and up to 6 digits',
+    }),
+  company_name: z.string()
+    .min(1, 'Company name is required')
+    .min(2, 'Company name must be at least 2 characters'),
   business_type: z.string().optional(),
-  business_age: z.string().optional().refine(val => !val || /^\d+$/.test(val), {
-    message: 'Business age must be a valid number',
-  }),
+  business_age: z.string()
+    .optional()
+    .refine(val => !val || /^\d+$/.test(val), {
+      message: 'Business age must be a valid number',
+    }),
   currentPhoneSystem: z.string().optional(),
   leadSource: z.string().optional(),
-  fundingAmount: z.string().optional().refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
-    message: 'Funding amount must be a valid number with up to 2 decimal places',
-  }),
-  factorRate: z.string().optional().refine(val => !val || /^\d+(?:\.\d{1,3})?$/.test(val), {
-    message: 'Factor rate must be a valid number with up to 3 decimal places',
-  }),
-  noOfOpenLoans: z.string().optional().refine(val => !val || /^\d+$/.test(val), {
-    message: 'Number of open loans must be a valid number',
-  }),
-  address: z.string().min(1).min(5),
+  fundingAmount: z.string()
+    .optional()
+    .refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
+      message: 'Funding amount must be a valid number with up to 2 decimal places',
+    }),
+  factorRate: z.string()
+    .optional()
+    .refine(val => !val || /^\d+(?:\.\d{1,3})?$/.test(val), {
+      message: 'Factor rate must be a valid number with up to 3 decimal places',
+    }),
+  noOfOpenLoans: z.string()
+    .optional()
+    .refine(val => !val || /^\d+$/.test(val), {
+      message: 'Number of open loans must be a valid number',
+    }),
+  address: z.string()
+    .min(1, 'Address is required')
+    .min(5, 'Address must be at least 5 characters'),
   address2: z.string().optional(),
-  city: z.string().min(1).min(2),
-  state: z.string().min(1).min(2),
-  zip: z.string().optional().refine(val => !val || /^\d{5}(?:-\d{4})?$/.test(val), {
-    message: 'ZIP code must be in format 12345 or 12345-6789',
-  }),
-  monthlyRevenue: z.string().optional().refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
-    message: 'Monthly revenue must be a valid number with up to 2 decimal places',
-  }),
-  annualRevenue: z.string().optional().refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
-    message: 'Annual revenue must be a valid number with up to 2 decimal places',
-  }),
-  creditScore: z.string().optional().refine(val => !val || /^[3-8]\d{2}$/.test(val), {
-    message: 'Credit score must be a 3-digit number between 300-899',
-  }),
+  city: z.string()
+    .min(1, 'City is required')
+    .min(2, 'City must be at least 2 characters'),
+  state: z.string()
+    .min(1, 'State is required')
+    .min(2, 'State must be at least 2 characters'),
+  zip: z.string()
+    .optional()
+    .refine(val => !val || /^\d{5}(?:-\d{4})?$/.test(val), {
+      message: 'ZIP code must be in format 12345 or 12345-6789',
+    }),
+  monthlyRevenue: z.string()
+    .optional()
+    .refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
+      message: 'Monthly revenue must be a valid number with up to 2 decimal places',
+    }),
+  annualRevenue: z.string()
+    .optional()
+    .refine(val => !val || /^\d+(?:\.\d{2})?$/.test(val), {
+      message: 'Annual revenue must be a valid number with up to 2 decimal places',
+    }),
+  creditScore: z.string()
+    .optional()
+    .refine(val => !val || /^[3-8]\d{2}$/.test(val), {
+      message: 'Credit score must be a 3-digit number between 300-899',
+    }),
   newLabel1: z.string().optional(),
   newLabel2: z.string().optional(),
 }))
@@ -291,6 +323,7 @@ const breadcrumbs = [
                       </SelectContent>
                     </Select>
                     <Input
+                      v-maska="'(###) ###-####'"
                       placeholder="Enter Phone Number"
                       v-bind="componentField"
                       class="h-11 border-gray-200 rounded-l-none text-xs md:text-sm"
@@ -324,6 +357,7 @@ const breadcrumbs = [
                       </SelectContent>
                     </Select>
                     <Input
+                      v-maska="'(###) ###-####'"
                       placeholder="Enter Phone Number"
                       v-bind="componentField"
                       class="h-11 border-gray-200 rounded-l-none text-xs md:text-sm"
