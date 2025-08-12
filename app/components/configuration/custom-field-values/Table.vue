@@ -186,7 +186,7 @@ const columns = [
         class: 'flex items-center gap-2 border-primary text-primary',
         onClick: () => onEdit(row.original),
       }, [
-        h(Icon, { name: 'material-symbols:edit-square-outline', class: 'text-primary' }),
+        h(Icon, { name: 'material-symbols:edit-square', class: 'text-primary' }),
         'Edit',
       ]),
       h(DropdownMenu, {
@@ -303,14 +303,14 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
+              <SelectItem v-for="n in [10, 25, 50, 100]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 
 const showDialog = ref(false)
 
@@ -67,11 +66,10 @@ function changeLimit(val: number) {
   <BaseHeader title="Email Template List">
     <template #actions>
       <div class="relative">
-        <Input v-model="searchQuery" placeholder="Search Template" class="pr-10" />
-        <Icon class="absolute top-[9px] right-2" name="material-symbols:search" size="20" />
+        <BaseInputSearch class="w-[300px]" placeholder="search" />
       </div>
       <NuxtLink to="/app/configuration/email-templates/add">
-        <Button>
+        <Button class="h-11">
           <Icon name="material-symbols:add" size="20" />
           Add Email Template
         </Button>

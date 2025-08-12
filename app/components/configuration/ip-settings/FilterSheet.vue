@@ -72,8 +72,8 @@ function clearFilters() {
 </script>
 
 <template>
-  <Button variant="outline" class="!text-primary" @click="open = true">
-    <Icon name="material-symbols:sort" class="!text-primary" />
+  <Button variant="outline" class="!text-primary h-11" @click="open = true">
+    <Icon name="material-symbols:sort" class="!text-primary" size="20px" />
     Filter
   </Button>
 

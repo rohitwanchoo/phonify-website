@@ -15,13 +15,10 @@ const loading = computed(() => voiceTemplateStatus.value === 'pending')
   <div>
     <BaseHeader title="Voice Templates">
       <template #actions>
-        <div class="relative mt-3 md:mt-0">
-          <Input placeholder="Search Template" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch class="w-[300px]" placeholder="search" />
         <Nuxt-link to="/app/configuration/voice-templates/add">
-          <Button>
-            <Icon class="!text-white" name="lucide:plus" />
+          <Button class="h-11">
+            <Icon class="!text-white" name="lucide:plus" size="20px" />
             Add Voice Templates
           </Button>
         </Nuxt-link>

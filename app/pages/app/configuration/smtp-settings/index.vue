@@ -32,12 +32,9 @@ const loading = computed(() => smtpStatus.value === 'pending')
   <div>
     <BaseHeader title="SMTP">
       <template #actions>
-        <div class="relative mt-4 md:mt-0">
-          <Input v-model="searchQuery" placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch class="w-[300px]" />
         <NuxtLink to="/app/configuration/smtp-settings/add-smtp?mode=add">
-          <Button>
+          <Button class="h-11">
             <Icon class="!text-white" name="lucide:plus" />
             Add SMTP
           </Button>

@@ -66,8 +66,8 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <Dialog v-model:open="dialogOpen" @update:open="onDialogOpen">
     <DialogTrigger as-child>
-      <Button>
-        <Icon class="!text-white" name="lucide:plus" />
+      <Button class="h-11">
+        <Icon class="!text-white" name="lucide:plus" size="20px" />
         Add VoIP Configuration
       </Button>
     </DialogTrigger>

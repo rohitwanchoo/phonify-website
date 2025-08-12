@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 
-
 const { data: notificationList, status, pending } = await useLazyAsyncData('notification-list', () =>
   useApi().get('/notifications', {}), {
   transform: (res) => {
@@ -54,28 +53,25 @@ const filteredNotifications = computed(() => {
 <template>
   <BaseHeader title="Notifications">
     <template #actions>
-      <div class="relative">
-        <Input v-model="searchQuery" type="text" class="pr-7" placeholder="Search Notifications" />
-        <Icon class="absolute top-[9px] text-gray-400 right-2" name="lucide:search" />
-      </div>
+      <BaseInputSearch v-model="searchQuery" placeholder="Search Notifications" class="w-[300px]" />
 
       <Nuxt-link to="">
-        <Button variant="outline" @click="markAllAsRead">
-          <Icon class="text-xl text-primary" name="material-symbols:done-all" />
+        <Button variant="outline" class="h-11" @click="markAllAsRead">
+          <Icon class=" text-primary" name="material-symbols:done-all" size="20" />
           Mark All as Read
         </Button>
       </Nuxt-link>
 
       <Nuxt-link to="">
-        <Button>
-          <Icon class="text-xl text-[#E8EAED]" name="material-symbols:filter-alt-outline" />
+        <Button class="h-11">
+          <Icon class=" text-[#E8EAED]" size="20" name="material-symbols:filter-alt-outline" />
           Sort
         </Button>
       </Nuxt-link>
     </template>
   </BaseHeader>
   <!-- notification container -->
-  <div class="border border-gray-200 rounded-xl h-full">
+  <div class="border border-gray-200 rounded-xl h-full mt-4">
     <!-- Tabs -->
     <div class="w-full bg-[#FAFAFA] flex rounded-t-xl items-center border-b">
       <div

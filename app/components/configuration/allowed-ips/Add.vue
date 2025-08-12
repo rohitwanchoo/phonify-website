@@ -108,8 +108,8 @@ function openDialog() {
 <template>
   <div>
     <!-- Trigger Button -->
-    <Button @click="openDialog">
-      <Icon class="!text-white" name="lucide:plus" />
+    <Button class="h-11" @click="openDialog">
+      <Icon class="!text-white" name="lucide:plus" size="20" />
       Add IPs
     </Button>
 

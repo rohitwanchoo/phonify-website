@@ -243,7 +243,7 @@ function handleSaved(newParameter: any) {
                   API Information
                 </h2>
                 <Button class="h-8 md:h-11 px-2 md:px-4" type="button" @click="handleResetForm">
-                  <Icon name="material-symbols:refresh" class="text-base text-white" />
+                  <Icon name="material-symbols:refresh" class="text-base text-white" size="20px" />
                   Reset
                 </Button>
               </div>
@@ -416,7 +416,7 @@ function handleSaved(newParameter: any) {
                   type="button"
                   @click="addParameter"
                 >
-                  <Icon class="!text-white" name="lucide:plus" />
+                  <Icon class="!text-white" name="lucide:plus" size="20px" />
                   Add Parameter
                 </Button>
               </div>
@@ -511,7 +511,7 @@ function handleSaved(newParameter: any) {
         >
           <Button
             type="submit"
-            class="px-8 py-3 h-12 w-full"
+            class="px-8 py-3 h-11 w-full"
           >
             <Icon name="material-symbols:check" size="20" />
             Submit
