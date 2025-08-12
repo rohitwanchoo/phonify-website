@@ -5,22 +5,31 @@ function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text)
 }
 
-const showDialer = ref(false)
+// Use dialer composable
+const { openDialer, closeDialer } = useDialer()
 
-const data = [
+const leadId = ref(247)
+
+const { data: leadData, status: leadDataStatus } = await useLazyAsyncData('lead-details', () =>
+  useApi().get(`/lead/${leadId.value}`), {
+  transform: res => res.data,
+})
+
+// Use computed instead of ref for reactive data
+const data = computed(() => [
   {
     label: 'First Name',
-    value: 'John',
+    value: leadData.value?.first_name || 'N/A',
     copy: false,
   },
   {
     label: 'Last Name',
-    value: 'Doe',
+    value: leadData.value?.last_name || 'N/A',
     copy: false,
   },
   {
     label: 'Phone Number',
-    value: '+1 234 567 8900',
+    value: formatNumber(leadData.value?.phone_number || ''),
     copy: true,
   },
   {
@@ -30,58 +39,75 @@ const data = [
   },
   {
     label: 'Email',
-    value: 'johndoe@gmail.com',
+    value: leadData.value?.email || 'N/A',
     copy: true,
   },
   {
     label: 'Lead Source',
-    value: 'USA Providers',
+    value: leadData.value?.lead_source_id || 'N/A',
     copy: false,
   },
   {
     label: 'City',
-    value: 'Houston',
+    value: leadData.value?.city || 'N/A',
     copy: false,
   },
   {
     label: 'State',
-    value: 'Texas',
+    value: leadData.value?.state || 'N/A',
     copy: false,
   },
   {
     label: 'ZIp',
-    value: '92987',
+    value: leadData.value?.zip || 'N/A',
     copy: false,
   },
   {
     label: 'Funding Amount',
-    value: '$ 1,000,000',
+    value: `$ ${formatWithCommas(leadData.value?.funding_amount || '100000')}`,
     copy: false,
   },
   {
     label: 'Annual Revenue',
-    value: '$ 520,000',
+    value: `$ ${formatWithCommas(leadData.value?.annual_revenue || '520000')}`,
     copy: false,
   },
   {
     label: 'Business Type',
-    value: 'Construction',
+    value: leadData.value?.business_type || 'Construction',
     copy: false,
   },
   {
     label: 'Credit Score',
-    value: '92987',
+    value: leadData.value?.credit_score || '730',
     copy: false,
   },
-]
+])
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative h-full">
     <div class="p-5 bg-gray-50 rounded-tr-lg">
-      <div class="border border-gray-100 rounded-lg">
+      <!-- Show loading state while data is being fetched -->
+      <div v-if="leadDataStatus === 'pending'" class="bg-gray-50 rounded-lg">
+        <div class="border border-gray-100 rounded-lg">
+          <div class="bg-[#00A086] text-white text-2xl font-medium px-5 py-3 rounded-t-lg">
+            Loading...
+          </div>
+          <div class="bg-white p-5">
+            <div class="animate-pulse space-y-4">
+              <div class="h-4 bg-gray-200 rounded w-3/4" />
+              <div class="h-4 bg-gray-200 rounded w-1/2" />
+              <div class="h-4 bg-gray-200 rounded w-2/3" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Show actual data when loaded -->
+      <div v-else class="border border-gray-100 rounded-lg">
         <div class="bg-[#00A086] text-white text-2xl font-medium px-5 py-3 rounded-t-lg">
-          John Doe
+          {{ leadData?.first_name }} {{ leadData?.last_name }}
         </div>
         <div class="bg-white p-5 grid grid-cols-3 gap-x-4 gap-y-3 rounded-b-lg">
           <div v-for="(item, index) in data" :key="index" class="flex flex-col gap-2">
@@ -89,7 +115,10 @@ const data = [
             <div class="flex items-center gap-2">
               <span class="text-sm text-primary">{{ item.value }}</span>
               <Icon
-                v-if="item.copy" name="material-symbols-outlined:content-copy" size="16" class="cursor-pointer"
+                v-if="item.copy && item.value && item.value !== 'N/A'"
+                name="material-symbols-outlined:content-copy"
+                size="16"
+                class="cursor-pointer"
                 @click="copyToClipboard(item.value)"
               />
             </div>
@@ -119,18 +148,20 @@ const data = [
         <Icon name="material-symbols:upload-file" size="20" />
         Export Lead
       </Button>
-      <Button variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="showDialer = true">
+      <Button variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="openDialer">
         <Icon name="material-symbols:dialpad" size="20" />
         Dial-pad
       </Button>
-      <StartDialingLeadDetailsSelectDisposition />
-      <Button class="w-full flex-1 cursor-pointer bg-green-600 hidden" name="call">
+      <StartDialingLeadDetailsSelectDisposition>
+        <Button variant="destructive" name="hangup" class="w-full flex-1 cursor-pointer hidden" @click="closeDialer">
+          <Icon name="material-symbols:call-end" size="20" />
+          Hangup
+        </Button>
+      </StartDialingLeadDetailsSelectDisposition>
+      <Button class="w-full flex-1 cursor-pointer bg-green-600" name="call" @click="openDialer">
         <Icon name="material-symbols:call" size="20" />
         Call
       </Button>
     </div>
   </div>
-  <Teleport to="body">
-    <Dialer v-if="showDialer" @close="showDialer = false" />
-  </Teleport>
 </template>

@@ -2,6 +2,7 @@
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 import { ChevronsUpDown, MoreVertical } from 'lucide-vue-next'
+import moment from 'moment'
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import EditVoipConfigurationDialog from '~/components/configuration/voip-configuration/EditVoipConfigurationDialog.vue'
@@ -16,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
-import moment from 'moment'
 
 const mockData = [
   {

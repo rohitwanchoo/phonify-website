@@ -4,6 +4,9 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar'
+
+// Use the dialer composable
+const { isDialerOpen, closeDialer } = useDialer()
 </script>
 
 <template>
@@ -20,4 +23,9 @@ import {
       </div>
     </SidebarInset>
   </SidebarProvider>
+
+  <!-- Dialer teleported to body -->
+  <Teleport to="body">
+    <Dialer v-if="isDialerOpen" @close="closeDialer" />
+  </Teleport>
 </template>

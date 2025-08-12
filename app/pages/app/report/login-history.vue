@@ -57,8 +57,8 @@ async function handleClearFilter() {
     </BaseHeader>
 
     <!-- TABLE -->
-    <div>
-      <ReportLoginHistoryTable :limit="limit" :total-rows="loginHistoryData?.record_count" :start="start" :list="loginHistoryData?.data" :loading="loginHistoryDataStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" />
+    <div class="h-[calc(100vh-160px)] overflow-y-auto">
+      <ReportLoginHistoryTable :limit="limit" :total-rows="loginHistoryData?.record_count" :start="start" :list="loginHistoryData?.data || []" :loading="loginHistoryDataStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" />
     </div>
   </div>
 </template>

@@ -331,6 +331,10 @@ const { data: ringGroupList, status: ringGroupListStatus, refresh: refreshRingGr
 })
 
 function onEnableTimeBasedCalling(val: boolean) {
+  if (val)
+    accordion.value = 'item-1'
+  else
+    accordion.value = ''
   if (val && !callTimingList.value?.length) {
     callTimingListRefresh()
   }
@@ -544,10 +548,10 @@ const { handleSubmit, values, resetField, errors, setFieldValue, resetForm } = u
     dial_mode: '',
     group_id: 0,
     voip_configurations: 0,
-    disposition_id:[],
+    disposition_id: [],
     call_time: {},
     time_based_calling: false,
-    inbound_ivr_no_agent_available_action:0,
+    inbound_ivr_no_agent_available_action: 0,
     voicedrop_no_agent_available_action: 0,
     no_agent_available_action: 0,
     outbound_ai_dropdown_ivr: 0,
@@ -1329,12 +1333,12 @@ onMounted(() => {
           <div class=" ">
             <Accordion v-model="accordion" collapsible>
               <AccordionItem value="item-1" class="">
-                <div class="flex items-center justify-between px-5" :class="accordion === 'item-1' && 'border-b'">
+                <div class="flex items-center justify-between px-5 h-[57px]" :class="accordion === 'item-1' && 'border-b'">
                   <div class="text-[16px] font-medium text-primary/100">
                     Time Based Calling
                   </div>
-                  <AccordionTrigger>
-                    <template #icon>
+                  <div>
+                    <div>
                       <FormField v-slot="{ value, handleChange }" v-model="formState.time_based_calling" name="time_based_calling">
                         <FormItem class="flex flex-row items-center justify-between">
                           <FormControl>
@@ -1349,8 +1353,8 @@ onMounted(() => {
                           </FormControl>
                         </FormItem>
                       </FormField>
-                    </template>
-                  </AccordionTrigger>
+                    </div>
+                  </div>
                 </div>
                 <AccordionContent class="p-5">
                   <Accordion v-model="accordion2" collapsible class="">
@@ -1524,7 +1528,7 @@ onMounted(() => {
                       </Select>
                     </FormControl>
                     <div v-if="errorMessage" class="text-red-600 text-sm">
-                      {{errorMessage === 'Required' ? 'Hopper Mode is required' : errorMessage}}
+                      {{ errorMessage === 'Required' ? 'Hopper Mode is required' : errorMessage }}
                     </div>
                     <!-- <FormMessage class="text-sm" /> -->
                   </FormItem>

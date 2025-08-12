@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { parseDate } from '@internationalized/date'
-import { toDate } from 'reka-ui/date'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '~/components/ui/button'
@@ -17,6 +16,9 @@ const emit = defineEmits<{
 // Sheet open state
 const open = defineModel<boolean>('open', { default: false })
 
+// Ref for the first input field to auto focus
+const firstInputRef = ref<HTMLInputElement | null>(null)
+
 const { data: userData, status: userDataStatus, refresh: userDataRefresh } = await useLazyAsyncData('user-data', () =>
   useApi().get('/users-list-new'), {
   transform: res => res.data,
@@ -31,6 +33,13 @@ watch(open, (val) => {
   }
 })
 
+// Auto focus on component mount
+onMounted(() => {
+  if (open.value && firstInputRef.value) {
+    firstInputRef.value.focus()
+  }
+})
+
 // Simple reactive filter values
 const filters = ref({
   user_id: '',
@@ -38,6 +47,13 @@ const filters = ref({
   start_date: '',
   end_date: '',
 })
+
+// Helper function to parse date string to Date object
+function parseDateString(dateStr: string): Date | null {
+  if (!dateStr)
+    return null
+  return new Date(`${dateStr}T00:00:00.000Z`)
+}
 
 function onSubmit() {
   // Build filter parameters object with only filled values
@@ -123,7 +139,7 @@ function clearFilters() {
                 <!-- IP Address Field -->
                 <div>
                   <label class="text-sm font-medium text-primary">IP</label>
-                  <Input v-model="filters.ip" placeholder="IP Address" />
+                  <Input ref="firstInputRef" v-model="filters.ip" placeholder="IP Address" />
                 </div>
 
                 <!-- Date Range Fields -->
@@ -139,17 +155,17 @@ function clearFilters() {
                             class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
                             :class="!filters.start_date ? 'text-muted-foreground' : ''"
                           >
-                            <span>{{ filters.start_date ? new Date(filters.start_date).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                            <span>{{ filters.start_date ? parseDateString(filters.start_date)?.toLocaleDateString('en-GB') : 'From:' }}</span>
                             <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent class="w-auto p-0">
                           <Calendar
                             calendar-label="From Date"
-                            :model-value="filters.start_date ? parseDate(String(new Date(filters.start_date).toISOString().split('T')[0])) : undefined"
+                            :model-value="filters.start_date ? parseDate(filters.start_date) : undefined"
                             initial-focus
                             @update:model-value="(v) => {
-                              filters.start_date = v ? toDate(v).toISOString() : ''
+                              filters.start_date = v ? v.toString() : ''
                             }"
                           />
                         </PopoverContent>
@@ -165,17 +181,17 @@ function clearFilters() {
                             class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
                             :class="!filters.end_date ? 'text-muted-foreground' : ''"
                           >
-                            <span>{{ filters.end_date ? new Date(filters.end_date).toLocaleDateString('en-GB') : 'DD/MM/YYYY' }}</span>
+                            <span>{{ filters.end_date ? parseDateString(filters.end_date)?.toLocaleDateString('en-GB') : 'To:' }}</span>
                             <Icon name="material-symbols:calendar-today" size="20" class="ms-auto" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent class="w-auto p-0">
                           <Calendar
                             calendar-label="To Date"
-                            :model-value="filters.end_date ? parseDate(String(new Date(filters.end_date).toISOString().split('T')[0])) : undefined"
+                            :model-value="filters.end_date ? parseDate(filters.end_date) : undefined"
                             initial-focus
                             @update:model-value="(v) => {
-                              filters.end_date = v ? toDate(v).toISOString() : ''
+                              filters.end_date = v ? v.toString() : ''
                             }"
                           />
                         </PopoverContent>
@@ -191,12 +207,11 @@ function clearFilters() {
 
       <!-- Sticky footer with buttons -->
       <div class="p-6 bg-white space-y-3">
-        <Button type="button" class="w-full" @click="onSubmit">
-          <Icon name="material-symbols:search" class="mr-1" />
-          Apply Filter
+        <Button type="button" class="w-full h-11" @click="onSubmit">
+          <Icon name="material-symbols:search" size="20" />
+          Search
         </Button>
-        <Button type="button" variant="outline" class="w-full" @click="clearFilters">
-          <Icon name="material-symbols:clear" class="mr-1" />
+        <Button type="button" variant="outline" class="w-full h-11" @click="clearFilters">          <Icon name="material-symbols:clear" />
           Clear Filters
         </Button>
       </div>

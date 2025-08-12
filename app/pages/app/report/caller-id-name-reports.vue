@@ -1,5 +1,39 @@
 <script setup lang="ts">
-import { Input } from '~/components/ui/input'
+import { useDebounceFn } from '@vueuse/core'
+
+const start = ref(0)
+const limit = ref(10)
+const search = ref('')
+
+const showSheet = ref(false)
+
+const { data: cliReportData, status: cliReportStatus, refresh: cliReportRefresh } = await useLazyAsyncData('cli-report', () =>
+  useApi().post('/cli-report', {
+    lower_limit: start.value,
+    upper_limit: limit.value,
+    search: search.value,
+  }), {
+  transform: res => res,
+})
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return cliReportRefresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return cliReportRefresh()
+}
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  cliReportRefresh()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
 </script>
 
 <template>
@@ -7,19 +41,19 @@ import { Input } from '~/components/ui/input'
     <!-- HEADER -->
     <BaseHeader title="Caller ID Name Reports">
       <template #actions>
-      
-<div class="relative">
-          <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+
         <!-- Trigger Button -->
-       <ReportCallerIdNameManualCallSheet class="bg-black text-white" v-model:form-values="filterValues" @apply-filter="applyFilter" />
+        <ReportCallerIdNameManualCallSheet
+          v-if="cliReportData?.data"
+          v-model:open="showSheet"
+        />
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <ReportCallerIdNameTable />
+      <ReportCallerIdNameTable :limit="limit" :total-rows="cliReportData?.record_count" :start="start" :list="cliReportData?.data" :loading="cliReportStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" />
     </div>
   </div>
 </template>

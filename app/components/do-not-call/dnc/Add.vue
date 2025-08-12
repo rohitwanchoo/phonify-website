@@ -45,7 +45,7 @@ function onDialogOpen(val: boolean) {
 
 const formSchema = toTypedSchema(z.object({
   country_code: z.string().min(1, 'Country code is required'),
-  number: z.string().min(1, 'phone number is required'),
+  number: z.string().min(1, 'Phone number is required'),
   extension: z.number().int().min(1, 'Extension is required'),
   comment: z.string().min(1, 'Comment is required'),
 }))

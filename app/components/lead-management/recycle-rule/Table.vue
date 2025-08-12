@@ -77,7 +77,6 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-
 const selectedRecycleRuleForDelete = ref()
 const isEditDialogOpen = ref(false)
 const selectedRowData = ref<recycleRulesList | null>(null)
