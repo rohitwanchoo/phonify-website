@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDraggable, useElementSize, useWindowSize } from '@vueuse/core'
+import { useTemplateRef } from 'vue'
+
 import MainBar from '@/components/core/app-sidebar/Main.vue'
 import {
   SidebarInset,
@@ -6,7 +9,12 @@ import {
 } from '@/components/ui/sidebar'
 
 // Use the dialer composable
-const { isDialerOpen, closeDialer } = useDialer()
+const { isDialerOpen, closeDialer, openDialer } = useDialer()
+const containerElement = useTemplateRef<HTMLElement>('containerElement')
+
+const { width, height } = useElementSize(containerElement)
+const containerWidth = computed(() => width.value)
+// Define boundaries for dragging
 </script>
 
 <template>
@@ -18,7 +26,7 @@ const { isDialerOpen, closeDialer } = useDialer()
           <CoreNavbar />
         </div>
       </header>
-      <div class="p-4 pt-5 md:rounded-tl-xl bg-white mt-7 md:h-[calc(100vh-70px)] overflow-y-auto">
+      <div ref="containerElement" class="p-4 pt-5 md:rounded-tl-xl bg-white mt-7 md:h-[calc(100vh-70px)] overflow-y-auto">
         <slot />
       </div>
     </SidebarInset>
@@ -28,4 +36,5 @@ const { isDialerOpen, closeDialer } = useDialer()
   <Teleport to="body">
     <Dialer v-if="isDialerOpen" @close="closeDialer" />
   </Teleport>
+  <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
 </template>
