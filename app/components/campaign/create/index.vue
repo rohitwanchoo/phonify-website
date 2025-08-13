@@ -391,7 +391,7 @@ const formSchema = toTypedSchema(z.object({
   dial_mode: z.string().min(1, 'Dialing mode is required'),
   group_id: z.number().min(1, 'Caller group is required').max(50),
   time_based_calling: z.boolean(),
-  call_time: z.object({ id: z.number(), name: z.string() }).optional().superRefine((val, ctx) => {
+  call_time: z.object({ id: z.number().optional(), name: z.string().optional() }).optional().superRefine((val, ctx) => {
     if (values.time_based_calling && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -592,7 +592,7 @@ const onSubmit = handleSubmit(async (values) => {
     is_deleted: 0,
 
   }
-  if (payload.call_time) {
+  if (payload.call_time && Object.keys(payload.call_time).length) {
     // Format times as HH:mm
     payload.call_time_start = moment(formState.value.call_time?.from_time, 'HH:mm:ss').format('HH:mm')
     payload.call_time_end = moment(formState.value.call_time?.to_time, 'HH:mm:ss').format('HH:mm')
