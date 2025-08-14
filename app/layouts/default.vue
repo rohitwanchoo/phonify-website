@@ -33,8 +33,22 @@ const containerWidth = computed(() => width.value)
   </SidebarProvider>
 
   <!-- Dialer teleported to body -->
-  <Teleport to="body">
+  <!-- <Teleport to="body"> -->
+  <Transition name="slide-fade">
     <Dialer v-if="isDialerOpen" @close="closeDialer" />
-  </Teleport>
+  </Transition>
+
+  <!-- </Teleport> -->
   <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
 </template>
+
+<style scoped>
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(100%);
+}
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+</style>

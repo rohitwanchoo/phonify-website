@@ -359,7 +359,6 @@ onBeforeUnmount(() => {
               <Input
                 v-model="phoneNumber"
                 v-maska="'(###) ###-####'"
-                type="tel"
                 placeholder="Enter phone number"
                 class="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus:ring-0 focus:outline-none p-0"
               />
