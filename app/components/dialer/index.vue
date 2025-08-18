@@ -95,7 +95,7 @@ function getCenterPosition() {
 const dialerRef = useTemplateRef<HTMLElement>('dialer')
 const { x, y, style } = useDraggable(dialerRef, {
   initialValue: getCenterPosition(),
-  preventDefault: true,
+  preventDefault: false,
 })
 
 // Center the dialer when component mounts
@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
                 v-model="phoneNumber"
                 v-maska="'(###) ###-####'"
                 placeholder="Enter phone number"
-                class="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus:ring-0 focus:outline-none p-0"
+                class="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus:ring-0 focus-visible:ring-0 focus:outline-none p-0"
               />
             </div>
           </div>
