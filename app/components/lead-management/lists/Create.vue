@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField, useForm } from 'vee-validate'
 import { ref } from 'vue'
@@ -11,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
-import ConfigureListDialog from './ConfigureListDialog.vue'
 
 const emits = defineEmits(['complete'])
 const { user } = useAuth()
@@ -21,11 +21,6 @@ const showConfigureDialog = ref(false)
 function openCreateListDialog() {
   showDialog.value = true
   showConfigureDialog.value = false
-}
-
-function closeConfigureDialog() {
-  showConfigureDialog.value = false
-  showDialog.value = false
 }
 
 const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('create-list-campaign', () =>
@@ -40,10 +35,11 @@ const formSchema = z.object({
   campaign_id: z.number().min(1, 'Campaign is required'),
   checkDuplicates: z.boolean().optional(),
 })
+const file = ref<File>()
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: toTypedSchema(formSchema),
-initialValues: {
+  initialValues: {
     title: '',
     file: [],
     campaign_id: 0,
@@ -54,6 +50,7 @@ initialValues: {
 const { setValue: setFile } = useField('file')
 
 function handleFileUpdate(files: File[]) {
+  file.value = files[0]
   setFile(files)
 }
 
@@ -63,20 +60,29 @@ const onSubmit = handleSubmit((values) => {
   loading.value = true
   const formData = new FormData()
   formData.append('title', values.title)
-  formData.append('file', values.file[0]) // Append the first file from the array
+  formData.append('file', file.value as File) // Append the first file from the array
   formData.append('campaign', values.campaign_id.toString())
   formData.append('checkDuplicates', JSON.stringify(values.checkDuplicates))
   formData.append('id', user.value?.id?.toString() ?? '')
-  useApi().post('/add-list', formData).then((response) => {
+
+  // emits('complete', { campaign_id: '20', list_id: '46' })
+  // closeDialog()
+  // return
+  useApi().post('/add-list-api', formData).then((response) => {
     showToast({
       message: response.message,
     })
+  }).then(async (response: any) => {
+    emits('complete', { campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString() })
+
+    closeDialog()
+    // await getListHeaders({ campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString() })
+    nextStep()
   }).catch((error) => {
     showToast({
       type: 'error',
       message: error.message,
     })
-    emits('complete')
   }).finally(() => {
     loading.value = false
   })
@@ -85,21 +91,21 @@ function closeDialog() {
   showDialog.value = false
 }
 
-function onNext() {
+function nextStep() {
   closeDialog()
   showConfigureDialog.value = true
 }
 function onModelOpen(val: boolean) {
   if (val)
     refreshCampaigns()
-    resetForm()
+  resetForm()
 }
 </script>
 
 <template>
   <Dialog v-model:open="showDialog" @update:open="onModelOpen">
     <DialogTrigger as-child>
-      <Button @click="openCreateListDialog" class="h-11">
+      <Button class="h-11" @click="openCreateListDialog">
         <Icon class="!text-white" name="material-symbols:add" size="20" />
         Create Lists
       </Button>
@@ -126,7 +132,7 @@ function onModelOpen(val: boolean) {
             <FormItem>
               <FormLabel>File Upload</FormLabel>
               <FormControl>
-                <BaseFileUploader accept=".xlc,.xlxs,.csv" max-size="5MB" @update:files="handleFileUpdate" />
+                <BaseFileUploader accept=".xlc,.xlsx,.csv,.xls" max-size="5MB" @update:files="handleFileUpdate" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -180,5 +186,4 @@ function onModelOpen(val: boolean) {
       </form>
     </DialogContent>
   </Dialog>
-  <!-- <ConfigureListDialog :open="showConfigureDialog" @update:open="val => { showConfigureDialog = val; if (!val) closeConfigureDialog() }" /> -->
 </template>
