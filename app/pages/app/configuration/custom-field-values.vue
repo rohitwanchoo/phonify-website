@@ -43,7 +43,7 @@ function searchText() {
     <!-- HEADER -->
     <BaseHeader title="Custom Field Values">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
         <!-- Add Button triggering the dialog -->
         <Button class="h-11" @click="addDialogOpen = true">
           <Icon class="!text-white" size="20" name="material-symbols:add" />

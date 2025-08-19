@@ -9,9 +9,9 @@ const showDialog = ref(false)
 
 const { data: labelData, status: labelStatus, refresh: labelRefresh } = await useLazyAsyncData('label', () =>
   useApi().post('/label', {
-    lower_limit: start.value,
-    upper_limit: limit.value,
-    search: search.value,
+    // start: start.value,
+    // limit: limit.value,
+    title: search.value,
   }), {
   transform: res => res,
 })
@@ -39,7 +39,7 @@ function searchText() {
 <template>
   <BaseHeader title="Labels">
     <template #actions>
-      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Labels" @update:model-value="searchText" />
       <LeadManagementLabelAdd v-model:open="showDialog" />
     </template>
   </BaseHeader>
@@ -47,7 +47,7 @@ function searchText() {
   <div class="flex gap-4 justify-between mt-6">
     <!-- TABLE -->
     <div class="w-full h-[calc(100vh-165px)] overflow-y-auto">
-      <LeadManagementLabelTable :limit="limit" :total-rows="labelData?.record_count" :start="start" :list="labelData?.data || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" />
+      <LeadManagementLabelTable :limit="limit" :total-rows="labelData?.total" :start="start" :list="labelData?.data || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" />
     </div>
     <!-- Display Order -->
     <LeadManagementLabelDisplayOrder

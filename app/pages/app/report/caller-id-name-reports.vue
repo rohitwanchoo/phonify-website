@@ -41,7 +41,7 @@ function searchText() {
     <!-- HEADER -->
     <BaseHeader title="Caller ID Name Reports">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
 
         <!-- Trigger Button -->
         <ReportCallerIdNameManualCallSheet

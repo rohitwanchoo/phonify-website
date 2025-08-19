@@ -79,7 +79,7 @@ async function handleClearFilter() {
   <!-- HEADER -->
   <BaseHeader title="Recycle Rules">
     <template #actions>
-      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
       <LeadManagementRecycleRuleFilter
         v-if="recycleRules?.data"
         v-model:open="showSheet"

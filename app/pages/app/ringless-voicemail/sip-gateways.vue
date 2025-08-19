@@ -54,7 +54,7 @@ function changeLimit(val: number) {
         <BaseInputSearch
           v-model="search"
           class="w-[300px]"
-          placeholder="search"
+          placeholder="Search"
           @update:model-value="searchText"
         />
 
