@@ -41,8 +41,6 @@ import { valueUpdater } from '@/components/ui/table/utils'
 
 import LeadManagementListsActions from './Actions.vue'
 
-const downloadList = useDownloadList()
-
 const props = withDefaults(defineProps<{
   loading: boolean
   totalRows: number
@@ -54,7 +52,14 @@ const props = withDefaults(defineProps<{
 })
 
 // Computed pagination variables
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'onEdit'])
+
+function downloadList(list_id: number) {
+  useApi().get(`/list-data/${list_id}/content?excel=true`).then((response) => {
+    exportToCSV({ name: response.data.list_name, header: response.data.list_header, data: response.data.list_data })
+  })
+}
+
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -122,15 +127,16 @@ async function handleDelete() {
 
 // Opens edit dialog
 function onEdit(row: leadList) {
-  selectedRowData.value = row
-  isEditDialogOpen.value = true
+  emits('onEdit', row)
+  // selectedRowData.value = row
+  // isEditDialogOpen.value = true
 }
 
 // Update is_active status toggle
 function updateStatus(val: boolean, row: { list_id: number, campaign_id: number }): void {
   useApi().post('/status-update-list', {
-    list_id: row.list_id,
-    campaign_id: row.campaign_id,
+    listId: row.list_id,
+
     status: val ? 1 : 0,
   }).then((response) => {
     showToast({ message: response.message })

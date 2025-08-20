@@ -2,8 +2,6 @@
 import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
 
-const downloadList = useDownloadList()
-
 const route = useRoute()
 const id = computed(() => route.params.id)
 
@@ -61,14 +59,25 @@ const debouncedSearch = useDebounceFn(() => {
 function searchText() {
   debouncedSearch()
 }
+
+const downloadLoading = ref(false)
+
+function downloadData() {
+  downloadLoading.value = true
+  useApi().get(`/list-data/${id.value}/content?excel=true`).then((response) => {
+    exportToCSV({ name: response.data.list_name, header: response.data.list_header, data: response.data.list_data })
+  }).finally(() => {
+    downloadLoading.value = false
+  })
+}
 </script>
 
 <template>
   <BaseHeader :title="name" :breadcrumbs>
     <template #actions>
       <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" />
-      <Button class="h-11" @click="downloadList(Number(id))">
-        <Icon class="!text-white" size="20" name="material-symbols:download" />
+      <Button class="h-11" @click="downloadData">
+        <Icon class="!text-white" size="20" :name="downloadLoading ? 'eos-icons:loading' : 'material-symbols:download'" />
         Download
       </Button>
     </template>
