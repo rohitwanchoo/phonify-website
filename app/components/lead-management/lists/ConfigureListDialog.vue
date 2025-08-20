@@ -19,11 +19,12 @@ import {
 
 import { toTypedSchema } from '@vee-validate/zod'
 
+import { SelectIcon } from 'reka-ui'
 import { useForm } from 'vee-validate'
 import { h, ref } from 'vue'
 import { z } from 'zod'
-import { Checkbox } from '@/components/ui/checkbox'
 
+import { Checkbox } from '@/components/ui/checkbox'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -43,7 +44,7 @@ import { Input } from '~/components/ui/input'
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:open'])
+const emit = defineEmits(['update:open', 'complete'])
 
 const listSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required'),
@@ -56,7 +57,7 @@ const { handleSubmit, setValues } = useForm({
 })
 
 interface ListHeader {
-  id: number,
+  id: number
   list_id: number
   header: string
   label_id: number
@@ -81,65 +82,13 @@ interface Props {
   listData?: ListData
 }
 
-// const labelOptions = [
-//   { label: 'Label 1', value: 'label1' },
-//   { label: 'Label 2', value: 'label2' },
-//   { label: 'Label 3', value: 'label3' },
-// ]
-
 const { data: labelOptions } = await useLazyAsyncData('list-create-label', () =>
   useApi().post('/label'), {
   transform: res => res.data,
 })
 
 const title = ref<string>('')
-const campaign_id = ref()
 
-// const fileHeaderOptions = [
-//   'Phone Number',
-//   'Owner Name',
-//   'Business Name',
-//   'Email/Fax',
-//   'Address',
-//   'City',
-//   'State',
-//   'Zip',
-//   'Monthly Deposit',
-//   'Years in business',
-//   'Amount Needed',
-// ]
-// const fileHeaderOptions = computed(() => props?.listData?.list_header?.map(item => item.header) || [])
-
-// const tableData = ref(fileHeaderOptions.value.map((header, idx) => {
-//   let label = ''
-//   if (Array.isArray(labelOptions) && labelOptions.length > 0) {
-//     const opt = labelOptions[idx % labelOptions.length]
-//     label = opt && typeof opt.value === 'string' ? opt.value : ''
-//   }
-//   return {
-//     slno: idx + 1,
-//     fileHeader: header,
-//     is_search: idx % 2 === 0,
-//     visible: true,
-//     editable: idx % 3 !== 0,
-//     dialingColumn: idx % 4 === 0,
-//     label,
-//   }
-// }))
-
-const formattedListDate = computed(() => props?.listData?.list_header?.map((item, idx) => ({
-  slno: idx + 1,
-  fileHeader: item.header,
-  is_search: item.is_search,
-  visible: item.is_visible,
-  editable: item.is_editable,
-  dialingColumn: item.is_dialing,
-  label: item.label_id,
-})))
-
-const tableData = ref(formattedListDate.value)
-
-// const tableData = ref({ slno: 1, fileHeader: 'Phone Number', is_search: 0, visible: 1, editable: 0, dialingColumn: 1, label: 16 })
 const columnHelper = createColumnHelper<ListHeader>()
 const columns = [
   columnHelper.display({
@@ -213,6 +162,36 @@ const columns = [
     ])),
   }),
 
+  columnHelper.accessor('label_id', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, 'Label'),
+    cell: ({ row }) => h('div', { class: 'text-center' }, [
+      h(Select, {
+        'modelValue': row.original.label_id,
+        'onUpdate:modelValue': (val: any) => row.original.label_id = val,
+      }, () => [
+        h(SelectTrigger, {
+          class: `w-full !h-11 !text-xs bg-[#F0F9F8] ${row.original.label_id ? 'text-black' : 'text-[#162D3A80]'}`,
+        }, () => [
+          h(SelectValue, {
+            placeholder: 'Select label',
+            class: 'text-xs md:text-sm',
+          }),
+        ]),
+        h(SelectContent, {
+          class: 'w-full',
+        }, () =>
+          labelOptions.value?.map((option: any) =>
+            h(SelectItem, {
+              key: option.id,
+              value: option.id,
+            }, () => option.title),
+          )),
+      ]),
+
+    ]),
+  }),
+
 ]
 
 const sorting = ref<SortingState>([])
@@ -246,44 +225,52 @@ function closeDialog() {
 }
 const { data: campaigns } = useNuxtData('create-list-campaign')
 
+const campaignLoading = ref(false)
+
+async function refreshCampaignList() {
+  if (!campaigns.value) {
+    campaignLoading.value = true
+    campaigns.value
+    = await refreshNuxtData('create-list-campaign')
+    campaignLoading.value = false
+  }
+}
+
 const saveLoading = ref(false)
 
 const saveConfigureList = handleSubmit((values) => {
-
   const list_header = table.getRowModel().flatRows.map(item => ({
     id: item.original.id,
     column_name: item.original.header,
     is_search: item.original.is_search,
-    is_visible: item.original.is_visible, 
+    is_visible: item.original.is_visible,
     is_editable: item.original.is_editable,
     is_dialing: item.original.is_dialing,
-    label_id: item.original.label_id
+    label_id: item.original.label_id,
   }))
   const payload = {
     ...values,
     list_id: props.listData?.list_id,
     campaign_id: props.listData?.campaign_id,
-    list_header
+    list_header,
   }
   saveLoading.value = true
-  useApi().post('/edit-list', payload).then((response)=> {
+  useApi().post('/edit-list', payload).then((response) => {
     showToast({ message: response.message })
-  }).catch(err =>{
-    showToast({ message: err.message, type:'error' })
-  }).finally(()=>{
+    emit('complete')
+    closeDialog()
+  }).catch((err) => {
+    showToast({ message: err.message, type: 'error' })
+  }).finally(() => {
     saveLoading.value = false
   })
 })
 
-// function saveConfigureList() {
-//   console.log(table.getRowModel().flatRows.map(item => item.original))
-// }
-
 watch(() => props.open, (val) => {
   if (val) {
-    setValues( { title: props?.listData?.list, new_campaign_id:  props?.listData?.campaign_id })
+    setValues({ title: props?.listData?.list, new_campaign_id: props?.listData?.campaign_id })
     title.value = props?.listData?.list || ''
-    // campaign_id.value = props?.listData?.campaign_id
+    refreshCampaignList()
   }
 })
 </script>
@@ -307,7 +294,7 @@ watch(() => props.open, (val) => {
                 <FormControl>
                   <Input v-bind="componentField" placeholder="Enter value" class="text-primary placeholder:text-primary text-xs md:text-sm h-11" />
                 </FormControl>
-               <FormMessage />
+                <FormMessage />
               </FormItem>
             </FormField>
           </div>
@@ -319,9 +306,12 @@ watch(() => props.open, (val) => {
                   Campaign
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField">
-                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full text-primary !h-11">
+                  <Select :disabled="campaignLoading" v-bind="componentField">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full text-primary !h-11 [&_svg]:hidden">
                       <SelectValue placeholder="Select option" class="text-primary text-xs md:text-sm" />
+                      <SelectIcon>
+                        <Icon :name="campaignLoading ? 'eos-icons:loading' : 'lucide:chevron-down'" class="mt-1" />
+                      </SelectIcon>
                     </SelectTrigger>
                     <SelectContent class="w-full">
                       <SelectItem v-for="option in campaigns" :key="option.id" :value="option.id">
@@ -330,7 +320,7 @@ watch(() => props.open, (val) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-               <FormMessage />
+                <FormMessage />
               </FormItem>
             </FormField>
           </div>

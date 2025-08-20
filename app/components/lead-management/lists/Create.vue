@@ -16,12 +16,7 @@ import { Input } from '~/components/ui/input'
 const emits = defineEmits(['complete'])
 const { user } = useAuth()
 const showDialog = ref(false)
-const showConfigureDialog = ref(false)
-
-function openCreateListDialog() {
-  showDialog.value = true
-  showConfigureDialog.value = false
-}
+// const showConfigureDialog = ref(false)
 
 const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('create-list-campaign', () =>
   useApi().post('/campaign'), {
@@ -72,12 +67,8 @@ const onSubmit = handleSubmit((values) => {
     showToast({
       message: response.message,
     })
-  }).then(async (response: any) => {
-    emits('complete', { campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString() })
-
+    emits('complete', { campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString(), list: values.title })
     closeDialog()
-    // await getListHeaders({ campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString() })
-    nextStep()
   }).catch((error) => {
     showToast({
       type: 'error',
@@ -91,10 +82,10 @@ function closeDialog() {
   showDialog.value = false
 }
 
-function nextStep() {
-  closeDialog()
-  showConfigureDialog.value = true
-}
+// function nextStep() {
+//   closeDialog()
+//   showConfigureDialog.value = true
+// }
 function onModelOpen(val: boolean) {
   if (val)
     refreshCampaigns()
