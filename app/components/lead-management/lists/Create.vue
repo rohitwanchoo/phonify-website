@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 
 const emits = defineEmits(['complete'])
@@ -86,9 +86,11 @@ function closeDialog() {
 //   closeDialog()
 //   showConfigureDialog.value = true
 // }
+const focusInput = ref<any>(null)
 function onModelOpen(val: boolean) {
-  if (val)
+  if (val) {
     refreshCampaigns()
+  }
   resetForm()
 }
 </script>
@@ -96,7 +98,7 @@ function onModelOpen(val: boolean) {
 <template>
   <Dialog v-model:open="showDialog" @update:open="onModelOpen">
     <DialogTrigger as-child>
-      <Button class="h-11" @click="openCreateListDialog">
+      <Button class="h-11">
         <Icon class="!text-white" name="material-symbols:add" size="20" />
         Create Lists
       </Button>
@@ -108,13 +110,21 @@ function onModelOpen(val: boolean) {
           Fill in the details to create a new list.
         </DialogDescription>
       </DialogHeader>
+      <DialogClose
+        class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity
+         hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+         disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+      >
+        <X class="h-4 w-4" />
+        <span class="sr-only">Close</span>
+      </DialogClose>
       <form @submit.prevent="onSubmit">
         <div class="space-y-4">
           <FormField v-slot="{ componentField }" name="title">
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter title" v-bind="componentField" />
+                <Input ref="focusInput" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter title" v-bind="componentField" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -165,11 +175,11 @@ function onModelOpen(val: boolean) {
           </FormField>
         </div>
         <DialogFooter class="flex flex-row justify-between items-center mt-6">
-          <Button type="button" variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600" @click="closeDialog">
+          <Button type="button" variant="outline" class="w-[49%] h-11 border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600" @click="closeDialog">
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Discard
           </Button>
-          <Button :loading type="button" class="w-[49%]" @click="onSubmit">
+          <Button :loading type="button" class="w-[49%] h-11" @click="onSubmit">
             <Icon name="lucide:check" class="w-4 h-4 mr-1" />
             Next
           </Button>

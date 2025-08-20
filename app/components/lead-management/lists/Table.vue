@@ -54,7 +54,11 @@ const props = withDefaults(defineProps<{
 // Computed pagination variables
 const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'onEdit'])
 
-const downloadList = useDownloadList()
+function downloadList(list_id: number) {
+  useApi().get(`/list-data/${list_id}/content?excel=true`).then((response) => {
+    exportToCSV({ name: response.data.list_name, header: response.data.list_header, data: response.data.list_data })
+  })
+}
 
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
