@@ -37,10 +37,12 @@ const props = withDefaults(defineProps<{
   loading: boolean
   totalRows: number
   list: any[]
+  listHeaders: any[] | null
   start: number // pagination start
   limit?: number // pagination limit
 }>(), {
   limit: 10, // Set default limit to 10
+  listHeaders: null,
 })
 
 const emits = defineEmits(['pageNavigation', 'limitChange'])
@@ -51,12 +53,13 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 interface Lead {
   id: number
-  first_name: string
-  last_name: string
-  phone_number: string
-  email: string
-  state: string
-  company_name: string
+  list_id: number
+  [key: string]: any // For dynamic option_* fields
+}
+
+interface ListHeader {
+  column_name: string
+  title: string
 }
 
 function handlePageChange(page: number) {
@@ -67,121 +70,119 @@ function changeLimit(val: number) {
   emits('limitChange', val)
 }
 
-const columnHelper = createColumnHelper<Lead>()
-const columns = [
-  columnHelper.display({
-    id: 'siNo',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
-  }),
-  columnHelper.accessor('id', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'Lead ID',
+// Function to format phone numbers
+function formatNumber(phoneNumber: string): string {
+  if (!phoneNumber) return ''
+  // Remove all non-numeric characters
+  const cleaned = phoneNumber.replace(/\D/g, '')
+  // Format as (XXX) XXX-XXXX if it's a 10-digit US number
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+  }
+  return phoneNumber
+}
+
+// Create dynamic columns based on listHeaders
+const columns = computed(() => {
+  const columnHelper = createColumnHelper<Lead>()
+  const dynamicColumns = []
+
+  // Serial Number column
+  dynamicColumns.push(
+    columnHelper.display({
+      id: 'siNo',
+      header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
+      cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
+    })
+  )
+
+  // Lead ID column (always static)
+  dynamicColumns.push(
+    columnHelper.accessor('id', {
+      header: ({ column }) =>
+        h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
+          'Lead ID',
+          h(Button, {
+            class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
+            variant: 'ghost',
+            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+          }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
+        ]),
+      cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
+    })
+  )
+
+  // All other columns are dynamic based on listHeaders
+  if (props.listHeaders && props.listHeaders.length > 0) {
+    // Group headers by column_name to handle duplicates and get unique columns
+    const uniqueHeaders = new Map<string, ListHeader>()
+    
+    props.listHeaders.forEach(header => {
+      if (!uniqueHeaders.has(header.column_name)) {
+        uniqueHeaders.set(header.column_name, header)
+      }
+    })
+
+    // Create columns for unique headers
+    uniqueHeaders.forEach((header) => {
+      dynamicColumns.push(
+        columnHelper.accessor(header.column_name as any, {
+          header: ({ column }) =>
+            h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
+              header.title,
+              h(Button, {
+                class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
+                variant: 'ghost',
+                onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+              }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
+            ]),
+          cell: ({ row }) => {
+            const value = row.original[header.column_name]
+            let displayValue = value || '-'
+            
+            // Special formatting for specific column types
+            if (header.title.toLowerCase().includes('mobile') || header.title.toLowerCase().includes('phone')) {
+              displayValue = formatNumber(value) || '-'
+            } else if (value) {
+              displayValue = String(value).trim() || '-'
+            }
+            
+            return h('div', { class: 'text-center font-normal text-sm' }, displayValue)
+          },
+        })
+      )
+    })
+  }
+
+  // Actions column (always static)
+  dynamicColumns.push(
+    columnHelper.display({
+      id: 'actions',
+      header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Actions'),
+      cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
         h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
-  }),
-  columnHelper.accessor('first_name', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'First Name',
+          size: 'sm',
+          class: 'bg-white text-black border border-[#162D3A] flex items-center gap-2 hover:bg-transparent hover:text-inherit',
+          onClick: () => {
+            navigateTo(`/app/lead-management/lead/${row.original.id}`)
+          },
+        }, [
+          h(Icon, { name: 'material-symbols:person', filled: true, class: 'text-base text-black' }),
+          'View Activity',
+        ]),
         h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
+          size: 'sm',
+          class: 'bg-[#162D3A] text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white',
+        }, [
+          h(Icon, { name: 'material-symbols:call-log-outline', filled: true, class: 'text-base text-white' }),
+          'Call Record',
+        ]),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.first_name || '-'),
-  }),
-  columnHelper.accessor('last_name', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'Last Name',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.last_name || '-'),
-  }),
-  columnHelper.accessor('phone_number', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'Mobile',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row?.original?.phone_number || '') || '-'),
-  }),
-  columnHelper.accessor('email', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'Email',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.email || '-'),
-  }),
-  columnHelper.accessor('state', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'State',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.state || '-'),
-  }),
-  columnHelper.accessor('company_name', {
-    header: ({ column }) =>
-      h('div', { class: 'flex items-center justify-center gap-1 text-center text-sm font-normal' }, [
-        'Legal Company Name',
-        h(Button, {
-          class: 'p-0 m-0 h-auto min-w-0 bg-transparent hover:bg-transparent shadow-none',
-          variant: 'ghost',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
-      ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.company_name),
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Actions'),
-    cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
-      h(Button, {
-        size: 'sm',
-        class: 'bg-white text-black border border-[#162D3A] flex items-center gap-2 hover:bg-transparent hover:text-inherit',
-        onClick: () => {
-          navigateTo(`/app/lead-management/lead/${row.original.id}`)
-        },
-      }, [
-        h(Icon, { name: 'material-symbols:person', filled: true, class: 'text-base text-black' }),
-        'View Activity',
-      ]),
-      h(Button, {
-        size: 'sm',
-        class: 'bg-[#162D3A] text-white flex items-center gap-2 hover:bg-[#162D3A] hover:text-white',
-      }, [
-        h(Icon, { name: 'material-symbols:call-log-outline', filled: true, class: 'text-base text-white' }),
-        'Call Record',
-      ]),
-    ]),
-  }),
-]
+    })
+  )
+
+  return dynamicColumns
+})
 
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
@@ -190,7 +191,7 @@ const rowSelection = ref({})
 
 const table = useVueTable({
   get data() { return props.list || [] },
-  columns,
+  get columns() { return columns.value },
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
