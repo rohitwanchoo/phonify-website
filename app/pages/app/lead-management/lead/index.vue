@@ -244,7 +244,7 @@ function changeLimit(val: number) {
         <!-- Search Button - Only show and enable when all fields are filled -->
         <Button
           v-if="hasSelectedLists"
-          class="h-11 mt-4 md:mt-0"
+          class="h-11"
           :disabled="!canSearch || leadsStatus === 'pending'"
           :loading="leadsStatus === 'pending'"
           @click="searchLeadWithHeaders"
@@ -267,6 +267,9 @@ function changeLimit(val: number) {
         @page-navigation="changePage"
         @limit-change="changeLimit"
       />
+      <div v-if="leadsList?.success === 'false'" class="w-full flex items-center justify-center mt-10">
+        No leads found.
+      </div>
     </div>
   </div>
 </template>
