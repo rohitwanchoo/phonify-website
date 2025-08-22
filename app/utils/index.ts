@@ -472,8 +472,8 @@ export function exportToCSV(data: {
   const headers = data.header.join(',')
 
   const rows = data.data.map((row) => {
-    return data.header.map((_, index) => {
-      const value = row[`option_${index + 1}`] ?? ''
+    return data.header.map((key) => {
+      const value = row[key] ?? ''
       return `"${String(value).replace(/"/g, '""')}"`
     }).join(',')
   })
