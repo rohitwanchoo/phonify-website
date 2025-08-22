@@ -259,6 +259,7 @@ function changeLimit(val: number) {
     </BaseHeader>
 
     <!-- TABLE -->
+    <!-- TABLE -->
     <div>
       <LeadManagementLeadTable
         v-if="leadsList?.data?.length"
@@ -271,8 +272,38 @@ function changeLimit(val: number) {
         @page-navigation="changePage"
         @limit-change="changeLimit"
       />
-      <div v-if="leadsList?.success === 'false'" class="w-full flex items-center justify-center mt-10">
-        No leads found.
+
+      <!-- Show different messages based on user's progress -->
+      <div v-else class="text-center text-sm font-normal mt-20">
+        <!-- Step 1: No lists selected -->
+        <p v-if="selectedLists.length === 0">
+          Please select a list from the dropdown above to view and manage leads.
+        </p>
+
+        <!-- Step 2: Lists selected but no header selected -->
+        <p v-else-if="!selectedHeader">
+          Please select a list header to search by.
+        </p>
+
+        <!-- Step 3: Header selected but no search value -->
+        <p v-else-if="!headerValue.trim()">
+          Please enter a search value to find leads.
+        </p>
+
+        <!-- Step 4: All fields filled but no search performed yet -->
+        <p v-else-if="!leadsList">
+          Click the Search button to find leads.
+        </p>
+
+        <!-- Step 5: Search performed but no results found -->
+        <p v-else-if="leadsList?.success === 'false'">
+          No leads found matching your search criteria. Try adjusting your search parameters.
+        </p>
+
+        <!-- Step 6: Search successful but no data returned -->
+        <p v-else>
+          No leads found in the selected list(s).
+        </p>
       </div>
     </div>
   </div>
