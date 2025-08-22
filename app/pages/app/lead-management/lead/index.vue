@@ -77,14 +77,18 @@ async function onListSelect(listItem: listItem) {
 
 // Remove list
 async function removeList(listId: number) {
+  // Remove the specific list item
   selectedLists.value = selectedLists.value.filter((item: listItem) => item.list_id !== listId)
 
-  // Reset header selection if no lists are selected
-  if (selectedLists.value.length === 0) {
-    selectedHeader.value = null
-    headerValue.value = ''
-  }
+  // Reset all selected data and hide table
+  listHeaders.value = null
+  selectedHeader.value = null
+  headerValue.value = ''
 
+  // Clear the leads data to hide the table
+  leadsList.value = null
+
+  // Update headers for remaining selected lists (if any)
   await updateListHeaders()
 }
 
@@ -257,7 +261,7 @@ function changeLimit(val: number) {
     <!-- TABLE -->
     <div>
       <LeadManagementLeadTable
-        v-if="leadsList?.data?.length && headerValue"
+        v-if="leadsList?.data?.length"
         :limit="limit"
         :total-rows="leadsList?.record_count"
         :start="start"
