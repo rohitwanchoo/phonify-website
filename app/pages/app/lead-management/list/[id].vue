@@ -27,17 +27,7 @@ const { data: listLeads, status: listLeadsStatus, refresh: leadsRefresh } = awai
   () =>
     useApi().post(`/list-data/${id.value}/content?lower_limit=${start.value}&upper_limit=${limit.value}&search=${search.value}`),
   {
-    transform: (res) => {
-      const data = res.data.list_data.map((entry: Record<string, any>) => {
-        const obj: Record<string, any> = {}
-        res.data.list_header.forEach((key: string, index: number) => {
-          obj[key] = entry[`option_${index + 1}`] ?? null
-        })
-        return obj
-      })
-
-      return { data, total_records: res.data.total_records, list_header: res.data.list_header }
-    },
+    transform: (res) => res.data
   },
 )
 
@@ -82,6 +72,5 @@ function downloadData() {
       </Button>
     </template>
   </BaseHeader>
-
-  <LeadManagementListsLeadsTable :list="listLeads?.data || []" :limit :start :total-rows="listLeads?.total_records" :list-header="listLeads?.list_header" :loading="listLeadsStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+  <LeadManagementListsLeadsTable :list="listLeads?.list_data || []" :limit :start :total-rows="listLeads?.total_records" :list-header="listLeads?.list_header" :loading="listLeadsStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
 </template>

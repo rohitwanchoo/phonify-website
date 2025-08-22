@@ -3,11 +3,20 @@ import { Button } from '@/components/ui/button'
 
 const route = useRoute()
 
+const leadID = route.params.id
+
+const listId = route.query.list_id
+
+
 // get lead detail with ID from params
 const { data: leadData, status: leadStatus } = await useLazyAsyncData('lead-details', () =>
-  useApi().get(`/lead/${route.params.id}`), {
-  transform: res => res.data,
+  useApi().post('/get-data-for-edit-lead-page', {
+    lead_id: leadID,
+    parent_id: listId,
+  }), {
+  transform: res => res.data.leadData,
 })
+
 
 // define leadActivityData manually
 const leadActivityData = ref()
@@ -57,9 +66,10 @@ const breadcrumbs = [
       </Button>
     </template>
   </BaseHeader>
+
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
     <div class="lg:col-span-4">
-      <LeadManagementLeadDetails :data="leadData" />
+      <LeadManagementLeadDetails :data="leadData" :loading="leadStatus === 'pending'" />
     </div>
     <div class="lg:col-span-8">
       <LeadManagementLeadLeadTabs :activity-data="leadActivityData" :lead-data="leadData" />
