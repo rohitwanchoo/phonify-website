@@ -122,6 +122,16 @@ watch(selectedLists, () => {
 watch(selectedHeader, () => {
   // Reset header value when header changes
   headerValue.value = ''
+  // Clear previous search results
+  leadsList.value = null
+})
+
+// Watch for header value changes - ADDED THIS WATCHER
+watch(headerValue, () => {
+  // Clear previous search results when user types new value
+  if (leadsList.value) {
+    leadsList.value = null
+  }
 })
 
 // Search function - only called when user clicks search button
@@ -259,7 +269,6 @@ function changeLimit(val: number) {
     </BaseHeader>
 
     <!-- TABLE -->
-    <!-- TABLE -->
     <div>
       <LeadManagementLeadTable
         v-if="leadsList?.data?.length"
@@ -297,12 +306,7 @@ function changeLimit(val: number) {
 
         <!-- Step 5: Search performed but no results found -->
         <p v-else-if="leadsList?.success === 'false'">
-          No leads found matching your search criteria. Try adjusting your search parameters.
-        </p>
-
-        <!-- Step 6: Search successful but no data returned -->
-        <p v-else>
-          No leads found in the selected list(s).
+          {{ leadsList?.message }}
         </p>
       </div>
     </div>
