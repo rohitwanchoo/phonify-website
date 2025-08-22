@@ -20,7 +20,7 @@ interface Props {
   loading: boolean
 }
 function onEdit() {
-  router.push(`/app/lead-management/lead/${route.params.id}/edit`)
+  router.push(`/app/lead-management/lead/${route.params.id}/edit?list_id=${route.query.list_id}`)
 }
 </script>
 
