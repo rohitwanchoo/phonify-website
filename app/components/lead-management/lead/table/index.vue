@@ -72,7 +72,8 @@ function changeLimit(val: number) {
 
 // Function to format phone numbers
 function formatNumber(phoneNumber: string): string {
-  if (!phoneNumber) return ''
+  if (!phoneNumber)
+    return ''
   // Remove all non-numeric characters
   const cleaned = phoneNumber.replace(/\D/g, '')
   // Format as (XXX) XXX-XXXX if it's a 10-digit US number
@@ -93,7 +94,7 @@ const columns = computed(() => {
       id: 'siNo',
       header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
       cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
-    })
+    }),
   )
 
   // Lead ID column (always static)
@@ -109,15 +110,15 @@ const columns = computed(() => {
           }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
         ]),
       cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
-    })
+    }),
   )
 
   // All other columns are dynamic based on listHeaders
   if (props.listHeaders && props.listHeaders.length > 0) {
     // Group headers by column_name to handle duplicates and get unique columns
     const uniqueHeaders = new Map<string, ListHeader>()
-    
-    props.listHeaders.forEach(header => {
+
+    props.listHeaders.forEach((header) => {
       if (!uniqueHeaders.has(header.column_name)) {
         uniqueHeaders.set(header.column_name, header)
       }
@@ -139,17 +140,18 @@ const columns = computed(() => {
           cell: ({ row }) => {
             const value = row.original[header.column_name]
             let displayValue = value || '-'
-            
+
             // Special formatting for specific column types
             if (header.title.toLowerCase().includes('mobile') || header.title.toLowerCase().includes('phone')) {
               displayValue = formatNumber(value) || '-'
-            } else if (value) {
+            }
+            else if (value) {
               displayValue = String(value).trim() || '-'
             }
-            
+
             return h('div', { class: 'text-center font-normal text-sm' }, displayValue)
           },
-        })
+        }),
       )
     })
   }
@@ -164,7 +166,7 @@ const columns = computed(() => {
           size: 'sm',
           class: 'bg-white text-black border border-[#162D3A] flex items-center gap-2 hover:bg-transparent hover:text-inherit',
           onClick: () => {
-            navigateTo(`/app/lead-management/lead/${row.original.id}`)
+            navigateTo(`/app/lead-management/lead/${row.original.id}?list_id=${row.original.list_id}`)
           },
         }, [
           h(Icon, { name: 'material-symbols:person', filled: true, class: 'text-base text-black' }),
@@ -178,7 +180,7 @@ const columns = computed(() => {
           'Call Record',
         ]),
       ]),
-    })
+    }),
   )
 
   return dynamicColumns

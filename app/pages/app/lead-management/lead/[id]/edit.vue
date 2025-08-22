@@ -15,6 +15,8 @@ const route = useRoute()
 const phoneCountryCode = ref(1)
 const workPhoneCountryCode = ref(1)
 
+const { data:leadDetail  } = useNuxtData('lead-details')
+
 const formSchema = toTypedSchema(z.object({
   first_name: z.string().min(1, 'First name is required').min(2, 'First name must be at least 2 characters'),
   last_name: z.string().min(1, 'Last name is required').min(2, 'Last name must be at least 2 characters'),
@@ -138,49 +140,49 @@ function getCountryLabel(code: string) {
 }
 
 // Lead data
-const { data: leadData, status: leadDataStatus } = await useLazyAsyncData<Lead>('lead-details', () =>
-  useApi().get(`/lead/${route.params.id}`), {
-  transform: (res: any) => res.data as Lead,
-})
+// const { data: leadData, status: leadDataStatus } = await useLazyAsyncData<Lead>('lead-details', () =>
+//   useApi().get(`/lead/${route.params.id}`), {
+//   transform: (res: any) => res.data as Lead,
+// })
 
 const { handleSubmit, resetForm, setFieldError, setValues, isSubmitting } = useForm({
   validationSchema: formSchema,
 })
 
 // Watch for fetched data and populate form
-watch(leadData, (data) => {
-  if (!data)
-    return
-  setValues({
-    first_name: data.first_name || '',
-    last_name: data.last_name || '',
-    phone_number: data.phone_number || '',
-    email: data.email || '',
-    work_phone: data.work_phone || '',
-    education: data.education || '',
-    extension: data.extension || '',
-    company_name: data.company_name || '',
-    business_type: data.business_type || '',
-    business_age: data.business_age || '',
-    currentPhoneSystem: data.current_phone_system || '',
-    leadSource: data.lead_source || '',
-    fundingAmount: data.funding_amount || '',
-    factorRate: data.factor_rate || '',
-    noOfOpenLoans: data.no_of_open_loans || '',
-    address: data.address || '',
-    address2: data.address2 || '',
-    city: data.city || '',
-    state: data.state || '',
-    zip: data.zip || '',
-    monthlyRevenue: data.monthly_revenue || '',
-    annualRevenue: data.annual_revenue || '',
-    creditScore: data.credit_score || '',
-    newLabel1: data.new_label_1 || '',
-    newLabel2: data.new_label_2 || '',
-  })
-  phoneCountryCode.value = Number(data.phone_country_code) || 1
-  workPhoneCountryCode.value = Number(data.work_phone_country_code) || 1
-})
+// watch(leadData, (data) => {
+//   if (!data)
+//     return
+//   setValues({
+//     first_name: data.first_name || '',
+//     last_name: data.last_name || '',
+//     phone_number: data.phone_number || '',
+//     email: data.email || '',
+//     work_phone: data.work_phone || '',
+//     education: data.education || '',
+//     extension: data.extension || '',
+//     company_name: data.company_name || '',
+//     business_type: data.business_type || '',
+//     business_age: data.business_age || '',
+//     currentPhoneSystem: data.current_phone_system || '',
+//     leadSource: data.lead_source || '',
+//     fundingAmount: data.funding_amount || '',
+//     factorRate: data.factor_rate || '',
+//     noOfOpenLoans: data.no_of_open_loans || '',
+//     address: data.address || '',
+//     address2: data.address2 || '',
+//     city: data.city || '',
+//     state: data.state || '',
+//     zip: data.zip || '',
+//     monthlyRevenue: data.monthly_revenue || '',
+//     annualRevenue: data.annual_revenue || '',
+//     creditScore: data.credit_score || '',
+//     newLabel1: data.new_label_1 || '',
+//     newLabel2: data.new_label_2 || '',
+//   })
+//   phoneCountryCode.value = Number(data.phone_country_code) || 1
+//   workPhoneCountryCode.value = Number(data.work_phone_country_code) || 1
+// })
 
 // Submit handler to PUT data
 // Submit handler using option fields for additional data
@@ -245,7 +247,7 @@ const breadcrumbs = [
   },
   {
     label: 'Lead Activity',
-    href: `/app/lead-management/lead/${route.params.id}`,
+    href: `/app/lead-management/lead/${route.params.id}?list_id=${route.query.list_id}`,
     active: false,
   },
   {
@@ -253,6 +255,27 @@ const breadcrumbs = [
     active: true,
   },
 ]
+const leadID = route.params.id
+
+const listId = route.query.list_id
+
+async function getLeadDetails(){
+  try {
+    const response = await useApi().post('/get-data-for-edit-lead-page', {
+    lead_id: leadID,
+    parent_id: listId,
+  })
+  leadDetail.value = response.data.leadData
+  } catch (error: any) {
+    showToast({ message: error.message, type:'error'})
+  }
+}
+
+onMounted(()=>{
+  if(!leadDetail.value){
+    getLeadDetails()
+  }
+})
 </script>
 
 <template>

@@ -240,7 +240,7 @@ function changeLimit(val: number) {
               </SelectItem>
               <template v-else>
                 <SelectItem v-for="(header, index) in listHeaders" :key="index" :value="header">
-                  {{ header.title }}
+                  {{ header?.title }}
                 </SelectItem>
               </template>
             </SelectGroup>

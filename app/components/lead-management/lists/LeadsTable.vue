@@ -107,6 +107,7 @@ const table = useVueTable({
 </script>
 
 <template>
+
   <div class="border rounded-lg my-6 overflow-x-auto">
     <Table class="min-w-[1200px]">
       <TableHeader>
