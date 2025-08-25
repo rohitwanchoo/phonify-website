@@ -14,15 +14,105 @@ const props = defineProps({
   leadData: Object,
 })
 
-// Static agent options
-const agentOptions = [
-  { label: 'Agent 1', value: 5654544444 },
-  { label: 'Agent 2', value: 5654544442 },
-  { label: 'Agent 3', value: 5654544443 },
-]
+const route = useRoute()
+
+const { } = useAuth
+
+// Extension data management with pagination
+const extensionData = ref([])
+const extensionStart = ref(0)
+const extensionLimit = ref(10)
+const isLoadingMoreExtensions = ref(false)
+const hasMoreExtensions = ref(true)
+const extensionStatus = ref('idle')
+
+// Initial extension load
+async function loadExtensions(reset = false) {
+  try {
+    if (reset) {
+      extensionStart.value = 0
+      extensionData.value = []
+      hasMoreExtensions.value = true
+    }
+
+    extensionStatus.value = 'pending'
+
+    const response = await useApi().post('/extension-list', {
+      start: extensionStart.value,
+      limit: extensionLimit.value,
+    })
+
+    if (response.data) {
+      const newExtensions = Array.isArray(response.data) ? response.data : []
+
+      if (reset) {
+        extensionData.value = newExtensions
+      }
+      else {
+        extensionData.value = [...extensionData.value, ...newExtensions]
+      }
+
+      // Check if there are more items to load
+      hasMoreExtensions.value = newExtensions.length === extensionLimit.value
+      extensionStart.value += extensionLimit.value
+    }
+
+    extensionStatus.value = 'success'
+  }
+  catch (error) {
+    console.error('Error loading extensions:', error)
+    extensionStatus.value = 'error'
+  }
+  finally {
+    isLoadingMoreExtensions.value = false
+  }
+}
+
+// Load more extensions when scrolling
+async function loadMoreExtensions() {
+  if (isLoadingMoreExtensions.value || !hasMoreExtensions.value) {
+    return
+  }
+
+  isLoadingMoreExtensions.value = true
+  await loadExtensions(false)
+}
+
+// Handle scroll event in select dropdown
+function handleExtensionScroll(event: Event) {
+  const target = event.target as HTMLElement
+  const threshold = 10 // pixels from bottom
+
+  if (target.scrollTop + target.clientHeight >= target.scrollHeight - threshold) {
+    loadMoreExtensions()
+  }
+}
+
+// Load initial extensions
+await loadExtensions(true)
 
 // Selected country code (defaults to +1)
 const phoneCountryCode = ref(1)
+
+const leadPhoneNumber = computed(() => {
+  if (!props?.leadData)
+    return ''
+
+  const leadDataValues = Object.values(props.leadData)
+  const dialingItem = leadDataValues.find((item: any) => item.is_dialing === 1)
+
+  if (dialingItem?.value) {
+    let phoneNumber = dialingItem.value.toString()
+    // Remove +1- prefix if present
+    if (phoneNumber.startsWith('+1-')) {
+      phoneNumber = phoneNumber.replace('+1-', '')
+    }
+    // Keep only digits for the masked input
+    return phoneNumber.replace(/\D/g, '')
+  }
+
+  return ''
+})
 
 // Form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
@@ -35,7 +125,7 @@ const formSchema = toTypedSchema(z.object({
 // Fetch templates for the lead
 const { data: textMessageData } = await useLazyAsyncData('get-sms-email-list', () =>
   useApi().post('/get-sms-email-list', {
-    lead_id: props.leadData?.id,
+    lead_id: route.params.id,
   }), {
   transform: res => res,
 })
@@ -57,12 +147,19 @@ function getCountryLabel(code: string) {
 const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    leadContact: props?.leadData?.phone_number || '',
+    leadContact: '',
     agentContact: '',
     template: '',
     templateMessage: '',
   },
 })
+
+// Watch for leadPhoneNumber changes and update form
+watch(leadPhoneNumber, (newPhone) => {
+  if (newPhone) {
+    setFieldValue('leadContact', newPhone)
+  }
+}, { immediate: true })
 
 // Watch for template changes and update the message
 watch(() => values.template, (newId) => {
@@ -81,24 +178,48 @@ const messageLength = computed(() => values.templateMessage?.length || 0)
 
 // Handle form submission
 const onSubmit = handleSubmit(async (vals) => {
-  const formatMaskaToNumber = Number(vals?.leadContact?.replace(/\D/g, '') || '')
-
-  const payload = {
-    to: formatMaskaToNumber,
-    from: vals.agentContact,
-    message: vals.templateMessage,
-    date: moment().format('YYYY-MM-DD'),
-  }
   try {
-    const response = await useApi().post('/send-sms', {
-      ...payload,
-    })
-
-    if (response.success === true) {
+    // Validate form data before processing
+    if (!vals.leadContact || !vals.agentContact || !vals.templateMessage) {
       showToast({
-        message: response?.message,
+        message: 'Please fill in all required fields',
+        type: 'error',
+      })
+      return
+    }
+
+    const formatMaskaToNumber = vals.leadContact.replace(/\D/g, '')
+
+    // Ensure we have a valid phone number
+    if (!formatMaskaToNumber || formatMaskaToNumber.length < 10) {
+      showToast({
+        message: 'Please enter a valid phone number',
+        type: 'error',
+      })
+      return
+    }
+
+    // Construct the full phone number with country code
+    const fullPhoneNumber = `+${phoneCountryCode.value}${formatMaskaToNumber}`
+
+    const payload = {
+      to: fullPhoneNumber,
+      from: vals.agentContact,
+      message: vals.templateMessage.trim(),
+      date: moment().format('YYYY-MM-DD'),
+      voip_provider: 'didforsale',
+    }
+    const response = await useApi().post('/send-sms', payload)
+
+    // Handle response
+    if (response && response.success === true) {
+      showToast({
+        message: response.message,
         type: 'success',
       })
+
+      // Optional: Reset form or redirect
+      // resetForm()
     }
     else {
       showToast({
@@ -109,7 +230,7 @@ const onSubmit = handleSubmit(async (vals) => {
   }
   catch (error: any) {
     showToast({
-      message: `${error.message}`,
+      message: `${error?.message}`,
       type: 'error',
     })
   }
@@ -119,7 +240,7 @@ const onSubmit = handleSubmit(async (vals) => {
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col  justify-between gap-6 md:h-[500px]">
+      <div class="flex flex-col justify-between gap-6 md:h-[500px]">
         <!-- Form fields section -->
         <div class="flex-1 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,7 +267,7 @@ const onSubmit = handleSubmit(async (vals) => {
                       </SelectContent>
                     </Select>
                     <Input
-                      v-maska="'(###) ### ####'"
+                      v-maska="'(###) ###-####'"
                       placeholder="Enter Phone Number"
                       v-bind="componentField"
                       class="h-11 border-gray-200 rounded-l-none"
@@ -156,7 +277,8 @@ const onSubmit = handleSubmit(async (vals) => {
                 <FormMessage />
               </FormItem>
             </FormField>
-            <!-- Agent Contact -->
+
+            <!-- Agent Contact with Pagination -->
             <FormField v-slot="{ componentField }" name="agentContact">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
@@ -167,10 +289,47 @@ const onSubmit = handleSubmit(async (vals) => {
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Agent Contact No." />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="option in agentOptions" :key="option.value" :value="option.value">
-                        {{ option.label }}
+                    <SelectContent
+                      class="max-h-[200px] overflow-y-auto"
+                      @scroll="handleExtensionScroll"
+                    >
+                      <!-- Loading state for initial load -->
+                      <SelectItem
+                        v-if="extensionStatus === 'pending' && extensionData.length === 0"
+                        class="text-center justify-center"
+                        :value="null"
+                        disabled
+                      >
+                        <Icon name="eos-icons:loading" />
                       </SelectItem>
+
+                      <!-- Extension items -->
+                      <template v-else>
+                        <SelectItem v-for="option in extensionData" :key="option.id" :value="option.mobile">
+                          {{ option.first_name }} {{ option.last_name }}
+                        </SelectItem>
+
+                        <!-- Loading more indicator -->
+                        <SelectItem
+                          v-if="isLoadingMoreExtensions"
+                          class="text-center justify-center"
+                          :value="null"
+                          disabled
+                        >
+                          <Icon name="eos-icons:loading" class="animate-spin" />
+                          <span class="ml-2">Loading more...</span>
+                        </SelectItem>
+
+                        <!-- No more items indicator -->
+                        <SelectItem
+                          v-else-if="!hasMoreExtensions && extensionData.length > 0"
+                          class="text-center justify-center text-gray-500"
+                          :value="null"
+                          disabled
+                        >
+                          No more items
+                        </SelectItem>
+                      </template>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -178,6 +337,7 @@ const onSubmit = handleSubmit(async (vals) => {
               </FormItem>
             </FormField>
           </div>
+
           <!-- Template (full width) -->
           <FormField v-slot="{ componentField }" name="template">
             <FormItem>
@@ -197,6 +357,7 @@ const onSubmit = handleSubmit(async (vals) => {
               <FormMessage />
             </FormItem>
           </FormField>
+
           <!-- Message (full width) -->
           <FormField v-slot="{ componentField }" name="templateMessage">
             <FormItem>
@@ -219,6 +380,7 @@ const onSubmit = handleSubmit(async (vals) => {
             </FormItem>
           </FormField>
         </div>
+
         <!-- Button section -->
         <div>
           <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full h-11">
