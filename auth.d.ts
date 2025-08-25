@@ -78,6 +78,7 @@ export interface LoginResponse {
     extension?: string | number
     alt_extension?: string
     app_extension?: string
+    secret?: string
   }
   expires_at?: string
   server?: string
