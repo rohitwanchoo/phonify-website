@@ -6,13 +6,13 @@ const limit = ref(10)
 const search = ref('')
 
 const { data: callTimingList, status: callTimingListStatus, refresh: refreshCallTimingList } = await useLazyAsyncData('get-call-timings', () =>
-  useApi().post('/get-call-timings', {
-    body: {
+  useApi().get('/call-timers', {
+    query: {
       start: start.value,
       limit: limit.value,
     },
   }), {
-  transform: res => res,
+  transform: res => res.data,
 })
 
 function changePage(page: number) {
@@ -61,7 +61,7 @@ watch(() => open.value, (val) => {
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :limit="limit" :total-rows="callTimingList?.record_count" :start="start" :list="callTimingList?.data || []" :loading="callTimingListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" />
+      <CallTimesTable :limit="limit" :total-rows="callTimingList?.total_rows" :start="start" :list="callTimingList?.data || []" :loading="callTimingListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" @refresh="refreshCallTimingList" />
     </div>
   </div>
 </template>

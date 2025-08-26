@@ -63,30 +63,29 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-async function deleteMethod(_original: callTimingList) {
+async function deleteMethod(id: number) {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
     return false
   }
-  // console.log(row)
-  // TODO: API CALL HERE
 
-  showToast({
-    type: 'success',
-    message: 'Call times deleted successfully',
+  useApi().delete(`/call-timers/${id}`).then((response) => {
+    showToast({
+      message: response.message,
+    })
+    emits('refresh')
+  }).catch((error) => {
+    showToast({ type: 'error', message: error.message })
   })
 }
 
 export interface callTimingList {
   id: number
-  day: string
-  from_time: string
-  to_time: string
-  department_id: number
-  name: string
+  title: string
   description: string
-  calltimeStatus: boolean
-  actions?: string
+  week_plan: Partial<Record<string, { start: string, end: string }>>
+  created_at: string // ISO timestamp
+  updated_at: string // ISO timestamp
 }
 
 const sheet = ref(false)
@@ -120,39 +119,35 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('name', {
+  columnHelper.accessor('title', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('name'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
     },
   }),
 
-  columnHelper.accessor('from_time', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Default Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+  columnHelper.accessor('week_plan', {
+    header: () => {
+      return h('div', { class: 'text-center text-sm font-normal' }, 'Default Call Time')
     },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${moment(row.original.from_time, 'HH:mm:ss').format('h:mm A')} to ${moment(row.original.to_time, 'HH:mm:ss').format('h:mm A')}`),
+    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, row.original.week_plan?.default ? `${moment(row.original.week_plan.default?.start, 'HH:mm:ss').format('h:mm A')} to ${moment(row.original.week_plan.default?.end, 'HH:mm:ss').format('h:mm A')}` : '-'),
   }),
 
-  columnHelper.accessor('department_id', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['No. Used Campaigns', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, '-')
-    },
-  }),
-  columnHelper.accessor('day', {
+  // columnHelper.accessor('department_id', {
+  //   header: ({ column }) => {
+  //     return h('div', { class: 'text-center' }, h(Button, {
+  //       class: 'text-sm font-normal',
+  //       variant: 'ghost',
+  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+  //     }, () => ['No. Used Campaigns', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+  //   },
+  //   cell: ({ row }) => {
+  //     return h('div', { class: 'text-center font-normal text-sm' }, '-')
+  //   },
+  // }),
+  columnHelper.accessor('created_at', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -162,25 +157,25 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, '-'),
+        h('div', { class: 'text-xs' }, moment(row.original.created_at).format('DD/MM/YYYY hh:mm A')),
       ])
     },
   }),
 
-  columnHelper.accessor('calltimeStatus', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center ' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.original.calltimeStatus, 'onUpdate:modelValue': (val: boolean) => {
-        row.original.calltimeStatus = val
-      } }))
-    },
-  }),
+  // columnHelper.accessor('calltimeStatus', {
+  //   header: ({ column }) => {
+  //     return h('div', { class: 'text-center ' }, h(Button, {
+  //       class: 'text-sm font-normal',
+  //       variant: 'ghost',
+  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+  //     }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+  //   },
+  //   cell: ({ row }) => {
+  //     return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, { 'class': 'data-[state=checked]:bg-green-600 cursor-pointer', 'modelValue': row.original.calltimeStatus, 'onUpdate:modelValue': (val: boolean) => {
+  //       row.original.calltimeStatus = val
+  //     } }))
+  //   },
+  // }),
 
   columnHelper.accessor('actions', {
     header: () => {
@@ -201,7 +196,7 @@ const columns = [
             editMethod(row?.original)
           },
           onDelete: () => {
-            deleteMethod(row?.original)
+            deleteMethod(row?.original.id)
           },
         })),
       ])
@@ -330,7 +325,7 @@ const table = useVueTable({
   </div>
 
   <!---->
-  <CallTimesTableSheet v-model:open="sheet" :schedule="selectedRowData || {}" />
+  <CallTimesTableSheet v-model:open="sheet" :call-time="selectedRowData as callTimingList" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Call Times" description="You are about to delete call time. Do you wish to proceed?" />
