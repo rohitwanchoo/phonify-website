@@ -16,6 +16,19 @@ const props = defineProps({
 
 const senderType = 'user' // Fixed sender type
 
+// Extract lead email from leadData
+function getLeadEmail() {
+  if (!props.leadData)
+    return ''
+
+  // Find the email entry in leadData (looking for title "Email")
+  const emailEntry = Object.values(props.leadData).find((item: any) =>
+    item.title?.toLowerCase() === 'email',
+  )
+
+  return emailEntry?.value?.trim() || ''
+}
+
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
   to: z.string().email('Lead Mail Id is required'),
@@ -24,7 +37,7 @@ const formSchema = toTypedSchema(z.object({
   LeadPlaceholders: z.string().min(1, 'Please select a lead placeholder'),
   SenderPlaceholders: z.string().min(1, 'Please select a sender placeholder'),
   subject: z.string().min(1, 'Subject is required').max(100, 'Subject cannot exceed 100 characters'),
-  templateContent: z.string().min(1, 'Template Preview is required')
+  templateContent: z.string().min(1, 'Template Preview is required'),
 }))
 
 // Fetch sender details (agent emails)
@@ -37,7 +50,7 @@ const { data: emailSenderData } = await useLazyAsyncData('email-sender-details',
 const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    to: props?.leadData?.email,
+    to: getLeadEmail(), // Auto-populate with lead email
     from: '',
     template: '',
     LeadPlaceholders: '',
@@ -54,6 +67,16 @@ const selectedTemplateData = ref(null)
 
 // Character count for template content
 const templateContentLength = computed(() => values.templateContent?.length || 0)
+
+// Watch for changes in leadData and update the 'to' field
+watch(() => props.leadData, (newLeadData) => {
+  if (newLeadData) {
+    const leadEmail = getLeadEmail()
+    if (leadEmail) {
+      setFieldValue('to', leadEmail)
+    }
+  }
+}, { immediate: true, deep: true })
 
 // Watch for template change → auto-fill subject & content
 watch(() => values.template, (newTemplateId) => {
@@ -163,7 +186,7 @@ const onSubmit = handleSubmit(async (vals) => {
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col justify-between gap-6 md:h-[550px]">
+      <div class="flex flex-col justify-between gap-6 h-fit">
         <!-- Form fields section -->
         <div class="flex-1 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,6 +201,7 @@ const onSubmit = handleSubmit(async (vals) => {
                     placeholder="Lead Mail Id"
                     v-bind="componentField"
                     class="border-gray-200 h-11"
+                    :class="{ 'bg-gray-50': componentField.modelValue }"
                   />
                 </FormControl>
                 <FormMessage class="text-red-500" />
@@ -304,7 +328,7 @@ const onSubmit = handleSubmit(async (vals) => {
         <!-- Button section -->
         <div>
           <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full h-11">
-            <Icon name="material-symbols:mail" size="20"/>
+            <Icon name="material-symbols:mail" size="20" />
             Send Email
           </Button>
         </div>
