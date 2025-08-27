@@ -2,12 +2,10 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { computed } from 'vue'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 
 const props = defineProps({
@@ -15,6 +13,8 @@ const props = defineProps({
 })
 
 const senderType = 'user' // Fixed sender type
+
+const showHtml = ref(false)
 
 // Extract lead email from leadData
 function getLeadEmail() {
@@ -65,8 +65,27 @@ const selectedSender = ref()
 const emailTemplateData = ref([])
 const selectedTemplateData = ref(null)
 
-// Character count for template content
-const templateContentLength = computed(() => values.templateContent?.length || 0)
+// Reactive ref for template content to ensure proper reactivity
+const templateContent = ref('')
+
+// Character count for template content - now properly reactive
+const templateContentLength = computed(() => {
+  // Strip HTML tags for character count
+  const textContent = templateContent.value.replace(/<[^>]*>/g, '').trim()
+  return textContent.length
+})
+
+// Watch templateContent ref and sync with form
+watch(templateContent, (newContent) => {
+  setFieldValue('templateContent', newContent)
+})
+
+// Watch form values.templateContent and sync with ref
+watch(() => values.templateContent, (newContent) => {
+  if (newContent !== templateContent.value) {
+    templateContent.value = newContent
+  }
+})
 
 // Watch for changes in leadData and update the 'to' field
 watch(() => props.leadData, (newLeadData) => {
@@ -85,7 +104,9 @@ watch(() => values.template, (newTemplateId) => {
     if (selectedTemplate) {
       selectedTemplateData.value = selectedTemplate
       setFieldValue('subject', (selectedTemplate as any).subject || '')
-      setFieldValue('templateContent', (selectedTemplate as any).template_html || '')
+      const htmlContent = (selectedTemplate as any).template_html || ''
+      setFieldValue('templateContent', htmlContent)
+      templateContent.value = htmlContent // Update the ref as well
     }
   }
   else {
@@ -112,9 +133,11 @@ watch(() => values.from, async (newFromEmail) => {
         // If only one template, auto-select it
         if (emailTemplateData.value.length === 1) {
           const singleTemplate = emailTemplateData.value[0]
+          const htmlContent = (singleTemplate as any)?.template_html || ''
           setFieldValue('template', (singleTemplate as any).id?.toString() ?? '')
           setFieldValue('subject', (singleTemplate as any)?.subject || '')
-          setFieldValue('templateContent', (singleTemplate as any)?.template_html || '')
+          setFieldValue('templateContent', htmlContent)
+          templateContent.value = htmlContent // Update the ref
           selectedTemplateData.value = singleTemplate || null
         }
         else {
@@ -122,6 +145,7 @@ watch(() => values.from, async (newFromEmail) => {
           setFieldValue('template', '')
           setFieldValue('subject', '')
           setFieldValue('templateContent', '')
+          templateContent.value = '' // Clear the ref
           selectedTemplateData.value = null
         }
       }
@@ -131,6 +155,7 @@ watch(() => values.from, async (newFromEmail) => {
         setFieldValue('template', '')
         setFieldValue('subject', '')
         setFieldValue('templateContent', '')
+        templateContent.value = '' // Clear the ref
         selectedTemplateData.value = null
       }
     }
@@ -141,6 +166,7 @@ watch(() => values.from, async (newFromEmail) => {
     selectedTemplateData.value = null
     setFieldValue('subject', '')
     setFieldValue('templateContent', '')
+    templateContent.value = '' // Clear the ref
     setFieldValue('template', '')
   }
 }, { immediate: true })
@@ -152,7 +178,7 @@ const onSubmit = handleSubmit(async (vals) => {
     user_id: selectedSender.value.user_id,
     campaign_id: selectedSender.value.campaign_id,
     subject: vals.subject,
-    body: vals.templateContent,
+    body: vals.templateContent, // This now contains the actual Quill editor content
     to: vals.to,
   }
 
@@ -304,16 +330,14 @@ const onSubmit = handleSubmit(async (vals) => {
             </FormItem>
           </FormField>
           <!-- Message (full width) -->
-          <FormField v-slot="{ componentField }" name="templateContent">
+          <FormField name="templateContent">
             <FormItem>
               <FormLabel>Template Preview</FormLabel>
               <FormControl>
-                <Textarea
-                  v-bind="componentField"
-                  placeholder="Enter message here..."
-                  maxlength="500"
-                  rows="8"
-                  class="resize-y pr-14 min-h-[100px]"
+                <BaseQuillEditor
+                  v-model="templateContent"
+                  content-type="html"
+                  @toggle-view="() => showHtml = !showHtml"
                 />
               </FormControl>
               <div class="flex justify-between">
@@ -324,6 +348,10 @@ const onSubmit = handleSubmit(async (vals) => {
               </div>
             </FormItem>
           </FormField>
+          <!-- Optional preview modal -->
+          <div v-if="showHtml" class="border rounded p-3 bg-gray-50 whitespace-pre-wrap mt-4">
+            {{ templateContent }}
+          </div>
         </div>
         <!-- Button section -->
         <div>
