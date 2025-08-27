@@ -261,7 +261,7 @@ await loadExtensions(true)
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col justify-between gap-6 md:h-[500px]">
+      <div class="flex flex-col justify-between gap-6">
         <!-- FORM FIELDS SECTION -->
         <div class="flex-1 space-y-4">
           <!-- Contact Fields Row -->
@@ -405,7 +405,7 @@ await loadExtensions(true)
                   placeholder="Enter message here..."
                   maxlength="200"
                   rows="8"
-                  class="resize-y pr-14 min-h-[100px]"
+                  class="resize-y pr-14 min-h-[150px]"
                 />
               </FormControl>
 
