@@ -17,7 +17,6 @@ const props = defineProps({
 const route = useRoute()
 
 // REACTIVE DATA - Extension Management
-// Extension data with pagination support
 const extensionData = ref([])
 const extensionStart = ref(0)
 const extensionLimit = ref(10)
@@ -26,7 +25,6 @@ const hasMoreExtensions = ref(true)
 const extensionStatus = ref('idle') // 'idle' | 'pending' | 'success' | 'error'
 
 // REACTIVE DATA - Phone & Form State
-// Selected country code (defaults to +1 for US)
 const phoneCountryCode = ref(1)
 
 // FORM VALIDATION SCHEMA
@@ -48,20 +46,21 @@ const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   },
 })
 
-// DATA FETCHING - API Calls
+// DATA FETCHING - API Calls (Non-blocking)
 // Fetch SMS templates for the current lead
-const { data: textMessageData } = await useLazyAsyncData('get-sms-email-list', () =>
+const { data: textMessageData, pending: smsDataPending } = useLazyAsyncData('get-sms-email-list', () =>
   useApi().post('/get-sms-email-list', {
     lead_id: route.params.id,
   }), {
   transform: res => res,
+  server: false, // Don't wait for server-side rendering
 })
 
 // Fetch list of phone countries with codes
-const { data: countrylist } = await useLazyAsyncData('phone-country-list', () =>
+const { data: countrylist, pending: countriesPending } = useLazyAsyncData('phone-country-list', () =>
   useApi().post('/phone-country-list'), {
   transform: res => res.data,
-  immediate: true,
+  server: false, // Don't wait for server-side rendering
 })
 
 // COMPUTED PROPERTIES
@@ -254,8 +253,10 @@ watch(() => values.template, (newId) => {
 }, { immediate: true })
 
 // INITIALIZATION
-// Load initial extension data on component mount
-await loadExtensions(true)
+// Load initial extension data on component mount (non-blocking)
+onMounted(() => {
+  loadExtensions(true)
+})
 </script>
 
 <template>
@@ -275,22 +276,36 @@ await loadExtensions(true)
                 <FormControl>
                   <div class="flex">
                     <!-- Country Code Selector -->
-                    <Select v-model="phoneCountryCode">
+                    <Select v-model="phoneCountryCode" :disabled="countriesPending">
                       <SelectTrigger class="w-fit data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
                         <SelectValue>
-                          <span class="text-sm text-nowrap">
+                          <span v-if="countriesPending" class="text-sm text-gray-400">
+                            Loading...
+                          </span>
+                          <span v-else class="text-sm text-nowrap">
                             {{ getCountryLabel(String(phoneCountryCode)) }}
                           </span>
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem
-                          v-for="(item, index) in countrylist"
-                          :key="index"
-                          :value="item.phone_code"
+                          v-if="countriesPending"
+                          class="text-center justify-center"
+                          :value="null"
+                          disabled
                         >
-                          {{ item.country_name }} (+{{ item.phone_code }})
+                          <Icon name="eos-icons:loading" class="animate-spin" />
+                          <span class="ml-2">Loading countries...</span>
                         </SelectItem>
+                        <template v-else>
+                          <SelectItem
+                            v-for="(item, index) in countrylist"
+                            :key="index"
+                            :value="item.phone_code"
+                          >
+                            {{ item.country_name }} (+{{ item.phone_code }})
+                          </SelectItem>
+                        </template>
                       </SelectContent>
                     </Select>
 
@@ -329,7 +344,8 @@ await loadExtensions(true)
                         :value="null"
                         disabled
                       >
-                        <Icon name="eos-icons:loading" />
+                        <Icon name="eos-icons:loading" class="animate-spin" />
+                        <span class="ml-2">Loading...</span>
                       </SelectItem>
 
                       <!-- Extension List Items -->
@@ -376,18 +392,36 @@ await loadExtensions(true)
             <FormItem>
               <FormLabel>Template</FormLabel>
               <FormControl>
-                <Select v-bind="componentField">
+                <Select v-bind="componentField" :disabled="smsDataPending">
                   <SelectTrigger class="w-full !h-11">
-                    <SelectValue placeholder="Select template" />
+                    <SelectValue>
+                      <span v-if="smsDataPending" class="text-gray-400">
+                        Loading templates...
+                      </span>
+                      <span v-else>
+                        Select template
+                      </span>
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem
-                      v-for="option in textMessageData?.sms"
-                      :key="option.templete_id"
-                      :value="option.templete_id"
+                      v-if="smsDataPending"
+                      class="text-center justify-center"
+                      :value="null"
+                      disabled
                     >
-                      {{ option.templete_name }}
+                      <Icon name="eos-icons:loading" class="animate-spin" />
+                      <span class="ml-2">Loading templates...</span>
                     </SelectItem>
+                    <template v-else>
+                      <SelectItem
+                        v-for="option in textMessageData?.sms"
+                        :key="option.templete_id"
+                        :value="option.templete_id"
+                      >
+                        {{ option.templete_name }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -424,7 +458,7 @@ await loadExtensions(true)
         <div>
           <Button
             type="submit"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || smsDataPending"
             :loading="isSubmitting"
             class="w-full h-11"
           >
