@@ -161,8 +161,16 @@ const redirectToList = [
   },
 ]
 
-const selectedCallTime = ref<{ id: number, name: string }>()
-
+interface CallTimingList {
+  id: number
+  title: string
+  description: string
+  week_plan: Partial<Record<string, { start: string, end: string }>>
+  created_at: string // ISO timestamp
+  updated_at: string // ISO timestamp
+}
+const selectedRowData = ref<CallTimingList>()
+const callTimeSheet = ref<boolean>(false)
 // country code list
 const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list', () =>
   useApi().post('/country-list', {
@@ -175,10 +183,10 @@ const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list',
 
 // call timing list
 const { data: callTimingList, status: callTimingListStatus, refresh: callTimingListRefresh } = await useLazyAsyncData('get-call-timings-campaign', () =>
-  useApi().post('/get-call-timings', {
+  useApi().get('/call-timers', {
   }), {
   transform: (res) => {
-    return res.data
+    return res.data.data
   },
   immediate: false,
 })
@@ -351,7 +359,9 @@ function onAmdDropActionChange(val: any) {
 
 function onSelectNoAgentAvailableAction(val: any) {
   if (val === 2 && !voiceDropOptions.value?.length) {
-    refreshVoiceDropOptions()
+    refreshVoiceDropOptions().then(() => {
+      console.log(voiceDropOptions.value)
+    })
   }
   if (val === 3 && !inboundIVROptions.value?.length) {
     refreshInboundIVROptions()
@@ -391,7 +401,7 @@ const formSchema = toTypedSchema(z.object({
   dial_mode: z.string().min(1, 'Dialing mode is required'),
   group_id: z.number().min(1, 'Caller group is required').max(50),
   time_based_calling: z.boolean(),
-  call_time: z.object({ id: z.number().optional(), name: z.string().optional() }).optional().superRefine((val, ctx) => {
+  call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
     if (values.time_based_calling && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -472,7 +482,7 @@ const formSchema = toTypedSchema(z.object({
     }
   }),
   // if no_agent_available_action is 3 and amd is true then inbound_ivr_no_agent_available_action is required
-  inbound_ivr_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
+  inbound_ivr_no_agent_available_action: z.string().optional().superRefine((val, ctx) => {
     if (values.no_agent_available_action === 3 && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -551,7 +561,7 @@ const { handleSubmit, values, resetField, errors, setFieldValue, resetForm } = u
     disposition_id: [],
     call_time: {},
     time_based_calling: false,
-    inbound_ivr_no_agent_available_action: 0,
+    inbound_ivr_no_agent_available_action: '',
     voicedrop_no_agent_available_action: 0,
     no_agent_available_action: 0,
     outbound_ai_dropdown_ivr: 0,
@@ -587,17 +597,12 @@ const onSubmit = handleSubmit(async (values) => {
     automated_duration: formState.value?.automated_duration ? '1' : '0',
     time_based_calling: formState.value?.time_based_calling ? 1 : 0,
     status: formState.value.status,
-
+    call_schedule_id: formState.value.call_time?.id,
     // TODO: need info about below
     is_deleted: 0,
 
   }
-  if (payload.call_time && Object.keys(payload.call_time).length) {
-    // Format times as HH:mm
-    payload.call_time_start = moment(formState.value.call_time?.from_time, 'HH:mm:ss').format('HH:mm')
-    payload.call_time_end = moment(formState.value.call_time?.to_time, 'HH:mm:ss').format('HH:mm')
-    delete payload.call_time
-  }
+
   // remove undefined keys from payload
   const cleanedPayload = Object.fromEntries(
     Object.entries(payload).filter(([_, v]) => v !== undefined),
@@ -662,6 +667,7 @@ onMounted(() => {
 </script>
 
 <template>
+  {{ values }}
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
@@ -884,7 +890,7 @@ onMounted(() => {
                 </FormField>
               </div>
               <div class="">
-                <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.duration" name="duration">
+                <FormField v-slot="{ componentField, errorMessage }" v-model="formState.duration" name="duration">
                   <FormItem v-auto-animate>
                     <FormLabel class="font-normal text-sm">
                       Duration in Sec
@@ -1363,15 +1369,12 @@ onMounted(() => {
                         <FormItem v-auto-animate>
                           <FormControl>
                             <AccordionTrigger :class="[(formState.call_time && Object.keys(formState.call_time).length) && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
-                              {{ formState.call_time && Object.keys(formState.call_time).length ? formState.call_time.name : 'Select Call Time' }}
+                              {{ formState.call_time && Object.keys(formState.call_time).length ? formState.call_time.title : 'Select Call Time' }}
                             </AccordionTrigger>
                           </FormControl>
                           <div v-if="errorMessage" class="text-red-600 text-sm">
                             {{ errorMessage === 'Required' ? 'Call Time is required' : errorMessage }}
                           </div>
-                          <!-- <FormMessage class="text-sm">
-                            hiii
-                          </FormMessage> -->
                         </FormItem>
                       </FormField>
 
@@ -1389,9 +1392,9 @@ onMounted(() => {
                                   <Skeleton class="h-[50px] w-full" />
                                 </CommandItem>
                               </template>
-                              <CommandItem v-for="item in callTimingList" v-else :key="item.name" :value="item" class="text-sm flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
-                                {{ item.name }}
-                                <Button size="icon" variant="outline">
+                              <CommandItem v-for="item in callTimingList" v-else :key="item.title" :value="item" class="text-sm flex items-center justify-between border-b last:border-b-0 py-3 cursor-pointer rounded-none">
+                                {{ item.title }}
+                                <Button type="reset" size="icon" variant="outline" @click.stop="() => { selectedRowData = item; callTimeSheet = true }">
                                   <Icon name="mdi:eye" />
                                 </Button>
                               </CommandItem>
@@ -1621,4 +1624,6 @@ onMounted(() => {
       </Button>
     </div>
   </div>
+
+  <CallTimesTableSheet v-model:open="callTimeSheet" :call-time="selectedRowData as CallTimingList" />
 </template>

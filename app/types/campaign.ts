@@ -36,7 +36,8 @@ export interface Campaign {
 }
 
 interface CallTime {
-  name: string
+  id: number
+  title: string
   from_time: string
   to_time: string
 }
