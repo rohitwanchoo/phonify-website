@@ -156,8 +156,11 @@ const onSubmit = handleSubmit(async (values) => {
       description: values.description,
       week_plan,
     }
-  
-    const response = await useApi().post(`/call-timers/${isEdit && props.data.id}`, data)
+    let api = '/call-timers'
+    if(isEdit.value)
+      api = `/call-timers/${isEdit && props.data.id}`
+    
+    const response = await useApi().post(api, data)
     loading.value = false
     resetForm()
     showToast({
