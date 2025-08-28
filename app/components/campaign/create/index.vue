@@ -172,14 +172,16 @@ interface CallTimingList {
 const selectedRowData = ref<CallTimingList>()
 const callTimeSheet = ref<boolean>(false)
 // country code list
-const { data: countyCodeList } = await useLazyAsyncData('get-country-code-list', () =>
-  useApi().post('/country-list', {
+// const { data: countryCodeList } = await useLazyAsyncData('get-country-code-list', () =>
+//   useApi().post('/country-list', {
 
-  }), {
-  transform: (res) => {
-    return res.data
-  },
-})
+//   }), {
+//   transform: (res) => {
+//     return res.data
+//   },
+// })
+
+const { countryCodeList } = useCreateCampaign()
 
 // call timing list
 const { data: callTimingList, status: callTimingListStatus, refresh: callTimingListRefresh } = await useLazyAsyncData('get-call-timings-campaign', () =>
@@ -667,7 +669,6 @@ onMounted(() => {
 </script>
 
 <template>
-  {{ values }}
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
@@ -722,7 +723,7 @@ onMounted(() => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in countyCodeList" :key="item.id" :value="item.phonecode">
+                            <SelectItem v-for="item in countryCodeList" :key="item.id" :value="item.phonecode">
                               {{ item.name }} (+{{ item.phonecode }})
                             </SelectItem>
                           </SelectGroup>

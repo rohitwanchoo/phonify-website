@@ -124,11 +124,11 @@ onMounted(() => {
   }
 })
 
-// stepper.goTo('select-list')
+// stepper.goTo('show-preview')
 </script>
 
 <template>
-  <BaseHeader :title="isEdit ? 'Update Campaign'  :'Create New Campaign'" :breadcrumbs="breadcrumbs">
+  <BaseHeader :title="isEdit ? 'Update Campaign' : 'Create New Campaign'" :breadcrumbs="breadcrumbs">
     <template #actions>
       <Button variant="outline" class="h-11">
         <icon name="material-symbols:save-rounded" size="18" />

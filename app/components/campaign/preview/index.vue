@@ -2,6 +2,33 @@
 import { Button } from '~/components/ui/button'
 
 const emit = defineEmits(['goTo'])
+const route = useRoute()
+const id = route.query.id
+
+const { data: campaignById, status: campaignByIdStatus, refresh } = await useLazyAsyncData('get-campaign-by-id-preview', () =>
+  useApi().post('/campaign-by-id', {
+    campaign_id: id,
+  }), {
+  transform: (res) => {
+    return res[0]
+  },
+  immediate: true,
+})
+
+function updateCampaign(values: any) {
+  const payload = {
+    ...values,
+    campaign_id: Number(id),
+    ...campaignById.value,
+  }
+
+  useApi().post('/edit-campaign', payload).then((response) => {
+    showToast(response.message)
+    refresh()
+  }).catch((error) => {
+    showToast(error.message)
+  })
+}
 </script>
 
 <template>
@@ -16,7 +43,7 @@ const emit = defineEmits(['goTo'])
           Active
         </div>
       </div>
-      <CampaignPreviewCampaignDetails />
+      <CampaignPreviewCampaignDetails :loading="campaignByIdStatus === 'pending'" :campaign="campaignById" @update="updateCampaign" />
       <CampaignPreviewCallerDetails />
       <CampaignPreviewTimeBasedCalling />
       <CampaignPreviewOtherDetails />

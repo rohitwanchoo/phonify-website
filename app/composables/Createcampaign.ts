@@ -2,6 +2,10 @@ import { CampaignCreate, CampaignPreview, CampaignSelectList } from '#components
 import { useStepper } from '@vueuse/core'
 
 export function useCreateCampaign() {
+  const { data: countryCodeList } = useLazyAsyncData('get-country-code-list', () =>
+    useApi().post('/country-list'), {
+    transform: res => res.data,
+  })
   // Form state
   function initialState() {
     return ref({
@@ -75,5 +79,5 @@ export function useCreateCampaign() {
     },
   })
 
-  return { formState, resetFormState, stepper }
+  return { formState, resetFormState, stepper, countryCodeList }
 }
