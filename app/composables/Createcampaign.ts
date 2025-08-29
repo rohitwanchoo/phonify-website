@@ -1,3 +1,4 @@
+import type { Campaign } from '~/types/campaign'
 import { CampaignCreate, CampaignPreview, CampaignSelectList } from '#components'
 import { useStepper } from '@vueuse/core'
 
@@ -6,6 +7,106 @@ export function useCreateCampaign() {
     useApi().post('/country-list'), {
     transform: res => res.data,
   })
+
+  const callerIds = [
+    {
+      id: 0,
+      value: 'area_code',
+      name: 'Area code',
+    },
+    {
+      id: 1,
+      value: 'custom',
+      name: 'Custom (Enabled for Custom CLI)',
+    },
+    {
+      id: 2,
+      value: 'area_code_random',
+      name: 'Area Code and Randomizer',
+    },
+  ]
+
+  const NoAgentAvailableList = [
+    {
+      id: 1,
+      name: 'Hang Up',
+    },
+    {
+      id: 2,
+      name: 'Voice Drop',
+    },
+    {
+      id: 3,
+      name: 'Inbound IVR',
+    },
+  ]
+
+  const timeIntervals = [
+    {
+      value: 60,
+      title: '1 Min',
+    },
+    {
+      value: 120,
+      title: '2 Min',
+    },
+    {
+      value: 300,
+      title: '5 Min',
+    },
+    {
+      value: 600,
+      title: '10 Min',
+    },
+    {
+      value: 1200,
+      title: '20 Min',
+    },
+    {
+      value: 1800,
+      title: '30 Min',
+    },
+  ]
+
+  const redirectToList = [
+    {
+      value: 1,
+      title: 'Audio Message',
+    },
+    {
+      value: 2,
+      title: 'Voice Template',
+    },
+    {
+      value: 3,
+      title: 'Extension',
+    },
+    {
+      value: 4,
+      title: 'RingGroup',
+    },
+    {
+      value: 5,
+      title: 'ivr',
+    },
+  ]
+
+  // amd drop action list
+  const amdDropActions = [
+    {
+      id: 1,
+      name: 'Hang Up',
+    },
+    {
+      id: 2,
+      name: 'Audio Message',
+    },
+    {
+      id: 3,
+      name: 'Voice template',
+    },
+  ]
+
   // Form state
   function initialState() {
     return ref({
@@ -79,5 +180,41 @@ export function useCreateCampaign() {
     },
   })
 
-  return { formState, resetFormState, stepper, countryCodeList }
+  /**
+   * Transform campaign data to form values
+   * @param campaignData - The campaign data from API
+   * @param campaignDeposition - The campaign disposition data
+   * @returns Transformed form values
+   */
+  function transformCampaignToFormValues(
+    campaignData: Campaign,
+    campaignDeposition: Array<{ disposition_id: any }>,
+  ) {
+    return {
+      status: campaignData.status,
+      title: campaignData.title,
+      country_code: campaignData.country_code,
+      description: campaignData.description,
+      caller_id: String(callerIds.find(item => item.value === campaignData?.caller_id)?.id),
+      dial_mode: campaignData.dial_mode,
+      group_id: campaignData.group_id,
+      call_ratio: campaignData.call_ratio,
+      duration: campaignData.duration,
+      no_agent_available_action: campaignData?.no_agent_available_action,
+      automated_duration: campaignData.automated_duration === '1',
+      amd: campaignData.amd === '1',
+      amd_drop_action: campaignData.amd_drop_action,
+      time_based_calling: campaignData.time_based_calling === 1,
+      email: Number(campaignData.email),
+      sms: campaignData.sms === '1',
+      send_report: campaignData.send_report === 1,
+      call_transfer: campaignData.call_transfer === '1',
+      hopper_mode: campaignData.hopper_mode,
+      custom_caller_id: String(campaignData.custom_caller_id),
+      disposition_id: campaignDeposition?.map(item => item.disposition_id),
+
+    }
+  }
+
+  return { formState, resetFormState, stepper, countryCodeList, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, transformCampaignToFormValues }
 }

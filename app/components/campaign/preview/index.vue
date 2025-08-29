@@ -2,29 +2,40 @@
 import { Button } from '~/components/ui/button'
 
 const emit = defineEmits(['goTo'])
+
+const { formState, transformCampaignToFormValues } = useCreateCampaign()
+
 const route = useRoute()
 const id = route.query.id
 
-const { data: campaignById, status: campaignByIdStatus, refresh } = await useLazyAsyncData('get-campaign-by-id-preview', () =>
-  useApi().post('/campaign-by-id', {
-    campaign_id: id,
-  }), {
-  transform: (res) => {
-    return res[0]
-  },
-  immediate: true,
-})
+// const { data: campaignById, status: campaignByIdStatus, refresh } = await useLazyAsyncData('get-campaign-by-id-preview', () =>
+//   useApi().post('/campaign-by-id', {
+//     campaign_id: id,
+//   }), {
+//   transform: (res) => {
+//     return res[0]
+//   },
+//   immediate: true,
+// })
+
+const { data: campaignById } = useNuxtData('get-campaign-by-id')
+
+const { data: campaignDeposition } = useNuxtData('campaign-deposition-by-id')
 
 function updateCampaign(values: any) {
+  const campaignForm = transformCampaignToFormValues(campaignById.value, campaignDeposition.value)
+  formState.value = campaignForm
   const payload = {
-    ...values,
     campaign_id: Number(id),
-    ...campaignById.value,
+    ...values,
+    ...formState.value,
+
+    // ...campaignById.value,
   }
 
   useApi().post('/edit-campaign', payload).then((response) => {
     showToast(response.message)
-    refresh()
+    // refresh()
   }).catch((error) => {
     showToast(error.message)
   })
@@ -43,7 +54,7 @@ function updateCampaign(values: any) {
           Active
         </div>
       </div>
-      <CampaignPreviewCampaignDetails :loading="campaignByIdStatus === 'pending'" :campaign="campaignById" @update="updateCampaign" />
+      <CampaignPreviewCampaignDetails :loading="!campaignById" :campaign="campaignById" @update="updateCampaign" />
       <CampaignPreviewCallerDetails />
       <CampaignPreviewTimeBasedCalling />
       <CampaignPreviewOtherDetails />

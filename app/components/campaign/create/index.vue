@@ -66,20 +66,7 @@ interface Props {
   dataLoading: boolean
 }
 
-const CallerIds = [
-  {
-    id: 0,
-    name: 'Area code',
-  },
-  {
-    id: 1,
-    name: 'Custom (Enabled for Custom CLI)',
-  },
-  {
-    id: 3,
-    name: 'Area Code and Randomizer',
-  },
-]
+const { callerIds, NoAgentAvailableList, countryCodeList, timeIntervals, redirectToList, amdDropActions } = useCreateCampaign()
 
 const sendEmailOptions = [
   {
@@ -111,56 +98,6 @@ const hooperModes = [
   },
 ]
 
-const timeIntervals = [
-  {
-    value: 60,
-    title: '1 Min',
-  },
-  {
-    value: 120,
-    title: '2 Min',
-  },
-  {
-    value: 300,
-    title: '5 Min',
-  },
-  {
-    value: 600,
-    title: '10 Min',
-  },
-  {
-    value: 1200,
-    title: '20 Min',
-  },
-  {
-    value: 1800,
-    title: '30 Min',
-  },
-]
-
-const redirectToList = [
-  {
-    value: 1,
-    title: 'Audio Message',
-  },
-  {
-    value: 2,
-    title: 'Voice Template',
-  },
-  {
-    value: 3,
-    title: 'Extension',
-  },
-  {
-    value: 4,
-    title: 'RingGroup',
-  },
-  {
-    value: 5,
-    title: 'ivr',
-  },
-]
-
 interface CallTimingList {
   id: number
   title: string
@@ -180,8 +117,6 @@ const callTimeSheet = ref<boolean>(false)
 //     return res.data
 //   },
 // })
-
-const { countryCodeList } = useCreateCampaign()
 
 // call timing list
 const { data: callTimingList, status: callTimingListStatus, refresh: callTimingListRefresh } = await useLazyAsyncData('get-call-timings-campaign', () =>
@@ -257,38 +192,6 @@ const { data: outboundLineList } = await useLazyAsyncData('get-outbound-line-lis
     return res.data
   },
 })
-
-// No Agent Available List
-const NoAgentAvailableList = [
-  {
-    id: 1,
-    name: 'Hang Up',
-  },
-  {
-    id: 2,
-    name: 'Voice Drop',
-  },
-  {
-    id: 3,
-    name: 'Inbound IVR',
-  },
-]
-
-// amd drop action list
-const amdDropActions = [
-  {
-    id: 1,
-    name: 'Hang Up',
-  },
-  {
-    id: 2,
-    name: 'Audio Message',
-  },
-  {
-    id: 3,
-    name: 'Voice template',
-  },
-]
 
 // Audio Message AMD List
 const { data: audioMessageAMDList, status: audioMessageAMDListStatus, refresh: refreshAudioMessageAMDList } = await useLazyAsyncData('get-audio-message-amd-list', () =>
@@ -774,7 +677,7 @@ onMounted(() => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem v-for="item in CallerIds" :key="item.id" :value="String(item.id)">
+                            <SelectItem v-for="item in callerIds" :key="item.id" :value="String(item.id)">
                               {{ item.name }}
                             </SelectItem>
                           </SelectGroup>
