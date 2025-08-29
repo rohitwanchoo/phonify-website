@@ -667,7 +667,6 @@ onMounted(() => {
 </script>
 
 <template>
-  {{ values }}
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
