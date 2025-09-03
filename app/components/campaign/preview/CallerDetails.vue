@@ -157,7 +157,7 @@ const formSchema = toTypedSchema(
 const { handleSubmit, resetForm, values, resetField, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    caller_id: 1,
+    caller_id: '',
     custom_caller_id: 'custom-1',
     dial_mode: 1,
     group_id: 'group-1',
@@ -237,7 +237,6 @@ const enableEdit = ref(false)
 </script>
 
 <template>
-  {{ customCallerIdList }}
   <form action="">
     <div class="border rounded-lg bg-white">
       <div class="border-b px-5 pt-5 pb-3 flex items-center justify-between">
@@ -275,7 +274,7 @@ const enableEdit = ref(false)
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="item in callerIds" :key="item.id" :value="String(item.id)">
+                        <SelectItem v-for="item in callerIds" :key="item.id" :value="String(item.value)">
                           {{ item.name }}
                         </SelectItem>
                       </SelectGroup>
@@ -294,7 +293,7 @@ const enableEdit = ref(false)
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
-                    <SelectTrigger :class="errorMessage && 'border-red-600'" :disabled="values.caller_id !== '1' " class="w-full !h-11">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" :disabled="values.caller_id !== 'custom' " class="w-full !h-11">
                       <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Custom Caller Id" />
                     </SelectTrigger>
                     <SelectContent>

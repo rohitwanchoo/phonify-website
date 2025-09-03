@@ -3,7 +3,7 @@ import { Button } from '~/components/ui/button'
 
 const emit = defineEmits(['goTo'])
 
-const { formState, transformCampaignToFormValues } = useCreateCampaign()
+const { formState, transformCampaignToFormValues, stepper } = useCreateCampaign()
 
 const route = useRoute()
 const id = route.query.id
@@ -43,6 +43,7 @@ function updateCampaign(values: any) {
 </script>
 
 <template>
+  {{ stepper.current }}
   <div class=" relative h-[calc(100vh-190px)] overflow-y-auto">
     <div class="m-5 space-y-[16px]">
       <div class="flex items-center justify-between">

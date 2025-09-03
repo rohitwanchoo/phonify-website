@@ -1,6 +1,7 @@
 export interface Campaign {
   id: number
   title: string
+  call_schedule_id: number | null
   status: number
   country_code: number
   description: string
@@ -33,6 +34,7 @@ export interface Campaign {
   outbound_ai_dropdown_extension: number | null
   outbound_ai_dropdown_ring_group: number | null
   outbound_ai_dropdown_ivr: number | null
+  dispositions: string[] | null
 }
 
 interface CallTime {

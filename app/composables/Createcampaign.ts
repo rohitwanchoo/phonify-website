@@ -43,27 +43,27 @@ export function useCreateCampaign() {
 
   const timeIntervals = [
     {
-      value: 60,
+      value: 1,
       title: '1 Min',
     },
     {
-      value: 120,
+      value: 2,
       title: '2 Min',
     },
     {
-      value: 300,
+      value: 5,
       title: '5 Min',
     },
     {
-      value: 600,
+      value: 10,
       title: '10 Min',
     },
     {
-      value: 1200,
+      value: 20,
       title: '20 Min',
     },
     {
-      value: 1800,
+      value: 30,
       title: '30 Min',
     },
   ]
@@ -175,11 +175,12 @@ export function useCreateCampaign() {
     'show-preview': {
       title: 'Preview & confirm',
       description: 'Preview what your meeting window will look like',
-      component: CampaignPreview,
+      component: CampaignCreate,
       isValid: () => false,
     },
   })
 
+  const enableEditSection = useState<'campaign-details' | 'caller-details' | 'time-based-calling' | 'other-details' | 'send-details' | 'associated-list' | ''>('enable-edit-section', () => '')
   /**
    * Transform campaign data to form values
    * @param campaignData - The campaign data from API
@@ -191,11 +192,12 @@ export function useCreateCampaign() {
     campaignDeposition: Array<{ disposition_id: any }>,
   ) {
     return {
+      ...campaignData,
       status: campaignData.status,
       title: campaignData.title,
       country_code: campaignData.country_code,
       description: campaignData.description,
-      caller_id: String(callerIds.find(item => item.value === campaignData?.caller_id)?.id),
+      caller_id: campaignData?.caller_id,
       dial_mode: campaignData.dial_mode,
       group_id: campaignData.group_id,
       call_ratio: campaignData.call_ratio,
@@ -211,10 +213,11 @@ export function useCreateCampaign() {
       call_transfer: campaignData.call_transfer === '1',
       hopper_mode: campaignData.hopper_mode,
       custom_caller_id: String(campaignData.custom_caller_id),
-      disposition_id: campaignDeposition?.map(item => item.disposition_id),
+      call_schedule_id: campaignData.call_schedule_id,
+      disposition_id: campaignData?.dispositions?.map(Number),
 
     }
   }
 
-  return { formState, resetFormState, stepper, countryCodeList, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, transformCampaignToFormValues }
+  return { formState, resetFormState, stepper, countryCodeList, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, transformCampaignToFormValues, enableEditSection }
 }
