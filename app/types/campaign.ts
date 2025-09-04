@@ -17,7 +17,7 @@ export interface Campaign {
   call_transfer: boolean | string
   disposition_id: any[]
   hopper_mode: number
-  voip_configurations: number
+  voip_configuration_id: number
   call_ratio: number | null
   duration: number | null
   automated_duration: boolean | string

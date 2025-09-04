@@ -108,7 +108,7 @@ function onEdit() {
             </div>
             <div class="flex items-center gap-x-2">
               <div>
-                <FormField v-if="enableEditSection === 'time-based-calling'" v-slot="{ value, handleChange }" v-model="formState.time_based_calling" name="time_based_calling">
+                <FormField v-if="enableEditSection === 'time-based-calling' || !isPreview" v-slot="{ value, handleChange }" v-model="formState.time_based_calling" name="time_based_calling">
                   <FormItem class="flex flex-row items-center justify-between">
                     <FormControl>
                       <Switch

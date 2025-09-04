@@ -3,9 +3,18 @@ import { CampaignCreate, CampaignPreview, CampaignSelectList } from '#components
 import { useStepper } from '@vueuse/core'
 
 export function useCreateCampaign() {
-  const { data: countryCodeList } = useLazyAsyncData('get-country-code-list', () =>
-    useApi().post('/country-list'), {
-    transform: res => res.data,
+  const countryCodes = useState('country-code-list', () => [])
+
+  const countryCodeList = computed(() => {
+    if (countryCodes.value.length) {
+      return countryCodes.value
+    }
+    else {
+      useApi().post('/country-list').then((res) => {
+        countryCodes.value = res.data
+      })
+      return countryCodes.value
+    }
   })
 
   const callerIds = [
@@ -126,7 +135,7 @@ export function useCreateCampaign() {
       call_transfer: false,
       disposition_id: [],
       hopper_mode: 0,
-      voip_configurations: 0,
+      voip_configuration_id: 0,
       call_ratio: '',
       duration: '',
       automated_duration: false,
@@ -143,6 +152,7 @@ export function useCreateCampaign() {
       outbound_ai_dropdown_extension: null,
       outbound_ai_dropdown_ring_group: null,
       outbound_ai_dropdown_ivr: 0,
+      call_schedule_id: null,
     })
   }
   const formState = useState('create-campaign-state', initialState)
@@ -189,7 +199,6 @@ export function useCreateCampaign() {
    */
   function transformCampaignToFormValues(
     campaignData: Campaign,
-    campaignDeposition: Array<{ disposition_id: any }>,
   ) {
     return {
       ...campaignData,

@@ -14,14 +14,13 @@ const emits = defineEmits([
   'resetData',
 ])
 
-const { enableEditSection } = useCreateCampaign()
+const { formState, enableEditSection } = useCreateCampaign()
 
 interface Props {
   dataLoading: boolean
   isPreview: boolean
 }
 
-const formState = useState<Campaign>('create-campaign-state')
 const route = useRoute()
 const id = route.query.id
 
@@ -57,7 +56,7 @@ const formSchema = toTypedSchema(z.object({
   call_transfer: z.boolean(),
   disposition_id: z.array(z.number()).min(1, 'Disposition is required'),
   hopper_mode: z.number().min(0, 'Hopper Mode is required'),
-  voip_configurations: z.number().min(1, 'Outbound Line is required'),
+  voip_configuration_id: z.number().min(1, 'Outbound Line is required'),
 
   // if dial_mode is predictive_dial
   call_ratio: z.string().optional().superRefine((val, ctx) => {
@@ -124,7 +123,7 @@ const formSchema = toTypedSchema(z.object({
     }
   }),
   // if no_agent_available_action is 3 and amd is true then inbound_ivr_no_agent_available_action is required
-  inbound_ivr_no_agent_available_action: z.string().optional().superRefine((val, ctx) => {
+  inbound_ivr_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
     if (values.no_agent_available_action === 3 && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -199,11 +198,11 @@ const { handleSubmit, values, setFieldValue, resetForm, errors } = useForm({
     caller_id: '',
     dial_mode: '',
     group_id: 0,
-    voip_configurations: 0,
+    voip_configuration_id: 0,
     disposition_id: [],
     call_time: {},
     time_based_calling: false,
-    inbound_ivr_no_agent_available_action: '',
+    inbound_ivr_no_agent_available_action: 0,
     voicedrop_no_agent_available_action: 0,
     no_agent_available_action: 0,
     outbound_ai_dropdown_ivr: 0,
@@ -270,7 +269,6 @@ onMounted(() => {
 </script>
 
 <template>
-  {{ errors }}
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
@@ -288,9 +286,26 @@ onMounted(() => {
 
         <!-- Other Details -->
         <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-filed-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+
+        <!-- Associate List -->
+        <CampaignAssociatedList
+          v-if="isPreview"
+          :values="values"
+          :loading="loading"
+          @set-filed-value="setFieldValue"
+          @cancel-edit="emits('resetData')"
+        />
+
+      <!-- @page-navigation="changePage" @change-limit="changeLimit" -->
       </form>
     </div>
-    <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
+    <div v-if="isPreview" class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
+      <Button class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading">
+        <Icon name="material-symbols:call" />
+        Start Dialing
+      </Button>
+    </div>
+    <div v-else class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
       <Button class="w-full h-[52px]" type="submit" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="onSubmit">
         Continue
       </Button>

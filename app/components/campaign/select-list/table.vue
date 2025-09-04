@@ -33,16 +33,19 @@ import { cn } from '@/lib/utils'
 interface List {
   id: number
   list: string
+  title: string
   createdDate: string
   totalLeads: number
   rowLeadReport: number
   l_title: string
   updated_at: any
   list_id: number
+  rowListData: string
 
 }
 
 const props = withDefaults(defineProps<{
+  isPreview?: boolean
   enableSelect?: boolean
   loading?: boolean
   isEdit?: boolean
@@ -50,9 +53,11 @@ const props = withDefaults(defineProps<{
   start: number // pagination start
   limit?: number // pagination limit
   totalRows: number
+  classes?: string
 }>(), {
   limit: 10,
   enableSelect: true,
+  isPreview: false,
   data: () => [],
 })
 
@@ -98,7 +103,7 @@ const columns = [
         'List Name',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list),
+    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list || row.original.title),
   }),
 
   // Created Date column (sortable)
@@ -138,13 +143,20 @@ const columns = [
     header: () => h('div', { class: 'text-sm font-medium text-center' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
       h(Button, {
+        type: 'button',
         variant: 'outline',
         size: 'icon',
         class: 'h-10 w-10 text-white bg-primary',
+        onClick: () => {
+          navigateTo(`/app/lead-management/list/${row.original.id}?name=${row.original.list || row.original.title}`, {
+            open: { target: '_blank' },
+          })
+        },
       }, h(Eye, { class: 'h-6 w-6' })),
       props.enableSelect && h(Button, {
         variant: selectedRows.value.includes(row.original.list_id) ? 'default' : 'outline',
         size: 'sm',
+        type: 'button',
         class: cn('h-10 w-28 flex items-center justify-center gap-1', {
           'bg-green-600 text-white hover:bg-green-700 cursor-pointer': selectedRows.value.includes(row.original.list_id),
           'text-primary border-primary cursor-pointer': !selectedRows.value.includes(row.original.list_id),
@@ -184,7 +196,7 @@ function changeLimit(val: number | null) {
 </script>
 
 <template>
-  <div class="border rounded-lg  mt-5 max-h-[85%] overflow-auto">
+  <div :class="classes" class="border rounded-lg  mt-5 max-h-[85%] overflow-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -228,11 +240,10 @@ function changeLimit(val: number | null) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 px-3 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing
-
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
@@ -245,7 +256,6 @@ function changeLimit(val: number | null) {
             </SelectContent>
           </Select>
         </span>
-
         of {{ totalRows }} entries
       </div>
     </div>

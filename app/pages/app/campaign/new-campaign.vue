@@ -28,15 +28,6 @@ const { data: campaignById, status: campaignByIdStatus, refresh } = await useLaz
   },
   immediate: false,
 })
-const { data: campaignDisposition, refresh: _campaignDispositionRefresh } = await useLazyAsyncData('campaign-deposition-by-id', () =>
-  useApi().post('/campaign-disposition', {
-    campaign_id: id,
-  }), {
-  transform: (res) => {
-    return res.data
-  },
-  immediate: true,
-})
 
 function setData() {
   if (isEdit.value) {
@@ -68,10 +59,11 @@ function setData() {
       if (campaignById.value.time_based_calling)
         refreshNuxtData('get-call-timings-campaign')
 
-      const values = transformCampaignToFormValues(campaignById.value, campaignDisposition.value)
+      const values = transformCampaignToFormValues(campaignById.value)
       if (values?.caller_id === 'custom') {
         refreshNuxtData('get-custom-caller-id-list')
       }
+      console.log(values)
       formState.value = values
       // formState.value = campaignById.value
       // formState.value.custom_caller_id = String(campaignById.value.custom_caller_id)

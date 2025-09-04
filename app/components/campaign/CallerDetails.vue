@@ -702,7 +702,6 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  <!-- TODO: need to change this after API fix -->
                   {{ voiceDropOptions?.find((val: any) => val.id === formState?.voicedrop_no_agent_available_action)?.first_name }} {{ voiceDropOptions?.find((val: any) => val.id === formState?.voicedrop_no_agent_available_action)?.last_name }} - {{ voiceDropOptions?.find((val: any) => val.id === formState?.voicedrop_no_agent_available_action)?.extension }}
                 </div>
               </FormControl>
@@ -727,7 +726,7 @@ function cancelEdit() {
                       <div v-if="inboundIVROptionsStatus === 'pending'" class="flex justify-center h-5 bg-accent rounded hover:bg-accent/80 cursor-pointer items-center">
                         <Icon name="eos-icons:loading" />
                       </div>
-                      <SelectItem v-for="item in inboundIVROptions" :key="item.ivr_id" :value="item.ivr_id">
+                      <SelectItem v-for="item in inboundIVROptions" :key="item.ivr_id" :value="item.id">
                         {{ item.ivr_desc }} - {{ item.ivr_id }}
                       </SelectItem>
                     </SelectGroup>

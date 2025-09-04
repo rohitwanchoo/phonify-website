@@ -139,7 +139,7 @@ const filteredDispositionList = computed(() => {
           </FormField>
         </div>
         <div class="w-1/2">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voip_configurations" name="voip_configurations">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voip_configuration_id" name="voip_configuration_id">
             <FormItem v-auto-animate>
               <FormLabel class="font-normal text-sm">
                 OutBound Line
@@ -158,7 +158,7 @@ const filteredDispositionList = computed(() => {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ outboundLineList?.find((i: any) => i.id === formState?.voip_configurations)?.name }}
+                  {{ outboundLineList?.find((i: any) => i.id === formState?.voip_configuration_id)?.name }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
