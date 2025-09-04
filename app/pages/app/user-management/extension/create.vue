@@ -162,12 +162,12 @@ const formSchema = toTypedSchema(z.object({
     : z.string().min(1, 'Password is required').max(10, 'maximum 10 character allowed'),
 
   extension_type: z.string().min(1, 'Extension Type is required'),
-  sms_setting_id: z.number().min(1, 'required'),
+  // sms_setting_id: z.number().min(1, 'required'),
   receive_sms_on_email: z.boolean(),
   receive_sms_on_mobile: z.boolean(),
   ip_filtering: z.boolean(),
   enable_2fa: z.boolean(),
-  voip_configuration_id: z.number().min(1, 'required'),
+  // voip_configuration_id: z.number().min(1, 'required'),
   app_status: z.boolean(),
 
   package_id: isEdit
@@ -201,8 +201,8 @@ const { handleSubmit, values, errors, setFieldValue, setFieldError, validateFiel
     enable_2fa: false,
     twinning: false,
     ip_filtering: false,
-    sms_setting_id: 3, // TODO: need clarity
-    voip_configuration_id: 2, // TODO: need clarity
+    // sms_setting_id: 3, // TODO: need clarity
+    // voip_configuration_id: 2, // TODO: need clarity
     receive_sms_on_email: false,
     receive_sms_on_mobile: false,
 
@@ -859,7 +859,7 @@ onMounted(() => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="(item, key) in clientPackages" :key="key" :value="Number(key)">
+                        <SelectItem v-for="(item) in clientPackages" :key="item.id" :value="item.id">
                           <!-- (Remaining = Total Quantity - Assigned) -->
                           {{ item.package_name }} ({{ item.quantity - item.assigned.length }} remaining)
                         </SelectItem>
