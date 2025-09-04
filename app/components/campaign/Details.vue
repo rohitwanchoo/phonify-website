@@ -26,6 +26,7 @@ import { Textarea } from '~/components/ui/textarea'
 const props = defineProps<{
   values: any
   isPreview: boolean
+  loading: boolean
 }>()
 
 const emits = defineEmits(['resetFields', 'submit'])
@@ -47,7 +48,6 @@ function cancelEdit() {
 }
 
 function saveCampaign() {
-  enableEditSection.value = ''
   emits('submit')
 }
 </script>
@@ -76,17 +76,17 @@ function saveCampaign() {
       </div>
       <div v-else>
         <div v-if="enableEditSection === 'campaign-details'" class="flex gap-x-2">
-          <Button variant="outline" size="sm" class="rounded" @click="cancelEdit">
+          <Button :disabled="loading" variant="outline" size="sm" class="rounded" @click="cancelEdit">
             <Icon name="lucide:x" />
             Cancel
           </Button>
-          <Button class="w-[105px] rounded" type="submit" size="sm" @click="saveCampaign">
-            <Icon name="material-symbols:save-rounded" />
+          <Button :disabled="loading" class="w-[105px] rounded" type="submit" size="sm" @click="saveCampaign">
+            <Icon :name=" loading ? 'eos-icons:loading' : 'material-symbols:save-rounded'" />
             Save
           </Button>
         </div>
         <div v-else class="flex items-center gap-x-2">
-          <Button variant="outline" size="sm" class="rounded" @click="enableEditSection = 'campaign-details'">
+          <Button :disabled="enableEditSection.length" variant="outline" size="sm" class="rounded" @click="enableEditSection = 'campaign-details'">
             <Icon name="icons:edit-box" /> Edit
           </Button>
         </div>

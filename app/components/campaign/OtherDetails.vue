@@ -27,6 +27,7 @@ import { Button } from '~/components/ui/button'
 interface Props {
   values: any
   isPreview: boolean
+  loading: boolean
 }
 const props = defineProps<Props>()
 
@@ -77,7 +78,7 @@ const searchTerm = ref('')
 const { contains } = useFilter({ sensitivity: 'base' })
 
 const filteredDispositionList = computed(() => {
-  const options = dispositionList?.value.filter((item: { id: number }) => !formState.value?.disposition_id?.includes(item.id))
+  const options = dispositionList?.value.filter((item: { id: number }) => !formState.value?.disposition_id?.includes(item?.id))
   return searchTerm.value ? options.filter((option: { title: string }) => contains(option.title, searchTerm.value)) : options
 })
 </script>
@@ -94,13 +95,13 @@ const filteredDispositionList = computed(() => {
             <Icon name="lucide:x" />
             Cancel
           </Button>
-          <Button class="w-[105px] rounded" size="sm" @click="enableEditSection = ''; emits('submit')">
-            <Icon name="material-symbols:save-rounded" />
+          <Button type="submit" :disabled="loading" class="w-[105px] rounded" size="sm" @click="emits('submit')">
+            <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save-rounded'" />
             Save
           </Button>
         </div>
         <div v-else class="flex items-center gap-x-2">
-          <Button variant="outline" size="sm" class="rounded" @click="enableEditSection = 'other-details'">
+          <Button :disabled="enableEditSection.length" variant="outline" size="sm" class="rounded" @click="enableEditSection = 'other-details'">
             <Icon name="icons:edit-box" /> Edit
           </Button>
         </div>

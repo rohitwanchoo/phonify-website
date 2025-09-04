@@ -24,6 +24,7 @@ import { Switch } from '~/components/ui/switch'
 const props = defineProps<{
   values: any
   isPreview: boolean
+  loading: boolean
 }>()
 
 const emits = defineEmits(['cancelEdit'])
@@ -128,13 +129,13 @@ function onEdit() {
                     <Icon name="lucide:x" />
                     Cancel
                   </Button>
-                  <Button class="w-[105px] rounded" size="sm" @click="enableEditSection = ''">
-                    <Icon name="material-symbols:save-rounded" />
+                  <Button type="submit" class="w-[105px] rounded" size="sm" :disabled="loading">
+                    <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save-rounded'" />
                     Save
                   </Button>
                 </div>
                 <div v-else class="flex items-center gap-x-2">
-                  <Button variant="outline" size="sm" class="rounded" @click="onEdit">
+                  <Button :disabled="enableEditSection.length" variant="outline" size="sm" class="rounded" @click="onEdit">
                     <Icon name="icons:edit-box" /> Edit
                   </Button>
                 </div>

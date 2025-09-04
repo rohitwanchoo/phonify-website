@@ -7,17 +7,19 @@ import * as z from 'zod'
 
 import { Button } from '~/components/ui/button'
 
-interface Props {
-  dataLoading: boolean
-  isPreview: boolean
-}
-
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emits = defineEmits([
   'completed',
   'resetData',
 ])
+
+const { enableEditSection } = useCreateCampaign()
+
+interface Props {
+  dataLoading: boolean
+  isPreview: boolean
+}
 
 const formState = useState<Campaign>('create-campaign-state')
 const route = useRoute()
@@ -96,7 +98,7 @@ const formSchema = toTypedSchema(z.object({
   }),
   audio_message_amd: z.number().optional().superRefine((val, ctx) => {
     // if amd_drop_action is 2 and amd is true then audio_message_amd is required
-    if (formState.value.amd_drop_action === 2 && !val) {
+    if (formState.value.amd_drop_action === 2 && !val && formState.value.amd) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Audio message AMD is required when AMD drop action is Audio Message',
@@ -188,7 +190,7 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, values, setFieldValue, resetForm } = useForm({
+const { handleSubmit, values, setFieldValue, resetForm, errors } = useForm({
   validationSchema: formSchema,
   initialValues: {
     title: '',
@@ -241,8 +243,10 @@ const onSubmit = handleSubmit(async (values) => {
     showToast({
       message: response?.message,
     })
-    if (isEdit.value)
+    if (isEdit.value) {
+      enableEditSection.value = ''
       return
+    }
 
     await navigateTo({ query: { id: response.data.id } })
     emits('completed')
@@ -266,27 +270,28 @@ onMounted(() => {
 </script>
 
 <template>
+  {{ errors }}
   <div class=" relative h-[calc(100vh-190px)]">
     <div class=" m-5">
       <form class="space-y-4" @submit="onSubmit">
         <!-- CAMPAIGN DETAILS -->
-        <CampaignDetails :is-preview="isPreview" :values="values" @reset-fields="emits('resetData')" @submit="onSubmit()" />
+        <CampaignDetails :is-preview="isPreview" :values :loading @reset-fields="emits('resetData')" />
 
         <!-- Caller Details -->
-        <CampaignCallerDetails :is-preview="isPreview" :values="values" @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+        <CampaignCallerDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" />
 
         <!-- Time Based Calling -->
-        <CampaignTimeBaseCalling :is-preview="isPreview" :values="values" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+        <CampaignTimeBaseCalling :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
 
         <!-- Send Details -->
-        <CampaignSendDetails :is-preview="isPreview" :values="values" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+        <CampaignSendDetails :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
 
         <!-- Other Details -->
-        <CampaignOtherDetails :is-preview="isPreview" :values="values" @set-filed-value="setFieldValue" />
+        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-filed-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
       </form>
     </div>
     <div class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" type="submit" :disabled="dataLoading" :loading="loading" @click="onSubmit">
+      <Button class="w-full h-[52px]" type="submit" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="onSubmit">
         Continue
       </Button>
     </div>

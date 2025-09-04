@@ -24,12 +24,14 @@ import { Switch } from '~/components/ui/switch'
 const props = defineProps<{
   values: any
   isPreview: boolean
+  loading: boolean
 
 }>()
 
 const emit = defineEmits(['setFieldValue', 'cancelEdit', 'submit'])
 
 const { formState, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, enableEditSection } = useCreateCampaign()
+
 // custom caller id list
 const { data: customCallerIdList, refresh: refreshCustomCallerIdList, status: customCallerIdListStatus } = await useLazyAsyncData('get-custom-caller-id-list', () =>
   useApi().post('/did', {
@@ -193,17 +195,17 @@ function cancelEdit() {
       </div>
       <div v-if="isPreview " class="flex items-center gap-x-2">
         <div v-if="enableEditSection === 'caller-details'" class="flex gap-x-2">
-          <Button variant="outline" size="sm" class="rounded" @click="cancelEdit">
+          <Button variant="outline" :disabled="loading" size="sm" class="rounded" @click="cancelEdit">
             <Icon name="lucide:x" />
             Cancel
           </Button>
-          <Button class="w-[105px] rounded" size="sm" @click="enableEditSection = ''; emit('submit')">
-            <Icon name="material-symbols:save-rounded" />
+          <Button class="w-[105px] rounded" :disabled="loading" type="submit" size="sm" @click="emit('submit')">
+            <Icon :name=" loading ? 'eos-icons:loading' : 'material-symbols:save-rounded'" />
             Save
           </Button>
         </div>
         <div v-else class="flex items-center gap-x-2">
-          <Button variant="outline" size="sm" class="rounded" @click="enableEditSection = 'caller-details'">
+          <Button :disabled="enableEditSection.length" variant="outline" size="sm" class="rounded" @click="enableEditSection = 'caller-details'">
             <Icon name="icons:edit-box" /> Edit
           </Button>
         </div>

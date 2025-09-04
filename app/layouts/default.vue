@@ -37,7 +37,7 @@ const containerWidth = computed(() => width.value)
     <Dialer v-if="isDialerOpen" @close="closeDialer" />
   </Transition>
 
-  <!-- <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" /> -->
+  <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
 </template>
 
 <style scoped>
