@@ -95,11 +95,11 @@ onMounted(() => {
   setStateWiseCalls()
 })
 
-const { user, session } = useAuth()
+
 </script>
 
 <template>
-  {{ session }}
+
   <div class="flex flex-1 flex-col gap-6 md:rounded-tl-xl bg-white">
     <dashboardCardsSection :counts />
     <dashboardUsers :total-agents="totalAgentCount" @on-date-picker-update="onDatePickerChange" @on-user-select="onUserSelect" />

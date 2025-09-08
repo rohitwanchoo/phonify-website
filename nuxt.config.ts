@@ -64,6 +64,8 @@ export default defineNuxtConfig({
     // Public keys (exposed to the client-side)
     public: {
       apiBaseUrl: '/api/proxy',
+      asteriskDomain: process.env.NUXT_ASTERISK_DOMAIN || 'api.phonify.app',
+      asteriskWsPort: process.env.NUXT_ASTERISK_WS_PORT || '8089',
     },
   },
   nitro: {

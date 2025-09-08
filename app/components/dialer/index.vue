@@ -15,6 +15,7 @@ const emit = defineEmits<{
   call: [phoneNumber: string, countryCode: string, leadId?: string | number | null]
 }>()
 
+
 // Use enhanced dialer composable
 const {
   dialerPhoneNumber,
@@ -220,6 +221,8 @@ onBeforeUnmount(() => {
     clearTimeout(connectionTimeout.value)
   }
 })
+
+
 </script>
 
 <template>

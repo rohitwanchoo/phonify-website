@@ -14,7 +14,21 @@ const containerElement = useTemplateRef<HTMLElement>('containerElement')
 
 const { width, height } = useElementSize(containerElement)
 const containerWidth = computed(() => width.value)
-// Define boundaries for dragging
+
+// Use the SIP composable
+const { isRegistered, isCallActive, callStatus, initializeSIP, startCall, endCall, cleanup } = useSIP()
+
+// Initialize SIP on component mount
+onMounted(() => {
+  initializeSIP()
+})
+
+// Cleanup SIP on component unmount
+onUnmounted(() => {
+  cleanup()
+})
+
+
 </script>
 
 <template>
@@ -37,7 +51,7 @@ const containerWidth = computed(() => width.value)
     <Dialer v-if="isDialerOpen" @close="closeDialer" />
   </Transition>
 
-  <!-- <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" /> -->
+  <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
 </template>
 
 <style scoped>
