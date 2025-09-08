@@ -63,10 +63,7 @@ function setData() {
       if (values?.caller_id === 'custom') {
         refreshNuxtData('get-custom-caller-id-list')
       }
-      console.log(values)
       formState.value = values
-      // formState.value = campaignById.value
-      // formState.value.custom_caller_id = String(campaignById.value.custom_caller_id)
     })
   }
 }
@@ -77,7 +74,7 @@ onMounted(() => {
 
 const isPreview = computed(() => stepper.isCurrent('show-preview'))
 
-stepper.goTo('show-preview')
+// stepper.goTo('show-preview')
 </script>
 
 <template>
