@@ -244,6 +244,7 @@ const onSubmit = handleSubmit(async (values) => {
     })
     if (isEdit.value) {
       enableEditSection.value = ''
+      emits('completed')
       return
     }
 

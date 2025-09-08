@@ -75,6 +75,12 @@ onMounted(() => {
 const isPreview = computed(() => stepper.isCurrent('show-preview'))
 
 // stepper.goTo('show-preview')
+
+function goToNext() {
+  if (stepper.isCurrent('select-list'))
+    refresh()
+  stepper.goToNext()
+}
 </script>
 
 <template>
@@ -87,6 +93,6 @@ const isPreview = computed(() => stepper.isCurrent('show-preview'))
     </template>
   </BaseHeader>
   <CampaignStepper :stepper="stepper">
-    <component :is="stepper.current.value.component" :is-preview="isPreview" :data-loading="campaignByIdStatus === 'pending'" @reset-data="setData" @completed="(e: any) => stepper.goToNext()" @go-to="(e: any) => stepper.goTo(e)" />
+    <component :is="stepper.current.value.component" :is-preview="isPreview" :data-loading="campaignByIdStatus === 'pending'" @reset-data="setData" @completed="(e: any) => goToNext()" @go-to="(e: any) => stepper.goTo(e)" />
   </CampaignStepper>
 </template>
