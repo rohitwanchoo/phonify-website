@@ -60,7 +60,7 @@ function searchText() {
 <template>
   <BaseHeader title="Custom Field Label">
     <template #actions>
-      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
       <LeadManagementCustomFieldLabelAdd
         v-model:open="showDialog"
         :mode="editMode"

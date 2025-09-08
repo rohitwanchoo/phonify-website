@@ -8,22 +8,23 @@ import {
 } from '@/components/ui/sheet'
 
 const props = defineProps<{
-  schedule: {
-    name?: string
-    status?: string
-    day?: string
-    from_time?: string
-    to_time?: string
-    description?: string
-    department_id?: number
+  callTime: {
+    id: number
+  title: string
+  description: string
+  week_plan: Partial<Record<string, { start: string, end: string }>>
+  created_at: string // ISO timestamp
+  updated_at: string // ISO timestamp
   }
 }>()
 
+const allCallTime = computed(()=>{})
+
 const open = defineModel<boolean>()
-const departments = useNuxtData('department-list-call-times')
-const department = computed(() => {
-  return departments.data.value.find((item: any) => item.id === props.schedule.department_id)
-})
+// const departments = useNuxtData('department-list-call-times')
+// const department = computed(() => {
+//   return departments.data.value.find((item: any) => item.id === props.callTime?.department_id)
+// })
 </script>
 
 <template>
@@ -36,6 +37,7 @@ const department = computed(() => {
           Call Time Details
         </SheetTitle>
       </SheetHeader>
+      
       <div>
         <div class=" mx-auto p-6 space-y-6 ">
           <div class="grid grid-cols-2 gap-[50px] items-start">
@@ -45,30 +47,22 @@ const department = computed(() => {
                 <span class="text-sm font-normal">Name</span>
               </div>
               <div class="text-[16px] font-medium">
-                {{ schedule?.name }}
+                {{ callTime?.title }}
               </div>
             </div>
 
-            <div class="space-y-2">
-              <div class="flex items-center gap-1 text-gray-600">
-                <Icon name="icons:status" class="w-5 h-5" />
-                <span class="text-sm font-normal">Status</span>
-              </div>
-              <div class="text-[16px] font-medium text-[#16A34A]">
-                {{ schedule?.status || 'Inactive' }}
-              </div>
-            </div>
-            <div>
+          
+            <!-- <div>
               <span class="text-sm font-normal">Department</span>
               <div class="text-[16px] font-medium">
-                {{ department.name }}
+                {{ department?.name }}
               </div>
-            </div>
+            </div> -->
           </div>
           <div>
             <span class="text-sm font-normal">Description</span>
             <div class="text-[16px] font-medium">
-              {{ schedule.description }}
+              {{ callTime?.description }}
             </div>
           </div>
 
@@ -78,10 +72,10 @@ const department = computed(() => {
           </h1>
           <div class="border-t border-[#F4F4F5] my-4" />
 
-          <div v-if="schedule.day" class="flex justify-between items-center w-full mb-6">
+          <div v-for="(value, key) in callTime?.week_plan" class="flex justify-between items-center w-full mb-6">
             <div>
               <p class="text-xs">
-                {{ schedule?.day }}
+                {{ key }}
               </p>
             </div>
             <div class="flex gap-2">
@@ -92,7 +86,7 @@ const department = computed(() => {
                   </h2>
                 </div>
                 <div class="text-sm">
-                  {{ moment(schedule?.from_time, 'HH:mm:ss').format('h:mm A') }}
+                  {{ moment(value?.start, 'HH:mm:ss').format('h:mm A') }}
                 </div>
               </div>
               <div class="flex items-center gap-9 border border-[#F4F4F5] p-[12px] rounded-[8px]">
@@ -102,7 +96,7 @@ const department = computed(() => {
                   </h2>
                 </div>
                 <div class="text-sm">
-                  {{ moment(schedule?.to_time, 'HH:mm:ss').format('h:mm A') }}
+                  {{ moment(value?.end, 'HH:mm:ss').format('h:mm A') }}
                 </div>
               </div>
             </div>

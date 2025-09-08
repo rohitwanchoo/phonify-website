@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField, useForm } from 'vee-validate'
 import { ref } from 'vue'
@@ -9,24 +10,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
-import ConfigureListDialog from './ConfigureListDialog.vue'
 
 const emits = defineEmits(['complete'])
 const { user } = useAuth()
 const showDialog = ref(false)
-const showConfigureDialog = ref(false)
-
-function openCreateListDialog() {
-  showDialog.value = true
-  showConfigureDialog.value = false
-}
-
-function closeConfigureDialog() {
-  showConfigureDialog.value = false
-  showDialog.value = false
-}
+// const showConfigureDialog = ref(false)
 
 const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('create-list-campaign', () =>
   useApi().post('/campaign'), {
@@ -40,10 +30,11 @@ const formSchema = z.object({
   campaign_id: z.number().min(1, 'Campaign is required'),
   checkDuplicates: z.boolean().optional(),
 })
+const file = ref<File>()
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: toTypedSchema(formSchema),
-initialValues: {
+  initialValues: {
     title: '',
     file: [],
     campaign_id: 0,
@@ -54,6 +45,7 @@ initialValues: {
 const { setValue: setFile } = useField('file')
 
 function handleFileUpdate(files: File[]) {
+  file.value = files[0]
   setFile(files)
 }
 
@@ -63,20 +55,25 @@ const onSubmit = handleSubmit((values) => {
   loading.value = true
   const formData = new FormData()
   formData.append('title', values.title)
-  formData.append('file', values.file[0]) // Append the first file from the array
+  formData.append('file', file.value as File) // Append the first file from the array
   formData.append('campaign', values.campaign_id.toString())
   formData.append('checkDuplicates', JSON.stringify(values.checkDuplicates))
   formData.append('id', user.value?.id?.toString() ?? '')
-  useApi().post('/add-list', formData).then((response) => {
+
+  // emits('complete', { campaign_id: '20', list_id: '46' })
+  // closeDialog()
+  // return
+  useApi().post('/add-list-api', formData).then((response) => {
     showToast({
       message: response.message,
     })
+    emits('complete', { campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString(), list: values.title })
+    closeDialog()
   }).catch((error) => {
     showToast({
       type: 'error',
       message: error.message,
     })
-    emits('complete')
   }).finally(() => {
     loading.value = false
   })
@@ -85,21 +82,23 @@ function closeDialog() {
   showDialog.value = false
 }
 
-function onNext() {
-  closeDialog()
-  showConfigureDialog.value = true
-}
+// function nextStep() {
+//   closeDialog()
+//   showConfigureDialog.value = true
+// }
+const focusInput = ref<any>(null)
 function onModelOpen(val: boolean) {
-  if (val)
+  if (val) {
     refreshCampaigns()
-    resetForm()
+  }
+  resetForm()
 }
 </script>
 
 <template>
   <Dialog v-model:open="showDialog" @update:open="onModelOpen">
     <DialogTrigger as-child>
-      <Button @click="openCreateListDialog" class="h-11">
+      <Button class="h-11">
         <Icon class="!text-white" name="material-symbols:add" size="20" />
         Create Lists
       </Button>
@@ -111,13 +110,21 @@ function onModelOpen(val: boolean) {
           Fill in the details to create a new list.
         </DialogDescription>
       </DialogHeader>
+      <DialogClose
+        class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity
+         hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+         disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+      >
+        <X class="h-4 w-4" />
+        <span class="sr-only">Close</span>
+      </DialogClose>
       <form @submit.prevent="onSubmit">
         <div class="space-y-4">
           <FormField v-slot="{ componentField }" name="title">
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter title" v-bind="componentField" />
+                <Input ref="focusInput" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter title" v-bind="componentField" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -126,7 +133,7 @@ function onModelOpen(val: boolean) {
             <FormItem>
               <FormLabel>File Upload</FormLabel>
               <FormControl>
-                <BaseFileUploader accept=".xlc,.xlxs,.csv" max-size="5MB" @update:files="handleFileUpdate" />
+                <BaseFileUploader accept=".xlc,.xlsx,.csv,.xls" max-size="5MB" @update:files="handleFileUpdate" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -168,11 +175,11 @@ function onModelOpen(val: boolean) {
           </FormField>
         </div>
         <DialogFooter class="flex flex-row justify-between items-center mt-6">
-          <Button type="button" variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600" @click="closeDialog">
+          <Button type="button" variant="outline" class="w-[49%] h-11 border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600" @click="closeDialog">
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Discard
           </Button>
-          <Button :loading type="button" class="w-[49%]" @click="onSubmit">
+          <Button :loading type="button" class="w-[49%] h-11" @click="onSubmit">
             <Icon name="lucide:check" class="w-4 h-4 mr-1" />
             Next
           </Button>
@@ -180,5 +187,4 @@ function onModelOpen(val: boolean) {
       </form>
     </DialogContent>
   </Dialog>
-  <!-- <ConfigureListDialog :open="showConfigureDialog" @update:open="val => { showConfigureDialog = val; if (!val) closeConfigureDialog() }" /> -->
 </template>

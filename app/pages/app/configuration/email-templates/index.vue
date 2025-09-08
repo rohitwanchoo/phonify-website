@@ -66,7 +66,7 @@ function changeLimit(val: number) {
   <BaseHeader title="Email Template List">
     <template #actions>
       <div class="relative">
-        <BaseInputSearch class="w-[300px]" placeholder="search" />
+        <BaseInputSearch class="w-[300px]" placeholder="Search" />
       </div>
       <NuxtLink to="/app/configuration/email-templates/add">
         <Button class="h-11">

@@ -47,7 +47,7 @@ function searchText() {
 <template>
   <BaseHeader title="Exclude Number">
     <template #actions>
-      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="search" @update:model-value="searchText" />
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
       <!-- Upload DNC Dialog -->
       <DoNotCallDncUpload />
       <!-- Add DNC Dialog -->

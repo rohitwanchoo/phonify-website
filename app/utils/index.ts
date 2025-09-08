@@ -1,4 +1,5 @@
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import moment from 'moment'
 import { toast } from 'vue-sonner'
 
 interface ToastOptions {
@@ -448,4 +449,44 @@ export const phoneMask: Record<string, string> = {
   YE: '### ### ###',
   ZM: '## ### ####',
   ZW: '## ### ####',
+}
+
+/**
+ * Exports data to a CSV file for download
+ * @param data - Object containing list data to export
+ * @param data.name - Name of the list/file to be exported
+ * @param data.header - Array of column headers
+ * @param data.data - Array of objects containing the row data
+ *
+ * This function takes a data object containing list information and exports it as a CSV file.
+ * It creates the CSV content by:
+ * 1. Joining headers with commas
+ * 2. Converting each data row to comma-separated values
+ * 3. Creating a downloadable blob with the CSV content
+ * 4. Triggering the file download with the specified list name
+ */
+export function exportToCSV(data: {
+  name: string
+  header: string[]
+  data: Record<string, any>[]
+}) {
+  const headers = data.header.join(',')
+
+  const rows = data.data.map((row) => {
+    return data.header.map((key) => {
+      const value = row[key] ?? ''
+      return `"${String(value).replace(/"/g, '""')}"`
+    }).join(',')
+  })
+
+  const csvContent = [headers, ...rows].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', `${data.name}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }

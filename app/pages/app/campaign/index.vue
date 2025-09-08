@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import moment from 'moment'
 import { computed, ref } from 'vue'
 import { Button } from '~/components/ui/button'
@@ -6,11 +7,13 @@ import { Input } from '~/components/ui/input'
 
 const start = ref<number>(0)
 const limit = ref<number>(10)
+const searchKeyword = ref<string>('')
 
 const { data: campaignList, status, refresh: refreshCampaignList } = await useLazyAsyncData('campaigns-list', async () => {
   const response = await useApi().post('campaign', {
     start: start.value,
     limit: limit.value,
+    title: searchKeyword.value,
   })
   return response
 })
@@ -24,6 +27,15 @@ function changeLimit(val: number) {
   limit.value = Number(val)
   return refreshCampaignList()
 }
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshCampaignList()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
 </script>
 
 <template>
@@ -31,7 +43,7 @@ function changeLimit(val: number) {
     <!-- HEADER -->
     <BaseHeader title="Campaign">
       <template #actions>
-        <BaseInputSearch />
+        <BaseInputSearch v-model="searchKeyword" @update:model-value="searchText" />
         <Nuxt-link to="/app/campaign/new-campaign">
           <Button class="h-11">
             <Icon class="!text-white" name="lucide:plus" />

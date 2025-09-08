@@ -7,17 +7,20 @@ defineProps<Props>()
 const router = useRouter()
 const route = useRoute()
 
+interface Field {
+  id: number
+  title: string
+  value: string
+  is_dialing: number
+  column_name?: string // optional since not all fields have it
+}
+
 interface Props {
-  data: {
-    last_name?: string
-    first_name?: string
-    email?: string
-    state?: string
-    company_name?: string
-  }
+  data?: Field[]
+  loading: boolean
 }
 function onEdit() {
-  router.push(`/app/lead-management/lead/${route.params.id}/edit`)
+  router.push(`/app/lead-management/lead/${route.params.id}/edit?list_id=${route.query.list_id}`)
 }
 </script>
 
@@ -36,51 +39,15 @@ function onEdit() {
 
     <!-- Details List -->
     <div class="space-y-2 p-4 h-full lg:max-h-[calc(100vh-260px)] overflow-y-auto">
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Last Name</span><span>{{ data?.last_name || '-' }}</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">First Name</span><span>{{ data?.first_name || '-' }}</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">New Label</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">No of Open Loans</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Factor Rate</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Annual Revenue</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Business Age</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Credit Score</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Current Phone System</span><span>--</span>
-      </div>
-      <div class="flex flex-wrap justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Monthly Revenue</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Funding Amount</span><span>--</span>
-      </div>
-      <div class="flex flex-wrap justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Email</span><span>{{ data?.email || '-' }}</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Zip</span><span>--</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">State</span><span>{{ data?.state || '-' }}</span>
-      </div>
-      <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-        <span class="text-[#162D3AB2]">Legal Company Name</span><span>{{ data?.company_name || '-' }}</span>
-      </div>
+      <template v-if="loading">
+        <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+      </template>
+      <template v-else>
+        <div v-for="item in data" :key="item.id" class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
+          <span class="text-[#162D3AB2]">{{ item.title }}</span><span>{{ item.value || '-' }}</span>
+        </div>
+      </template>
+
       <div class="flex justify-between text-sm">
         <span class="text-[#162D3AB2]" />
       </div>

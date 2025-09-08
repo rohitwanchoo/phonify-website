@@ -7,7 +7,7 @@ import { Button } from '~/components/ui/button'
     <!-- HEADER -->
     <BaseHeader title="SMS Template List">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" placeholder="search" />
+        <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" placeholder="Search" />
         <NuxtLink to="/app/sms/text-template/create">
           <Button class="h-11">
             <Icon class="!text-white" name="lucide:plus" />

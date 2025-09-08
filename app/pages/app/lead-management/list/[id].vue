@@ -2,8 +2,6 @@
 import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
 
-const downloadList = useDownloadList()
-
 const route = useRoute()
 const id = computed(() => route.params.id)
 
@@ -29,17 +27,7 @@ const { data: listLeads, status: listLeadsStatus, refresh: leadsRefresh } = awai
   () =>
     useApi().post(`/list-data/${id.value}/content?lower_limit=${start.value}&upper_limit=${limit.value}&search=${search.value}`),
   {
-    transform: (res) => {
-      const data = res.data.list_data.map((entry: Record<string, any>) => {
-        const obj: Record<string, any> = {}
-        res.data.list_header.forEach((key: string, index: number) => {
-          obj[key] = entry[`option_${index + 1}`] ?? null
-        })
-        return obj
-      })
-
-      return { data, total_records: res.data.total_records, list_header: res.data.list_header }
-    },
+    transform: (res) => res.data
   },
 )
 
@@ -61,18 +49,28 @@ const debouncedSearch = useDebounceFn(() => {
 function searchText() {
   debouncedSearch()
 }
+
+const downloadLoading = ref(false)
+
+function downloadData() {
+  downloadLoading.value = true
+  useApi().get(`/list-data/${id.value}/content?excel=true`).then((response) => {
+    exportToCSV({ name: response.data.list_name, header: response.data.list_header, data: response.data.list_data })
+  }).finally(() => {
+    downloadLoading.value = false
+  })
+}
 </script>
 
 <template>
   <BaseHeader :title="name" :breadcrumbs>
     <template #actions>
       <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" />
-      <Button class="h-11" @click="downloadList(Number(id))">
-        <Icon class="!text-white" size="20" name="material-symbols:download" />
+      <Button class="h-11" @click="downloadData">
+        <Icon class="!text-white" size="20" :name="downloadLoading ? 'eos-icons:loading' : 'material-symbols:download'" />
         Download
       </Button>
     </template>
   </BaseHeader>
-
-  <LeadManagementListsLeadsTable :list="listLeads?.data || []" :limit :start :total-rows="listLeads?.total_records" :list-header="listLeads?.list_header" :loading="listLeadsStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+  <LeadManagementListsLeadsTable :list="listLeads?.list_data || []" :limit :start :total-rows="listLeads?.total_records" :list-header="listLeads?.list_header" :loading="listLeadsStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
 </template>
