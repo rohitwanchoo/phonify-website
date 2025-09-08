@@ -73,17 +73,20 @@ const {
   cancel: resetCancel,
 } = useConfirmDialog()
 
-async function deleteMethod() {
+async function deleteMethod(val: Extension) {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
     return false
   }
-  // console.log(row)
-  // TODO: API CALL HERE
-
-  showToast({
-    type: 'success',
-    message: 'Extension deleted successfully',
+  useApi().post(`/edit-extension`, { extension_id: val.id, is_deleted: 1 }).then((res) => {
+    showToast({
+      message: res.message,
+    })
+    emits('refresh')
+  }).catch((err) => {
+    showToast({
+      message: err.message,
+    })
   })
 }
 
