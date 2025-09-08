@@ -29,7 +29,7 @@ const props = defineProps<{
 
 const emits = defineEmits(['cancelEdit'])
 
-const { enableEditSection } = useCreateCampaign()
+const { enableEditSection, formState } = useCreateCampaign()
 
 const route = useRoute()
 
@@ -39,7 +39,6 @@ const isEdit = computed(() => !!id)
 
 const accordion = ref('')
 const accordion2 = ref('')
-const formState = useState<Campaign>('create-campaign-state')
 
 watch(() => formState.value?.time_based_calling, (newVal) => {
   if (newVal && isEdit.value) {
@@ -145,7 +144,7 @@ function onEdit() {
           <AccordionContent class="p-5">
             <Accordion v-model="accordion2" collapsible class="">
               <AccordionItem v-if="enableEdit" value="item-2" class="">
-                <FormField v-slot="{ errorMessage }" v-model="formState.call_time" name="call_time">
+                <FormField v-slot="{ errorMessage }" v-model="formState.call_schedule_id" name="call_schedule_id">
                   <FormItem v-auto-animate>
                     <FormControl>
                       <AccordionTrigger :class="[formState.call_schedule_id && '!text-black', errorMessage && 'border-red-600']" class=" border rounded-lg h-11 px-3 py-[14px] flex items-center hover:no-underline text-muted-foreground text-sm font-normal">
