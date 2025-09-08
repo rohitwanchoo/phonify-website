@@ -2,9 +2,48 @@
 import { Button } from '~/components/ui/button'
 
 const emit = defineEmits(['goTo'])
+
+const { formState, transformCampaignToFormValues, stepper } = useCreateCampaign()
+
+const route = useRoute()
+const id = route.query.id
+
+// const { data: campaignById, status: campaignByIdStatus, refresh } = await useLazyAsyncData('get-campaign-by-id-preview', () =>
+//   useApi().post('/campaign-by-id', {
+//     campaign_id: id,
+//   }), {
+//   transform: (res) => {
+//     return res[0]
+//   },
+//   immediate: true,
+// })
+
+const { data: campaignById } = useNuxtData('get-campaign-by-id')
+
+const { data: campaignDeposition } = useNuxtData('campaign-deposition-by-id')
+
+function updateCampaign(values: any) {
+  const campaignForm = transformCampaignToFormValues(campaignById.value, campaignDeposition.value)
+  formState.value = campaignForm
+  const payload = {
+    campaign_id: Number(id),
+    ...values,
+    ...formState.value,
+
+    // ...campaignById.value,
+  }
+
+  useApi().post('/edit-campaign', payload).then((response) => {
+    showToast(response.message)
+    // refresh()
+  }).catch((error) => {
+    showToast(error.message)
+  })
+}
 </script>
 
 <template>
+  {{ stepper.current }}
   <div class=" relative h-[calc(100vh-190px)] overflow-y-auto">
     <div class="m-5 space-y-[16px]">
       <div class="flex items-center justify-between">
@@ -16,7 +55,7 @@ const emit = defineEmits(['goTo'])
           Active
         </div>
       </div>
-      <CampaignPreviewCampaignDetails />
+      <CampaignPreviewCampaignDetails :loading="!campaignById" :campaign="campaignById" @update="updateCampaign" />
       <CampaignPreviewCallerDetails />
       <CampaignPreviewTimeBasedCalling />
       <CampaignPreviewOtherDetails />

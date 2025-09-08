@@ -1,6 +1,7 @@
 export interface Campaign {
   id: number
   title: string
+  call_schedule_id: number | null
   status: number
   country_code: number
   description: string
@@ -8,20 +9,20 @@ export interface Campaign {
   custom_caller_id: string
   dial_mode: string
   group_id: number
-  time_based_calling: boolean
+  time_based_calling: boolean | number
   call_time: CallTime | null
   email: number
-  sms: boolean
-  send_report: boolean
-  call_transfer: boolean
+  sms: boolean | string
+  send_report: boolean | number
+  call_transfer: boolean | string
   disposition_id: any[]
   hopper_mode: number
-  voip_configurations: number
+  voip_configuration_id: number
   call_ratio: number | null
   duration: number | null
-  automated_duration: boolean
+  automated_duration: boolean | string
   no_agent_available_action: number | null
-  amd: boolean
+  amd: boolean | string
   amd_drop_action: number | null
   audio_message_amd: number | null
   voice_message_amd: number | null
@@ -33,6 +34,7 @@ export interface Campaign {
   outbound_ai_dropdown_extension: number | null
   outbound_ai_dropdown_ring_group: number | null
   outbound_ai_dropdown_ivr: number | null
+  dispositions: string[] | null
 }
 
 interface CallTime {
