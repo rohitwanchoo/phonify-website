@@ -17,6 +17,28 @@ export default defineNuxtPlugin(() => {
       authorizationPassword: config.password,
       sessionDescriptionHandlerFactoryOptions: {
         constraints: { audio: true, video: false },
+        // peerConnectionOptions: {
+        //   iceServers: [
+        //     { urls: 'stun:stun.l.google.com:19302' },
+        //     { urls: 'stun:stun1.l.google.com:19302' },
+        //     { urls: 'stun:stun2.l.google.com:19302' },
+        //     { urls: 'stun:stun3.l.google.com:19302' },
+        //     { urls: 'stun:stun4.l.google.com:19302' },
+        //     {
+        //       urls: 'turn:sip2.voiptella.com:3478',
+        //       username: '89789798',
+        //       credential: 'dwuedjniu',
+        //     },
+        //   ],
+        //   // iceCandidatePoolSize: 10,
+        //   // iceTransportPolicy: 'all',
+        //   bundlePolicy: 'balanced',
+        //   rtcpMuxPolicy: 'require',
+
+        // },
+        // alwaysAcquireMediaFirst: true,
+
+        // iceRestart: true,
       },
     })
 

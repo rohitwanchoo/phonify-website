@@ -6,6 +6,7 @@ export interface CallState {
   countryCode: string
   leadId?: string | number | null
 }
+const { startCall: startSipCall, endCall: endSipCall } = useSIP()
 
 export function useDialer() {
   // Global reactive state for dialer
@@ -47,6 +48,9 @@ export function useDialer() {
 
   // Start a call
   const startCall = (phoneNumber: string, countryCode: string, leadId?: string | number | null) => {
+    startSipCall(`${countryCode}${phoneNumber}`)
+    
+
     callState.value = {
       isActive: true,
       duration: 0,
@@ -66,6 +70,7 @@ export function useDialer() {
 
   // End call and cleanup
   const endCall = () => {
+    endSipCall()
     if (callTimer.value) {
       clearInterval(callTimer.value)
       callTimer.value = null

@@ -15,6 +15,7 @@ const emit = defineEmits<{
   call: [phoneNumber: string, countryCode: string, leadId?: string | number | null]
 }>()
 
+const { callStatus } = useSIP()
 
 // Use enhanced dialer composable
 const {
@@ -30,7 +31,7 @@ const selectedCountry = ref('us')
 const phoneNumber = ref(dialerPhoneNumber.value || '')
 const addOnDigits = ref('')
 const isMinimized = ref(false)
-const isConnecting = ref(false)
+const isConnecting = computed(() => callStatus.value === 'connecting')
 const showNumberPad = ref(false)
 
 // Connection timeout ref for cleanup
@@ -47,19 +48,19 @@ watch(dialerPhoneNumber, (newValue) => {
 watch(() => callState.value.isActive, (isActive, wasActive) => {
   if (isActive && !wasActive) {
     // Call just became active (connected)
-    isConnecting.value = false
+    // isConnecting.value = false
 
     // Auto-minimize after connection
-    setTimeout(() => {
-      isMinimized.value = true
-      showNumberPad.value = false
-    }, 500) // Small delay to show connected state
+    // setTimeout(() => {
+    //   isMinimized.value = true
+    //   showNumberPad.value = false
+    // }, 500) // Small delay to show connected state
   }
   else if (!isActive && wasActive) {
     // Call ended
     isMinimized.value = false
     showNumberPad.value = false
-    isConnecting.value = false
+    // isConnecting.value = false
 
     // Clear any pending timeout
     if (connectionTimeout.value) {
@@ -139,7 +140,7 @@ function makeCall() {
     }
 
     // Set connecting state
-    isConnecting.value = true
+    // isConnecting.value = true
 
     // Start the call timer and state
     startCall(cleanNumber, currentCountry.value?.code || '+1')
@@ -147,16 +148,16 @@ function makeCall() {
 
     // Set timeout for connection simulation
     // In real app, this would be handled by actual call connection events
-    connectionTimeout.value = setTimeout(() => {
-      if (isConnecting.value) {
-        // Simulate call connection - this triggers the watcher above
-        // In real implementation, your call service would update callState.isActive
-        isConnecting.value = false
+    // connectionTimeout.value = setTimeout(() => {
+    //   if (isConnecting.value) {
+    //     // Simulate call connection - this triggers the watcher above
+    //     // In real implementation, your call service would update callState.isActive
+    //     isConnecting.value = false
 
-        // If your useDialer composable doesn't automatically set isActive to true,
-        // you may need to handle this differently based on your call service
-      }
-    }, 3000)
+    //     // If your useDialer composable doesn't automatically set isActive to true,
+    //     // you may need to handle this differently based on your call service
+    //   }
+    // }, 3000)
   }
 }
 
@@ -169,13 +170,13 @@ function hangup() {
 
   endCall()
   addOnDigits.value = ''
-  isConnecting.value = false
+  // isConnecting.value = false
   showNumberPad.value = false
   isMinimized.value = false
 }
 
 function closeDialer() {
-  if (callState.value.isActive || isConnecting.value) {
+  if (callState.value.isActive) {
     hangup()
   }
   emit('close')
@@ -208,9 +209,9 @@ const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 // Computed property for current call status display
 const callStatusText = computed(() => {
-  if (isConnecting.value)
+  if (callStatus.value === 'connecting')
     return 'Connecting...'
-  if (callState.value.isActive)
+  if (callStatus.value === 'active')
     return `Call in progress - ${formattedCallDuration.value}`
   return 'Ready to call'
 })
@@ -221,8 +222,6 @@ onBeforeUnmount(() => {
     clearTimeout(connectionTimeout.value)
   }
 })
-
-
 </script>
 
 <template>
@@ -378,9 +377,9 @@ onBeforeUnmount(() => {
                 {{ currentCountry?.code }} {{ formatPhoneNumber(phoneNumber) }}
               </div>
               <div class="text-xs text-gray-300">
-                {{ isConnecting ? 'Connecting...' : 'Connected' }}
+                {{ callStatus === 'connecting' ? 'connecting...' : callStatus === 'ringing' ? 'ringing...' : '' }}
               </div>
-              <div v-if="callState.isActive" class="text-xs font-medium text-green-600">
+              <div v-if="callStatus === 'active'" class="text-xs font-medium text-green-600">
                 {{ formattedCallDuration }}
               </div>
               <div v-else-if="isConnecting" class="text-xs font-medium text-yellow-400">

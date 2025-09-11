@@ -27,8 +27,6 @@ onMounted(() => {
 onUnmounted(() => {
   cleanup()
 })
-
-
 </script>
 
 <template>
@@ -41,6 +39,7 @@ onUnmounted(() => {
         </div>
       </header>
       <div ref="containerElement" class="p-4 pt-5 md:rounded-tl-xl bg-white mt-7 md:h-[calc(100vh-70px)] overflow-y-auto">
+        <ExampleSipUsage />
         <slot />
       </div>
     </SidebarInset>

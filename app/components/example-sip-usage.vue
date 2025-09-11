@@ -1,45 +1,6 @@
-<template>
-  <div class="sip-example">
-    <h3>SIP Example Component</h3>
-    
-    <!-- SIP Status Display -->
-    <div class="status-section">
-      <p>Registration Status: {{ sipStatus.isRegistered ? 'Registered' : 'Not Registered' }}</p>
-      <p>Call Status: {{ sipStatus.callStatus }}</p>
-      <p>Call Active: {{ sipStatus.isCallActive ? 'Yes' : 'No' }}</p>
-    </div>
-
-    <!-- Call Controls -->
-    <div class="controls-section">
-      <input 
-        v-model="phoneNumber" 
-        type="text" 
-        placeholder="Enter phone number"
-        class="phone-input"
-      />
-      
-      <button 
-        @click="makeCall" 
-        :disabled="!sipStatus.isRegistered || sipStatus.isCallActive"
-        class="call-btn"
-      >
-        Start Call
-      </button>
-      
-      <button 
-        @click="hangupCall" 
-        :disabled="!sipStatus.isCallActive"
-        class="hangup-btn"
-      >
-        End Call
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { startCall, endCall, getSIPStatus } from '~/composables/useSIP'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { endCall, getSIPStatus, startCall } from '~/composables/useSIP'
 
 const phoneNumber = ref('')
 const sipStatus = ref(getSIPStatus())
@@ -60,16 +21,55 @@ onUnmounted(() => {
   }
 })
 
-const makeCall = () => {
+async function makeCall() {
   if (phoneNumber.value.trim()) {
-    startCall(phoneNumber.value.trim())
+    await startCall(phoneNumber.value.trim())
   }
 }
 
-const hangupCall = () => {
+function hangupCall() {
   endCall()
 }
 </script>
+
+<template>
+  <div class="sip-example">
+    <h3>SIP Test Component</h3>
+
+    <!-- SIP Status Display -->
+    <div class="status-section">
+      <p>Registration Status: {{ sipStatus.isRegistered ? 'Registered' : 'Not Registered' }}</p>
+      <p>Call Status: {{ sipStatus.callStatus }}</p>
+      <p>Call Active: {{ sipStatus.isCallActive ? 'Yes' : 'No' }}</p>
+    </div>
+
+    <!-- Call Controls -->
+    <div class="controls-section">
+      <input
+        v-model="phoneNumber"
+        type="text"
+        placeholder="Enter phone number"
+        class="phone-input"
+      >
+
+      <button
+        :disabled="!sipStatus.isRegistered || sipStatus.isCallActive"
+        class="call-btn"
+        @click="makeCall"
+      >
+        Start Call
+      </button>
+
+      <button
+        :disabled="!sipStatus.isCallActive"
+        class="hangup-btn"
+        @click="hangupCall"
+      >
+        End Call
+      </button>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .sip-example {

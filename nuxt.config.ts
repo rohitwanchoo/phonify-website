@@ -64,7 +64,7 @@ export default defineNuxtConfig({
     // Public keys (exposed to the client-side)
     public: {
       apiBaseUrl: '/api/proxy',
-      asteriskDomain: process.env.NUXT_ASTERISK_DOMAIN || 'api.phonify.app',
+      asteriskDomain: process.env.NUXT_ASTERISK_DOMAIN || 'sip2.voiptella.com',
       asteriskWsPort: process.env.NUXT_ASTERISK_WS_PORT || '8089',
     },
   },

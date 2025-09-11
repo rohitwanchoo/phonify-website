@@ -11,6 +11,7 @@ declare module '#auth-utils' {
     extension?: string | number
     alt_extension?: string
     app_extension?: string
+    secret?: string
     // Add any other user fields from your API response
   }
 
