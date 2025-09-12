@@ -102,9 +102,26 @@ export function useSIP() {
     const agentData = {
       uri: `sip:${user.value?.alt_extension}@${config.public.asteriskDomain}`,
       username: user.value?.alt_extension || '',
-      password: passwordDecrypt(user.value?.secret || '') || '',
+      // password: passwordDecrypt(user.value?.secret || '') || '',
+      password: 'demo@1990',
       wsServer: `wss://${config.public.asteriskDomain}:${config.public.asteriskWsPort}/ws`,
     }
+
+    // const agentData = {
+    //   uri: `sip:33976@${config.public.asteriskDomain}`,
+    //   username: '33976',
+    //   password: 'test123',
+    //   wsServer: `wss://${config.public.asteriskDomain}:${config.public.asteriskWsPort}/ws`,
+    // }
+    // Debug: Log the credentials being used (without password for security)
+    console.error('SIP Configuration:', {
+      uri: agentData.uri,
+      username: agentData.username,
+      wsServer: agentData.wsServer,
+      domain: config.public.asteriskDomain,
+      hasPassword: !!agentData.password,
+    })
+
     const { userAgent, registerer: reg } = $createSIPUA(agentData)
 
     ua = userAgent
@@ -161,18 +178,46 @@ export function useSIP() {
       console.error('UA state changed:', newState)
     })
 
-    ua.start().then(() => {
-      registerer.register().then(() => {
+    // Add registerer state change listener to properly handle registration status
+    registerer.stateChange.addListener((newState: any) => {
+      console.error('Registerer state changed:', newState)
+      if (newState === 'Registered') {
         isRegistered.value = true
         isInitialized = true
         console.error('SIP registration successful')
-      }).catch((error: any) => {
-        console.error('SIP registration failed:', error)
+      }
+      else if (newState === 'Unregistered') {
+        isRegistered.value = false
+        console.error('SIP registration failed or lost')
+      }
+    })
+
+    // Add delegate to handle registration responses
+    registerer.delegate = {
+      onReject: (response: any) => {
+        console.error('Registration rejected:', response.message)
+        if (response.message && response.message.statusCode === 401) {
+          console.error('Authentication failed: Invalid credentials (401 Unauthorized)')
+          showToast({
+            type: 'error',
+            message: 'SIP Authentication failed. Please check your credentials.',
+          })
+        }
+        isRegistered.value = false
+        isInitialized = false
+      },
+    }
+
+    ua.start().then(() => {
+      registerer.register().catch((error: any) => {
+        console.error('SIP registration request failed:', error)
         isRegistered.value = false
         isInitialized = false
       })
     }).catch((error: any) => {
       console.error('SIP UA start failed:', error)
+      isRegistered.value = false
+      isInitialized = false
     })
   }
 
@@ -354,7 +399,7 @@ export async function startCall(target: string) {
 
   // 📞 Track call state
   inviter.stateChange.addListener((state) => {
-    console.log('Call state:', state)
+    console.error('Call state:', state)
     switch (state) {
       case SessionState.Establishing:
         isCallActive.value = true
