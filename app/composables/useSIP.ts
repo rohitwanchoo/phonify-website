@@ -105,8 +105,6 @@ export function useSIP() {
       password: passwordDecrypt(user.value?.secret || '') || '',
       wsServer: `wss://${config.public.asteriskDomain}:${config.public.asteriskWsPort}/ws`,
     }
-    console.log(agentData)
-
     const { userAgent, registerer: reg } = $createSIPUA(agentData)
 
     ua = userAgent
