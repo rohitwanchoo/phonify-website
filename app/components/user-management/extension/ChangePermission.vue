@@ -44,15 +44,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 const props = defineProps<{
   selectedExtension?: Extension
 }>()
-const emits = defineEmits(['save'])
+defineEmits(['save'])
 
 const formSchema = toTypedSchema(z.object({
-  role: z.string().min(1, 'role is required'),
+  role: z.number().min(1, 'Role is required'),
 }))
 
 const { data: rolesList, status: rolesListStatus, refresh: rolesListListRefresh } = await useLazyAsyncData('get-assignable-roles', () =>
-  useApi().post(`/user/${props.selectedExtension?.id}/assignable-roles`, {
-
+  useApi().post(`/user/assignable-roles`, {
+    userId: props.selectedExtension?.id,
   }), {
   transform: (res) => {
     return res.data
@@ -60,8 +60,11 @@ const { data: rolesList, status: rolesListStatus, refresh: rolesListListRefresh 
   immediate: false,
 })
 
-const { handleSubmit, values, setFieldValue } = useForm({
+const { handleSubmit, setFieldValue } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    role: 0,
+  },
 })
 
 const open = defineModel<boolean>()
@@ -69,7 +72,7 @@ const submitLoading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
   submitLoading.value = true
-  useApi().post(`/user/${props.selectedExtension?.id}/permission`, values).then((res) => {
+  useApi().post(`/user/${props.selectedExtension?.id}/permission`, values).then(() => {
     showToast({
       type: 'success',
       message: 'Permission updated successfully',
@@ -92,9 +95,10 @@ const loading = computed(() => {
 watch(open, async (newValue) => {
   if (newValue) {
     await rolesListListRefresh()
-    if (Object.keys(rolesList.value || {}).length) {
-      const defaultValue = Object.entries(rolesList.value || {}).find(([_, val]) => val?.assigned)?.[0]
-      setFieldValue('role', defaultValue)
+    if (rolesList.value?.length) {
+      const defaultValue = rolesList.value.find((role: { assigned: boolean }) => role.assigned)?.roleId
+      if (defaultValue)
+        setFieldValue('role', defaultValue)
     }
   }
 })
@@ -126,7 +130,7 @@ watch(open, async (newValue) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem v-for="(item, key) in rolesList" :key="key" :value="key">
+                      <SelectItem v-for="(item) in rolesList" :key="item.roleId" :value="item.roleId">
                         {{ item.roleName }}
                       </SelectItem>
                     </SelectGroup>
