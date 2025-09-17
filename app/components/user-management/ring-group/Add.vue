@@ -41,7 +41,7 @@ import Textarea from '~/components/ui/textarea/Textarea.vue'
 interface RingGroup {
   id: number
   title: string
-  email: string
+  emails: string
   ring_type: number
   description: string
   receive_on: string
@@ -64,7 +64,7 @@ const open = defineModel('open', {
 })
 
 const formSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'name is required').max(50, 'max'),
+  title: z.string().min(1, 'name is required').max(50, 'max'),
   description: z.string().min(1, 'description is required').max(250, 'max'),
   extension: z.array(
     z.object({
@@ -73,22 +73,22 @@ const formSchema = toTypedSchema(z.object({
       last_name: z.string(),
     }),
   ).min(1, 'at least one extension is required'),
-  email: z.string().email().min(1, 'email is required').max(50),
-  ring_mode: z.number().min(1, ' ring mode is required'),
+  emails: z.string().email().min(1, 'email is required').max(50),
+  ring_type: z.number().min(1, ' ring mode is required'),
   receive_on: z.string().min(1, 'receive is required'),
 
 }))
 
-const { handleSubmit, setFieldValue, resetForm } = useForm({
+const { handleSubmit, setFieldValue, resetForm, values } = useForm({
   validationSchema: formSchema,
 })
 
 watch(open, (newValue) => {
   if (newValue && isEdit.value) {
-    setFieldValue('name', props.tempRingGroup?.title || '')
+    setFieldValue('title', props.tempRingGroup?.title || '')
     setFieldValue('description', props.tempRingGroup?.description || '')
-    setFieldValue('email', props.tempRingGroup?.email || '')
-    setFieldValue('ring_mode', Number(props.tempRingGroup?.ring_type) || 1)
+    setFieldValue('emails', props.tempRingGroup?.emails || '')
+    setFieldValue('ring_type', Number(props.tempRingGroup?.ring_type) || 1)
     setFieldValue('receive_on', props.tempRingGroup?.receive_on)
   }
   else {
@@ -103,8 +103,8 @@ const onSubmit = handleSubmit((values) => {
   // console.log(values)
   const payload = {
     ...values,
-    email: [values.email],
-    extension: values.extension.map((item: { extension: number }) => `SIP/${item.extension}`),
+    emails: [values.emails],
+    extension: values.extension.map((item: { extension: number }) => item.extension),
   }
   useApi().post('/add-ring-group', payload).then((res) => {
     showToast({
@@ -188,7 +188,7 @@ function removeExtension(index: number) {
         <div class="space-y-4">
           <FormField
             v-slot="{ componentField }"
-            name="name"
+            name="title"
           >
             <FormItem>
               <FormLabel class="text-sm font-normal">
@@ -225,6 +225,7 @@ function removeExtension(index: number) {
                 Extensions
               </FormLabel>
               <FormControl>
+                {{ selectedExtensions }}
                 <div :class="errorMessage && 'border-red-600'" class="p-4 text-sm text-gray-500 flex items-center border rounded-lg cursor-pointer">
                   <div v-if="!selectedExtensions.length" class="hover:text-primary" @click="addExtensionSheet = true">
                     Select extensions
@@ -245,7 +246,7 @@ function removeExtension(index: number) {
           </FormField>
           <FormField
             v-slot="{ componentField }"
-            name="email"
+            name="emails"
           >
             <FormItem>
               <FormLabel class="text-sm font-normal">
@@ -262,7 +263,7 @@ function removeExtension(index: number) {
             <div>
               <FormField
                 v-slot="{ componentField }"
-                name="ring_mode"
+                name="ring_type"
               >
                 <FormItem>
                   <FormLabel class="text-sm font-normal">
