@@ -6,11 +6,11 @@ const pageStart = ref(0)
 const limit = ref(10)
 
 const { data: extensionList, status, refresh } = await useLazyAsyncData('extension-list', () =>
-  useApi().get('extension', {
-    params: {
-      start: pageStart.value,
-      limit: limit.value,
-    },
+  useApi().post('extension-list', {
+
+    start: pageStart.value,
+    limit: limit.value,
+
   }), {
   transform: (res) => {
     return res
@@ -35,7 +35,7 @@ function changeLimit(val: number) {
     <BaseHeader title="Extension List">
       <template #actions>
         <div class="relative w-full md:w-auto ">
-          <BaseInputSearch></BaseInputSearch>
+          <BaseInputSearch />
           <!-- <Input placeholder="Search List" />
           <Icon class="absolute top-[9px] right-2" name="lucide:search" /> -->
         </div>
@@ -52,6 +52,6 @@ function changeLimit(val: number) {
       </template>
     </BaseHeader>
 
-    <UserManagementExtensionTable :limit="limit" :total-rows="extensionList?.total_rows" :start="pageStart" :list="extensionList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
+    <UserManagementExtensionTable :limit="limit" :total-rows="extensionList?.total" :start="pageStart" :list="extensionList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
   </div>
 </template>

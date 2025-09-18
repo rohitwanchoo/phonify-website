@@ -25,44 +25,60 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 
-const countryCode = [
-  {
-    id: 1,
-    name: 'United States',
-    code: '+1',
-  },
-  {
-    id: 2,
-    name: 'United Kingdom',
-    code: '+44',
-  },
-  {
-    id: 3,
-    name: 'Canada',
-    code: '+1',
-  },
-]
+const props = defineProps<{
+  campaign?: Campaign
+  loading: boolean
+}>()
+
+const emit = defineEmits(['update'])
+
+const { data: countryCodeList } = useNuxtData('get-country-code-list')
+
+interface Campaign {
+  title: string
+  country_code: number
+  description: string
+}
 
 const formSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'required').max(50),
-  countryCode: z.string().min(1, 'required').max(10),
+  title: z.string().min(1, 'required').max(50),
+  country_code: z.number().min(1, 'required'),
   description: z.string().min(1, 'required').max(255),
 
 }))
 
-const { handleSubmit, resetForm, values } = useForm({
+const { handleSubmit, resetForm, values, setValues } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    name: 'Campaign 1',
-    countryCode: '+1',
-    description: 'Lorem ipsum dolor sit amet consectetur. Mi ornare amet fermentum volutpat metus arcu libero habitasse ut. Sem eu in feugiat turpis in diam.',
+    title: '',
+    country_code: 0,
+    description: '',
   },
 })
 
+watch(() => props.campaign, (campaign) => {
+  if (campaign) {
+    setValues({
+      title: props?.campaign?.title,
+      country_code: props?.campaign?.country_code,
+      description: props?.campaign?.description,
+    })
+  }
+})
+
 const onSubmit = handleSubmit((values) => {
-  console.log('Form submitted!', values)
+  emit('update', values)
 })
 const enableEdit = ref(false)
+
+function cancelEdit() {
+  enableEdit.value = false
+  setValues({
+    title: props?.campaign?.title,
+    country_code: props?.campaign?.country_code,
+    description: props?.campaign?.description,
+  })
+}
 </script>
 
 <template>
@@ -78,7 +94,7 @@ const enableEdit = ref(false)
           </Button>
         </div>
         <div v-else class="flex gap-x-2">
-          <Button variant="outline" size="sm" class="rounded" @click="enableEdit = false ; resetForm()">
+          <Button variant="outline" size="sm" class="rounded" @click="cancelEdit">
             <Icon name="lucide:x" />
             Cancel
           </Button>
@@ -88,11 +104,26 @@ const enableEdit = ref(false)
           </Button>
         </div>
       </div>
-      <div class="p-5 space-y-5 w-full">
+      <!-- Skelton loader -->
+
+      <div v-if="loading" class="p-5 space-y-5 w-full">
         <div class="flex gap-[16px] w-full">
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" class="" name="name">
-              <FormItem>
+            <BaseSkelton class="h-11 w-full mb-2" rounded="rounded-sm" />
+          </div>
+          <div class="w-1/2">
+            <BaseSkelton class="h-11 w-full mb-2" rounded="rounded-sm" />
+          </div>
+        </div>
+        <div>
+          <BaseSkelton class="h-20 w-full mb-2" rounded="rounded-sm" />
+        </div>
+      </div>
+      <div v-else class="p-5 space-y-5 w-full">
+        <div class="flex gap-[16px] w-full">
+          <div class="w-1/2">
+            <FormField v-slot="{ componentField }" class="" name="title">
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm" :class="!enableEdit && 'text-gray-500'">
                   Name
                 </FormLabel>
@@ -103,7 +134,7 @@ const enableEdit = ref(false)
                     placeholder="Enter Campaign Name" v-bind="componentField"
                   />
                   <div v-else class="text-[16px] font-normal text-primary">
-                    {{ values.name }}
+                    {{ values.title }}
                   </div>
                 </FormControl>
                 <FormMessage class="text-sm" />
@@ -111,26 +142,26 @@ const enableEdit = ref(false)
             </FormField>
           </div>
           <div class="w-1/2">
-            <FormField v-slot="{ componentField }" name="countryCode">
-              <FormItem>
+            <FormField v-slot="{ componentField, errorMessage }" name="country_code">
+              <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm" :class="!enableEdit && 'text-gray-500'">
                   Country Code
                 </FormLabel>
                 <FormControl>
                   <Select v-if="enableEdit" v-bind="componentField">
-                    <SelectTrigger class="w-full !h-11 ">
-                      <SelectValue class="text-sm" placeholder="Select Code" />
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                      <SelectValue class="text-sm data-[placeholder]:text-muted-foreground" placeholder="Select Code" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem v-for="item in countryCode" :key="item.id" :value="item.code">
-                          {{ item.name }} ({{ item.code }})
+                        <SelectItem v-for="item in countryCodeList" :key="item.id" :value="item.phonecode">
+                          {{ item.name }} (+{{ item.phonecode }})
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                   <div v-else class="text-[16px] font-normal text-primary">
-                    {{ values.countryCode }}
+                    {{ countryCodeList?.find((item: { phonecode: number; name: string }) => item.phonecode === values.country_code)?.name }} (+{{ values.country_code }})
                   </div>
                 </FormControl>
                 <FormMessage class="text-sm" />
@@ -141,7 +172,7 @@ const enableEdit = ref(false)
 
         <div class="w-full">
           <FormField v-slot="{ componentField }" class="" name="description">
-            <FormItem>
+            <FormItem v-auto-animate>
               <FormLabel class="font-normal text-sm" :class="!enableEdit && 'text-gray-500'">
                 Description
               </FormLabel>

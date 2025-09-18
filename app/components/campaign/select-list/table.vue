@@ -33,34 +33,40 @@ import { cn } from '@/lib/utils'
 interface List {
   id: number
   list: string
+  title: string
   createdDate: string
   totalLeads: number
   rowLeadReport: number
   l_title: string
   updated_at: any
   list_id: number
+  rowListData: string
 
 }
 
 const props = withDefaults(defineProps<{
+  isPreview?: boolean
   enableSelect?: boolean
   loading?: boolean
   isEdit?: boolean
-  meta?: Meta
   list?: List[]
+  start: number // pagination start
+  limit?: number // pagination limit
+  totalRows: number
+  classes?: string
 }>(), {
+  limit: 10,
   enableSelect: true,
+  isPreview: false,
   data: () => [],
 })
 
-const emits = defineEmits(['pageNavigation', 'refresh'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 // Track selected rows
 const selectedRows = defineModel<number[]>('selectedRows', { default: [] })
@@ -97,7 +103,7 @@ const columns = [
         'List Name',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list),
+    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list || row.original.title),
   }),
 
   // Created Date column (sortable)
@@ -128,7 +134,7 @@ const columns = [
         'Total Leads',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.rowLeadReport),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.rowListData),
   }),
 
   // Action column
@@ -137,13 +143,20 @@ const columns = [
     header: () => h('div', { class: 'text-sm font-medium text-center' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
       h(Button, {
+        type: 'button',
         variant: 'outline',
         size: 'icon',
         class: 'h-10 w-10 text-white bg-primary',
+        onClick: () => {
+          navigateTo(`/app/lead-management/list/${row.original.id}?name=${row.original.list || row.original.title}`, {
+            open: { target: '_blank' },
+          })
+        },
       }, h(Eye, { class: 'h-6 w-6' })),
       props.enableSelect && h(Button, {
         variant: selectedRows.value.includes(row.original.list_id) ? 'default' : 'outline',
         size: 'sm',
+        type: 'button',
         class: cn('h-10 w-28 flex items-center justify-center gap-1', {
           'bg-green-600 text-white hover:bg-green-700 cursor-pointer': selectedRows.value.includes(row.original.list_id),
           'text-primary border-primary cursor-pointer': !selectedRows.value.includes(row.original.list_id),
@@ -174,10 +187,16 @@ const table = useVueTable({
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
 </script>
 
 <template>
-  <div class="border rounded-lg  mt-5 max-h-[85%] overflow-auto">
+  <div :class="classes" class="border rounded-lg  mt-5 max-h-[85%] overflow-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -221,13 +240,12 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 px-3 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
+        Showing
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -238,15 +256,14 @@ function handlePageChange(page: number) {
             </SelectContent>
           </Select>
         </span>
-
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

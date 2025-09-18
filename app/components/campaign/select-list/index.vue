@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { ref } from 'vue'
 import { Button } from '~/components/ui/button'
 import ListTable from './table.vue'
@@ -8,7 +9,10 @@ const route = useRoute()
 const campaign_id = route.query.id
 const isEdit = computed(() => !!campaign_id)
 
-const selectedRows =ref<number[]>([])
+const selectedRowIds = ref<number[]>([])
+const start = ref(0)
+const limit = ref(10)
+const search = ref('')
 
 const dialogRef = ref()
 
@@ -16,36 +20,68 @@ function openDialog() {
   dialogRef.value?.open()
 }
 
+const assignLoading = ref(false)
+
 function handleContinue() {
-  emit('completed')
+  // assign list to campaign
+  assignLoading.value = true
+  useApi().post('/campaign/assign-lists', { campaign_id, lead_list_ids: selectedRowIds.value }).then(() => {
+    assignLoading.value = false
+    emit('completed')
+  }).catch((error) => {
+    showToast({ type: 'error', message: error.message })
+  }).finally(() => {
+    assignLoading.value = false
+  })
 }
-const { data: campaignList, status: campaignListStatus, refresh:refreshCampaignList } = await useLazyAsyncData('get-list-update-campaign', () =>
+
+// get list that is assigned to campaign with campaign_id
+const { data: campaignList, status: campaignListStatus, refresh: refreshCampaignList } = await useLazyAsyncData('get-list-update-campaign', () =>
   useApi().post('/campaign-list', { campaign_id }), {
   transform: (res) => {
     return res.data
   },
-  immediate: false
+  immediate: false,
 })
 const { data: list, status: listStatus, refresh: listRefresh } = await useLazyAsyncData('get-list-create-campaign', () =>
-  useApi().post('/list', { campaign_id }), {
+  useApi().post('/list', { start: start.value, limit: limit.value, title: search.value }), {
   transform: (res) => {
-    return res.data
+    return { data: res.data, total_rows: res.total_rows }
   },
 })
-const tableList = computed(() => isEdit.value ? campaignList : list)
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return listRefresh()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return listRefresh()
+}
+// const tableList = computed(() => isEdit.value ? campaignList : list)
 const loading = computed(() => campaignListStatus.value === 'pending' || listStatus.value === 'pending')
 
-function setSelectedRow(){
-  if(isEdit.value){
-    refreshCampaignList().then(()=> {
-      selectedRows.value = campaignList.value.map((val) => val.list_id)
+function setSelectedRow() {
+  if (isEdit.value) {
+    refreshCampaignList().then(() => {
+      selectedRowIds.value = campaignList.value.map((val: { list_id: number }) => val.list_id)
     })
   }
-   
 }
-onMounted(()=>{
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  listRefresh()
+}, 1000, { maxWait: 5000 })
+
+function searchList() {
+  debouncedSearch()
+}
+
+onMounted(() => {
   setSelectedRow()
-})  
+})
 </script>
 
 <template>
@@ -55,26 +91,23 @@ onMounted(()=>{
         Lists
       </h2>
       <div class="flex items-center justify-between gap-5">
-        <label for="Email" class="relative">
-          <input
-            id="Email"
-            type="email"
-            class="mt-0.5 w-[250px] rounded-md bg-white border-gray-300 px-3 h-10 shadow-sm sm:text-sm pr-10"
-            placeholder="Search List"
-          >
-          <Icon name="lucide:search" class="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer" />
-        </label>
+        <BaseInputSearch v-model="search" @update:model-value="searchList" />
+
         <Button class="h-10 cursor-pointer" @click="openDialog">
           + Create List
         </Button>
       </div>
     </div>
     <!-- data -->
-    <ListTable :list="list || []" :is-edit="isEdit" v-model:selected-rows="selectedRows" :loading="loading" :meta="meta" />
+    <ListTable
+      v-model:selected-rows="selectedRowIds" :limit="limit" :total-rows="list?.total_rows"
+      :start="start" :list="list?.data || []" :is-edit="isEdit" :loading="loading"
+      @page-navigation="changePage" @change-limit="changeLimit"
+    />
   </div>
 
   <div class="sticky bg-white bottom-0 right-0 w-full shadow-2xl p-4">
-    <Button class="w-full h-[52px] cursor-pointer" type="submit" @click="handleContinue">
+    <Button :loading="assignLoading" :disable="assignLoading" class="w-full h-[52px] cursor-pointer" type="submit" @click="handleContinue">
       Continue
       <Icon name="lucide:arrow-right" size="20" />
     </Button>
