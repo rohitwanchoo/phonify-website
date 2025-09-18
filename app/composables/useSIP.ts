@@ -1,4 +1,5 @@
 import type { Invitation } from 'sip.js'
+import { consola } from 'consola'
 import { Inviter, SessionState, URI, UserAgent } from 'sip.js'
 
 // Global SIP state using useState
@@ -15,67 +16,67 @@ let isInitialized = false
 // Setup media for the session (global function)
 function setupMedia(session: any) {
   try {
-    console.error('Setting up media for session...')
+    consola.info('Setting up media for session...')
     const handler = session.sessionDescriptionHandler
 
     if (!handler) {
-      console.error('No session description handler found')
+      consola.error('No session description handler found')
       return
     }
 
     // Add ICE connection state monitoring
     handler.peerConnection.oniceconnectionstatechange = () => {
-      console.error('ICE connection state:', handler.peerConnection.iceConnectionState)
+      consola.info('ICE connection state:', handler.peerConnection.iceConnectionState)
     }
 
     handler.peerConnection.onicegatheringstatechange = () => {
-      console.error('ICE gathering state:', handler.peerConnection.iceGatheringState)
+      consola.info('ICE gathering state:', handler.peerConnection.iceGatheringState)
     }
 
     handler.peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
-        console.error('ICE candidate:', event.candidate.candidate)
+        consola.info('ICE candidate:', event.candidate.candidate)
       }
       else {
-        console.error('ICE gathering completed')
+        consola.success('ICE gathering completed')
       }
     }
 
     handler.peerConnection.ontrack = (event: RTCTrackEvent) => {
-      console.error('Received remote track, setting up audio...')
+      consola.info('Received remote track, setting up audio...')
 
       // Try to find existing audio element or create a new one
       let remoteAudio = document.getElementById('remoteAudio') as HTMLAudioElement
 
       if (!remoteAudio) {
-        console.error('Remote audio element not found, creating new one...')
+        consola.error('Remote audio element not found, creating new one...')
         remoteAudio = document.createElement('audio')
         remoteAudio.id = 'remoteAudio'
         remoteAudio.autoplay = true
         remoteAudio.controls = false
         remoteAudio.style.display = 'none' // Hidden audio element
         document.body.appendChild(remoteAudio)
-        console.error('Created new remote audio element')
+        consola.info('Created new remote audio element')
       }
 
       if (event.streams[0]) {
         remoteAudio.srcObject = event.streams[0]
-        console.error('Remote audio stream connected successfully')
+        consola.success('Remote audio stream connected successfully')
 
         // Ensure audio plays
         remoteAudio.play().catch((error) => {
-          console.error('Error playing remote audio:', error)
+          consola.error('Error playing remote audio:', error)
         })
       }
       else {
-        console.error('No remote stream available')
+        consola.error('No remote stream available')
       }
     }
 
-    console.error('Media setup completed')
+    consola.success('Media setup completed')
   }
   catch (error) {
-    console.error('Error setting up media:', error)
+    consola.error('Error setting up media:', error)
   }
 }
 
@@ -84,141 +85,155 @@ export function useSIP() {
   const config = useRuntimeConfig()
   const { $createSIPUA } = useNuxtApp()
 
-  // Initialize SIP User Agent (only once)
-  const initializeSIP = () => {
+  const initializeSIP = async () => {
     if (isInitialized) {
-      console.error('SIP already initialized')
+      consola.info('SIP already initialized')
       return
     }
-    // const { userAgent, registerer: reg } = $createSIPUA({
-    //   uri: user.value?.id === 918
-    //     ? `sip:33976@${config.public.asteriskDomain}`
-    //     : `sip:36271@${config.public.asteriskDomain}`,
-    //   username: user.value?.id === 918 ? '33976' : '36271',
-    //   password: user.value?.id === 918 ? 'test123' : 'hello_test',
-    //   wsServer: `wss://${config.public.asteriskDomain}:${config.public.asteriskWsPort}/ws`,
-    // })
 
     const agentData = {
       uri: `sip:${user.value?.alt_extension}@${config.public.asteriskDomain}`,
       username: user.value?.alt_extension || '',
       // password: passwordDecrypt(user.value?.secret || '') || '',
-      password: 'demo@1990',
-      wsServer: `wss://${config.public.asteriskDomain}:${config.public.asteriskWsPort}/ws`,
+      password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
+      wsServer: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
     }
 
-    // const agentData = {
-    //   uri: `sip:33976@${config.public.asteriskDomain}`,
-    //   username: '33976',
-    //   password: 'test123',
-    //   wsServer: `wss://${config.public.asteriskDomain}:${config.public.asteriskWsPort}/ws`,
-    // }
-    // Debug: Log the credentials being used (without password for security)
-    console.error('SIP Configuration:', {
+    consola.info('🔧 Initializing SIP with config:', {
       uri: agentData.uri,
-      username: agentData.username,
+      alt_extension: agentData.username,
       wsServer: agentData.wsServer,
       domain: config.public.asteriskDomain,
-      hasPassword: !!agentData.password,
+      password: agentData.password,
+      email: user.value?.email || '',
     })
 
     const { userAgent, registerer: reg } = $createSIPUA(agentData)
-
     ua = userAgent
     registerer = reg
 
-    // Handle incoming calls
+    // Set up delegate BEFORE starting UA
     ua.delegate = {
       onInvite: async (invitation: Invitation) => {
-        try {
-          console.error('Incoming call from:', invitation.remoteIdentity?.uri?.user || 'unknown')
-          console.error('Call invitation received, setting up call...')
+        consola.success('🔔 INCOMING CALL DETECTED!')
+        consola.info('📞 Incoming call from:', invitation.remoteIdentity?.uri?.user || 'unknown')
+        consola.info('📞 Full remote identity:', invitation.remoteIdentity)
 
+        try {
           activeSession = invitation
           callStatus.value = 'incoming'
 
-          // Add state change listener for better debugging
+          // Add comprehensive state tracking
           invitation.stateChange.addListener((state) => {
-            console.error('Invitation state changed to:', state)
+            consola.info('📞 Invitation state changed to:', state)
           })
 
-          console.error('Accepting invitation...')
-          // await invitation.accept({
-          //   sessionDescriptionHandlerOptions: {
-          //     constraints: { audio: true, video: false },
-          //   },
-          // })
+          // Request microphone permission before accepting
+          try {
+            await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            consola.info('🎤 Microphone permission granted')
+          }
+          catch (mediaError) {
+            consola.error('❌ Microphone permission denied:', mediaError)
+            throw new Error('Microphone access required for calls')
+          }
 
-          // console.error('Invitation accepted, setting up media...')
-          // setupMedia(invitation)
+          consola.info('✅ Accepting incoming call...')
+          await invitation.accept({
+            sessionDescriptionHandlerOptions: {
+              constraints: { audio: true, video: false },
+            },
+          })
 
-          // isCallActive.value = true
-          // callStatus.value = 'active'
-          // console.error('Incoming call setup completed successfully')
+          consola.info('🔊 Setting up media for incoming call...')
+          setupMedia(invitation)
+
+          isCallActive.value = true
+          callStatus.value = 'active'
+          consola.success('✅ Incoming call accepted and active')
         }
         catch (error) {
-          console.error('Error handling incoming call:', error)
+          consola.error('❌ Error handling incoming call:', error)
           callStatus.value = 'idle'
           isCallActive.value = false
+
           if (activeSession) {
             try {
+              consola.info('🚫 Rejecting call due to error')
               activeSession.reject()
             }
             catch (rejectError) {
-              console.error('Error rejecting invitation:', rejectError)
+              consola.error('❌ Error rejecting invitation:', rejectError)
             }
             activeSession = null
           }
         }
       },
-    }
-
-    // UA state changes (helpful)
-    ua.stateChange.addListener((newState: any) => {
-      console.error('UA state changed:', newState)
-    })
-
-    // Add registerer state change listener to properly handle registration status
-    registerer.stateChange.addListener((newState: any) => {
-      console.error('Registerer state changed:', newState)
-      if (newState === 'Registered') {
-        isRegistered.value = true
-        isInitialized = true
-        console.error('SIP registration successful')
-      }
-      else if (newState === 'Unregistered') {
-        isRegistered.value = false
-        console.error('SIP registration failed or lost')
-      }
-    })
-
-    // Add delegate to handle registration responses
-    registerer.delegate = {
-      onReject: (response: any) => {
-        console.error('Registration rejected:', response.message)
-        if (response.message && response.message.statusCode === 401) {
-          console.error('Authentication failed: Invalid credentials (401 Unauthorized)')
-          showToast({
-            type: 'error',
-            message: 'SIP Authentication failed. Please check your credentials.',
-          })
-        }
-        isRegistered.value = false
-        isInitialized = false
+      onConnect: () => {
+        consola.success('🔗 UA Connected to server')
+      },
+      onDisconnect: (error?: Error) => {
+        consola.info('🔌 UA Disconnected from server:', error?.message || 'No error')
       },
     }
 
-    ua.start().then(() => {
-      registerer.register().catch((error: any) => {
-        console.error('SIP registration request failed:', error)
+    // UA lifecycle monitoring
+    ua.stateChange.addListener((newState: any) => {
+      consola.info('🔄 UA state changed to:', newState)
+    })
+
+    // Transport state monitoring
+    ua.transport.stateChange.addListener((newState: any) => {
+      consola.info('🚀 Transport state changed to:', newState)
+    })
+
+    // Registration lifecycle
+    registerer.stateChange.addListener((newState: any) => {
+      consola.info('📋 Registerer state changed to:', newState)
+      if (newState === 'Registered') {
+        isRegistered.value = true
+        isInitialized = true
+        consola.success('✅ SIP registration successful - ready to receive calls!')
+      }
+      else if (newState === 'Unregistered') {
         isRegistered.value = false
-        isInitialized = false
-      })
-    }).catch((error: any) => {
-      console.error('SIP UA start failed:', error)
+        consola.error('⚠️ SIP unregistered - cannot receive calls')
+      }
+    })
+
+    registerer.delegate = {
+      onReject: (response: any) => {
+        consola.error('❌ Registration rejected:', response.message?.statusCode, response.message?.reasonPhrase)
+        showToast({
+          type: 'error',
+          message: `SIP Registration failed: ${response.message?.statusCode} ${response.message?.reasonPhrase}`,
+        })
+      },
+      onAccept: (response: any) => {
+        consola.success('✅ Registration accepted:', response.message?.statusCode)
+      },
+    }
+
+    // Start UA and register
+    try {
+      consola.info('🚀 Starting SIP UserAgent...')
+      await ua.start()
+      consola.success('✅ SIP UserAgent started successfully')
+
+      consola.info('📋 Sending registration...')
+      await registerer.register()
+      consola.success('✅ Registration request sent')
+    }
+    catch (error) {
+      consola.error('❌ Failed to start SIP UA or register:', error)
       isRegistered.value = false
       isInitialized = false
-    })
+
+      showToast({
+        type: 'error',
+        message: `SIP initialization failed: ${error}`,
+      })
+    }
   }
 
   // Start an outbound call (local function)
@@ -312,13 +327,13 @@ function playRingbackTone() {
           ringbackTone = null
         }
         catch (e) {
-          console.error('Error stopping ringback:', e)
+          consola.error('Error stopping ringback:', e)
         }
       },
     }
   }
   catch (error) {
-    console.error('Error creating ringback tone:', error)
+    consola.error('Error creating ringback tone:', error)
   }
 }
 
@@ -329,7 +344,7 @@ function stopRingbackTone() {
       ringbackTone = null
     }
     catch (error) {
-      console.error('Error stopping ringback tone:', error)
+      consola.error('Error stopping ringback tone:', error)
     }
   }
 }
@@ -340,7 +355,7 @@ export async function startCall(target: string) {
       type: 'error',
       message: 'SIP UA not initialized. Call initializeSIP() first.',
     })
-    console.error('SIP UA not initialized. Call initializeSIP() first.')
+    consola.error('SIP UA not initialized. Call initializeSIP() first.')
     return
   }
 
@@ -354,7 +369,7 @@ export async function startCall(target: string) {
       message:
         'Microphone permission denied. Please allow microphone access to make calls.',
     })
-    console.error('Microphone permission denied:', error)
+    consola.error('Microphone permission denied:', error)
     return
   }
 
@@ -366,7 +381,7 @@ export async function startCall(target: string) {
   )
 
   if (!targetURI) {
-    console.error('Invalid target URI')
+    consola.error('Invalid target URI')
     return
   }
 
@@ -386,7 +401,7 @@ export async function startCall(target: string) {
   inviter.invite().catch((error: any) => {
     // Call failed before ringing
     stopRingbackTone()
-    console.error('Call failed:', error)
+    consola.error('Call failed:', error)
     callStatus.value = 'idle'
     showToast({
       type: 'error',
@@ -399,7 +414,7 @@ export async function startCall(target: string) {
 
   // 📞 Track call state
   inviter.stateChange.addListener((state) => {
-    console.error('Call state:', state)
+    consola.info('Call state:', state)
     switch (state) {
       case SessionState.Establishing:
         isCallActive.value = true
@@ -426,15 +441,15 @@ export function endCall() {
     try {
       // Check if the session is in a state that allows bye()
       if (activeSession.state !== 'Terminated' && activeSession.state !== 'Terminating') {
-        console.error('Ending call, session state:', activeSession.state)
+        consola.info('Ending call, session state:', activeSession.state)
         activeSession.bye()
       }
       else {
-        console.error('Session already terminated, state:', activeSession.state)
+        consola.info('Session already terminated, state:', activeSession.state)
       }
     }
     catch (error) {
-      console.error('Error ending call:', error)
+      consola.error('Error ending call:', error)
     }
     finally {
       // Stop ringback tone if still playing

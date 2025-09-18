@@ -2,6 +2,8 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { endCall, getSIPStatus, startCall } from '~/composables/useSIP'
 
+const { user } = useAuth()
+
 const phoneNumber = ref('')
 const sipStatus = ref(getSIPStatus())
 
@@ -33,6 +35,7 @@ function hangupCall() {
 </script>
 
 <template>
+  {{ user }}
   <div class="sip-example">
     <h3>SIP Test Component</h3>
 
