@@ -22,7 +22,7 @@ const extensionStart = ref(0)
 const extensionLimit = ref(10)
 const isLoadingMoreExtensions = ref(false)
 const hasMoreExtensions = ref(true)
-const extensionStatus = ref('idle') // 'idle' | 'pending' | 'success' | 'error'
+const extensionStatus = ref('') // | 'pending' | 'success' | 'error'
 
 // REACTIVE DATA - Phone & Form State
 const phoneCountryCode = ref(1)
@@ -110,6 +110,7 @@ function getCountryLabel(code: string) {
  * @param reset - Whether to reset the list and start from beginning
  */
 async function loadExtensions(reset = false) {
+  debugger;
   try {
     // Reset pagination if requested
     if (reset) {
@@ -280,7 +281,7 @@ onMounted(() => {
                       <SelectTrigger class="w-fit data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
                         <SelectValue>
                           <span v-if="countriesPending" class="text-sm text-gray-400">
-                            Loading...
+                            <Icon name="eos-icons:loading" class="animate-spin" />
                           </span>
                           <span v-else class="text-sm text-nowrap">
                             {{ getCountryLabel(String(phoneCountryCode)) }}
@@ -295,7 +296,6 @@ onMounted(() => {
                           disabled
                         >
                           <Icon name="eos-icons:loading" class="animate-spin" />
-                          <span class="ml-2">Loading countries...</span>
                         </SelectItem>
                         <template v-else>
                           <SelectItem
@@ -345,15 +345,14 @@ onMounted(() => {
                         disabled
                       >
                         <Icon name="eos-icons:loading" class="animate-spin" />
-                        <span class="ml-2">Loading...</span>
                       </SelectItem>
 
                       <!-- Extension List Items -->
                       <template v-else>
                         <SelectItem
-                          v-for="option in extensionData"
-                          :key="option.id"
-                          :value="option.mobile"
+                          v-for="(option, index) in extensionData"
+                          :key="index"
+                          :value="option?.mobile"
                         >
                           {{ option.first_name }} {{ option.last_name }}
                         </SelectItem>

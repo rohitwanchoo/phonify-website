@@ -101,8 +101,8 @@ const onSubmit = handleSubmit(async (vals) => {
 
   // Prepare form data for API submission
   const formData = new FormData()
-  formData.append('callid', formatMaskaToNumber)
-  formData.append('dialednumber', vals.agentNumber)
+  formData.append('callid', vals.agentNumber)
+  formData.append('dialednumber', formatMaskaToNumber)
   formData.append('faxurl', file.value as File)
 
   try {
