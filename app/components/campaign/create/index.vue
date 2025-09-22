@@ -42,11 +42,19 @@ const formSchema = toTypedSchema(z.object({
   dial_mode: z.string().min(1, 'Dialing mode is required'),
   group_id: z.number().min(1, 'Caller group is required').max(50),
   time_based_calling: z.boolean(),
-  call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
-    if (values.time_based_calling && !val) {
+  // call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
+  //   if (values.time_based_calling && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'Call time is required',
+  //     })
+  //   }
+  // }),
+  call_schedule_id: z.number().optional().superRefine((val, ctx) => {
+    if (formState.value.time_based_calling && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Call time is required',
+        message: 'Call schedule is required',
       })
     }
   }),
@@ -200,7 +208,8 @@ const { handleSubmit, values, setFieldValue, resetForm, errors } = useForm({
     group_id: 0,
     voip_configuration_id: 0,
     disposition_id: [],
-    call_time: {},
+    call_schedule_id: 0,
+    // call_time: {},
     time_based_calling: false,
     inbound_ivr_no_agent_available_action: 0,
     voicedrop_no_agent_available_action: 0,
@@ -226,8 +235,9 @@ const onSubmit = handleSubmit(async (values) => {
     automated_duration: formState.value?.automated_duration ? '1' : '0',
     time_based_calling: formState.value?.time_based_calling ? 1 : 0,
     status: formState.value.status,
-    call_schedule_id: formState.value.call_schedule_id,
   }
+
+  // delete payload.call_time
 
   // remove undefined keys from payload
   const cleanedPayload = Object.fromEntries(

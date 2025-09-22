@@ -152,7 +152,7 @@ export function useCreateCampaign() {
       outbound_ai_dropdown_extension: null,
       outbound_ai_dropdown_ring_group: null,
       outbound_ai_dropdown_ivr: 0,
-      call_schedule_id: null,
+      call_schedule_id: 0,
     })
   }
   const formState = useState('create-campaign-state', initialState)
