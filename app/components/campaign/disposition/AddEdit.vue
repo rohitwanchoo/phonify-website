@@ -37,7 +37,7 @@ const emits = defineEmits(['complete'])
 const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'required').max(50),
   d_type: z.string().min(1, 'required'),
-  enable_sms: z.number().min(1, 'required'),
+  enable_sms: z.number().min(0, 'required'),
 }))
 
 const initialValues = ref({
@@ -83,14 +83,12 @@ const dispositionType = [
     label: 'Callback',
     value: '3',
   },
-  {
-    label: 'Call',
-    value: 'call',
-  },
 ]
 
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
+  if(isEdit.value)
+  values = { ...values, disposition_id: props.data?.id }
 
   try {
     let api = '/add-disposition'
@@ -112,6 +110,9 @@ const onSubmit = handleSubmit(async (values) => {
       message: `${error}`,
       type: 'error',
     })
+  }
+  finally {
+    loading.value = false
   }
 })
 

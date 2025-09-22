@@ -76,8 +76,6 @@ function dispositionType (type: string) {
       return 'Do Not Call'
     case '3':
       return 'Callback'
-      case 'call':
-      return 'Call'
     default:
       return ''
   }
