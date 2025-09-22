@@ -24,12 +24,12 @@ export interface Campaign {
   no_agent_available_action: number | null
   amd: boolean | string
   amd_drop_action: number | null
-  audio_message_amd: number | null
+  voicedrop_option_user_id: number | null
   voice_message_amd: number | null
-  voicedrop_no_agent_available_action: number | null
+  no_agent_dropdown_action : number | null
   inbound_ivr_no_agent_available_action: number | null
   redirect_to: number | null
-  outbound_ai_dropdown_audio_message: number | null
+  redirect_to_dropdown: number | null
   outbound_ai_dropdown_voice_message: number | null
   outbound_ai_dropdown_extension: number | null
   outbound_ai_dropdown_ring_group: number | null

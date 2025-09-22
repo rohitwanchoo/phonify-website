@@ -31,7 +31,7 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-const emits = defineEmits(['setFiledValue', 'cancelEdit', 'submit'])
+const emits = defineEmits(['setFieldValue', 'cancelEdit', 'submit'])
 const { formState, enableEditSection } = useCreateCampaign()
 
 const enableEdit = computed(() => enableEditSection.value === 'other-details' || !props.isPreview)
@@ -198,7 +198,7 @@ const filteredDispositionList = computed(() => {
                         @select.prevent="(ev) => {
                           searchTerm = ''
 
-                          emits('setFiledValue', 'disposition_id', [...(values.disposition_id ?? []), ev.detail.value as number])
+                          emits('setFieldValue', 'disposition_id', [...(values.disposition_id ?? []), ev.detail.value as number])
 
                           if (filteredDispositionList.length === 0) {
                             open = false
