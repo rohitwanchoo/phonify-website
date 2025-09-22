@@ -103,14 +103,14 @@ export function useSIP() {
       uri: 'sip:1001@192.168.64.2',
       username: '1001',
       password: 'secret1001', // from your pjsip.conf
-      wsServer: 'ws://192.168.64.2:8089/ws',
+      wsServer: 'wss://192.168.64.2:8088/ws',
     }
 
     const agentData2 = {
       uri: 'sip:1002@192.168.64.2',
       username: '1002',
       password: 'secret1002',
-      wsServer: 'ws://192.168.64.2:8089/ws',
+      wsServer: 'wss://192.168.64.2:8088/ws',
     }
 
     // consola.info('🔧 Initializing SIP with config:', {
