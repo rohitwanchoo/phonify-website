@@ -91,24 +91,38 @@ export function useSIP() {
       return
     }
 
-    const agentData = {
-      uri: `sip:${user.value?.alt_extension}@${config.public.asteriskDomain}`,
-      username: user.value?.alt_extension || '',
-      // password: passwordDecrypt(user.value?.secret || '') || '',
-      password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
-      wsServer: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
+    // const agentData = {
+    //   uri: `sip:${user.value?.alt_extension}@${config.public.asteriskDomain}`,
+    //   username: user.value?.alt_extension || '',
+    //   // password: passwordDecrypt(user.value?.secret || '') || '',
+    //   password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
+    //   wsServer: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
+    // }
+
+    const agentData1 = {
+      uri: 'sip:1001@192.168.64.2',
+      username: '1001',
+      password: 'secret1001', // from your pjsip.conf
+      wsServer: 'ws://192.168.64.2:8089/ws',
     }
 
-    consola.info('🔧 Initializing SIP with config:', {
-      uri: agentData.uri,
-      alt_extension: agentData.username,
-      wsServer: agentData.wsServer,
-      domain: config.public.asteriskDomain,
-      password: agentData.password,
-      email: user.value?.email || '',
-    })
+    const agentData2 = {
+      uri: 'sip:1002@192.168.64.2',
+      username: '1002',
+      password: 'secret1002',
+      wsServer: 'ws://192.168.64.2:8089/ws',
+    }
 
-    const { userAgent, registerer: reg } = $createSIPUA(agentData)
+    // consola.info('🔧 Initializing SIP with config:', {
+    //   uri: agentData.uri,
+    //   alt_extension: agentData.username,
+    //   wsServer: agentData.wsServer,
+    //   domain: config.public.asteriskDomain,
+    //   password: agentData.password,
+    //   email: user.value?.email || '',
+    // })
+
+    const { userAgent, registerer: reg } = $createSIPUA(user?.value?.id === 918 ? agentData1 : agentData2)
     ua = userAgent
     registerer = reg
 
