@@ -53,7 +53,7 @@ const data = {
   'Campaign & Lead Management': [
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', items: [
       { title: 'Campaign', url: '/app/campaign' },
-      { title: 'Agent Status', url: '/app/campaign/start-campaign/agent-status' },
+      { title: 'Agent Status', url: '/app/campaign/agent-status' },
       { title: 'Disposition', url: '/app/campaign/disposition' },
       { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign' },
     ] },

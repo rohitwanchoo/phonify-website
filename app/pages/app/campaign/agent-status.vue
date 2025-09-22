@@ -1,0 +1,51 @@
+<script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
+
+const start = ref(0)
+const limit = ref(10)
+const search = ref('')
+
+const { data: agentStatusList, status: agentStatusListStatus, refresh: refreshAgentStatusList } = await useLazyAsyncData('get-agent-status-list', () =>
+  useApi().post('/extension_live', {
+    start: start.value,
+    limit: limit.value,
+    search: search.value,
+  }), {
+  transform: res => res,
+})
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return refreshAgentStatusList()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refreshAgentStatusList()
+}
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshAgentStatusList()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
+</script>
+
+<template>
+  <div>
+    <!-- HEADER -->
+    <BaseHeader title="Agent Status">
+      <template #actions>
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Agent Status" @update:model-value="searchText" />
+      </template>
+    </BaseHeader>
+
+    <!-- TABLE -->
+    <div>
+      <CampaignAgentStatusTable :limit="limit" :total-rows="agentStatusList?.total_rows" :start="start" :list="agentStatusList?.data || []" :loading="agentStatusListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refreshAgentStatusList" />
+    </div>
+  </div>
+</template>
