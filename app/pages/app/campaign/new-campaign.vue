@@ -63,7 +63,13 @@ function setData() {
       if (values?.caller_id === 'custom') {
         refreshNuxtData('get-custom-caller-id-list')
       }
-      formState.value = values
+      const allValues = {
+        ...values,
+        redirect_to: Number(values.redirect_to),
+        redirect_to_dropdown: Number(values.redirect_to_dropdown),
+        no_agent_dropdown_action: Number(values.no_agent_dropdown_action),
+      }
+      formState.value = allValues
     })
   }
 }
@@ -73,8 +79,14 @@ onMounted(() => {
 })
 
 const isPreview = computed(() => stepper.isCurrent('show-preview'))
+const currentStep = computed(() => stepper.stepNames.value[stepper.index.value])
 
-// stepper.goTo('show-preview')
+// watch currentStep
+watch(currentStep, (val) => {
+  if (val === 'create-campaign' || val === 'show-preview') {
+    setData()
+  }
+})
 
 function goToNext() {
   if (stepper.isCurrent('select-list'))

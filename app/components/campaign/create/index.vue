@@ -198,7 +198,7 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, values, setFieldValue, resetForm, setFieldError } = useForm({
+const { handleSubmit, values, setFieldValue, resetForm, setFieldError, errors } = useForm({
   validationSchema: formSchema,
   initialValues: {
     title: '',
