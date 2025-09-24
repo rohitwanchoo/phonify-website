@@ -14,16 +14,10 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-
 import moment from 'moment'
+
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -43,6 +36,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
@@ -117,35 +116,6 @@ export interface labelList {
   updated_at: string
   status: string
   actions?: string
-}
-
-async function updateStatus(id: number, status: string) {
-  try {
-    const res = await useApi().post('/status-update-label', {
-      listId: id,
-      status,
-    })
-
-    if (res.success === 'true') {
-      showToast({
-        message: res.message,
-        type: 'success',
-      })
-      refreshNuxtData('customfieldlabel')
-    }
-    else {
-      showToast({
-        message: res.message,
-        type: 'error',
-      })
-    }
-  }
-  catch (err: any) {
-    showToast({
-      message: `${err.message}`,
-      type: 'error',
-    })
-  }
 }
 
 function handlePageChange(page: number) {
@@ -227,32 +197,28 @@ const columns = [
   // Action (no chevron, not sortable)
 
   columnHelper.accessor('actions', {
-  header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-  cell: ({ row }) =>
-    h('div', { class: 'flex justify-center gap-x-1' }, [
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+    cell: ({ row }) =>
+      h('div', { class: 'flex justify-center gap-x-1' }, [
 
-      // Edit button with tooltip
-      h(TooltipProvider, { delayDuration: 1000 }, () =>
-        h(Tooltip, null, {
-          default: () => [
-            h(TooltipTrigger, { asChild: true },
-              h(Button, {
+        // Edit button with tooltip
+        h(TooltipProvider, { delayDuration: 1000 }, () =>
+          h(Tooltip, null, {
+            default: () => [
+              h(TooltipTrigger, { asChild: true }, h(Button, {
                 size: 'icon',
                 variant: 'outline',
                 onClick: () => onEdit(row.original),
-              }, h(Icon, { name: 'material-symbols:edit-square' }))
-            ),
-            h(TooltipContent, { side: 'top' }, () => 'Edit Label')
-          ]
-        })
-      ),
+              }, h(Icon, { name: 'material-symbols:edit-square' }))),
+              h(TooltipContent, { side: 'top' }, () => 'Edit Label'),
+            ],
+          })),
 
-      // Delete button with tooltip
-      h(TooltipProvider, { delayDuration: 1000 }, () =>
-        h(Tooltip, null, {
-          default: () => [
-            h(TooltipTrigger, { asChild: true },
-              h(Button, {
+        // Delete button with tooltip
+        h(TooltipProvider, { delayDuration: 1000 }, () =>
+          h(Tooltip, null, {
+            default: () => [
+              h(TooltipTrigger, { asChild: true }, h(Button, {
                 size: 'icon',
                 variant: 'outline',
                 class: 'border-red-600 text-red-600 hover:text-red-600/80',
@@ -260,14 +226,12 @@ const columns = [
                   selectedLabelIdForDelete.value = row.original.id
                   revealDeleteConfirm()
                 },
-              }, h(Icon, { name: 'material-symbols:delete' }))
-            ),
-            h(TooltipContent, { side: 'top' }, () => 'Delete Label')
-          ]
-        })
-      ),
-    ]),
-})
+              }, h(Icon, { name: 'material-symbols:delete' }))),
+              h(TooltipContent, { side: 'top' }, () => 'Delete Label'),
+            ],
+          })),
+      ]),
+  }),
 
 ]
 
@@ -360,7 +324,7 @@ const table = useVueTable({
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing 
+        Showing
 
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">

@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -44,6 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
   loading: boolean
@@ -67,16 +67,15 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedAgentStatusForDelete = ref<number | null>(null)
+const selectedExtensionForDelete = ref<number | null>(null)
 
 async function handleDelete() {
-  if (!selectedAgentStatusForDelete.value)
+  if (!selectedExtensionForDelete.value)
     return
 
   try {
     const res = await useApi().post('/delete-ext-live', {
-      id: selectedAgentStatusForDelete.value,
-      is_deleted: 1,
+      extension: selectedExtensionForDelete.value,
     })
 
     if (res?.success === 'true') {
@@ -100,47 +99,18 @@ async function handleDelete() {
     })
   }
   finally {
-    selectedAgentStatusForDelete.value = null
+    selectedExtensionForDelete.value = null
   }
 }
 
 export interface agentStatusList {
-  id: number
+  index: number
+  full_name: string
+  extension: number
   title: string
-  extension: string
-  campaign: string
   lead_id: number
   status: number
   actions?: string
-}
-
-async function updateStatus(id: number, status: number) {
-  try {
-    const res = await useApi().post('/status-update-ext-live', {
-      id,
-      status,
-    })
-
-    if (res.success === 'true') {
-      showToast({
-        message: res.message,
-        type: 'success',
-      })
-      refreshNuxtData('get-agent-status-list')
-    }
-    else {
-      showToast({
-        message: res.message,
-        type: 'error',
-      })
-    }
-  }
-  catch (err: any) {
-    showToast({
-      message: `${err.message}`,
-      type: 'error',
-    })
-  }
 }
 
 function handlePageChange(page: number) {
@@ -160,19 +130,19 @@ function deleteConfirmHandler() {
 
 const columnHelper = createColumnHelper<agentStatusList>()
 const columns = [
-  columnHelper.accessor('id', {
+  columnHelper.accessor('index', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
     },
   }),
 
-  columnHelper.accessor('title', {
+  columnHelper.accessor('full_name', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('full_name'))
     },
   }),
   columnHelper.accessor('extension', {
@@ -188,7 +158,7 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('campaign', {
+  columnHelper.accessor('title', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -197,7 +167,7 @@ const columns = [
       }, () => ['Campaign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('campaign'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
     },
   }),
 
@@ -214,27 +184,34 @@ const columns = [
     },
   }),
 
+  // Status
   columnHelper.accessor('status', {
     header: ({ column }) =>
-      h('div', { class: 'text-center w-full' }, h(Button, {
-        class: 'text-center text-sm font-normal w-full',
+      h('div', { class: 'text-center' }, h(Button, {
         variant: 'ghost',
+        class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
-        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
-        'modelValue': row.original.status === 1,
-        'onUpdate:modelValue': (val: boolean) => {
-          updateStatus(row.original.id, val ? 1 : 0)
-        },
-      })),
+
+    cell: ({ row }) => {
+      const statusMap: Record<number, string> = {
+        0: 'Ready For Calls',
+        1: 'In Call',
+        2: 'Hangup',
+        3: 'Pause',
+      }
+
+      const statusText = statusMap[row.original.status]
+
+      return h('div', { class: 'flex justify-center' }, h('span', { class: 'text-sm font-normal text-center' }, statusText),
+      )
+    },
   }),
 
   columnHelper.accessor('actions', {
-    header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
+    header: () => h('div', { class: 'text-center ml-auto w-fit' }, 'Actions'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
+      h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center' }, [
         // Delete button with tooltip
         h(TooltipProvider, { delayDuration: 1000 }, () =>
           h(Tooltip, null, {
@@ -244,11 +221,11 @@ const columns = [
                 variant: 'outline',
                 class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80',
                 onClick: () => {
-                  selectedAgentStatusForDelete.value = row.original.id
+                  selectedExtensionForDelete.value = row.original.extension
                   revealDeleteConfirm()
                 },
               }, h(Icon, { name: 'material-symbols:delete' }))),
-              h(TooltipContent, { side: 'top' }, 'Delete Disposition'),
+              h(TooltipContent, { side: 'top' }, 'Delete Extension'),
             ],
           })),
       ]),
@@ -375,7 +352,7 @@ const table = useVueTable({
     v-model="showDeleteConfirm"
     :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
-    title="Delete Disposition"
-    description="You are about to delete this disposition. Do you wish to proceed?"
+    title="Delete Agent Status"
+    description="You are about to delete this agent status. Do you wish to proceed?"
   />
 </template>

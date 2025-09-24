@@ -5,6 +5,9 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
+const refreshInterval = ref(15)
+let timer: NodeJS.Timeout | null = null
+
 const { data: agentStatusList, status: agentStatusListStatus, refresh: refreshAgentStatusList } = await useLazyAsyncData('get-agent-status-list', () =>
   useApi().post('/extension_live', {
     start: start.value,
@@ -12,6 +15,25 @@ const { data: agentStatusList, status: agentStatusListStatus, refresh: refreshAg
     search: search.value,
   }), {
   transform: res => res,
+})
+
+// Auto refresh agent status list every 15 seconds
+onMounted(() => {
+  refreshInterval.value = 15
+
+  timer = setInterval(() => {
+    refreshInterval.value--
+
+    if (refreshInterval.value <= 0) {
+      refreshAgentStatusList()
+      refreshInterval.value = 15
+    }
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timer)
+    clearInterval(timer)
 })
 
 function changePage(page: number) {
@@ -39,7 +61,11 @@ function searchText() {
     <!-- HEADER -->
     <BaseHeader title="Agent Status">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Agent Status" @update:model-value="searchText" />
+        <div class="flex items-center text-sm text-primary">
+          <Icon name="material-symbols:autorenew" size="20" class="rotate-45" />
+          refresh in {{ refreshInterval }} sec
+        </div>
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Agent" @update:model-value="searchText" />
       </template>
     </BaseHeader>
 
