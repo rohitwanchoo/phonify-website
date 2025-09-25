@@ -91,27 +91,27 @@ export function useSIP() {
       return
     }
 
-    // const agentData = {
-    //   uri: `sip:${user.value?.alt_extension}@${config.public.asteriskDomain}`,
-    //   username: user.value?.alt_extension || '',
-    //   // password: passwordDecrypt(user.value?.secret || '') || '',
-    //   password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
-    //   wsServer: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
+    const agentData = {
+      uri: `sip:${user.value?.alt_extension}@${user.value?.domain}`,
+      username: user.value?.alt_extension || '',
+      // password: passwordDecrypt(user.value?.secret || '') || '',
+      password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
+      wsServer: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
+    }
+
+    // const agentData1 = {
+    //   uri: 'sip:1001@192.168.64.2',
+    //   username: '1001',
+    //   password: 'secret1001', // from your pjsip.conf
+    //   wsServer: 'wss://192.168.64.2:8088/ws',
     // }
 
-    const agentData1 = {
-      uri: 'sip:1001@192.168.64.2',
-      username: '1001',
-      password: 'secret1001', // from your pjsip.conf
-      wsServer: 'wss://192.168.64.2:8088/ws',
-    }
-
-    const agentData2 = {
-      uri: 'sip:1002@192.168.64.2',
-      username: '1002',
-      password: 'secret1002',
-      wsServer: 'wss://192.168.64.2:8088/ws',
-    }
+    // const agentData2 = {
+    //   uri: 'sip:1002@192.168.64.2',
+    //   username: '1002',
+    //   password: 'secret1002',
+    //   wsServer: 'wss://192.168.64.2:8088/ws',
+    // }
 
     // consola.info('🔧 Initializing SIP with config:', {
     //   uri: agentData.uri,
@@ -122,11 +122,13 @@ export function useSIP() {
     //   email: user.value?.email || '',
     // })
 
-    const { userAgent, registerer: reg } = $createSIPUA(user?.value?.id === 918 ? agentData1 : agentData2)
+    // const { userAgent, registerer: reg } = $createSIPUA(user?.value?.id === 918 ? agentData1 : agentData2)
+    const { userAgent, registerer: reg } = $createSIPUA(agentData)
     ua = userAgent
     registerer = reg
 
     // Set up delegate BEFORE starting UA
+    consola.info('🔧 Setting up UA delegate...')
     ua.delegate = {
       onInvite: async (invitation: Invitation) => {
         consola.success('🔔 INCOMING CALL DETECTED!')
@@ -191,6 +193,13 @@ export function useSIP() {
       },
     }
 
+    // Verify delegate was set correctly
+    consola.info('✅ UA delegate configured:', {
+      hasOnInvite: typeof ua.delegate?.onInvite === 'function',
+      hasOnConnect: typeof ua.delegate?.onConnect === 'function',
+      hasOnDisconnect: typeof ua.delegate?.onDisconnect === 'function',
+    })
+
     // UA lifecycle monitoring
     ua.stateChange.addListener((newState: any) => {
       consola.info('🔄 UA state changed to:', newState)
@@ -208,6 +217,14 @@ export function useSIP() {
         isRegistered.value = true
         isInitialized = true
         consola.success('✅ SIP registration successful - ready to receive calls!')
+
+        // Final delegate verification after registration
+        consola.info('🔍 Final delegate check after registration:', {
+          hasDelegate: !!ua.delegate,
+          hasOnInvite: typeof ua.delegate?.onInvite === 'function',
+          uaState: ua.state,
+          transportState: ua.transport.state,
+        })
       }
       else if (newState === 'Unregistered') {
         isRegistered.value = false
@@ -231,8 +248,16 @@ export function useSIP() {
     // Start UA and register
     try {
       consola.info('🚀 Starting SIP UserAgent...')
+      consola.info('🔍 UA state before start:', ua.state)
       await ua.start()
       consola.success('✅ SIP UserAgent started successfully')
+      consola.info('🔍 UA state after start:', ua.state)
+
+      // Double-check delegate is still set after UA start
+      consola.info('🔍 Delegate check after UA start:', {
+        hasDelegate: !!ua.delegate,
+        hasOnInvite: typeof ua.delegate?.onInvite === 'function',
+      })
 
       consola.info('📋 Sending registration...')
       await registerer.register()
