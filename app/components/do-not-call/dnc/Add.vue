@@ -32,17 +32,6 @@ function getCountryLabel(code: string) {
   return country ? `${country.country_code} (+${country.phone_code})` : ''
 }
 
-function onDialogOpen(val: boolean) {
-  if (val) {
-    extensionRefresh()
-    countryRefresh()
-
-    nextTick(() => {
-      resetForm()
-    })
-  }
-}
-
 const formSchema = toTypedSchema(z.object({
   country_code: z.string().min(1, 'Country code is required'),
   number: z.string().min(1, 'Phone number is required'),
@@ -59,6 +48,17 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     comment: '',
   },
 })
+
+function onDialogOpen(val: boolean) {
+  if (val) {
+    extensionRefresh()
+    countryRefresh()
+
+    nextTick(() => {
+      resetForm()
+    })
+  }
+}
 
 const onSubmit = handleSubmit(async (values) => {
   // Clean the phone number - remove formatting before sending to API
