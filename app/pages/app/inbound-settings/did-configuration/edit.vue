@@ -410,6 +410,11 @@ function onCancel() {
                                   {{ item.title }}
                                 </SelectItem>
                               </template>
+                              <template v-else-if="values.dest_type === 5">
+                                <SelectItem v-for="item in conferencingData" :key="item.id" :value="item.id">
+                                  {{ item.title }}
+                                </SelectItem>
+                              </template>
                             </template>
                           </SelectContent>
                         </Select>
