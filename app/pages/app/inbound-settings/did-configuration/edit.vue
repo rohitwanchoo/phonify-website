@@ -16,9 +16,7 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -37,383 +35,524 @@ const breadcrumbs = [
   },
 ]
 
-const countryCodes = ref([
-  { id: 1, name: 'USA', phonecode: '1' },
-  { id: 2, name: 'UK', phonecode: '44' },
-  { id: 3, name: 'Canada', phonecode: '1' },
-  { id: 4, name: 'Australia', phonecode: '61' },
-  { id: 5, name: 'India', phonecode: '91' },
-])
+const router = useRouter()
+const route = useRoute()
 
-const userOptions = ref([
-  { id: '1', name: 'John Doe' },
-  { id: '2', name: 'Jane Smith' },
-  { id: '3', name: 'Robert Johnson' },
-])
+const { data: didData, status: didStatus } = await useLazyAsyncData('did-data-by-id', () =>
+  useApi().post('/get-did-by-id', {
+    did_id: route?.query?.id,
+  }), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: callTimesData, status: callTimesStatus } = await useLazyAsyncData('get-department-list', () =>
+  useApi().post('/get-department-list'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: destTypeData, status: destTypeStatus } = await useLazyAsyncData('get-destination-type', () =>
+  useApi().post('/dest-type'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: ivrData, status: ivrStatus, refresh: refreshIvrData } = await useLazyAsyncData('get-ivr', () =>
+  useApi().post('/ivr'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: extensionListData, status: extensionListStatus, refresh: refreshExtensionListData } = await useLazyAsyncData('get-extension-list', () =>
+  useApi().post('/extension-list'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: conferencingData, status: conferencingStatus, refresh: refreshConferencingData } = await useLazyAsyncData('get-conferencing', () =>
+  useApi().post('/conferencing'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: ringGroupData, status: ringGroupStatus, refresh: refreshRingGroupData } = await useLazyAsyncData('get-ring-group', () =>
+  useApi().post('/ring-group'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const didPhone = ref(false)
+const destinationItems = ref([])
+const destinationStatus = ref()
 
 // Form validation schema
 const formSchema = toTypedSchema(
   z.object({
-    phoneNumber: z.string().min(10, 'Phone number must be 10 digits').max(10, 'Phone number must be 10 digits'),
-    countryCode: z.string().min(1, 'Country code is required'),
-    callerName: z.string().min(1, 'Caller name is required'),
-    isMainline: z.boolean().default(false),
-    redirectToLastAgent: z.boolean().default(false),
-    enableSMS: z.boolean().default(false),
-    enableSMSAI: z.boolean().default(false),
-    assignedUser: z.string().optional(),
-    isExclusiveForUser: z.boolean().default(false),
-    applyCallTimes: z.boolean().default(false),
-    applyHolidayCalendar: z.boolean().default(false),
-    callScreeningAudio: z.boolean().default(false),
+    cli: z.string(),
+    cnam: z.string().min(1, 'Caller name is required'),
+    default_did: z.boolean(),
+    redirect_last_agent: z.boolean(),
+    dest_type: z.number().optional(),
+    ingroup: z.number().optional(),
+    conf_id: z.number().optional(),
+    extension: z.number().optional(),
+    ivr_id_ooh: z.number().optional(),
+    forward_number: z.string().optional(),
+    sms: z.boolean(),
+    sms_type: z.boolean(),
+    set_exclusive_for_user: z.boolean(),
+    call_time_department_id: z.number(),
+    call_time_holiday: z.boolean(),
+    call_screening_status: z.boolean(),
   }),
 )
 
-const { handleSubmit, values, setFieldValue, resetForm } = useForm({
+const { handleSubmit, values, isSubmitting, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    countryCode: '1',
-    isMainline: false,
-    redirectToLastAgent: false,
-    enableSMS: false,
-    enableSMSAI: false,
-    isExclusiveForUser: false,
-    applyCallTimes: false,
-    applyHolidayCalendar: false,
-    callScreeningAudio: false,
+    cli: didData.value?.cli,
+    cnam: didData.value?.cnam,
+    default_did: didData.value?.default_did,
+    redirect_last_agent: didData.value?.redirect_last_agent,
+    dest_type: didData.value?.dest_type,
+    ingroup: didData.value?.ingroup,
+    conf_id: didData.value?.conf_id,
+    extension: didData.value?.extension,
+    ivr_id_ooh: didData.value?.ivr_id_ooh,
+    forward_number: didData.value?.forward_number,
+    sms: didData.value?.sms,
+    sms_type: didData.value?.sms_type,
+    set_exclusive_for_user: didData.value?.set_exclusive_for_user,
+    call_time_department_id: didData.value?.call_time_department_id,
+    call_time_holiday: didData.value?.call_time_holiday,
+    call_screening_status: didData.value?.call_screening_status,
   },
 })
 
-const loading = ref(false)
-const router = useRouter()
+watch(didData, (newData) => {
+  if (newData) {
+    setFieldValue('cli', newData?.cli)
+    setFieldValue('cnam', newData?.cnam)
+    setFieldValue('default_did', newData?.default_did === '1')
+    setFieldValue('redirect_last_agent', newData?.redirect_last_agent === '1')
+    setFieldValue('dest_type', Number(newData?.dest_type))
+    setFieldValue('ingroup', Number(newData?.ingroup))
+    setFieldValue('conf_id', Number(newData?.conf_id))
+    setFieldValue('extension', Number(newData?.extension))
+    setFieldValue('ivr_id_ooh', Number(newData?.ivr_id_ooh))
+    setFieldValue('forward_number', newData?.forward_number)
+    setFieldValue('sms', newData?.sms === '1')
+    setFieldValue('sms_type', newData?.sms_type === '1')
+    setFieldValue('set_exclusive_for_user', newData?.set_exclusive_for_user === '1')
+    setFieldValue('call_time_department_id', newData?.call_time_department_id)
+    setFieldValue('call_time_holiday', newData?.call_time_holiday === '1')
+    setFieldValue('call_screening_status', newData?.call_screening_status === '1')
+  }
+})
 
-function getCountryLabel(phoneCode: string) {
-  const country = countryCodes.value.find(c => c.phonecode === phoneCode)
-  return country ? `${country.name} (+${country.phonecode})` : 'Select Country'
-}
+watch(
+  () => values.dest_type, // watch the form value
+  (val) => {
+    if (val === 0) {
+      destinationStatus.value = ivrStatus.value
+      destinationItems.value = ivrData.value
+      refreshIvrData()
+    }
+    if (val === 1 || val === 2 || val === 6) {
+      destinationItems.value = extensionListData.value
+      destinationStatus.value = extensionListStatus.value
+      refreshExtensionListData()
+    }
+    if (val === 4) {
+      didPhone.value = true
+    }
+    else {
+      didPhone.value = false
+    }
+    if (val === 5) {
+      destinationItems.value = conferencingData.value
+      destinationStatus.value = conferencingStatus.value
+      refreshConferencingData()
+    }
+    if (val === 8) {
+      destinationItems.value = ringGroupData.value
+      destinationStatus.value = ringGroupStatus.value
+      refreshRingGroupData()
+    }
+  },
+  { immediate: true }, // run once initially
+)
 
-function formatPhoneInput(e: Event) {
-  const input = e.target as HTMLInputElement
-  // Get raw digits only
-  let value = input.value.replace(/\D/g, '')
-  // Limit to 10 digits
-  value = value.slice(0, 10)
-  // Update the form value with raw digits
-  setFieldValue('phoneNumber', value)
-  // Format the display value
-  input.value = value.length === 10 ? formatNumber(value) : value
-}
+// computed to map dest_type → field name
+const destinationFieldName = computed(() => {
+  switch (values.dest_type) {
+    case 0:
+      return 'ivr_id_ooh'
+    case 1:
+    case 2:
+    case 6:
+      return 'extension'
+    case 5:
+      return 'conf_id'
+    case 8:
+      return 'ingroup'
+    default:
+      return ''
+  }
+})
 
-const onSubmit = handleSubmit((values) => {
-  loading.value = true
-  console.log('Form submitted with values:', values)
-
-  // Simulate API call
-  setTimeout(() => {
-    loading.value = false
-    router.push({ path: '/app/inbound-settings/did-configuration' })
-  }, 1000)
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    const response = await useApi().post('/save-edit-did', values)
+    if (response?.success) {
+      showToast({
+        message: response?.message,
+        type: 'success',
+      })
+      router.push({ path: '/app/inbound-settings/did-configuration' })
+    }
+    else {
+      showToast({
+        message: response?.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (error: any) {
+    showToast({
+      message: `${error.message}`,
+      type: error,
+    })
+  }
 })
 
 function onCancel() {
-  resetForm()
-  console.log('Form cancelled and reset')
+  // Object.keys(values).forEach((field) => {
+  //   setFieldValue(field as keyof typeof values, didData.value?.[field as keyof typeof didData.value])
+  // })
 }
 </script>
 
 <template>
-  <BaseHeader title="Edit Voice template" :breadcrumbs="breadcrumbs" />
-  <div class="relative h-[calc(100vh-190px)] overflow-y-hidden border rounded-lg">
+  <BaseHeader title="Edit Phone Number" :breadcrumbs="breadcrumbs" />
+  <div class="relative h-[calc(100vh-190px)] overflow-y-hidden border rounded-lg mt-6">
     <form class="space-y-4 h-full" @submit.prevent="onSubmit">
-      <!-- Voice template DETAILS -->
+      <!-- Phone number details -->
       <div class="h-full rounded-lg bg-white">
-        <div class="border-b px-5 py-5 flex items-center justify-between">
+        <div class="sticky top-0 right-0 z-10 w-full bg-white border-b px-5 py-5 flex items-center justify-between">
           <div class="text-lg font-medium text-primary/100">
-            Voice template Details
+            Phone Number Details
           </div>
         </div>
-        <div class="p-5 space-y-5 w-full">
-          <div class="flex gap-[16px] w-full">
-            <div class="w-1/2">
-              <FormField v-slot="{ componentField, errorMessage }" name="phoneNumber">
-                <FormItem>
-                  <FormLabel class="font-normal text-sm">
-                    Phone Number
-                  </FormLabel>
-                  <FormControl>
-                    <div class="flex">
-                      <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
-                        <FormField v-slot="{ componentField: countryCodeComponentField }" name="countryCode">
-                          <FormItem>
-                            <FormControl>
-                              <Select v-bind="countryCodeComponentField">
-                                <SelectTrigger
-                                  class="w-fit rounded-r-none bg-gray-100 !h-11"
-                                  :class="errorMessage && 'border-red-600 border'"
-                                >
-                                  <SelectValue>
-                                    <span class="text-sm text-nowrap">
-                                      {{ getCountryLabel(values.countryCode) }}
-                                    </span>
-                                  </SelectValue>
-                                </SelectTrigger>
-
-                                <SelectContent>
-                                  <SelectGroup>
-                                    <SelectItem
-                                      v-for="item in countryCodes"
-                                      :key="item.id"
-                                      :value="item.phonecode"
-                                    >
-                                      {{ item.name }} (+{{ item.phonecode }})
-                                    </SelectItem>
-                                  </SelectGroup>
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        </FormField>
-                        <Input
-                          type="tel"
-                          inputmode="numeric"
-                          placeholder="Enter Phone Number"
-                          class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-sm h-11"
-                          v-bind="componentField"
-                          :value="values.phoneNumber?.length === 10 ? formatNumber(values.phoneNumber) : values.phoneNumber"
-                          @input="formatPhoneInput"
-                        />
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormMessage class="text-sm text-right" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/2">
-              <FormField v-slot="{ componentField, errorMessage }" name="callerName">
-                <FormItem>
-                  <FormLabel class="font-normal text-sm">
-                    Caller Name
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      v-bind="componentField"
-                      placeholder="Enter caller name"
-                      :class="errorMessage && 'border-red-600'"
-                      class="w-full !h-11"
-                    />
-                  </FormControl>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-          </div>
-
-          <div class="w-full flex gap-[16px]">
-            <div class="w-1/4">
-              <!-- Set As Mainline -->
-              <FormField name="isMainline">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Set As Mainline
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Set as mainline</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.isMainline"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('isMainline', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/4">
-              <!-- Redirect To Last Spoke Agent -->
-              <FormField name="redirectToLastAgent">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Redirect To Last Spoke Agent
-                  </FormLabel>
-                  <div class="w-full bg-gray-50 h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Redirect to last spoke agent</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.redirectToLastAgent"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('redirectToLastAgent', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/4">
-              <!-- Enable SMS -->
-              <FormField name="enableSMS">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Enable SMS
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Enable SMS</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.enableSMS"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('enableSMS', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/4">
-              <!-- Enable SMS AI -->
-              <FormField name="enableSMSAI">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Enable SMS AI
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Enable SMS AI</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.enableSMSAI"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('enableSMSAI', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-          </div>
-          <div class="w-full">
-            <FormField v-slot="{ componentField, errorMessage }" name="assignedUser">
+        <!-- loading -->
+        <div v-if="didStatus === 'pending'" class="grid grid-cols-2 gap-x-4 gap-y-5 w-full p-5">
+          <BaseSkelton v-for="i in 10" :key="i" class="h-11 w-full mb-2" rounded="rounded-sm" />
+        </div>
+        <div v-else class="h-[calc(100vh-190px)] p-5 w-full">
+          <div class="grid grid-cols-2 gap-x-4 gap-y-5 items-end h-fit overflow-y-auto">
+            <!-- Phone number -->
+            <FormField v-slot="{ componentField, errorMessage }" name="cli">
               <FormItem>
                 <FormLabel class="font-normal text-sm">
-                  Assign to User
+                  Phone Number
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    v-maska="'+# (###) ###-####'"
+                    type="tel"
+                    placeholder="Enter Phone Number"
+                    :class="errorMessage && 'border-red-600'"
+                    class="w-full !h-11"
+                    disabled
+                    v-bind="componentField"
+                  />
+                </FormControl>
+                <FormMessage class="text-sm text-left" />
+              </FormItem>
+            </FormField>
+
+            <!-- Caller Name -->
+            <FormField v-slot="{ componentField, errorMessage }" name="cnam">
+              <FormItem>
+                <FormLabel class="font-normal text-sm">
+                  Caller Name
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    v-bind="componentField"
+                    placeholder="Enter caller name"
+                    :class="errorMessage && 'border-red-600'"
+                    class="w-full !h-11"
+                  />
+                </FormControl>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+
+            <!-- Set As Mainline -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.default_did" name="default_did">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Set as mainline</p>
+                  <FormControl>
+                    <Switch
+                      class="data-[state=checked]:bg-green-600 group"
+                      :model-value="value"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+            <!-- Redirect To Last Spoke Agent -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.redirect_last_agent" name="redirect_last_agent">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Redirect to last spoke agent</p>
+                  <FormControl>
+                    <Switch
+                      :model-value="value"
+                      class="data-[state=checked]:bg-green-600"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+            <div v-if="!values.redirect_last_agent" class="flex items-start gap-4">
+              <!-- Destination Type -->
+              <div class="w-1/2">
+                <FormField v-slot="{ componentField, errorMessage }" name="dest_type">
+                  <FormItem>
+                    <FormLabel class="font-normal text-sm">
+                      Destination Type
+                    </FormLabel>
+                    <FormControl>
+                      <Select v-bind="componentField">
+                        <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                          <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Destination Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-if="destTypeStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                            <Icon name="eos-icons:loading" />
+                          </SelectItem>
+                          <template v-else>
+                            <SelectItem v-for="item in destTypeData" :key="item.dest_id" :value="item.dest_id">
+                              {{ item.dest_type }}
+                            </SelectItem>
+                          </template>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage class="text-sm" />
+                  </FormItem>
+                </FormField>
+              </div>
+              <div v-if="values.dest_type !== 3" class="w-1/2">
+                <!-- Destination type number -->
+                <div v-if="values.dest_type === 4">
+                  <FormField v-slot="{ componentField, errorMessage }" name="forward_number">
+                    <FormItem>
+                      <FormLabel class="font-normal text-sm">
+                        Phone Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          v-maska="'+# (###) ###-####'"
+                          type="tel"
+                          placeholder="Enter Phone Number"
+                          :class="errorMessage && 'border-red-600'"
+                          class="w-full !h-11"
+                          v-bind="componentField"
+                        />
+                      </FormControl>
+                      <FormMessage class="text-sm text-left" />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div v-else class="w-full">
+                  <FormField v-slot="{ componentField, errorMessage }" :name="destinationFieldName">
+                    <FormItem>
+                      <FormLabel class="font-normal text-sm">
+                        Destination
+                      </FormLabel>
+                      <FormControl>
+                        <Select v-bind="componentField">
+                          <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                            <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Destination" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem v-if="destinationStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                              <Icon name="eos-icons:loading" />
+                            </SelectItem>
+                            <template v-else>
+                              <template v-if="values.dest_type === 0">
+                                <SelectItem v-for="item in ivrData" :key="item.id" :value="item.id">
+                                  {{ item.ivr_desc }}
+                                </SelectItem>
+                              </template>
+                              <template v-else-if="values.dest_type === 1 || values.dest_type === 2 || values.dest_type === 6">
+                                <SelectItem v-for="item in extensionListData" :key="item.id" :value="item.id">
+                                  {{ item.first_name }} {{ item.last_name }}
+                                </SelectItem>
+                              </template>
+                              <template v-else-if="values.dest_type === 8">
+                                <SelectItem v-for="item in ringGroupData" :key="item.id" :value="item.id">
+                                  {{ item.title }}
+                                </SelectItem>
+                              </template>
+                            </template>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage class="text-sm" />
+                    </FormItem>
+                  </FormField>
+                </div>
+              </div>
+            </div>
+            <!-- Enable SMS -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.sms" name="sms">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Enable SMS</p>
+                  <FormControl>
+                    <Switch
+                      :model-value="value"
+                      class="data-[state=checked]:bg-green-600"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+            <!-- Enable SMS AI -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.sms_type" name="sms_type">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Enable SMS AI</p>
+                  <FormControl>
+                    <Switch
+                      :model-value="value"
+                      class="data-[state=checked]:bg-green-600"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+
+            <!-- Set Exclusive For User -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.set_exclusive_for_user" name="set_exclusive_for_user">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Set exclusive for user</p>
+                  <FormControl>
+                    <Switch
+                      :model-value="value"
+                      class="data-[state=checked]:bg-green-600"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+            <!-- Apply Call Times -->
+            <FormField v-slot="{ componentField, errorMessage }" name="call_time_department_id">
+              <FormItem>
+                <FormLabel class="font-normal text-sm">
+                  Apply Call Times
                 </FormLabel>
                 <FormControl>
                   <Select v-bind="componentField">
                     <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select User" />
+                      <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Destination Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectGroup>
-                        <SelectItem v-for="item in userOptions" :key="item.id" :value="item.id">
+                      <SelectItem v-if="callTimesStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                        <Icon name="eos-icons:loading" />
+                      </SelectItem>
+                      <template v-else>
+                        <SelectItem v-for="item in callTimesData" :key="item.id" :value="item.id">
                           {{ item.name }}
                         </SelectItem>
-                      </SelectGroup>
+                      </template>
                     </SelectContent>
                   </Select>
                 </FormControl>
                 <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
-          </div>
-          <div class="w-full flex gap-[16px]">
-            <div class="w-1/4">
-              <!-- Set Exclusive For User -->
-              <FormField name="isExclusiveForUser">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Set exclusive for user
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Set exclusive for user</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.isExclusiveForUser"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('isExclusiveForUser', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/4">
-              <!-- Apply Call Times -->
-              <FormField name="applyCallTimes">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Apply call times
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Apply call times</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.applyCallTimes"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('applyCallTimes', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/4">
-              <!-- Apply Holiday Calendar -->
-              <FormField name="applyHolidayCalendar">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Apply holiday calendar
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Apply Holiday calendar</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.applyHolidayCalendar"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('applyHolidayCalendar', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
-            <div class="w-1/4">
-              <!-- Call Screening Audio -->
-              <FormField name="callScreeningAudio">
-                <FormItem>
-                  <FormLabel class="font-normal text-white">
-                    Call screening audio
-                  </FormLabel>
-                  <div class="w-full bg-[#00A0860D] h-11 m-1.5 rounded-sm flex items-center justify-between px-3 text-sm">
-                    <p>Call screening audio</p>
-                    <FormControl>
-                      <Switch
-                        :checked="values.callScreeningAudio"
-                        class="data-[state=checked]:bg-green-600"
-                        @update:checked="(val) => setFieldValue('callScreeningAudio', val)"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage class="text-sm" />
-                </FormItem>
-              </FormField>
-            </div>
+
+            <!-- Apply Holiday Calendar -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.call_time_holiday" name="call_time_holiday">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Apply Holiday calendar</p>
+                  <FormControl>
+                    <Switch
+                      :model-value="value"
+                      class="data-[state=checked]:bg-green-600"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+            <!-- Call Screening Audio -->
+            <FormField v-slot="{ value, handleChange }" v-model="values.call_screening_status" name="call_screening_status">
+              <FormItem>
+                <div
+                  class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
+                  :class="value ? 'bg-[#00A0860D]' : 'bg-gray-50'"
+                >
+                  <p>Call screening audio</p>
+                  <FormControl>
+                    <Switch
+                      :model-value="value"
+                      class="data-[state=checked]:bg-green-600"
+                      @update:model-value="handleChange"
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
           </div>
         </div>
       </div>
-      <div class="sticky bottom-0 right-0 w-full bg-white p-4 gap-2 flex border rounded-b-lg ">
-        <Button class="w-1/2 h-[52px]" variant="outline" :loading="loading" type="button" @click="onCancel">
-          <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:close'" size="20" />
+      <div class="sticky bottom-0 right-0 w-full bg-white p-4 gap-2 flex border-t rounded-b-lg ">
+        <Button class="w-1/2 h-[52px]" variant="outline" :loading="isSubmitting" type="button" @click="onCancel">
+          <Icon name="material-symbols:close" size="20" />
           Cancel
         </Button>
-        <Button class="w-1/2 h-[52px]" type="submit" :loading="loading">
-          <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" size="20" />
+        <Button class="w-1/2 h-[52px]" type="submit" :loading="isSubmitting">
+          <Icon name="material-symbols:save" size="20" />
           Save
         </Button>
       </div>

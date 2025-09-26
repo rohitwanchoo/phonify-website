@@ -1,28 +1,66 @@
 <script setup lang="ts">
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
+import { useDebounceFn } from '@vueuse/core'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 const start = ref(0)
-const limit = ref(10)
+const limit = ref(100)
+const search = ref('')
 
-const { data: didList, status, refresh } = await useLazyAsyncData('did-configuration-list', () =>
+const { data: didList, status: didListStatus, refresh: refreshDidList } = await useLazyAsyncData('did-configuration-list', () =>
   useApi().post('/did', {
-    // TODO: Dummy pagination
     start: start.value,
     limit: limit.value,
+    search: search.value,
   }), {
   transform: res => res,
 })
 
 function changePage(page: number) {
   start.value = Number((page - 1) * limit.value)
-  return refresh()
+  return refreshDidList()
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  return refresh()
+  return refreshDidList()
 }
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshDidList()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
+
+const actions = [
+  {
+    label: 'Upload Excel',
+    link: '#',
+  },
+  {
+    label: 'Buy number from DID for sale',
+    link: '#',
+  },
+  {
+    label: 'Buy number from Plivo',
+    link: '#',
+  },
+  {
+    label: 'Buy number from Telnyx',
+    link: '#',
+  },
+  {
+    label: 'Buy number from Twilio',
+    link: '#',
+  },
+]
 </script>
 
 <template>
@@ -30,22 +68,26 @@ function changeLimit(val: number) {
     <!-- HEADER -->
     <BaseHeader title="DID Configuration">
       <template #actions>
-        <div class="relative">
-          <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search..." @update:model-value="searchText" />
 
-        <!-- Trigger Button -->
-        <Button>
-          Action
-          <Icon name="material-symbols:arrow-drop-down" class="text-xl text-white" />
-        </Button>
+        <!-- Actions -->
+        <DropdownMenu>
+          <DropdownMenuTrigger class="bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 px-4 py-2 h-11 flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer">
+            Action
+            <Icon name="material-symbols:arrow-drop-down" class="text-xl text-white" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem v-for="action in actions" :key="action.link">
+              {{ action.label }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <InboundSettingsDidConfigurationTable :loading="status === 'pending'" :total-rows="didList?.total_rows " :start :limit :list="didList?.data" @refresh="refresh" @page-navigation="changePage" @change-limit="changeLimit" />
+      <InboundSettingsDidConfigurationTable :limit="limit" :total-rows="didList?.total_rows" :start="start" :list="didList?.data" :loading="didListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
     </div>
   </div>
 </template>

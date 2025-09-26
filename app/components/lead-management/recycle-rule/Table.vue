@@ -207,50 +207,43 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal te xt-sm w-full' }, row.original.is_deleted),
   }),
   columnHelper.display({
-  id: 'actions',
-  header: () => h('div', { class: 'text-center w-full' }, 'Action'),
-  cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
+    id: 'actions',
+    header: () => h('div', { class: 'text-center w-full' }, 'Action'),
+    cell: ({ row }) => h('div', { class: 'flex gap-2 justify-center' }, [
 
-    // Edit Button Tooltip
-    h(TooltipProvider, { delayDuration: 1000 }, () =>
-      h(Tooltip, null, {
-        default: () => [
-          h(TooltipTrigger, { asChild: true },
-            h(Button, {
+      // Edit Button Tooltip
+      h(TooltipProvider, { delayDuration: 1000 }, () =>
+        h(Tooltip, null, {
+          default: () => [
+            h(TooltipTrigger, { asChild: true }, h(Button, {
               size: 'icon',
               variant: 'outline',
               class: 'text-primary h-7 w-7 min-w-0',
               onClick: () => onEdit(row.original),
-            }, h(Icon, { name: 'material-symbols:edit-square', size: 14 }))
-          ),
-          h(TooltipContent, { side: 'top' }, () => 'Edit')
-        ]
-      })
-    ),
+            }, h(Icon, { name: 'material-symbols:edit-square', size: 14 }))),
+            h(TooltipContent, { side: 'top' }, () => 'Edit'),
+          ],
+        })),
 
-    // Recycle Button Tooltip
-    h(TooltipProvider, { delayDuration: 1000 }, () =>
-      h(Tooltip, null, {
-        default: () => [
-          h(TooltipTrigger, { asChild: true },
-            h(Button, {
+      // Recycle Button Tooltip
+      h(TooltipProvider, { delayDuration: 1000 }, () =>
+        h(Tooltip, null, {
+          default: () => [
+            h(TooltipTrigger, { asChild: true }, h(Button, {
               size: 'icon',
               variant: 'outline',
               class: 'text-primary h-7 w-7 min-w-0',
               onClick: () => refreshNuxtData('recycle-rule'),
-            }, h(Icon, { name: 'material-symbols:autorenew', size: 15 }))
-          ),
-          h(TooltipContent, { side: 'top' }, () => 'Recycle')
-        ]
-      })
-    ),
+            }, h(Icon, { name: 'material-symbols:autorenew', size: 15 }))),
+            h(TooltipContent, { side: 'top' }, () => 'Recycle'),
+          ],
+        })),
 
-    // Delete Button Tooltip
-    h(TooltipProvider, { delayDuration: 1000 }, () =>
-      h(Tooltip, null, {
-        default: () => [
-          h(TooltipTrigger, { asChild: true },
-            h(Button, {
+      // Delete Button Tooltip
+      h(TooltipProvider, { delayDuration: 1000 }, () =>
+        h(Tooltip, null, {
+          default: () => [
+            h(TooltipTrigger, { asChild: true }, h(Button, {
               size: 'icon',
               variant: 'outline',
               class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80',
@@ -258,14 +251,12 @@ const columns = [
                 selectedRecycleRuleForDelete.value = row.original.id
                 revealDeleteConfirm()
               },
-            }, h(Icon, { name: 'material-symbols:delete', size: 14 }))
-          ),
-          h(TooltipContent, { side: 'top' }, () => 'Delete')
-        ]
-      })
-    ),
-  ]),
-})
+            }, h(Icon, { name: 'material-symbols:delete', size: 14 }))),
+            h(TooltipContent, { side: 'top' }, () => 'Delete'),
+          ],
+        })),
+    ]),
+  }),
 ]
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
