@@ -64,6 +64,30 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const router = useRouter()
 
+const { data: ivrData, status: ivrStatus, refresh: refreshIvrData } = await useLazyAsyncData('get-ivr', () =>
+  useApi().post('/ivr'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: extensionListData, status: extensionListStatus, refresh: refreshExtensionListData } = await useLazyAsyncData('get-extension-list', () =>
+  useApi().post('/extension-list'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: conferencingData, status: conferencingStatus, refresh: refreshConferencingData } = await useLazyAsyncData('get-conferencing', () =>
+  useApi().post('/conferencing'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: ringGroupData, status: ringGroupStatus, refresh: refreshRingGroupData } = await useLazyAsyncData('get-ring-group', () =>
+  useApi().post('/ring-group'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
 const destinationTypes = {
   0: 'IVR',
   1: 'Extension',
@@ -79,7 +103,6 @@ interface DidConfiguration {
   id: number
   cli: string
   voice: string
-  status: string
   default_did: string
   conf_id: string
   cnam: string
@@ -88,7 +111,36 @@ interface DidConfiguration {
   sms: string
   set_exclusive_for_user: string
   voip_provider: string
-  extension: string
+  destination: string
+  assigned_user: string
+}
+
+function resolveDestination(dest_type: string, destination: string) {
+  switch (dest_type) {
+    case '0': // IVR
+      return ivrData.value?.find((item: any) => String(item.id) === String(destination))?.ivr_desc || '-'
+
+    case '1': // Extension
+    case '2': // Voicemail
+    case '6': // Fax
+    { const ext = extensionListData.value?.find((item: any) => String(item.id) === String(destination))
+      return ext ? `${ext.first_name} ${ext.last_name}`.trim() || '-' : '-' }
+
+    case '3': // DNC
+      return null
+
+    case '4': // DID
+      return formatNumber(destination)
+
+    case '5': // Conferencing
+      return conferencingData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
+
+    case '8': // Ring-Group
+      return ringGroupData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
+
+    default:
+      return '-'
+  }
 }
 
 // Confirmation dialog for deleting
@@ -227,7 +279,7 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('extension', {
+  columnHelper.accessor('destination', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -235,8 +287,9 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Destination', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      // TODO: Need to add bind extension here currently is not available from API
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.extension || '-')
+      const { dest_type, destination } = row.original
+      const resolved = resolveDestination(dest_type, destination)
+      return h('div', { class: 'text-center font-normal text-sm' }, resolved ?? '-')
     },
   }),
 
@@ -257,7 +310,7 @@ const columns = [
       }, isSMS ? 'Yes' : 'No')
     },
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('assigned_user', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -265,7 +318,10 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Assigned User', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.status || '-')
+      return h('div', { class: 'text-center font-normal text-sm' }, (() => {
+        const user = extensionListData.value?.find((item: any) => String(item.id) === String(row.original.assigned_user))
+        return user ? `${user.first_name} ${user.last_name}`.trim() : row.original.assigned_user || '-'
+      })())
     },
   }),
 

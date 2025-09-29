@@ -300,7 +300,7 @@ function onCancel() {
                   <p>Set as mainline</p>
                   <FormControl>
                     <Switch
-                      class="data-[state=checked]:bg-green-600 group"
+                      class="data-[state=checked]:bg-green-600 group cursor-pointer"
                       :model-value="value"
                       @update:model-value="handleChange"
                     />
@@ -320,7 +320,7 @@ function onCancel() {
                   <FormControl>
                     <Switch
                       :model-value="value"
-                      class="data-[state=checked]:bg-green-600"
+                      class="data-[state=checked]:bg-green-600 cursor-pointer"
                       @update:model-value="handleChange"
                     />
                   </FormControl>
@@ -436,7 +436,7 @@ function onCancel() {
                   <FormControl>
                     <Switch
                       :model-value="value"
-                      class="data-[state=checked]:bg-green-600"
+                      class="data-[state=checked]:bg-green-600 cursor-pointer"
                       @update:model-value="handleChange"
                     />
                   </FormControl>
@@ -455,7 +455,7 @@ function onCancel() {
                   <FormControl>
                     <Switch
                       :model-value="value"
-                      class="data-[state=checked]:bg-green-600"
+                      class="data-[state=checked]:bg-green-600 cursor-pointer"
                       @update:model-value="handleChange"
                     />
                   </FormControl>
@@ -475,7 +475,7 @@ function onCancel() {
                   <FormControl>
                     <Switch
                       :model-value="value"
-                      class="data-[state=checked]:bg-green-600"
+                      class="data-[state=checked]:bg-green-600 cursor-pointer"
                       @update:model-value="handleChange"
                     />
                   </FormControl>
@@ -521,7 +521,7 @@ function onCancel() {
                   <FormControl>
                     <Switch
                       :model-value="value"
-                      class="data-[state=checked]:bg-green-600"
+                      class="data-[state=checked]:bg-green-600 cursor-pointer"
                       @update:model-value="handleChange"
                     />
                   </FormControl>
@@ -540,7 +540,7 @@ function onCancel() {
                   <FormControl>
                     <Switch
                       :model-value="value"
-                      class="data-[state=checked]:bg-green-600"
+                      class="data-[state=checked]:bg-green-600 cursor-pointer"
                       @update:model-value="handleChange"
                     />
                   </FormControl>
