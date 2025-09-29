@@ -8,8 +8,9 @@ const search = ref('')
 const { data: callTimingList, status: callTimingListStatus, refresh: refreshCallTimingList } = await useLazyAsyncData('get-call-timings', () =>
   useApi().get('/call-timers', {
     query: {
-      start: start.value,
-      limit: limit.value,
+      current_page: start.value,
+      per_page: limit.value,
+      search: search.value,
     },
   }), {
   transform: res => res.data,
@@ -54,14 +55,28 @@ watch(() => open.value, (val) => {
       <template #actions>
         <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search List" @update:model-value="searchText" />
         <div>
-          <CallTimesCreate v-model:open="open" :data="editRowData" @complete="refreshCallTimingList" />
+          <CallTimesCreate
+            v-model:open="open"
+            :data="editRowData"
+            @complete="refreshCallTimingList"
+          />
         </div>
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :limit="limit" :total-rows="callTimingList?.total_rows" :start="start" :list="callTimingList?.data || []" :loading="callTimingListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" @refresh="refreshCallTimingList" />
+      <CallTimesTable
+        :limit="limit"
+        :total-rows="callTimingList?.total_rows"
+        :start="start"
+        :list="callTimingList?.data || []"
+        :loading="callTimingListStatus === 'pending'"
+        @page-navigation="changePage"
+        @change-limit="changeLimit"
+        @edit="onEdit"
+        @refresh="refreshCallTimingList"
+      />
     </div>
   </div>
 </template>
