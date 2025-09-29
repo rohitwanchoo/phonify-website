@@ -8,8 +8,8 @@ const search = ref('')
 const { data: callTimingList, status: callTimingListStatus, refresh: refreshCallTimingList } = await useLazyAsyncData('get-call-timings', () =>
   useApi().get('/call-timers', {
     query: {
-      current_page: start.value,
-      per_page: limit.value,
+      start: start.value,
+      limit: limit.value,
       search: search.value,
     },
   }), {
@@ -23,6 +23,7 @@ function changePage(page: number) {
 
 function changeLimit(val: number) {
   limit.value = Number(val)
+  start.value = 0
   return refreshCallTimingList()
 }
 

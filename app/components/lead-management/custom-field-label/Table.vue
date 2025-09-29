@@ -53,7 +53,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10,
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange', 'edit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
 
 function onEdit(row: labelList) {
   emits('edit', row)
@@ -124,7 +124,7 @@ function handlePageChange(page: number) {
 
 function changeLimit(val: number | null) {
   if (val !== null) {
-    emits('limitChange', val)
+    emits('changeLimit', val)
   }
 }
 
@@ -234,7 +234,6 @@ const columns = [
   }),
 
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
