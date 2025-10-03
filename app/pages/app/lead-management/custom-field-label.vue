@@ -16,11 +16,10 @@ const { data: customfieldlabelData, status: customfieldlabelStatus, refresh: cus
       search: search.value,
     },
   }), {
-  transform: res => res,
+  transform: res => res?.data,
 })
 
 function handleAddRefresh() {
-  start.value = 0
   customfieldlabelRefresh()
 }
 
@@ -73,7 +72,7 @@ function searchText() {
   <div class="w-full h-[calc(100vh-165px)] overflow-y-auto mt-4">
     <LeadManagementCustomFieldLabelTable
       :limit="limit"
-      :total-rows="customfieldlabelData?.total"
+      :total-rows="customfieldlabelData?.total_rows"
       :start="start"
       :list="customfieldlabelData?.data || []"
       :loading="customfieldlabelStatus === 'pending'"

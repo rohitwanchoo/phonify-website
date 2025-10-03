@@ -12,7 +12,6 @@ interface Props extends PrimitiveProps {
   size?: ButtonVariants['size']
   class?: HTMLAttributes['class']
   loading?: boolean
-  disable?:boolean
   name?: string
 }
 
