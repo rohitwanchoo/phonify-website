@@ -53,7 +53,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10,
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange', 'edit'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
 
 function onEdit(row: labelList) {
   emits('edit', row)
@@ -124,7 +124,7 @@ function handlePageChange(page: number) {
 
 function changeLimit(val: number | null) {
   if (val !== null) {
-    emits('limitChange', val)
+    emits('changeLimit', val)
   }
 }
 
@@ -234,7 +234,6 @@ const columns = [
   }),
 
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
@@ -269,19 +268,20 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg overflow-hidden">
+  <div class="border rounded-lg my-6 overflow-x-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
-            v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
+            v-for="header in headerGroup.headers"
+            :key="header.id"
             class="bg-gray-50"
-            :class="cn(
-              { 'sticky bg-background/95': header.column.getIsPinned() },
-              header.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-            )"
           >
-            <FlexRender v-if="!header.isPlaceholder" class="" :render="header.column.columnDef.header" :props="header.getContext()" />
+            <FlexRender
+              v-if="!header.isPlaceholder"
+              :render="header.column.columnDef.header"
+              :props="header.getContext()"
+            />
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -292,40 +292,39 @@ const table = useVueTable({
           </TableCell>
         </TableRow>
         <template v-else-if="table.getRowModel().rows?.length">
-          <template v-for="row in table.getRowModel().rows" :key="row.id">
-            <TableRow :data-state="row.getIsSelected() && 'selected'">
-              <TableCell
-                v-for="cell in row.getVisibleCells()" :key="cell.id" :data-pinned="cell.column.getIsPinned()"
-                class="p-[12px]"
-                :class="cn(
-                  { 'sticky bg-background/95': cell.column.getIsPinned() },
-                  cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-                )"
-              >
-                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-              </TableCell>
-            </TableRow>
-            <TableRow v-if="row.getIsExpanded()">
-              <TableCell :colspan="row.getAllCells().length">
-                {{ JSON.stringify(row.original) }}
-              </TableCell>
-            </TableRow>
-          </template>
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            :data-state="row.getIsSelected() && 'selected'"
+          >
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="p-[12px]"
+            >
+              <FlexRender
+                :render="cell.column.columnDef.cell"
+                :props="cell.getContext()"
+              />
+            </TableCell>
+          </TableRow>
         </template>
-
         <TableRow v-else>
-          <TableCell :colspan="columns.length" class="h-24 text-center">
+          <TableCell
+            :colspan="columns.length"
+            class="h-24 text-center"
+          >
             No results.
           </TableCell>
         </TableRow>
       </TableBody>
     </Table>
   </div>
+
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing
-
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
@@ -338,7 +337,6 @@ const table = useVueTable({
             </SelectContent>
           </Select>
         </span>
-
         of {{ totalRows }} entries
       </div>
     </div>
