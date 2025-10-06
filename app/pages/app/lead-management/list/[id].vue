@@ -27,7 +27,7 @@ const { data: listLeads, status: listLeadsStatus, refresh: leadsRefresh } = awai
   () =>
     useApi().post(`/list-data/${id.value}/content?lower_limit=${start.value}&upper_limit=${limit.value}&search=${search.value}`),
   {
-    transform: (res) => res.data
+    transform: res => res.data,
   },
 )
 
@@ -65,7 +65,7 @@ function downloadData() {
 <template>
   <BaseHeader :title="name" :breadcrumbs>
     <template #actions>
-      <BaseInputSearch v-model="search" class="w-[300px]" @update:model-value="searchText" />
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search leads" @update:model-value="searchText" />
       <Button class="h-11" @click="downloadData">
         <Icon class="!text-white" size="20" :name="downloadLoading ? 'eos-icons:loading' : 'material-symbols:download'" />
         Download
