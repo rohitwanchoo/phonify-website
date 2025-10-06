@@ -16,14 +16,6 @@ const props = defineProps({
 
 const route = useRoute()
 
-// REACTIVE DATA - Extension Management
-const extensionData = ref([])
-const extensionStart = ref(0)
-const extensionLimit = ref(10)
-const isLoadingMoreExtensions = ref(false)
-const hasMoreExtensions = ref(true)
-const extensionStatus = ref('') // | 'pending' | 'success' | 'error'
-
 // REACTIVE DATA - Phone & Form State
 const phoneCountryCode = ref(1)
 
@@ -46,9 +38,8 @@ const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   },
 })
 
-// DATA FETCHING - API Calls (Non-blocking)
 // Fetch SMS templates for the current lead
-const { data: textMessageData, pending: smsDataPending } = useLazyAsyncData('get-sms-email-list', () =>
+const { data: textMessageData, status: smsDataStatus } = useLazyAsyncData('get-sms-email-list', () =>
   useApi().post('/get-sms-email-list', {
     lead_id: route.params.id,
   }), {
@@ -57,8 +48,15 @@ const { data: textMessageData, pending: smsDataPending } = useLazyAsyncData('get
 })
 
 // Fetch list of phone countries with codes
-const { data: countrylist, pending: countriesPending } = useLazyAsyncData('phone-country-list', () =>
+const { data: countrylist, status: countriesStatus } = useLazyAsyncData('phone-country-list', () =>
   useApi().post('/phone-country-list'), {
+  transform: res => res.data,
+  server: false, // Don't wait for server-side rendering
+})
+
+// Fetch list of extensions for the current agent
+const { data: extensionList, status: extensionsStatus } = useLazyAsyncData('extension-list', () =>
+  useApi().post('/extension-list'), {
   transform: res => res.data,
   server: false, // Don't wait for server-side rendering
 })
@@ -102,82 +100,6 @@ const messageLength = computed(() => values.templateMessage?.length || 0)
 function getCountryLabel(code: string) {
   const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
   return country ? `${country.country_code} (+${country.phone_code})` : ''
-}
-
-// EXTENSION DATA MANAGEMENT
-/**
- * Load extensions with pagination support
- * @param reset - Whether to reset the list and start from beginning
- */
-async function loadExtensions(reset = false) {
-  debugger;
-  try {
-    // Reset pagination if requested
-    if (reset) {
-      extensionStart.value = 0
-      extensionData.value = []
-      hasMoreExtensions.value = true
-    }
-
-    extensionStatus.value = 'pending'
-
-    // API call to fetch extensions
-    const response = await useApi().post('/extension-list', {
-      start: extensionStart.value,
-      limit: extensionLimit.value,
-    })
-
-    if (response.data) {
-      const newExtensions = Array.isArray(response.data) ? response.data : []
-
-      // Update the extensions list
-      if (reset) {
-        extensionData.value = newExtensions
-      }
-      else {
-        extensionData.value = [...extensionData.value, ...newExtensions]
-      }
-
-      // Update pagination state
-      hasMoreExtensions.value = newExtensions.length === extensionLimit.value
-      extensionStart.value += extensionLimit.value
-    }
-
-    extensionStatus.value = 'success'
-  }
-  catch {
-    extensionStatus.value = 'error'
-  }
-  finally {
-    isLoadingMoreExtensions.value = false
-  }
-}
-
-/**
- * Load more extensions for pagination
- * Called when user scrolls near bottom of select dropdown
- */
-async function loadMoreExtensions() {
-  if (isLoadingMoreExtensions.value || !hasMoreExtensions.value) {
-    return
-  }
-
-  isLoadingMoreExtensions.value = true
-  await loadExtensions(false)
-}
-
-/**
- * Handle scroll event in extension select dropdown
- * Triggers loading more extensions when near bottom
- * @param event - Scroll event from the dropdown
- */
-function handleExtensionScroll(event: Event) {
-  const target = event.target as HTMLElement
-  const threshold = 10 // pixels from bottom to trigger load
-
-  if (target.scrollTop + target.clientHeight >= target.scrollHeight - threshold) {
-    loadMoreExtensions()
-  }
 }
 
 // FORM SUBMISSION
@@ -252,12 +174,6 @@ watch(() => values.template, (newId) => {
     }
   }
 }, { immediate: true })
-
-// INITIALIZATION
-// Load initial extension data on component mount (non-blocking)
-onMounted(() => {
-  loadExtensions(true)
-})
 </script>
 
 <template>
@@ -277,10 +193,10 @@ onMounted(() => {
                 <FormControl>
                   <div class="flex">
                     <!-- Country Code Selector -->
-                    <Select v-model="phoneCountryCode" :disabled="countriesPending">
+                    <Select v-model="phoneCountryCode" :disabled="countriesStatus === 'pending'">
                       <SelectTrigger class="w-fit data-[size=default]:h-full border-gray-200 rounded-r-none border-r-0 bg-gray-100">
                         <SelectValue>
-                          <span v-if="countriesPending" class="text-sm text-gray-400">
+                          <span v-if="countriesStatus === 'pending'" class="text-sm text-gray-400">
                             <Icon name="eos-icons:loading" class="animate-spin" />
                           </span>
                           <span v-else class="text-sm text-nowrap">
@@ -290,7 +206,7 @@ onMounted(() => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem
-                          v-if="countriesPending"
+                          v-if="countriesStatus === 'pending'"
                           class="text-center justify-center"
                           :value="null"
                           disabled
@@ -333,49 +249,13 @@ onMounted(() => {
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Agent Contact No." />
                     </SelectTrigger>
-                    <SelectContent
-                      class="max-h-[200px] overflow-y-auto"
-                      @scroll="handleExtensionScroll"
-                    >
-                      <!-- Initial Loading State -->
-                      <SelectItem
-                        v-if="extensionStatus === 'pending' && extensionData.length === 0"
-                        class="text-center justify-center"
-                        :value="null"
-                        disabled
-                      >
-                        <Icon name="eos-icons:loading" class="animate-spin" />
+                    <SelectContent>
+                      <SelectItem v-if="extensionsStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                        <Icon name="eos-icons:loading" />
                       </SelectItem>
-
-                      <!-- Extension List Items -->
                       <template v-else>
-                        <SelectItem
-                          v-for="(option, index) in extensionData"
-                          :key="index"
-                          :value="option?.mobile"
-                        >
+                        <SelectItem v-for="option in extensionList" :key="option.id" :value="option.id">
                           {{ option.first_name }} {{ option.last_name }}
-                        </SelectItem>
-
-                        <!-- Loading More Indicator -->
-                        <SelectItem
-                          v-if="isLoadingMoreExtensions"
-                          class="text-center justify-center"
-                          :value="null"
-                          disabled
-                        >
-                          <Icon name="eos-icons:loading" class="animate-spin" />
-                          <span class="ml-2">Loading more...</span>
-                        </SelectItem>
-
-                        <!-- End of List Indicator -->
-                        <SelectItem
-                          v-else-if="!hasMoreExtensions && extensionData.length > 0"
-                          class="text-center justify-center text-gray-500"
-                          :value="null"
-                          disabled
-                        >
-                          No more items
                         </SelectItem>
                       </template>
                     </SelectContent>
@@ -391,20 +271,13 @@ onMounted(() => {
             <FormItem>
               <FormLabel>Template</FormLabel>
               <FormControl>
-                <Select v-bind="componentField" :disabled="smsDataPending">
+                <Select v-bind="componentField" :disabled="smsDataStatus === 'pending'">
                   <SelectTrigger class="w-full !h-11">
-                    <SelectValue>
-                      <span v-if="smsDataPending" class="text-gray-400">
-                        Loading templates...
-                      </span>
-                      <span v-else>
-                        Select template
-                      </span>
-                    </SelectValue>
+                    <SelectValue placeholder="Select template" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem
-                      v-if="smsDataPending"
+                      v-if="smsDataStatus === 'pending'"
                       class="text-center justify-center"
                       :value="null"
                       disabled
@@ -457,7 +330,7 @@ onMounted(() => {
         <div>
           <Button
             type="submit"
-            :disabled="isSubmitting || smsDataPending"
+            :disabled="isSubmitting"
             :loading="isSubmitting"
             class="w-full h-11"
           >
