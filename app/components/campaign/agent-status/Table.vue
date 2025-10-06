@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon, LeadManagementLabelEdit } from '#components'
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -14,9 +14,10 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+
 import { useConfirmDialog } from '@vueuse/core'
+
 import { ChevronsUpDown } from 'lucide-vue-next'
-import moment from 'moment'
 
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -48,17 +49,12 @@ const props = withDefaults(defineProps<{
   loading: boolean
   totalRows: number
   list: any[]
-  start: number
-  limit?: number
+  start: number // pagination start
+  limit?: number // pagination limit
 }>(), {
-  limit: 10,
+  limit: 10, // Set default limit to 10
 })
 const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
-
-function onEdit(row: labelList) {
-  emits('edit', row)
-}
-
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -71,26 +67,23 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedLabelIdForDelete = ref<number | null>(null)
-
-// controls dialog visibility
-const isEditDialogOpen = ref(false)
-// stores the row to edit
-const selectedRowData = ref<labelList | null>(null)
+const selectedExtensionForDelete = ref<number | null>(null)
 
 async function handleDelete() {
-  if (!selectedLabelIdForDelete.value)
+  if (!selectedExtensionForDelete.value)
     return
 
   try {
-    const res = await useApi().get(`/delete-custom-field-label/${selectedLabelIdForDelete.value}`)
+    const res = await useApi().post('/delete-ext-live', {
+      extension: selectedExtensionForDelete.value,
+    })
 
-    if (res?.success === true) {
+    if (res?.success === 'true') {
       showToast({
         type: 'success',
         message: res.message,
       })
-      emits('refresh')
+      emits('refresh') // properly emit refresh
     }
     else {
       showToast({
@@ -106,15 +99,17 @@ async function handleDelete() {
     })
   }
   finally {
-    selectedLabelIdForDelete.value = null
+    selectedExtensionForDelete.value = null
   }
 }
 
-export interface labelList {
-  id: number
+export interface agentStatusList {
+  index: number
+  full_name: string
+  extension: number
   title: string
-  updated_at: string
-  status: string
+  lead_id: number
+  status: number
   actions?: string
 }
 
@@ -129,48 +124,63 @@ function changeLimit(val: number | null) {
 }
 
 function deleteConfirmHandler() {
-  deleteConfirm()
-  handleDelete()
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
 }
 
-const columnHelper = createColumnHelper<labelList>()
-
+const columnHelper = createColumnHelper<agentStatusList>()
 const columns = [
-
-  // #
-  columnHelper.accessor('id', {
-    header: () =>
-      h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
+  columnHelper.accessor('index', {
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
+    },
   }),
 
-  // Name
+  columnHelper.accessor('full_name', {
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('full_name'))
+    },
+  }),
+  columnHelper.accessor('extension', {
+    header: ({ column }) => {
+      return h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+    },
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension'))
+    },
+  }),
+
   columnHelper.accessor('title', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Campaign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title')),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+    },
   }),
 
-  // Created Date
-  columnHelper.accessor('updated_at', {
+  columnHelper.accessor('lead_id', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Lead Id', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')),
-      ])
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('lead_id'))
     },
   }),
 
@@ -182,38 +192,26 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => {
-      const status = row.index % 2 === 0 ? 'Active' : 'Inactive'
 
-      return h('div', { class: 'flex justify-center' }, h('span', {
-        class: cn(
-          'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
-          status === 'Active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
-        ),
-      }, status))
+    cell: ({ row }) => {
+      const statusMap: Record<number, string> = {
+        0: 'Ready For Calls',
+        1: 'In Call',
+        2: 'Hangup',
+        3: 'Pause',
+      }
+
+      const statusText = statusMap[row.original.status]
+
+      return h('div', { class: 'flex justify-center' }, h('span', { class: 'text-sm font-normal text-center' }, statusText),
+      )
     },
   }),
 
-  // Action (no chevron, not sortable)
-
   columnHelper.accessor('actions', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+    header: () => h('div', { class: 'text-center ml-auto w-fit' }, 'Actions'),
     cell: ({ row }) =>
-      h('div', { class: 'flex justify-center gap-x-1' }, [
-
-        // Edit button with tooltip
-        h(TooltipProvider, { delayDuration: 1000 }, () =>
-          h(Tooltip, null, {
-            default: () => [
-              h(TooltipTrigger, { asChild: true }, h(Button, {
-                size: 'icon',
-                variant: 'outline',
-                onClick: () => onEdit(row.original),
-              }, h(Icon, { name: 'material-symbols:edit-square' }))),
-              h(TooltipContent, { side: 'top' }, () => 'Edit Label'),
-            ],
-          })),
-
+      h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-center' }, [
         // Delete button with tooltip
         h(TooltipProvider, { delayDuration: 1000 }, () =>
           h(Tooltip, null, {
@@ -221,13 +219,13 @@ const columns = [
               h(TooltipTrigger, { asChild: true }, h(Button, {
                 size: 'icon',
                 variant: 'outline',
-                class: 'border-red-600 text-red-600 hover:text-red-600/80',
+                class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80',
                 onClick: () => {
-                  selectedLabelIdForDelete.value = row.original.id
+                  selectedExtensionForDelete.value = row.original.extension
                   revealDeleteConfirm()
                 },
               }, h(Icon, { name: 'material-symbols:delete' }))),
-              h(TooltipContent, { side: 'top' }, () => 'Delete Label'),
+              h(TooltipContent, { side: 'top' }, 'Delete Extension'),
             ],
           })),
       ]),
@@ -349,14 +347,12 @@ const table = useVueTable({
     </div>
   </div>
 
-  <LeadManagementLabelEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
-
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
     :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
-    title="Delete Custom Field Label"
-    description="You are about to delete this label. Do you wish to proceed?"
+    title="Delete Agent Status"
+    description="You are about to delete this agent status. Do you wish to proceed?"
   />
 </template>

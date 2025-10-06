@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon, LeadManagementLabelEdit } from '#components'
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -14,9 +14,10 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+
 import { useConfirmDialog } from '@vueuse/core'
+
 import { ChevronsUpDown } from 'lucide-vue-next'
-import moment from 'moment'
 
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -48,17 +50,12 @@ const props = withDefaults(defineProps<{
   loading: boolean
   totalRows: number
   list: any[]
-  start: number
-  limit?: number
+  start: number // pagination start
+  limit?: number // pagination limit
 }>(), {
-  limit: 10,
+  limit: 10, // Set default limit to 10
 })
 const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit', 'edit'])
-
-function onEdit(row: labelList) {
-  emits('edit', row)
-}
-
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -71,26 +68,37 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedLabelIdForDelete = ref<number | null>(null)
+function dispositionType (type: string) {
+  switch (type) {
+    case '1':
+      return 'Status'
+    case '2':
+      return 'Do Not Call'
+    case '3':
+      return 'Callback'
+    default:
+      return ''
+  }
+}
 
-// controls dialog visibility
-const isEditDialogOpen = ref(false)
-// stores the row to edit
-const selectedRowData = ref<labelList | null>(null)
+const selectedDispositionForDelete = ref<number | null>(null)
 
 async function handleDelete() {
-  if (!selectedLabelIdForDelete.value)
+  if (!selectedDispositionForDelete.value)
     return
 
   try {
-    const res = await useApi().get(`/delete-custom-field-label/${selectedLabelIdForDelete.value}`)
+    const res = await useApi().post('/edit-disposition', {
+      disposition_id: selectedDispositionForDelete.value,
+      is_deleted: 1,
+    })
 
-    if (res?.success === true) {
+    if (res?.success === 'true') {
       showToast({
         type: 'success',
         message: res.message,
       })
-      emits('refresh')
+      emits('refresh') // properly emit refresh
     }
     else {
       showToast({
@@ -106,16 +114,46 @@ async function handleDelete() {
     })
   }
   finally {
-    selectedLabelIdForDelete.value = null
+    selectedDispositionForDelete.value = null
   }
 }
 
-export interface labelList {
+export interface dispositionList {
   id: number
   title: string
-  updated_at: string
-  status: string
+  d_type: string
+  status: number
+  enable_sms: number
   actions?: string
+}
+
+async function updateStatus(id: number, status: number) {
+  try {
+    const res = await useApi().post('/status-update-disposition', {
+      listId: id,
+      status,
+    })
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('get-disposition-list')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
 }
 
 function handlePageChange(page: number) {
@@ -129,77 +167,80 @@ function changeLimit(val: number | null) {
 }
 
 function deleteConfirmHandler() {
-  deleteConfirm()
-  handleDelete()
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
 }
 
-const columnHelper = createColumnHelper<labelList>()
-
+const columnHelper = createColumnHelper<dispositionList>()
 const columns = [
-
-  // #
   columnHelper.accessor('id', {
-    header: () =>
-      h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1)
+    },
   }),
 
-  // Name
   columnHelper.accessor('title', {
     header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title')),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+    },
   }),
-
-  // Created Date
-  columnHelper.accessor('updated_at', {
+  columnHelper.accessor('d_type', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')),
-      ])
+      return h('div', { class: 'text-center font-normal text-sm' }, dispositionType(row.getValue('d_type')))
     },
   }),
 
-  // Status
-  columnHelper.accessor('status', {
+  columnHelper.accessor('enable_sms', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         variant: 'ghost',
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['Enable SMS', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const status = row.index % 2 === 0 ? 'Active' : 'Inactive'
+      const enable_sms = row.original.enable_sms === 1 ? 'YES' : 'NO'
 
       return h('div', { class: 'flex justify-center' }, h('span', {
         class: cn(
           'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
-          status === 'Active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
+          enable_sms === 'YES' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
         ),
-      }, status))
+      }, enable_sms))
     },
   }),
 
-  // Action (no chevron, not sortable)
+  columnHelper.accessor('status', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center w-full' }, h(Button, {
+        class: 'text-center text-sm font-normal w-full',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
+        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'modelValue': row.original.status === 1,
+        'onUpdate:modelValue': (val: boolean) => {
+          updateStatus(row.original.id, val ? 1 : 0)
+        },
+      })),
+  }),
 
   columnHelper.accessor('actions', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+    header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
     cell: ({ row }) =>
-      h('div', { class: 'flex justify-center gap-x-1' }, [
+      h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
 
         // Edit button with tooltip
         h(TooltipProvider, { delayDuration: 1000 }, () =>
@@ -208,9 +249,10 @@ const columns = [
               h(TooltipTrigger, { asChild: true }, h(Button, {
                 size: 'icon',
                 variant: 'outline',
-                onClick: () => onEdit(row.original),
+                class: 'cursor-pointer',
+                onClick: () => emits('edit', row.original),
               }, h(Icon, { name: 'material-symbols:edit-square' }))),
-              h(TooltipContent, { side: 'top' }, () => 'Edit Label'),
+              h(TooltipContent, { side: 'top' }, 'Edit Disposition'),
             ],
           })),
 
@@ -221,13 +263,13 @@ const columns = [
               h(TooltipTrigger, { asChild: true }, h(Button, {
                 size: 'icon',
                 variant: 'outline',
-                class: 'border-red-600 text-red-600 hover:text-red-600/80',
+                class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80',
                 onClick: () => {
-                  selectedLabelIdForDelete.value = row.original.id
+                  selectedDispositionForDelete.value = row.original.id
                   revealDeleteConfirm()
                 },
               }, h(Icon, { name: 'material-symbols:delete' }))),
-              h(TooltipContent, { side: 'top' }, () => 'Delete Label'),
+              h(TooltipContent, { side: 'top' }, 'Delete Disposition'),
             ],
           })),
       ]),
@@ -349,14 +391,12 @@ const table = useVueTable({
     </div>
   </div>
 
-  <LeadManagementLabelEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
-
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
     :confirm="deleteConfirmHandler"
     :cancel="deleteCancel"
-    title="Delete Custom Field Label"
-    description="You are about to delete this label. Do you wish to proceed?"
+    title="Delete Disposition"
+    description="You are about to delete this disposition. Do you wish to proceed?"
   />
 </template>

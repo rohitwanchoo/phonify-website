@@ -7,7 +7,7 @@ interface Props {
 }
 
 defineProps<Props>()
-const emits = defineEmits(['setFiledValue', 'cancelEdit', 'submit', 'completed'])
+const emits = defineEmits(['setFieldValue', 'cancelEdit', 'submit', 'completed'])
 const start = ref(0)
 const limit = ref(10)
 const search = ref('')

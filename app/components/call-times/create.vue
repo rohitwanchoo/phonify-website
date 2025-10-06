@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import moment from 'moment'
 import { FieldArray, useForm } from 'vee-validate'
 
 import * as z from 'zod'
@@ -28,17 +27,8 @@ import {
 
 import { Input } from '@/components/ui/input'
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import Textarea from '../ui/textarea/Textarea.vue'
-
-type Days = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'default'
 
 interface Props {
   data?: any
@@ -71,41 +61,59 @@ function resetSelectedDays() {
   }
 }
 
-const formSchema = toTypedSchema(z.object({
-  title: z.string().min(1, 'required').max(50),
-  description: z.string().min(1, 'required').max(100),
-  weeks: z.array(
-    z.object({
-      day: z.string(),
-      start: z.string(),
-      end: z.string(),
+const formSchema = toTypedSchema(
+  z.object({
+    title: z.string().min(1, 'required').max(50),
+    description: z.string().min(1, 'required').max(100),
+    weeks: z.array(
+      z.object({
+        day: z.string(),
+        start: z.string().optional(),
+        end: z.string().optional(),
+      }),
+    ).superRefine((weeks, ctx) => {
+      weeks.forEach((week, index) => {
+        const isSelected = selectedDays.value[week.day as keyof typeof selectedDays.value]
+
+        // Default day → always required
+        if (week.day === 'default') {
+          if (!week.start) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'start time required',
+              path: [index, 'start'],
+            })
+          }
+          if (!week.end) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'end time required',
+              path: [index, 'end'],
+            })
+          }
+        }
+
+        // Other days → only required if selected
+        if (isSelected && week.day !== 'default') {
+          if (!week.start) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'start time required',
+              path: [index, 'start'],
+            })
+          }
+          if (!week.end) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'end time required',
+              path: [index, 'end'],
+            })
+          }
+        }
+      })
     }),
-  ).superRefine((weeks, ctx) => {
-    const selected = selectedDays.value
-    weeks.forEach((week, index) => {
-      const isSelected = selected[week.day as keyof typeof selected]
-
-      // Only validate if checkbox is selected
-      if (isSelected) {
-        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(week.start)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'start time required',
-            path: [index, 'start'],
-          })
-        }
-
-        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(week.end)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'end time required',
-            path: [index, 'end'],
-          })
-        }
-      }
-    })
   }),
-}))
+)
 
 const initialValues = ref({
   title: '',
@@ -121,12 +129,12 @@ const initialValues = ref({
   ],
 })
 
-const { handleSubmit, validate, resetForm, setFieldValue, values, errors } = useForm({
+const { handleSubmit, validate, resetForm, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: initialValues.value,
 })
 
-function toggleDay(day: string) {
+function toggleDay(_day: string) {
   if (!Object.values(selectedDays.value).includes(true)) {
     validate()
   }
@@ -157,9 +165,9 @@ const onSubmit = handleSubmit(async (values) => {
       week_plan,
     }
     let api = '/call-timers'
-    if(isEdit.value)
-      api = `/call-timers/${isEdit && props.data.id}`
-    
+    if (isEdit.value)
+      api = `/call-timers/${isEdit.value && props.data.id}`
+
     const response = await useApi().post(api, data)
     loading.value = false
     resetForm()
@@ -177,26 +185,25 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-const { data: departmentList } = await useLazyAsyncData('department-list-call-times', () =>
-  useApi().post('/get-department-list', {
+// const { data: departmentList } = await useLazyAsyncData('department-list-call-times', () =>
+//   useApi().post('/get-department-list', {
 
-  }), {
-  transform: (res) => {
-    return res.data
-  },
-})
+//   }), {
+//   transform: (res) => {
+//     return res.data
+//   },
+// })
 
-const emptyWeekPlan = {
-  default: { start: '', end: '' },
-  sunday: { start: '', end: '' },
-  monday: { start: '', end: '' },
-  tuesday: { start: '', end: '' },
-  wednesday: { start: '', end: '' },
-  thursday: { start: '', end: '' },
-  friday: { start: '', end: '' },
-  saturday: { start: '', end: '' },
-}
-
+// const emptyWeekPlan = {
+//   default: { start: '', end: '' },
+//   sunday: { start: '', end: '' },
+//   monday: { start: '', end: '' },
+//   tuesday: { start: '', end: '' },
+//   wednesday: { start: '', end: '' },
+//   thursday: { start: '', end: '' },
+//   friday: { start: '', end: '' },
+//   saturday: { start: '', end: '' },
+// }
 
 watch(() => open.value, (val) => {
   if (val && isEdit.value) {
@@ -213,7 +220,7 @@ watch(() => open.value, (val) => {
       { day: 'wednesday', start: '', end: '' },
       { day: 'thursday', start: '', end: '' },
       { day: 'friday', start: '', end: '' },
-      { day: 'saturday', start: '', end: '' }
+      { day: 'saturday', start: '', end: '' },
     ]
 
     if (props.data.week_plan) {
@@ -221,13 +228,13 @@ watch(() => open.value, (val) => {
       const weeks = Object.entries(props.data.week_plan).map(([day, times]) => {
         return {
           day: day.toLowerCase(),
-          start: times.start || '',
-          end: times.end || ''
+          start: (times as { start?: string }).start || '',
+          end: (times as { end?: string }).end || '',
         }
       })
 
       // Merge with default structure to ensure all days are present
-      const mergedWeeks = defaultWeeks.map(defaultWeek => {
+      const mergedWeeks = defaultWeeks.map((defaultWeek) => {
         const existingWeek = weeks.find(w => w.day === defaultWeek.day)
         return existingWeek || defaultWeek
       })
@@ -236,12 +243,13 @@ watch(() => open.value, (val) => {
       setFieldValue('weeks', mergedWeeks)
 
       // Update checkboxes
-      mergedWeeks.forEach(week => {
+      mergedWeeks.forEach((week) => {
         if (week.start && week.end && week.day in selectedDays.value) {
-          selectedDays.value[week.day] = true
+          selectedDays.value[week.day as keyof typeof selectedDays.value] = true
         }
       })
-    } else {
+    }
+    else {
       // If no week_plan, set default empty structure
       setFieldValue('weeks', defaultWeeks)
     }
@@ -320,14 +328,14 @@ function onModelOpen(val: boolean) {
                 <div class="flex items-center gap-x-3">
                   <!-- Static checkbox, not part of form -->
                   <Checkbox
-                    :id="field.key"
-                    v-model="selectedDays[field.value.day]"
-                    :checked="selectedDays[field.value.day]"
+                    :id="String(field.key)"
+                    v-model="selectedDays[(field.value as { day: string }).day as keyof typeof selectedDays]"
+                    :checked="selectedDays[(field.value as { day: string }).day as keyof typeof selectedDays]"
                     class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                    @update:model-value="() => { toggleDay(field.value.day) }"
+                    @update:model-value="() => { toggleDay((field.value as { day: string }).day) }"
                   />
-                  <label :for="field.key" class="capitalize">
-                    {{ field.value.day }}
+                  <label :for="String(field.key)" class="capitalize">
+                    {{ (field.value as { day: string }).day }}
                   </label>
                 </div>
 
@@ -340,7 +348,7 @@ function onModelOpen(val: boolean) {
                             v-bind="componentField"
                             type="time"
                             class="h-11"
-                            :disabled="!selectedDays[field.value.day]"
+                            :disabled="!selectedDays[(field.value as { day: string }).day as keyof typeof selectedDays]"
                           />
                         </FormControl>
                         <FormMessage />
@@ -355,7 +363,7 @@ function onModelOpen(val: boolean) {
                             type="time"
                             class="h-11"
                             v-bind="componentField"
-                            :disabled="!selectedDays[field.value.day]"
+                            :disabled="!selectedDays[(field.value as { day: string }).day as keyof typeof selectedDays]"
                           />
                         </FormControl>
                         <FormMessage />

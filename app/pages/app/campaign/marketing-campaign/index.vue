@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import moment from 'moment'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AddCampaign from '@/components/campaign/marketing-campaign/AddCampaign.vue'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
-import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
 // Dummy data for testing
 const dummyCampaigns = [
   {
@@ -143,9 +142,9 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
           <Icon class="absolute top-[9px] right-2" name="lucide:search" />
         </div>
         <Button @click="showAddCampaign = true">
-      <Icon class="mr-1" name="lucide:plus" />
-      Add Campaign
-    </Button>
+          <Icon class="mr-1" name="lucide:plus" />
+          Add Campaign
+        </Button>
       </template>
     </BaseHeader>
 

@@ -44,7 +44,7 @@ watch(() => formState.value?.time_based_calling, (newVal) => {
   if (newVal && isEdit.value) {
     accordion.value = 'item-1'
   }
-})
+}, { deep: true })
 
 // call timing list
 const { data: callTimingList, status: callTimingListStatus, refresh: callTimingListRefresh } = await useLazyAsyncData('get-call-timings-campaign', () =>

@@ -27,7 +27,7 @@ const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   file: z.array(z.instanceof(File)).min(1, 'File is required'),
   campaign_id: z.number().min(1, 'Campaign is required'),
-  checkDuplicates: z.boolean().optional(),
+  duplicate_check: z.boolean().optional(),
 })
 const file = ref<File>()
 
@@ -37,7 +37,7 @@ const { handleSubmit, resetForm } = useForm({
     title: '',
     file: [],
     campaign_id: 0,
-    checkDuplicates: false,
+    duplicate_check: false,
   },
 })
 
@@ -56,7 +56,7 @@ const onSubmit = handleSubmit((values) => {
   formData.append('title', values.title)
   formData.append('file', file.value as File) // Append the first file from the array
   formData.append('campaign', values.campaign_id.toString())
-  formData.append('checkDuplicates', JSON.stringify(values.checkDuplicates))
+  formData.append('duplicate_check', values.duplicate_check ? '1' : '0')
   formData.append('id', user.value?.id?.toString() ?? '')
 
   // emits('complete', { campaign_id: '20', list_id: '46' })
@@ -155,7 +155,7 @@ function onModelOpen(val: boolean) {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ handleChange, value }" name="checkDuplicates">
+          <FormField v-slot="{ handleChange, value }" name="duplicate_check">
             <FormItem>
               <div class="flex items-center justify-between w-full">
                 <FormLabel for="checkDuplicate" class="mb-0">
@@ -178,7 +178,7 @@ function onModelOpen(val: boolean) {
             <Icon name="lucide:x" class="w-4 h-4 mr-1" />
             Discard
           </Button>
-          <Button :loading type="button" class="w-[49%] h-11" @click="onSubmit">
+          <Button :loading="loading" :disabled="loading" type="button" class="w-[49%] h-11" @click="onSubmit">
             <Icon name="lucide:check" class="w-4 h-4 mr-1" />
             Next
           </Button>
