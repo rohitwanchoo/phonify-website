@@ -1,94 +1,94 @@
 <script setup lang="ts">
-const callSchedules = ref([
-  {
-    data: [
-      { id: 1, day: 'Monday', from: '08:00:00', to: '17:00:00' },
-      { id: 2, day: 'Tuesday', from: '08:00:00', to: '17:00:00' },
-      { id: 3, day: 'Wednesday', from: '08:00:00', to: '17:00:00' },
-      { id: 4, day: 'Thursday', from: '08:00:00', to: '17:00:00' },
-      { id: 5, day: 'Friday', from: '08:00:00', to: '16:00:00' },
-      { id: 6, day: 'Saturday', from: '09:00:00', to: '13:00:00' },
-      { id: 7, day: 'Sunday', from: '', to: '' },
-    ],
+const props = defineProps({
+  list: {
+    type: Array,
+    default: () => [],
   },
-  {
-    data: [
-      { id: 1, day: 'Monday', from: '09:00:00', to: '18:00:00' },
-      { id: 2, day: 'Tuesday', from: '09:00:00', to: '18:00:00' },
-      { id: 3, day: 'Wednesday', from: '09:00:00', to: '18:00:00' },
-      { id: 4, day: 'Thursday', from: '09:00:00', to: '18:00:00' },
-      { id: 5, day: 'Friday', from: '09:00:00', to: '17:00:00' },
-      { id: 6, day: 'Saturday', from: '', to: '' },
-      { id: 7, day: 'Sunday', from: '', to: '' },
-    ],
-  },
-  {
-    data: [
-      { id: 1, day: 'Monday', from: '07:30:00', to: '16:30:00' },
-      { id: 2, day: 'Tuesday', from: '07:30:00', to: '16:30:00' },
-      { id: 3, day: 'Wednesday', from: '07:30:00', to: '16:30:00' },
-      { id: 4, day: 'Thursday', from: '07:30:00', to: '16:30:00' },
-      { id: 5, day: 'Friday', from: '07:30:00', to: '15:30:00' },
-      { id: 6, day: 'Saturday', from: '08:00:00', to: '12:00:00' },
-      { id: 7, day: 'Sunday', from: '10:00:00', to: '14:00:00' },
-    ],
-  },
-  {
-    data: [
-      { id: 1, day: 'Monday', from: '10:00:00', to: '19:00:00' },
-      { id: 2, day: 'Tuesday', from: '10:00:00', to: '19:00:00' },
-      { id: 3, day: 'Wednesday', from: '10:00:00', to: '19:00:00' },
-      { id: 4, day: 'Thursday', from: '10:00:00', to: '19:00:00' },
-      { id: 5, day: 'Friday', from: '10:00:00', to: '18:00:00' },
-      { id: 6, day: 'Saturday', from: '11:00:00', to: '15:00:00' },
-      { id: 7, day: 'Sunday', from: '', to: '' },
-    ],
-  },
-  {
-    data: [
-      { id: 1, day: 'Monday', from: '06:00:00', to: '15:00:00' },
-      { id: 2, day: 'Tuesday', from: '06:00:00', to: '15:00:00' },
-      { id: 3, day: 'Wednesday', from: '06:00:00', to: '15:00:00' },
-      { id: 4, day: 'Thursday', from: '06:00:00', to: '15:00:00' },
-      { id: 5, day: 'Friday', from: '06:00:00', to: '14:00:00' },
-      { id: 6, day: 'Saturday', from: '07:00:00', to: '11:00:00' },
-      { id: 7, day: 'Sunday', from: '08:00:00', to: '12:00:00' },
-    ],
-  },
-  {
-    data: [
-      { id: 1, day: 'Monday', from: '12:00:00', to: '21:00:00' },
-      { id: 2, day: 'Tuesday', from: '12:00:00', to: '21:00:00' },
-      { id: 3, day: 'Wednesday', from: '12:00:00', to: '21:00:00' },
-      { id: 4, day: 'Thursday', from: '12:00:00', to: '21:00:00' },
-      { id: 5, day: 'Friday', from: '12:00:00', to: '20:00:00' },
-      { id: 6, day: 'Saturday', from: '13:00:00', to: '17:00:00' },
-      { id: 7, day: 'Sunday', from: '', to: '' },
-    ],
-  },
-])
+})
+
+const DAYS = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+]
+
+const callSchedules = computed(() => {
+  const grouped: Record<
+    number,
+    { name: string, description: string, default?: { from: string, to: string }, data: any[] }
+  > = {}
+
+  props.list.forEach((item: any) => {
+    if (!grouped[item.department_id]) {
+      grouped[item.department_id] = {
+        name: item.name,
+        description: item.description,
+        data: [],
+      }
+    }
+
+    if (item.day.toLowerCase() === 'default') {
+      grouped[item.department_id]!.default = {
+        from: item.from_time,
+        to: item.to_time,
+      }
+    }
+    else {
+      grouped[item.department_id]!.data.push({
+        id: item.id,
+        day: capitalizeDay(item.day),
+        from: item.from_time,
+        to: item.to_time,
+      })
+    }
+  })
+
+  // normalize each department to have all 7 days, using default if missing
+  return Object.values(grouped).map((group) => {
+    return {
+      name: group.name,
+      description: group.description,
+      data: DAYS.map((day, idx) => {
+        const found = group.data.find(s => s.day === day)
+        return {
+          id: idx + 1,
+          day,
+          from: found ? found.from : group.default?.from || '',
+          to: found ? found.to : group.default?.to || '',
+        }
+      }),
+    }
+  })
+})
+
+function capitalizeDay(day: string) {
+  if (!day)
+    return ''
+  const lower = day.toLowerCase()
+  return lower.charAt(0).toUpperCase() + lower.slice(1)
+}
 
 const dialogData = ref({
   open: false,
   title: '',
+  description: '',
   data: [],
 })
 
-function handleEditClick(schedule: any, title: string) {
+function handleEditClick(schedule: any) {
   dialogData.value = {
     open: true,
-    title,
+    title: schedule.name,
+    description: schedule.description,
     data: JSON.parse(JSON.stringify(schedule.data)),
   }
 }
 
-function handleDialogSubmit(data: any) {
-  console.log('Updated data:', data)
-  // Find and update the corresponding schedule in callSchedules
-  const index = callSchedules.value.findIndex(s => s.data === data.data)
-  if (index !== -1) {
-    callSchedules.value[index].data = data.data
-  }
+function handleDialogSubmit(_data: any) {
   dialogData.value.open = false
 }
 </script>
@@ -99,15 +99,16 @@ function handleDialogSubmit(data: any) {
       v-for="(schedule, index) in callSchedules"
       :key="index"
       :schedule-data="schedule.data"
-      :title="`Call Timing ${index + 1}`"
-      @edit="handleEditClick(schedule, `Call Timing ${index + 1}`)"
+      :title="schedule.name"
+      :description="schedule.description"
+      @edit="handleEditClick(schedule)"
     />
 
     <InboundSettingsCallTimesDialog
       :open="dialogData.open"
       :row-data="{
         title: dialogData.title,
-        description: 'Current call timing schedule',
+        description: dialogData.description,
         data: dialogData.data,
       }"
       @update:open="dialogData.open = $event"

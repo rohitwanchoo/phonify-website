@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 const start = ref(0)
-const limit = ref(100)
+const limit = ref(10)
 const search = ref('')
 
 const { data: didList, status: didListStatus, refresh: refreshDidList } = await useLazyAsyncData('did-configuration-list', () =>
@@ -68,7 +68,7 @@ const actions = [
     <!-- HEADER -->
     <BaseHeader title="DID Configuration">
       <template #actions>
-        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search..." @update:model-value="searchText" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Phone Number..." @update:model-value="searchText" />
 
         <!-- Actions -->
         <DropdownMenu>

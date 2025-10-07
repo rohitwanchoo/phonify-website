@@ -64,28 +64,28 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const router = useRouter()
 
-const { data: ivrData, status: ivrStatus, refresh: refreshIvrData } = await useLazyAsyncData('get-ivr', () =>
+const { data: ivrData } = await useLazyAsyncData('get-ivr', () =>
   useApi().post('/ivr'), {
   transform: res => res.data,
-  immediate: true,
+  immediate: false,
 })
 
-const { data: extensionListData, status: extensionListStatus, refresh: refreshExtensionListData } = await useLazyAsyncData('get-extension-list', () =>
+const { data: extensionListData } = await useLazyAsyncData('get-extension-list', () =>
   useApi().post('/extension-list'), {
   transform: res => res.data,
-  immediate: true,
+  immediate: false,
 })
 
-const { data: conferencingData, status: conferencingStatus, refresh: refreshConferencingData } = await useLazyAsyncData('get-conferencing', () =>
+const { data: conferencingData } = await useLazyAsyncData('get-conferencing', () =>
   useApi().post('/conferencing'), {
   transform: res => res.data,
-  immediate: true,
+  immediate: false,
 })
 
-const { data: ringGroupData, status: ringGroupStatus, refresh: refreshRingGroupData } = await useLazyAsyncData('get-ring-group', () =>
+const { data: ringGroupData } = await useLazyAsyncData('get-ring-group', () =>
   useApi().post('/ring-group'), {
   transform: res => res.data,
-  immediate: true,
+  immediate: false,
 })
 
 const destinationTypes = {
@@ -112,19 +112,18 @@ interface DidConfiguration {
   set_exclusive_for_user: string
   voip_provider: string
   destination: string
-  assigned_user: string
+  assigned_user_name: string
 }
 
 function resolveDestination(dest_type: string, destination: string) {
   switch (dest_type) {
     case '0': // IVR
-      return ivrData.value?.find((item: any) => String(item.id) === String(destination))?.ivr_desc || '-'
+      return ivrData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
 
     case '1': // Extension
     case '2': // Voicemail
     case '6': // Fax
-    { const ext = extensionListData.value?.find((item: any) => String(item.id) === String(destination))
-      return ext ? `${ext.first_name} ${ext.last_name}`.trim() || '-' : '-' }
+      return extensionListData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
 
     case '3': // DNC
       return null
@@ -228,7 +227,7 @@ const columns = [
 
         // Three status tags
         h('div', { class: 'flex gap-1' }, [
-          default_did
+          default_did === '1'
           && h('div', {
             class: 'bg-blue-50 border border-blue-600 text-primary text-xs px-2 py-0.5 rounded-sm',
           }, 'Default'),
@@ -310,7 +309,7 @@ const columns = [
       }, isSMS ? 'Yes' : 'No')
     },
   }),
-  columnHelper.accessor('assigned_user', {
+  columnHelper.accessor('assigned_user_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -318,10 +317,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Assigned User', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, (() => {
-        const user = extensionListData.value?.find((item: any) => String(item.id) === String(row.original.assigned_user))
-        return user ? `${user.first_name} ${user.last_name}`.trim() : row.original.assigned_user || '-'
-      })())
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.assigned_user_name || '-')
     },
   }),
 

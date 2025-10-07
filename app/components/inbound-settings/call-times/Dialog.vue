@@ -4,12 +4,12 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
 import * as z from 'zod'
+import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
 
 const props = defineProps<{
   open: boolean
@@ -28,7 +28,7 @@ const daysOfWeek = [
   'Wednesday',
   'Thursday',
   'Friday',
-  'Saturday'
+  'Saturday',
 ]
 
 // Watch for changes in the open prop to handle form initialization
@@ -39,7 +39,7 @@ watch(() => props.open, (val) => {
         values: {
           clientName: props.rowData.title || '',
           description: props.rowData.description || '',
-          ...generateDayTimeFields(props.rowData.data || [])
+          ...generateDayTimeFields(props.rowData.data || []),
         },
       })
     }
@@ -52,7 +52,7 @@ watch(() => props.open, (val) => {
 // Helper function to generate day time fields from data
 function generateDayTimeFields(data: any[]) {
   const fields: Record<string, string> = {}
-  daysOfWeek.forEach(day => {
+  daysOfWeek.forEach((day) => {
     const dayData = data.find(d => d.day === day) || { from: '', to: '' }
     fields[`${day.toLowerCase()}From`] = dayData.from || ''
     fields[`${day.toLowerCase()}To`] = dayData.to || ''
@@ -69,9 +69,9 @@ const formSchema = toTypedSchema(z.object({
     return {
       ...schema,
       [`${dayLower}From`]: z.string().optional(),
-      [`${dayLower}To`]: z.string().optional()
+      [`${dayLower}To`]: z.string().optional(),
     }
-  }, {})
+  }, {}),
 }))
 
 const { handleSubmit, resetForm, values } = useForm({
@@ -84,32 +84,35 @@ const { handleSubmit, resetForm, values } = useForm({
       return {
         ...fields,
         [`${dayLower}From`]: '',
-        [`${dayLower}To`]: ''
+        [`${dayLower}To`]: '',
       }
-    }, {})
+    }, {}),
   },
 })
 
 const onSubmit = handleSubmit((values) => {
   loading.value = true
-  
+
   // Format the data to match the dummy data structure
-  const formattedData = daysOfWeek.map(day => {
+  const formattedData = daysOfWeek.map((day) => {
     const dayLower = day.toLowerCase()
     return {
       id: daysOfWeek.indexOf(day) + 1,
       day,
-      from: values[`${dayLower}From`] || '',
-      to: values[`${dayLower}To`] || ''
+      from: (values as any)[`${dayLower}From`] || '',
+      to: (values as any)[`${dayLower}To`] || '',
     }
   })
 
   const result = {
-    title: values.clientName,
+    name: values.clientName,
     description: values.description,
-    data: formattedData
+    day: formattedData.map(item => item.day),
+    from: formattedData.map(item => item.from),
+    to: formattedData.map(item => item.to),
+    dept_id: props.rowData?.id ?? null
   }
-  
+
   loading.value = false
   emit('update:open', false)
   emit('submit', result)
@@ -123,8 +126,8 @@ const onSubmit = handleSubmit((values) => {
         <DialogTitle>
           {{ isEditMode ? 'Edit Call Timing' : 'Add Call Timing' }}
         </DialogTitle>
-    </DialogHeader>
-    <Separator class="" />
+      </DialogHeader>
+      <Separator class="" />
       <form class="space-y-4" @submit.prevent="onSubmit">
         <FormField v-slot="{ componentField }" name="clientName">
           <FormItem>
@@ -170,10 +173,10 @@ const onSubmit = handleSubmit((values) => {
                     <div class="text-sm text-muted-foreground">
                       From:
                     </div>
-                    <Input 
-                      v-bind="componentField" 
-                      type="time" 
-                      class="border-none shadow-none ml-auto w-28" 
+                    <Input
+                      v-bind="componentField"
+                      type="time"
+                      class="border-none shadow-none ml-auto w-28"
                     />
                   </div>
                 </FormControl>
@@ -187,10 +190,10 @@ const onSubmit = handleSubmit((values) => {
                     <div class="text-sm text-muted-foreground">
                       To:
                     </div>
-                    <Input 
-                      v-bind="componentField" 
-                      type="time" 
-                      class="border-none shadow-none ml-auto w-28" 
+                    <Input
+                      v-bind="componentField"
+                      type="time"
+                      class="border-none shadow-none ml-auto w-28"
                     />
                   </div>
                 </FormControl>
