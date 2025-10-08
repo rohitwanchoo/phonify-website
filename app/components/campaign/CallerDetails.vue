@@ -28,7 +28,7 @@ const props = defineProps<{
 
 }>()
 
-const emit = defineEmits(['setFieldValue', 'cancelEdit', 'submit'])
+const emit = defineEmits(['setFieldValue', 'setFieldError', 'cancelEdit', 'submit'])
 
 const { formState, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, enableEditSection } = useCreateCampaign()
 
@@ -138,6 +138,9 @@ function onSelectDialMode(val: any): void {
 }
 
 function onSelectNoAgentAvailableAction(val: any) {
+  emit('setFieldValue', 'no_agent_dropdown_action', 0)
+  emit('setFieldError', 'no_agent_dropdown_action', '')
+
   if (val === 2 && !voiceDropOptions.value?.length) {
     refreshVoiceDropOptions()
   }
@@ -387,7 +390,7 @@ function cancelEdit() {
           </FormField>
         </div>
         <div class="">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.no_agent_available_action" name="no_agent_available_action">
+          <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_available_action" name="no_agent_available_action">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 No Agent available Action
@@ -395,7 +398,7 @@ function cancelEdit() {
               <FormControl>
                 <Select v-if="enableEdit" v-bind="componentField" @update:model-value="onSelectNoAgentAvailableAction">
                   <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select No Agent Available Action" />
+                    <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select No Agent Available Action" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -521,7 +524,7 @@ function cancelEdit() {
         </div>
         <!-- If Redirect to is audio message -->
         <div v-if="values.redirect_to === 1">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_audio_message" name="outbound_ai_dropdown_audio_message">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Audio Message
@@ -543,7 +546,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ audioMessageAMDList?.find((val: any) => val.id === formState?.outbound_ai_dropdown_audio_message)?.ann_id }}
+                  {{ audioMessageAMDList?.find((val: any) => val.id === formState?.redirect_to_dropdown)?.ann_id }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -552,7 +555,7 @@ function cancelEdit() {
         </div>
         <!-- If Redirect to is voice template -->
         <div v-if="values.redirect_to === 2">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_voice_message" name="outbound_ai_dropdown_voice_message">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Voice Template
@@ -583,7 +586,7 @@ function cancelEdit() {
         </div>
         <!-- If Redirect to is extension -->
         <div v-if="values.redirect_to === 3">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_extension" name="outbound_ai_dropdown_extension">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Extension
@@ -614,7 +617,7 @@ function cancelEdit() {
         </div>
         <!-- If Redirect to is ring group -->
         <div v-if="values.redirect_to === 4">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_ring_group" name="outbound_ai_dropdown_ring_group">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Ring Group
@@ -645,7 +648,7 @@ function cancelEdit() {
         </div>
         <!-- If Redirect to is ivr -->
         <div v-if="values.redirect_to === 5">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_ivr" name="outbound_ai_dropdown_ivr">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 IVR
@@ -680,7 +683,7 @@ function cancelEdit() {
       <div class="grid grid-cols-2 gap-4">
         <!-- if no_agent_available_action is 2(voice drop) -->
         <div v-if="values.no_agent_available_action === 2">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_no_agent_available_action" name="voicedrop_no_agent_available_action">
+          <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Voice Drop Option
@@ -688,7 +691,7 @@ function cancelEdit() {
               <FormControl>
                 <Select v-if="enableEdit" v-bind="componentField">
                   <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Inbound IVR Option" />
+                    <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select Inbound IVR Option" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -702,7 +705,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ voiceDropOptions?.find((val: any) => val.id === formState?.voicedrop_no_agent_available_action)?.first_name }} {{ voiceDropOptions?.find((val: any) => val.id === formState?.voicedrop_no_agent_available_action)?.last_name }} - {{ voiceDropOptions?.find((val: any) => val.id === formState?.voicedrop_no_agent_available_action)?.extension }}
+                  {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.first_name }} {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.last_name }} - {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.extension }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -711,7 +714,7 @@ function cancelEdit() {
         </div>
         <!-- if no_agent_available_action is 3(inbound ivr) -->
         <div v-if="values.no_agent_available_action === 3">
-          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.inbound_ivr_no_agent_available_action" name="inbound_ivr_no_agent_available_action">
+          <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Inbound IVR Option
@@ -719,7 +722,7 @@ function cancelEdit() {
               <FormControl>
                 <Select v-if="enableEdit" v-bind="componentField">
                   <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Inbound IVR Option" />
+                    <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select Inbound IVR Option" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -734,7 +737,7 @@ function cancelEdit() {
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
                   <!-- TODO: need to change this after API fix -->
-                  {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.inbound_ivr_no_agent_available_action)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.inbound_ivr_no_agent_available_action)?.ivr_id }}
+                  {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.no_agent_dropdown_action)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.no_agent_dropdown_action)?.ivr_id }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -794,7 +797,7 @@ function cancelEdit() {
         </FormField>
         <div>
           <!-- When AMD Drop action is Audio Message -->
-          <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.audio_message_amd" name="audio_message_amd">
+          <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_option_user_id" name="voicedrop_option_user_id">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Audio Message AMD
@@ -816,7 +819,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ audioMessageAMDList?.find((val: any) => val.id === formState?.audio_message_amd)?.ann_id }}
+                  {{ audioMessageAMDList?.find((val: any) => val.id === formState?.voicedrop_option_user_id)?.ann_id }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -824,7 +827,7 @@ function cancelEdit() {
           </FormField>
 
           <!-- When AMD Drop action is voice template -->
-          <FormField v-if="values.amd_drop_action === 3" v-slot="{ componentField, errorMessage }" v-model="formState.voice_message_amd" name="voice_message_amd">
+          <FormField v-if="values.amd_drop_action === 3" v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_option_user_id" name="voicedrop_option_user_id">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
                 Voice Template AMD
@@ -846,7 +849,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ voiceTemplateAMDList?.find((val: any) => val.templete_id === formState?.voice_message_amd)?.templete_name }}
+                  {{ voiceTemplateAMDList?.find((val: any) => val.templete_id === formState?.voicedrop_option_user_id)?.templete_name }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />

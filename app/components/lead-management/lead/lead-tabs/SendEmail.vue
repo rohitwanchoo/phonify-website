@@ -2,12 +2,10 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { computed } from 'vue'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '~/components/ui/button'
 
 const props = defineProps({
@@ -15,6 +13,21 @@ const props = defineProps({
 })
 
 const senderType = 'user' // Fixed sender type
+
+const showHtml = ref(false)
+
+// Extract lead email from leadData
+function getLeadEmail() {
+  if (!props.leadData)
+    return ''
+
+  // Find the email entry in leadData (looking for title "Email")
+  const emailEntry = Object.values(props.leadData).find((item: any) =>
+    item.title?.toLowerCase() === 'email',
+  )
+
+  return emailEntry?.value?.trim() || ''
+}
 
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
@@ -24,7 +37,7 @@ const formSchema = toTypedSchema(z.object({
   LeadPlaceholders: z.string().min(1, 'Please select a lead placeholder'),
   SenderPlaceholders: z.string().min(1, 'Please select a sender placeholder'),
   subject: z.string().min(1, 'Subject is required').max(100, 'Subject cannot exceed 100 characters'),
-  templateContent: z.string().min(1, 'Template Preview is required')
+  templateContent: z.string().min(1, 'Template Preview is required'),
 }))
 
 // Fetch sender details (agent emails)
@@ -37,7 +50,7 @@ const { data: emailSenderData } = await useLazyAsyncData('email-sender-details',
 const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    to: props?.leadData?.email,
+    to: getLeadEmail(), // Auto-populate with lead email
     from: '',
     template: '',
     LeadPlaceholders: '',
@@ -52,8 +65,37 @@ const selectedSender = ref()
 const emailTemplateData = ref([])
 const selectedTemplateData = ref(null)
 
-// Character count for template content
-const templateContentLength = computed(() => values.templateContent?.length || 0)
+// Reactive ref for template content to ensure proper reactivity
+const templateContent = ref('')
+
+// Character count for template content - now properly reactive
+const templateContentLength = computed(() => {
+  // Strip HTML tags for character count
+  const textContent = templateContent.value.replace(/<[^>]*>/g, '').trim()
+  return textContent.length
+})
+
+// Watch templateContent ref and sync with form
+watch(templateContent, (newContent) => {
+  setFieldValue('templateContent', newContent)
+})
+
+// Watch form values.templateContent and sync with ref
+watch(() => values.templateContent, (newContent) => {
+  if (newContent !== templateContent.value) {
+    templateContent.value = newContent
+  }
+})
+
+// Watch for changes in leadData and update the 'to' field
+watch(() => props.leadData, (newLeadData) => {
+  if (newLeadData) {
+    const leadEmail = getLeadEmail()
+    if (leadEmail) {
+      setFieldValue('to', leadEmail)
+    }
+  }
+}, { immediate: true, deep: true })
 
 // Watch for template change → auto-fill subject & content
 watch(() => values.template, (newTemplateId) => {
@@ -62,7 +104,9 @@ watch(() => values.template, (newTemplateId) => {
     if (selectedTemplate) {
       selectedTemplateData.value = selectedTemplate
       setFieldValue('subject', (selectedTemplate as any).subject || '')
-      setFieldValue('templateContent', (selectedTemplate as any).template_html || '')
+      const htmlContent = (selectedTemplate as any).template_html || ''
+      setFieldValue('templateContent', htmlContent)
+      templateContent.value = htmlContent // Update the ref as well
     }
   }
   else {
@@ -89,9 +133,11 @@ watch(() => values.from, async (newFromEmail) => {
         // If only one template, auto-select it
         if (emailTemplateData.value.length === 1) {
           const singleTemplate = emailTemplateData.value[0]
+          const htmlContent = (singleTemplate as any)?.template_html || ''
           setFieldValue('template', (singleTemplate as any).id?.toString() ?? '')
           setFieldValue('subject', (singleTemplate as any)?.subject || '')
-          setFieldValue('templateContent', (singleTemplate as any)?.template_html || '')
+          setFieldValue('templateContent', htmlContent)
+          templateContent.value = htmlContent // Update the ref
           selectedTemplateData.value = singleTemplate || null
         }
         else {
@@ -99,6 +145,7 @@ watch(() => values.from, async (newFromEmail) => {
           setFieldValue('template', '')
           setFieldValue('subject', '')
           setFieldValue('templateContent', '')
+          templateContent.value = '' // Clear the ref
           selectedTemplateData.value = null
         }
       }
@@ -108,6 +155,7 @@ watch(() => values.from, async (newFromEmail) => {
         setFieldValue('template', '')
         setFieldValue('subject', '')
         setFieldValue('templateContent', '')
+        templateContent.value = '' // Clear the ref
         selectedTemplateData.value = null
       }
     }
@@ -118,6 +166,7 @@ watch(() => values.from, async (newFromEmail) => {
     selectedTemplateData.value = null
     setFieldValue('subject', '')
     setFieldValue('templateContent', '')
+    templateContent.value = '' // Clear the ref
     setFieldValue('template', '')
   }
 }, { immediate: true })
@@ -129,7 +178,7 @@ const onSubmit = handleSubmit(async (vals) => {
     user_id: selectedSender.value.user_id,
     campaign_id: selectedSender.value.campaign_id,
     subject: vals.subject,
-    body: vals.templateContent,
+    body: vals.templateContent, // This now contains the actual Quill editor content
     to: vals.to,
   }
 
@@ -163,7 +212,7 @@ const onSubmit = handleSubmit(async (vals) => {
 <template>
   <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col justify-between gap-6 md:h-[550px]">
+      <div class="flex flex-col justify-between gap-6 h-fit">
         <!-- Form fields section -->
         <div class="flex-1 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,6 +227,7 @@ const onSubmit = handleSubmit(async (vals) => {
                     placeholder="Lead Mail Id"
                     v-bind="componentField"
                     class="border-gray-200 h-11"
+                    :class="{ 'bg-gray-50': componentField.modelValue }"
                   />
                 </FormControl>
                 <FormMessage class="text-red-500" />
@@ -280,16 +330,14 @@ const onSubmit = handleSubmit(async (vals) => {
             </FormItem>
           </FormField>
           <!-- Message (full width) -->
-          <FormField v-slot="{ componentField }" name="templateContent">
+          <FormField name="templateContent">
             <FormItem>
               <FormLabel>Template Preview</FormLabel>
               <FormControl>
-                <Textarea
-                  v-bind="componentField"
-                  placeholder="Enter message here..."
-                  maxlength="500"
-                  rows="8"
-                  class="resize-y pr-14 min-h-[100px]"
+                <BaseQuillEditor
+                  v-model="templateContent"
+                  content-type="html"
+                  @toggle-view="() => showHtml = !showHtml"
                 />
               </FormControl>
               <div class="flex justify-between">
@@ -300,11 +348,15 @@ const onSubmit = handleSubmit(async (vals) => {
               </div>
             </FormItem>
           </FormField>
+          <!-- Optional preview modal -->
+          <div v-if="showHtml" class="border rounded p-3 bg-gray-50 whitespace-pre-wrap mt-4">
+            {{ templateContent }}
+          </div>
         </div>
         <!-- Button section -->
         <div>
           <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full h-11">
-            <Icon name="material-symbols:mail" size="20"/>
+            <Icon name="material-symbols:mail" size="20" />
             Send Email
           </Button>
         </div>

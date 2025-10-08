@@ -18,6 +18,7 @@
     "@tailwindcss/vite": "^4.1.6",
     "@tanstack/vue-table": "^8.21.3",
     "@vee-validate/zod": "^4.15.0",
+    "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^13.2.0",
     "@vueuse/integrations": "^13.5.0",
     "class-variance-authority": "^0.7.1",

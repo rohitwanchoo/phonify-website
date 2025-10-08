@@ -25,7 +25,7 @@ import { h, ref } from 'vue'
 import { z } from 'zod'
 
 import { Checkbox } from '@/components/ui/checkbox'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -49,8 +49,10 @@ const emit = defineEmits(['update:open', 'complete'])
 const listSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required'),
   new_campaign_id: z.number().min(1, 'Campaign is required'),
-
 }))
+
+const dialingError = ref('')
+const showLabelErrors = ref(false)
 
 const { handleSubmit, setValues } = useForm({
   validationSchema: listSchema,
@@ -98,13 +100,13 @@ const columns = [
   }),
 
   columnHelper.accessor('header', {
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, 'File Header'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.header),
   }),
 
   columnHelper.accessor('is_search', {
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, 'Search Filter'),
     cell: ({ row }) => h('div', { class: 'text-center' }, h(Checkbox, {
       'modelValue': !!row.original.is_search,
@@ -114,7 +116,7 @@ const columns = [
   }),
 
   columnHelper.accessor('is_visible', {
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, 'Visible'),
     cell: ({ row }) => h('div', { class: 'text-center' }, h(Checkbox, {
       'modelValue': !!row.original.is_visible,
@@ -124,7 +126,7 @@ const columns = [
   }),
 
   columnHelper.accessor('is_editable', {
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, 'Editable'),
     cell: ({ row }) => h('div', { class: 'text-center' }, [
 
@@ -137,16 +139,16 @@ const columns = [
   }),
 
   columnHelper.accessor('is_dialing', {
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, 'Dialing Column'),
     cell: ({ row }) => h('div', { class: 'text-center' }, h(RadioGroup, {
       'modelValue': row.original.is_dialing === 1 ? row.original.header : '',
       'onUpdate:modelValue': (value) => {
         // Update the dialing column for all rows
+        // eslint-disable-next-line ts/no-use-before-define
         table.getRowModel().rows.forEach((r) => {
           r.original.is_dialing = r.original.header === value ? 1 : 0
         })
-        console.log(allTableData)
       },
       'defaultValue': props.listData?.list_header.find(el => el.is_dialing)?.header,
     }, () => [
@@ -163,7 +165,7 @@ const columns = [
   }),
 
   columnHelper.accessor('label_id', {
-    header: ({ column }) =>
+    header: () =>
       h('div', { class: 'text-center' }, 'Label'),
     cell: ({ row }) => h('div', { class: 'text-center' }, [
       h(Select, {
@@ -188,7 +190,9 @@ const columns = [
             }, () => option.title),
           )),
       ]),
-
+      showLabelErrors.value && !row.original.label_id
+        ? h('p', { class: 'text-red-500 text-xs mt-1 text-left' }, 'Label is required')
+        : null,
     ]),
   }),
 
@@ -212,7 +216,6 @@ const table = useVueTable({
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
 
   state: {
-
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
@@ -239,6 +242,22 @@ async function refreshCampaignList() {
 const saveLoading = ref(false)
 
 const saveConfigureList = handleSubmit((values) => {
+  // Validate that at least one dialing column is selected
+  const hasDialingColumn = table.getRowModel().flatRows.some(item => item.original.is_dialing === 1)
+  if (!hasDialingColumn) {
+    dialingError.value = 'Please select dialing column'
+    return
+  }
+  dialingError.value = ''
+
+  // Validate that all rows have a label selected
+  const hasAllLabels = table.getRowModel().flatRows.every(item => item.original.label_id)
+  if (!hasAllLabels) {
+    showLabelErrors.value = true
+    return
+  }
+  showLabelErrors.value = false
+
   const list_header = table.getRowModel().flatRows.map(item => ({
     id: item.original.id,
     column_name: item.original.header,
@@ -283,7 +302,7 @@ watch(() => props.open, (val) => {
           Configure List
         </DialogTitle>
       </DialogHeader>
-      <div class="flex gap-4 mb-6 w-full">
+      <div class="flex gap-4 w-full">
         <form class="flex gap-4 w-full">
           <div class="w-1/2">
             <FormField v-slot="{ componentField }" v-model="title" name="title" class="w-1/2">
@@ -314,7 +333,19 @@ watch(() => props.open, (val) => {
                       </SelectIcon>
                     </SelectTrigger>
                     <SelectContent class="w-full">
-                      <SelectItem v-for="option in campaigns" :key="option.id" :value="option.id">
+                      <SelectItem
+                        v-if="props.listData?.campaign_id && props.listData?.campaign"
+                        :key="`current-campaign-${props.listData.campaign_id}`"
+                        :value="props.listData.campaign_id"
+                      >
+                        {{ props.listData.campaign }}
+                      </SelectItem>
+
+                      <SelectItem
+                        v-for="option in campaigns"
+                        :key="option.id"
+                        :value="option.id"
+                      >
                         {{ option.title }}
                       </SelectItem>
                     </SelectContent>
@@ -326,6 +357,9 @@ watch(() => props.open, (val) => {
           </div>
         </form>
       </div>
+      <p v-if="dialingError" class="text-red-500 text-xs">
+        {{ dialingError }}
+      </p>
       <div class="overflow-x-auto rounded border mb-8">
         <Table>
           <TableHeader>
@@ -375,12 +409,12 @@ watch(() => props.open, (val) => {
           </TableBody>
         </Table>
       </div>
-      <div class="flex justify-between items-center mt-6">
+      <div class="flex justify-between items-center pt-2 bg-white sticky bottom-0">
         <Button type="button" variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 h-11" @click="closeDialog">
           <Icon name="lucide:x" class="w-4 h-4 mr-1" />
           Discard
         </Button>
-        <Button :loading="saveLoading" :disable="saveLoading" type="button" class="w-[49%] bg-primary text-white border-primary hover:bg-primary/90 hover:text-white h-11" @click="saveConfigureList">
+        <Button :disabled="saveLoading" :loading="saveLoading" type="button" class="w-[49%] bg-primary text-white border-primary hover:bg-primary/90 hover:text-white h-11" @click="saveConfigureList">
           <Icon name="lucide:save" class="w-4 h-4 mr-1 text-white" />
           Save
         </Button>

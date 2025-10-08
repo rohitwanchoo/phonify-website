@@ -103,42 +103,42 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  audio_message_amd: z.number().optional().superRefine((val, ctx) => {
-    // if amd_drop_action is 2 and amd is true then audio_message_amd is required
-    if (formState.value.amd_drop_action === 2 && !val && formState.value.amd) {
+  voicedrop_option_user_id: z.number().optional().superRefine((val, ctx) => {
+    // if amd_drop_action is 2 and amd is true then voicedrop_option_user_id is required
+    if ((formState.value.amd_drop_action === 2 || formState.value.amd_drop_action === 3) && !val && formState.value.amd) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Audio message AMD is required when AMD drop action is Audio Message',
+        message: formState.value.amd_drop_action === 2 ? 'Audio message AMD is required when AMD drop action is Audio Message' : 'Voice template AMD is required when AMD drop action is Voice template',
       })
     }
   }),
-  voice_message_amd: z.number().optional().superRefine((val, ctx) => {
-    // if amd_drop_action is 3 and amd is true then voice_message_amd is required
-    if (formState.value.amd_drop_action === 3 && !val) {
+  // voice_message_amd: z.number().optional().superRefine((val, ctx) => {
+  //   // if amd_drop_action is 3 and amd is true then voice_message_amd is required
+  //   if (formState.value.amd_drop_action === 3 && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'Voice template AMD is required when AMD drop action is Voice template',
+  //     })
+  //   }
+  // }),
+  // if no_agent_available_action is 2 and amd is true then no_agent_dropdown_action  is required
+  no_agent_dropdown_action: z.number().optional().superRefine((val, ctx) => {
+    if ((values.no_agent_available_action === 2 || values.no_agent_available_action === 3) && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Voice template AMD is required when AMD drop action is Voice template',
-      })
-    }
-  }),
-  // if no_agent_available_action is 2 and amd is true then voicedrop_no_agent_available_action is required
-  voicedrop_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
-    if (values.no_agent_available_action === 2 && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Voice drop option is required when no agent available action is Voice drop option',
+        message: values.no_agent_available_action === 2 ? 'Voice drop option is required when no agent available action is Voice drop option' : 'Inbound IVR is required when no agent available action is Inbound IVR',
       })
     }
   }),
   // if no_agent_available_action is 3 and amd is true then inbound_ivr_no_agent_available_action is required
-  inbound_ivr_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
-    if (values.no_agent_available_action === 3 && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Inbound IVR is required when no agent available action is Inbound IVR',
-      })
-    }
-  }),
+  // inbound_ivr_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
+  //   if (values.no_agent_available_action === 3 && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'Inbound IVR is required when no agent available action is Inbound IVR',
+  //     })
+  //   }
+  // }),
 
   // if dial_mode is outbound_ai
   redirect_to: z.number().optional().superRefine((val, ctx) => {
@@ -150,54 +150,55 @@ const formSchema = toTypedSchema(z.object({
     }
   }),
 
-  outbound_ai_dropdown_audio_message: z.number().optional().superRefine((val, ctx) => {
-    if (values.redirect_to === 1 && !val) {
+  redirect_to_dropdown: z.number().optional().superRefine((val, ctx) => {
+    if ((values.redirect_to === 1 || values.redirect_to === 2 || values.redirect_to === 3 || values.redirect_to === 4 || values.redirect_to === 5) && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Audio message is required',
+        message: 'Required',
+        // message: values.redirect_to === 1 ? 'Audio message is required' : values.redirect_to === 2 ? 'Voice template is required' : 'Extension is required',
       })
     }
   }),
 
-  outbound_ai_dropdown_voice_message: z.number().optional().superRefine((val, ctx) => {
-    if (values.redirect_to === 2 && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Voice template is required',
-      })
-    }
-  }),
+  // outbound_ai_dropdown_voice_message: z.number().optional().superRefine((val, ctx) => {
+  //   if (values.redirect_to === 2 && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'Voice template is required',
+  //     })
+  //   }
+  // }),
 
-  outbound_ai_dropdown_extension: z.number().optional().superRefine((val, ctx) => {
-    if (values.redirect_to === 3 && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Extension is required',
-      })
-    }
-  }),
+  // outbound_ai_dropdown_extension: z.number().optional().superRefine((val, ctx) => {
+  //   if (values.redirect_to === 3 && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'Extension is required',
+  //     })
+  //   }
+  // }),
 
-  outbound_ai_dropdown_ring_group: z.number().optional().superRefine((val, ctx) => {
-    if (values.redirect_to === 4 && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Ring group is required',
-      })
-    }
-  }),
+  // outbound_ai_dropdown_ring_group: z.number().optional().superRefine((val, ctx) => {
+  //   if (values.redirect_to === 4 && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'Ring group is required',
+  //     })
+  //   }
+  // }),
 
-  outbound_ai_dropdown_ivr: z.number().optional().superRefine((val, ctx) => {
-    if (values.redirect_to === 5 && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'IVR is required',
-      })
-    }
-  }),
+  // outbound_ai_dropdown_ivr: z.number().optional().superRefine((val, ctx) => {
+  //   if (values.redirect_to === 5 && !val) {
+  //     ctx.addIssue({
+  //       code: z.ZodIssueCode.custom,
+  //       message: 'IVR is required',
+  //     })
+  //   }
+  // }),
 
 }))
 
-const { handleSubmit, values, setFieldValue, resetForm, errors } = useForm({
+const { handleSubmit, values, setFieldValue, resetForm, setFieldError, errors } = useForm({
   validationSchema: formSchema,
   initialValues: {
     title: '',
@@ -211,8 +212,8 @@ const { handleSubmit, values, setFieldValue, resetForm, errors } = useForm({
     call_schedule_id: 0,
     // call_time: {},
     time_based_calling: false,
-    inbound_ivr_no_agent_available_action: 0,
-    voicedrop_no_agent_available_action: 0,
+    // inbound_ivr_no_agent_available_action: 0,
+    no_agent_dropdown_action: 0,
     no_agent_available_action: 0,
     outbound_ai_dropdown_ivr: 0,
     sms: false,
@@ -287,7 +288,7 @@ onMounted(() => {
         <CampaignDetails :is-preview="isPreview" :values :loading @reset-fields="emits('resetData')" />
 
         <!-- Caller Details -->
-        <CampaignCallerDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" />
+        <CampaignCallerDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @set-field-error="setFieldError" @cancel-edit="emits('resetData')" />
 
         <!-- Time Based Calling -->
         <CampaignTimeBaseCalling :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
@@ -296,14 +297,14 @@ onMounted(() => {
         <CampaignSendDetails :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
 
         <!-- Other Details -->
-        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-filed-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
 
         <!-- Associate List -->
         <CampaignAssociatedList
           v-if="isPreview"
           :values="values"
           :loading="loading"
-          @set-filed-value="setFieldValue"
+          @set-field-value="setFieldValue"
           @cancel-edit="emits('resetData')"
         />
 

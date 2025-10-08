@@ -75,7 +75,7 @@ const formSchema = toTypedSchema(
         })
       }
     }),
-    outbound_ai_dropdown_audio_message: z.number().optional().superRefine((val, ctx) => {
+    redirect_to_dropdown: z.number().optional().superRefine((val, ctx) => {
       if (values.redirect_to === 1 && !val) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -116,7 +116,7 @@ const formSchema = toTypedSchema(
         })
       }
     }),
-    voicedrop_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
+    no_agent_dropdown_action: z.number().optional().superRefine((val, ctx) => {
       if (values.no_agent_available_action === 2 && !val) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -133,8 +133,8 @@ const formSchema = toTypedSchema(
         })
       }
     }),
-    audio_message_amd: z.number().optional().superRefine((val, ctx) => {
-    // if amd_drop_action is 2 and amd is true then audio_message_amd is required
+    voicedrop_option_user_id: z.number().optional().superRefine((val, ctx) => {
+    // if amd_drop_action is 2 and amd is true then voicedrop_option_user_id is required
       if (formState.value.amd_drop_action === 2 && !val) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -530,7 +530,7 @@ const enableEdit = ref(false)
           </div>
           <!-- If Redirect to is audio message -->
           <div v-if="values.redirect_to === 1">
-            <FormField v-slot="{ componentField, errorMessage }" v-model="formState.outbound_ai_dropdown_audio_message" name="outbound_ai_dropdown_audio_message">
+            <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
               <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Audio Message
@@ -660,7 +660,7 @@ const enableEdit = ref(false)
         <div class="grid grid-cols-2 gap-4">
           <!-- if no_agent_available_action is 2(voice drop) -->
           <div v-if="values.no_agent_available_action === 2">
-            <FormField v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_no_agent_available_action" name="voicedrop_no_agent_available_action">
+            <FormField v-slot="{ componentField, errorMessage }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
               <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Voice Drop Option
@@ -754,7 +754,7 @@ const enableEdit = ref(false)
           </FormField>
           <div>
             <!-- When AMD Drop action is Audio Message -->
-            <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.audio_message_amd" name="audio_message_amd">
+            <FormField v-if="values.amd_drop_action === 2" v-slot="{ componentField, errorMessage }" v-model="formState.voicedrop_option_user_id" name="voicedrop_option_user_id">
               <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Audio Message AMD

@@ -11,18 +11,15 @@ const selectedRowData = ref<any>(null)
 const { data: customfieldlabelData, status: customfieldlabelStatus, refresh: customfieldlabelRefresh } = await useLazyAsyncData('customfieldlabel', () =>
   useApi().get('/custom-field-labels', {
     params: {
-      lower_limit: start.value,
-      upper_limit: limit.value,
+      start: start.value,
+      limit: limit.value,
       search: search.value,
     },
   }), {
-  transform: (res) => {
-    return res
-  },
+  transform: res => res?.data,
 })
 
 function handleAddRefresh() {
-  start.value = 0
   customfieldlabelRefresh()
 }
 
@@ -75,12 +72,12 @@ function searchText() {
   <div class="w-full h-[calc(100vh-165px)] overflow-y-auto mt-4">
     <LeadManagementCustomFieldLabelTable
       :limit="limit"
-      :total-rows="customfieldlabelData?.record_count"
+      :total-rows="customfieldlabelData?.total_rows"
       :start="start"
       :list="customfieldlabelData?.data || []"
       :loading="customfieldlabelStatus === 'pending'"
       @page-navigation="changePage"
-      @limit-change="changeLimit"
+      @change-limit="changeLimit"
       @refresh="customfieldlabelRefresh"
       @edit="handleEdit"
     />
