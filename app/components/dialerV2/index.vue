@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDraggable } from '@vueuse/core'
+import { C } from 'sip.js/lib/core'
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,29 +16,27 @@ const emit = defineEmits<{
   call: [phoneNumber: string, countryCode: string, leadId?: string | number | null]
 }>()
 
-const { callStatus } = useSIPml5()
-
-// Use enhanced dialer composable
+// Use SIPml5 composable directly
 const {
-  dialerPhoneNumber,
-  callState,
-  formattedCallDuration,
-  isDialerOpen,
-  openDialer,
+  callStatus,
+
   startCall,
   endCall,
-} = useDialer()
-const { answerCall, rejectCall } = useSIPml5()
+  answerCall,
+  rejectCall,
+
+} = useSIPml5()
+
+const { isDialerOpen, dialerPhoneNumber } = useDialerV2()
 
 // Reactive state
 const selectedCountry = ref('us')
 const phoneNumber = ref(dialerPhoneNumber.value || '')
-const addOnDigits = ref('')
 const isMinimized = ref(false)
 const isConnecting = computed(() => callStatus.value === 'connecting')
-const activeCall = computed(() => callStatus.value === 'active' || callStatus.value === 'ringing')
 
-const showNumberPad = ref(false)
+const activeCall = computed(() => callStatus.value === 'active' || callStatus.value === 'ringing')
+// const activeCall = computed(() => true)
 
 // Connection timeout ref for cleanup
 const connectionTimeout = ref<NodeJS.Timeout | null>(null)
@@ -49,31 +48,32 @@ watch(dialerPhoneNumber, (newValue) => {
   }
 })
 
+// Dialer functions
+function appendDigit(digit: number | string) {
+  phoneNumber.value += digit.toString()
+}
+
+function backspace() {
+  phoneNumber.value = phoneNumber.value.slice(0, -1)
+}
+
+async function makeCall() {
+  if (phoneNumber.value.trim()) {
+    // closeDialer()
+    const cleanNumber = phoneNumber.value.replace(/\D/g, '')
+    if (cleanNumber.length === 5) {
+      return await startCall(cleanNumber)
+    }
+    await startCall(`+1${cleanNumber}`)
+    // closeDialer()
+  }
+}
 // Watch for call state changes to handle auto-minimize
-// watch(() => callState.value.isActive, (isActive, wasActive) => {
-//   if (isActive && !wasActive) {
-//     // Call just became active (connected)
-//     // isConnecting.value = false
-
-//     // Auto-minimize after connection
-//     // setTimeout(() => {
-//     //   isMinimized.value = true
-//     //   showNumberPad.value = false
-//     // }, 500) // Small delay to show connected state
-//   }
-//   else if (!isActive && wasActive) {
-//     // Call ended
-//     isMinimized.value = false
-//     showNumberPad.value = false
-//     // isConnecting.value = false
-
-//     // Clear any pending timeout
-//     if (connectionTimeout.value) {
-//       clearTimeout(connectionTimeout.value)
-//       connectionTimeout.value = null
-//     }
-//   }
-// })
+watch(() => callStatus.value, (newStatus) => {
+  if (newStatus === 'active' || newStatus === 'ringing') {
+    closeDialer()
+  }
+})
 
 // Country data
 const countries = [
@@ -105,15 +105,15 @@ const { x, y, style } = useDraggable(dialerRef, {
   preventDefault: false,
 })
 
-const callInProgressDialerRef = useTemplateRef<HTMLElement>('callInProgressDialerV2')
-const { x: callInProgressX, y: callInProgressY, style: callInProgressStyle } = useDraggable(callInProgressDialerRef, {
+// Draggable functionality
+const incomingDialerRef = useTemplateRef<HTMLElement>('incomingDialerV2')
+const { x: incomingX, y: incomingY, style: incomingStyle } = useDraggable(incomingDialerRef, {
   initialValue: getCenterPosition(),
   preventDefault: false,
 })
 
-// Draggable functionality
-const incomingDialerRef = useTemplateRef<HTMLElement>('incomingDialer')
-const { x: incomingX, y: incomingY, style: incomingStyle } = useDraggable(incomingDialerRef, {
+const callInProgressDialerRef = useTemplateRef<HTMLElement>('callInProgressDialerV2')
+const { x: callInProgressX, y: callInProgressY, style: callInProgressStyle } = useDraggable(callInProgressDialerRef, {
   initialValue: getCenterPosition(),
   preventDefault: false,
 })
@@ -123,6 +123,7 @@ onMounted(() => {
   const centerPos = getCenterPosition()
   x.value = centerPos.x
   y.value = centerPos.y
+
   incomingX.value = centerPos.x + 500
   incomingY.value = centerPos.y
 
@@ -131,117 +132,20 @@ onMounted(() => {
   callInProgressY.value = centerPos.y
 })
 
-// Dialer functions
-function appendDigit(digit: number | string) {
-  if (!callState.value.isActive) {
-    phoneNumber.value += digit.toString()
-  }
-  else {
-    addOnDigits.value += digit.toString()
-    // In a real app, you might send DTMF tones here
-  }
-}
-
-function backspace() {
-  if (callState.value.isActive) {
-    if (addOnDigits.value) {
-      addOnDigits.value = addOnDigits.value.slice(0, -1)
-    }
-  }
-  else {
-    phoneNumber.value = phoneNumber.value.slice(0, -1)
-  }
-}
-
-function makeCall() {
-  if (phoneNumber.value.trim()) {
-    const cleanNumber = phoneNumber.value.replace(/\D/g, '')
-
-    // Clear any existing timeout
-    if (connectionTimeout.value) {
-      clearTimeout(connectionTimeout.value)
-      connectionTimeout.value = null
-    }
-
-    // Set connecting state
-    // isConnecting.value = true
-
-    // Start the call timer and state
-    startCall(cleanNumber, currentCountry.value?.code || '+1')
-    emit('call', cleanNumber, currentCountry.value?.code || '+1')
-
-    // Set timeout for connection simulation
-    // In real app, this would be handled by actual call connection events
-    // connectionTimeout.value = setTimeout(() => {
-    //   if (isConnecting.value) {
-    //     // Simulate call connection - this triggers the watcher above
-    //     // In real implementation, your call service would update callState.isActive
-    //     isConnecting.value = false
-
-    //     // If your useDialer composable doesn't automatically set isActive to true,
-    //     // you may need to handle this differently based on your call service
-    //   }
-    // }, 3000)
-  }
-}
-
 // Call status
 const incomingCall = computed(() => callStatus.value === 'incoming')
+// const incomingCall = computed(() => true)
 
 function hangup() {
-  // Clear connection timeout
-  if (connectionTimeout.value) {
-    clearTimeout(connectionTimeout.value)
-    connectionTimeout.value = null
-  }
-
   endCall()
-  addOnDigits.value = ''
-  // isConnecting.value = false
-  showNumberPad.value = false
-  isMinimized.value = false
+  closeDialer()
 }
 
 function closeDialer() {
-  if (callState.value.isActive) {
-    hangup()
-  }
+  phoneNumber.value = ''
+  // endCall()
   emit('close')
 }
-
-function toggleMinimize() {
-  isMinimized.value = !isMinimized.value
-  if (!isMinimized.value) {
-    showNumberPad.value = false
-  }
-}
-
-function toggleNumberPad() {
-  if (isMinimized.value && callState.value.isActive) {
-    showNumberPad.value = !showNumberPad.value
-  }
-}
-
-// Format phone number for display
-function formatPhoneNumber(number: string): string {
-  const cleaned = number.replace(/\D/g, '')
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
-  }
-  return number
-}
-
-// Digit buttons data
-const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-// Computed property for current call status display
-const callStatusText = computed(() => {
-  if (callStatus.value === 'connecting')
-    return 'Connecting...'
-  if (callStatus.value === 'active')
-    return `Call in progress - ${formattedCallDuration.value}`
-  return 'Ready to call'
-})
 
 // Cleanup on unmount
 onBeforeUnmount(() => {
@@ -252,25 +156,26 @@ onBeforeUnmount(() => {
 
 function onAcceptCall() {
   answerCall()
-  openDialer()
 }
 </script>
 
 <template>
   <!-- Incoming Call Dialer -->
-  <Transition name="slide-fade">
+  <Transition name="slide-side">
     <div
       v-if="incomingCall"
-      ref="incomingDialer"
+      ref="incomingDialerV2"
       :style="incomingStyle"
       class="fixed z-50 w-80 bg-white rounded-xl shadow-2xl overflow-hidden select-none"
       style="cursor: grab;"
-      @mousedown="$event.target === $el && ($el.style.cursor = 'grabbing')"
-      @mouseup="$el.style.cursor = 'grab'"
+      @mousedown="$event.target === incomingDialerRef && incomingDialerRef && (incomingDialerRef.style.cursor = 'grabbing')"
+      @mouseup="incomingDialerRef && (incomingDialerRef.style.cursor = 'grab')"
     >
       <DialerV2Incoming @reject="rejectCall" @accept="onAcceptCall" />
     </div>
   </Transition>
+
+  <!-- Active Call -->
   <Transition name="slide-fade">
     <div
       v-if="activeCall"
@@ -419,6 +324,15 @@ function onAcceptCall() {
 }
 .slide-fade-enter-active,
 .slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-side-enter-from,
+.slide-side-leave-to {
+  transform: translateX(100%);
+}
+.slide-side-enter-active,
+.slide-side-leave-active {
   transition: all 0.3s ease;
 }
 </style>

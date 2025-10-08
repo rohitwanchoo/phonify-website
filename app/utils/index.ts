@@ -3,7 +3,7 @@ import moment from 'moment'
 import { toast } from 'vue-sonner'
 
 interface ToastOptions {
-  type?: 'success' | 'error' | 'warning'
+  type?: 'success' | 'error' | 'warning' | 'info'
   message: string
   description?: string
   action?: any
@@ -22,6 +22,7 @@ export function showToast(options: ToastOptions) {
         success: '#48BB78',
         warning: '#ECC94B',
         error: '#F56565',
+        info: '#4299E1',
       }[type],
       color: '#fff',
     },

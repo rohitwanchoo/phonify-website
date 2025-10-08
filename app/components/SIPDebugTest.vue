@@ -99,7 +99,7 @@ interface DebugLog {
   message: string
 }
 
-const { initializeSIP, cleanup, getSIPStatus } = useSIP()
+const { initializeSIP, cleanup, getSIPStatus } = useSIPml5()
 const sipStatus = ref(getSIPStatus())
 const debugLogs = ref<DebugLog[]>([])
 

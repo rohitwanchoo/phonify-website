@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { endCall, getSIPStatus, startCall } from '~/composables/useSIP'
+// import { endCall, getSIPStatus, startCall } from '~/composables/useSIP'
+const { getSIPStatus, startCall, endCall } = useSIPml5()
 
 const { user } = useAuth()
 

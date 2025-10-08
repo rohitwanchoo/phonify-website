@@ -40,6 +40,16 @@ export default defineNuxtConfig({
     ],
   },
   css: ['~/assets/css/tailwind.css'],
+  app: {
+    head: {
+      script: [
+        {
+          src: 'https://www.doubango.org/sipml5/SIPml-api.js',
+          defer: true
+        }
+      ]
+    }
+  },
   shadcn: {
     /**
      * Prefix for all the imported component
