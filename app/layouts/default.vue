@@ -9,12 +9,26 @@ import {
 } from '@/components/ui/sidebar'
 
 // Use the dialer composable
-const { isDialerOpen, closeDialer, openDialer } = useDialer()
+const { closeDialer, openDialer } = useDialer()
 const containerElement = useTemplateRef<HTMLElement>('containerElement')
 
 const { width, height } = useElementSize(containerElement)
 const containerWidth = computed(() => width.value)
-// Define boundaries for dragging
+
+// Use the SIPml5 composable
+const { initializeSIP, cleanup } = useSIPml5()
+
+// Initialize SIP on component mount
+onMounted(() => {
+  setTimeout(() => {
+    initializeSIP()
+  }, 3000)
+})
+
+// Cleanup SIP on component unmount
+onUnmounted(() => {
+  cleanup()
+})
 </script>
 
 <template>
@@ -33,20 +47,9 @@ const containerWidth = computed(() => width.value)
   </SidebarProvider>
 
   <!-- Dialer teleported to body -->
-  <Transition name="slide-fade">
-    <Dialer v-if="isDialerOpen" @close="closeDialer" />
-  </Transition>
 
-  <!-- <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" /> -->
+  <Dialer @close="closeDialer" />
+  <!-- <Dialer @close="closeDialer" /> -->
+
+  <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
 </template>
-
-<style scoped>
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  transform: translateY(100%);
-}
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-</style>

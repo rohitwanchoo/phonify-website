@@ -3,7 +3,7 @@ import moment from 'moment'
 import { toast } from 'vue-sonner'
 
 interface ToastOptions {
-  type?: 'success' | 'error' | 'warning'
+  type?: 'success' | 'error' | 'warning' | 'info'
   message: string
   description?: string
   action?: any
@@ -22,6 +22,7 @@ export function showToast(options: ToastOptions) {
         success: '#48BB78',
         warning: '#ECC94B',
         error: '#F56565',
+        info: '#4299E1',
       }[type],
       color: '#fff',
     },
@@ -489,4 +490,60 @@ export function exportToCSV(data: {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+// Decrypts a password encrypted with the PHP password_hash function
+/**
+ * Decrypts a password encrypted with the PHP password_hash function
+ * @param password - The encrypted password to decrypt
+ * @returns The decrypted password
+ */
+export function passwordDecrypt(password: string): string | undefined {
+  if (!password)
+    return ''
+
+  try {
+    // Step 1: base64 decode → returns a Latin1 string
+    const decoded = atob(password)
+
+    // Step 2: PHP-compatible UUDecode
+    function uudecode(str: string): string {
+      let result = ''
+      let i = 0
+
+      while (i < str.length) {
+        let len = (str.charCodeAt(i++) - 32) & 63
+        if (len <= 0)
+          continue
+
+        while (len > 0 && (i + 3) < str.length) {
+          const c1 = (str.charCodeAt(i++) - 32) & 63
+          const c2 = (str.charCodeAt(i++) - 32) & 63
+          const c3 = (str.charCodeAt(i++) - 32) & 63
+          const c4 = (str.charCodeAt(i++) - 32) & 63
+
+          const b1 = (c1 << 2) | (c2 >> 4)
+          const b2 = ((c2 & 15) << 4) | (c3 >> 2)
+          const b3 = ((c3 & 3) << 6) | c4
+
+          if (len-- > 0)
+            result += String.fromCharCode(b1)
+          if (len-- > 0)
+            result += String.fromCharCode(b2)
+          if (len-- > 0)
+            result += String.fromCharCode(b3)
+        }
+      }
+      return result
+    }
+
+    const plain = uudecode(decoded)
+
+    // Strip trailing non-printable characters
+    // PHP's password_hash function pads the password with null bytes
+    return plain.replace(/[\x00-\x1F\x7F-\xFF]+$/g, '')
+  }
+  catch {
+    return ''
+  }
 }

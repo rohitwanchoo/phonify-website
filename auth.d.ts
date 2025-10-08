@@ -11,6 +11,8 @@ declare module '#auth-utils' {
     extension?: string | number
     alt_extension?: string
     app_extension?: string
+    secret?: string
+    domain?: string
     // Add any other user fields from your API response
   }
 
@@ -78,6 +80,8 @@ export interface LoginResponse {
     extension?: string | number
     alt_extension?: string
     app_extension?: string
+    secret?: string
+    domain?: string
   }
   expires_at?: string
   server?: string
