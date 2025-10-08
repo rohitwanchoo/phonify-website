@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 // import { endCall, getSIPStatus, startCall } from '~/composables/useSIP'
-const { getSIPStatus, startCall, endCall } = useSIPml5()
+const { getSIPStatus, startCall, endCall, callerDetails } = useSIPml5()
 
 const { user } = useAuth()
 
@@ -37,6 +37,7 @@ function hangupCall() {
 
 <template>
   {{ user }}
+  {{ callerDetails }}
   <div class="sip-example">
     <h3>SIP Test Component</h3>
 

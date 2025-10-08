@@ -27,6 +27,11 @@ const formattedCallDuration = computed(() => {
   const s = String(totalSeconds % 60).padStart(2, '0')
   return `${h}:${m}:${s}`
 })
+onMounted(() => {
+  if (callStatus.value === 'ringing') {
+    minimize.value = false
+  }
+})
 </script>
 
 <template>
@@ -41,10 +46,10 @@ const formattedCallDuration = computed(() => {
         </div>
         <div>
           <div class="text-white font-medium text-[16px]">
-            {{ callerDetails?.name || callerDetails?.number || 'Jhon Doe' }}
+            {{ callerDetails?.name || callerDetails?.number }}
           </div>
           <div class="text-[#FFFFFFB2] text-nowrap">
-            {{ callStatus === 'active' ? 'Call in progress' : '' }} - {{ formattedCallDuration }}
+            {{ callStatus === 'active' ? 'Call in progress' : callStatus === 'ringing' ? 'Ringing...' : '' }} - {{ formattedCallDuration }}
           </div>
         </div>
       </div>

@@ -438,10 +438,21 @@ export function useSIPml5() {
       })
 
       const targetUri = `sip:${target}@${user.value?.domain || config.public.asteriskDomain}`
+
+      // Set caller details for outbound call
+      callerDetails.value = {
+        name: target, // Use target number as name for outbound calls
+        number: target,
+        uri: targetUri,
+        displayName: target,
+      }
+
       callSession.call(targetUri)
 
       callStatus.value = 'connecting'
-      consola.info('📞 Call initiated to:', targetUri)
+      consola.info('📞 Call initiated to:', targetUri, {
+        callerDetails: callerDetails.value,
+      })
     }
     catch (error) {
       consola.error('❌ Failed to start call:', error)

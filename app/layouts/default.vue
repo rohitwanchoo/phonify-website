@@ -20,7 +20,9 @@ const { initializeSIP, cleanup } = useSIPml5()
 
 // Initialize SIP on component mount
 onMounted(() => {
-  initializeSIP()
+  setTimeout(() => {
+    initializeSIP()
+  }, 3000)
 })
 
 // Cleanup SIP on component unmount
@@ -46,7 +48,7 @@ onUnmounted(() => {
 
   <!-- Dialer teleported to body -->
 
-  <DialerV2 @close="closeDialer" />
+  <Dialer @close="closeDialer" />
   <!-- <Dialer @close="closeDialer" /> -->
 
   <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
