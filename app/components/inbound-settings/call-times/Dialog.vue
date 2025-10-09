@@ -2,7 +2,6 @@
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { computed, ref, watch } from 'vue'
 import * as z from 'zod'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
@@ -18,7 +17,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open', 'submit'])
 
-const loading = ref(false)
 const isEditMode = computed(() => !!props.rowData)
 
 const daysOfWeek = [
@@ -30,24 +28,6 @@ const daysOfWeek = [
   'Friday',
   'Saturday',
 ]
-
-// Watch for changes in the open prop to handle form initialization
-watch(() => props.open, (val) => {
-  if (val) {
-    if (isEditMode.value && props.rowData) {
-      resetForm({
-        values: {
-          clientName: props.rowData.title || '',
-          description: props.rowData.description || '',
-          ...generateDayTimeFields(props.rowData.data || []),
-        },
-      })
-    }
-    else {
-      resetForm()
-    }
-  }
-})
 
 // Helper function to generate day time fields from data
 function generateDayTimeFields(data: any[]) {
@@ -62,7 +42,7 @@ function generateDayTimeFields(data: any[]) {
 
 // Form validation schema
 const formSchema = toTypedSchema(z.object({
-  clientName: z.string().min(1, 'Client name is required').max(100),
+  name: z.string().min(1, 'Client name is required').max(100),
   description: z.string().min(1, 'Description is required').max(500),
   ...daysOfWeek.reduce((schema, day) => {
     const dayLower = day.toLowerCase()
@@ -74,10 +54,10 @@ const formSchema = toTypedSchema(z.object({
   }, {}),
 }))
 
-const { handleSubmit, resetForm, values } = useForm({
+const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    clientName: '',
+    name: '',
     description: '',
     ...daysOfWeek.reduce((fields, day) => {
       const dayLower = day.toLowerCase()
@@ -90,9 +70,25 @@ const { handleSubmit, resetForm, values } = useForm({
   },
 })
 
-const onSubmit = handleSubmit((values) => {
-  loading.value = true
+// Watch for changes in the open prop to handle form initialization
+watch(() => props.open, (val) => {
+  if (val) {
+    if (isEditMode.value && props.rowData) {
+      resetForm({
+        values: {
+          name: props.rowData.title || '',
+          description: props.rowData.description || '',
+          ...generateDayTimeFields(props.rowData.data || []),
+        },
+      })
+    }
+    else {
+      resetForm()
+    }
+  }
+})
 
+const onSubmit = handleSubmit((values) => {
   // Format the data to match the dummy data structure
   const formattedData = daysOfWeek.map((day) => {
     const dayLower = day.toLowerCase()
@@ -105,16 +101,14 @@ const onSubmit = handleSubmit((values) => {
   })
 
   const result = {
-    name: values.clientName,
+    name: values.name,
     description: values.description,
     day: formattedData.map(item => item.day),
     from: formattedData.map(item => item.from),
     to: formattedData.map(item => item.to),
-    dept_id: props.rowData?.id ?? null
+    dept_id: props.rowData?.id ?? null,
   }
 
-  loading.value = false
-  emit('update:open', false)
   emit('submit', result)
 })
 </script>
@@ -129,7 +123,7 @@ const onSubmit = handleSubmit((values) => {
       </DialogHeader>
       <Separator class="" />
       <form class="space-y-4" @submit.prevent="onSubmit">
-        <FormField v-slot="{ componentField }" name="clientName">
+        <FormField v-slot="{ componentField }" name="name">
           <FormItem>
             <p class="text-primary text-sm">
               Title
@@ -216,10 +210,11 @@ const onSubmit = handleSubmit((values) => {
           <Button
             type="submit"
             class="w-[50%]"
-            :disabled="loading"
+            :disabled="isSubmitting"
+            :loading="isSubmitting"
           >
             <Icon name="material-symbols:save" />
-            {{ loading ? 'Saving...' : isEditMode ? 'Update' : 'Save' }}
+            {{ isEditMode ? 'Update' : 'Save' }}
           </Button>
         </DialogFooter>
       </form>

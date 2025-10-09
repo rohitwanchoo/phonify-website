@@ -12,7 +12,7 @@ const { data: callTimingList, status: callTimingListStatus, refresh: refreshCall
 async function handleAddCallTime(newCallTime: any) {
   try {
     const response = await useApi().post('/save-call-timings', { data: newCallTime })
-    if (response?.message) {
+    if (response?.success === 'true') {
       showToast({
         message: response?.message,
         type: 'success',
@@ -32,7 +32,9 @@ async function handleAddCallTime(newCallTime: any) {
       type: 'error',
     })
   }
-  isDialogOpen.value = false
+  finally {
+    isDialogOpen.value = false
+  }
 }
 </script>
 
@@ -60,7 +62,10 @@ async function handleAddCallTime(newCallTime: any) {
       <BaseSkelton v-for="i in 6" :key="i" class="h-14 w-full mb-2" rounded="rounded-sm" />
     </div>
     <div v-else>
-      <InboundSettingsCallTimesList :list="callTimingList?.data" />
+      <InboundSettingsCallTimesList
+        :list="callTimingList?.data"
+        @edit="handleAddCallTime"
+      />
     </div>
   </div>
 </template>

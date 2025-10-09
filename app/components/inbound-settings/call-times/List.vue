@@ -6,6 +6,10 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['edit'])
+
+
+
 const DAYS = [
   'Monday',
   'Tuesday',
@@ -19,12 +23,13 @@ const DAYS = [
 const callSchedules = computed(() => {
   const grouped: Record<
     number,
-    { name: string, description: string, default?: { from: string, to: string }, data: any[] }
+    { id: number, name: string, description: string, default?: { from: string, to: string }, data: any[] }
   > = {}
 
   props.list.forEach((item: any) => {
     if (!grouped[item.department_id]) {
       grouped[item.department_id] = {
+        id: item.department_id,
         name: item.name,
         description: item.description,
         data: [],
@@ -50,6 +55,7 @@ const callSchedules = computed(() => {
   // normalize each department to have all 7 days, using default if missing
   return Object.values(grouped).map((group) => {
     return {
+      id: group.id,
       name: group.name,
       description: group.description,
       data: DAYS.map((day, idx) => {
@@ -74,6 +80,7 @@ function capitalizeDay(day: string) {
 
 const dialogData = ref({
   open: false,
+  id: null,
   title: '',
   description: '',
   data: [],
@@ -82,14 +89,16 @@ const dialogData = ref({
 function handleEditClick(schedule: any) {
   dialogData.value = {
     open: true,
+    id: schedule.id,
     title: schedule.name,
     description: schedule.description,
     data: JSON.parse(JSON.stringify(schedule.data)),
   }
 }
 
-function handleDialogSubmit(_data: any) {
+function handleDialogSubmit(data: any) {
   dialogData.value.open = false
+  emit('edit', data)
 }
 </script>
 
@@ -107,6 +116,7 @@ function handleDialogSubmit(_data: any) {
     <InboundSettingsCallTimesDialog
       :open="dialogData.open"
       :row-data="{
+        id: dialogData.id,
         title: dialogData.title,
         description: dialogData.description,
         data: dialogData.data,
