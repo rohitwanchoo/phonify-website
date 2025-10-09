@@ -67,25 +67,25 @@ const router = useRouter()
 const { data: ivrData } = await useLazyAsyncData('get-ivr', () =>
   useApi().post('/ivr'), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 const { data: extensionListData } = await useLazyAsyncData('get-extension-list', () =>
   useApi().post('/extension-list'), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 const { data: conferencingData } = await useLazyAsyncData('get-conferencing', () =>
   useApi().post('/conferencing'), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 const { data: ringGroupData } = await useLazyAsyncData('get-ring-group', () =>
   useApi().post('/ring-group'), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 const destinationTypes = {
@@ -118,12 +118,13 @@ interface DidConfiguration {
 function resolveDestination(dest_type: string, destination: string) {
   switch (dest_type) {
     case '0': // IVR
-      return ivrData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
+      return ivrData.value?.find((item: any) => String(item.id) === String(destination))?.ivr_desc || '-'
 
     case '1': // Extension
     case '2': // Voicemail
     case '6': // Fax
-      return extensionListData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
+    { const ext = extensionListData.value?.find((item: any) => String(item.id) === String(destination))
+      return ext ? `${ext.first_name} ${ext.last_name}` : '-' }
 
     case '3': // DNC
       return null
@@ -132,10 +133,10 @@ function resolveDestination(dest_type: string, destination: string) {
       return formatNumber(destination)
 
     case '5': // Conferencing
-      return conferencingData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
+      return conferencingData.value?.find((item: any) => String(item.id) === String(destination))?.title || '-'
 
     case '8': // Ring-Group
-      return ringGroupData.value?.find((item: any) => String(item.id) === String(destination))?.name || '-'
+      return ringGroupData.value?.find((item: any) => String(item.id) === String(destination))?.title || '-'
 
     default:
       return '-'
@@ -274,7 +275,11 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Destination Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, destinationTypes[Number(row.original.dest_type) as keyof typeof destinationTypes] || '-')
+      const type = row.original.dest_type
+      const label = type != null && type in destinationTypes
+        ? destinationTypes[type as unknown as keyof typeof destinationTypes]
+        : '-'
+      return h('div', { class: 'text-center font-normal text-sm' }, label)
     },
   }),
 

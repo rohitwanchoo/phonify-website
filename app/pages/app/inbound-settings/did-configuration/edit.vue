@@ -83,6 +83,12 @@ const { data: ringGroupData, status: ringGroupStatus, refresh: refreshRingGroupD
   immediate: false,
 })
 
+const { data: userData, status: userDataStatus, refresh: refreshUserData } = await useLazyAsyncData('user-data', () =>
+  useApi().get('/users-list-new'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
 const voipProviderItems = [
   { label: 'DidForSale', value: 'didforsale' },
   { label: 'Plivo', value: 'plivo' },
@@ -98,11 +104,7 @@ const formSchema = toTypedSchema(
     default_did: z.boolean(),
     redirect_last_agent: z.boolean(),
     dest_type: z.number().optional(),
-    ingroup: z.number().optional(),
-    conf_id: z.number().optional(),
-    extension: z.number().optional(),
-    ivr_id: z.number().optional(),
-    forward_number: z.string().optional(),
+    destination: z.string().optional(),
     dest_type_ooh: z.number().optional(),
     ingroup_ooh: z.number().optional(),
     conf_id_ooh: z.number().optional(),
@@ -110,13 +112,90 @@ const formSchema = toTypedSchema(
     ivr_id_ooh: z.number().optional(),
     forward_number_ooh: z.string().optional(),
     sms: z.boolean(),
-    sms_type: z.boolean(),
+    enable_sms_ai: z.boolean(),
+    assigned_user_id: z.number().optional(),
     set_exclusive_for_user: z.boolean(),
     call_time_department_id: z.number(),
     call_time_holiday: z.boolean(),
     call_screening_status: z.boolean(),
     voip_provider: z.string(),
+  }).superRefine((data, ctx) => {
+    // Validate dest_type when redirect_last_agent is false
+    if (!data.redirect_last_agent && !data.dest_type) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['dest_type'],
+        message: 'Destination type is required when redirect last agent is disabled',
+      })
+    }
+
+    // Validate dest_type_ooh when call_time_holiday is true
+    if (data.call_time_holiday && !data.dest_type_ooh) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['dest_type_ooh'],
+        message: 'Destination type is required when call time is holiday',
+      })
+    }
+
+    // Validate assigned_user_id when sms is true
+    if (data.sms && !data.assigned_user_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['assigned_user_id'],
+        message: 'Assigned user is required when sms is enabled',
+      })
+    }
+
+    // Validate destination fields based on dest_type when redirect_last_agent is false
+    if (!data.redirect_last_agent && data.dest_type !== undefined && data.dest_type !== 3 && !data.destination) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['destination'],
+        message: 'Destination is required',
+      })
+    }
+
+    // Validate destination fields based on dest_type_ooh when call_time_holiday is true
+    if (data.call_time_holiday && data.dest_type_ooh !== undefined && data.dest_type_ooh !== 3) {
+      if (data.dest_type_ooh === 4 && !data.forward_number_ooh) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['forward_number_ooh'],
+          message: 'Phone number is required',
+        })
+      }
+      else if (data.dest_type_ooh === 0 && !data.ivr_id_ooh) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['ivr_id_ooh'],
+          message: 'Destination is required',
+        })
+      }
+      else if ([1, 2, 6].includes(data.dest_type_ooh) && !data.extension_ooh) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['extension_ooh'],
+          message: 'Destination is required',
+        })
+      }
+      else if (data.dest_type_ooh === 5 && !data.conf_id_ooh) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['conf_id_ooh'],
+          message: 'Destination is required',
+        })
+      }
+      else if (data.dest_type_ooh === 8 && !data.ingroup_ooh) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['ingroup_ooh'],
+          message: 'Destination is required',
+        })
+      }
+    }
   }),
+
 )
 
 const { handleSubmit, values, isSubmitting, setFieldValue } = useForm({
@@ -127,11 +206,7 @@ const { handleSubmit, values, isSubmitting, setFieldValue } = useForm({
     default_did: didData.value?.default_did,
     redirect_last_agent: didData.value?.redirect_last_agent,
     dest_type: didData.value?.dest_type,
-    ingroup: didData.value?.ingroup,
-    conf_id: didData.value?.conf_id,
-    extension: didData.value?.extension,
-    ivr_id: didData.value?.ivr_id,
-    forward_number: didData.value?.forward_number,
+    destination: didData.value?.destination,
     dest_type_ooh: didData.value?.dest_type_ooh,
     ingroup_ooh: didData.value?.ingroup_ooh,
     conf_id_ooh: didData.value?.conf_id_ooh,
@@ -139,7 +214,8 @@ const { handleSubmit, values, isSubmitting, setFieldValue } = useForm({
     ivr_id_ooh: didData.value?.ivr_id_ooh,
     forward_number_ooh: didData.value?.forward_number_ooh,
     sms: didData.value?.sms,
-    sms_type: didData.value?.sms_type,
+    enable_sms_ai: didData.value?.enable_sms_ai,
+    assigned_user_id: didData.value?.assigned_user_id,
     set_exclusive_for_user: didData.value?.set_exclusive_for_user,
     call_time_department_id: didData.value?.call_time_department_id,
     call_time_holiday: didData.value?.call_time_holiday,
@@ -156,11 +232,7 @@ watch(didData, (newData) => {
     setFieldValue('default_did', newData?.default_did === '1')
     setFieldValue('redirect_last_agent', newData?.redirect_last_agent === '1')
     setFieldValue('dest_type', Number(newData?.dest_type))
-    setFieldValue('ingroup', Number(newData?.ingroup))
-    setFieldValue('conf_id', Number(newData?.conf_id))
-    setFieldValue('extension', Number(newData?.extension))
-    setFieldValue('ivr_id', Number(newData?.ivr_id))
-    setFieldValue('forward_number', newData?.forward_number)
+    setFieldValue('destination', newData?.destination)
     setFieldValue('dest_type_ooh', Number(newData?.dest_type_ooh))
     setFieldValue('ingroup_ooh', Number(newData?.ingroup_ooh))
     setFieldValue('conf_id_ooh', Number(newData?.conf_id_ooh))
@@ -168,7 +240,8 @@ watch(didData, (newData) => {
     setFieldValue('ivr_id_ooh', Number(newData?.ivr_id_ooh))
     setFieldValue('forward_number_ooh', newData?.forward_number_ooh)
     setFieldValue('sms', newData?.sms === '1')
-    setFieldValue('sms_type', newData?.sms_type === '1')
+    setFieldValue('enable_sms_ai', newData?.enable_sms_ai === '1')
+    setFieldValue('assigned_user_id', Number(newData?.assigned_user_id))
     setFieldValue('set_exclusive_for_user', newData?.set_exclusive_for_user === '1')
     setFieldValue('call_time_department_id', Number(newData?.call_time_department_id))
     setFieldValue('call_time_holiday', newData?.call_time_holiday === '1')
@@ -195,6 +268,13 @@ function handleDestinationTypeChange(destType: number) {
   }
 }
 
+// Watch SMS toggle and refresh user data when enabled
+watch(() => values.sms, (newVal) => {
+  if (newVal) {
+    refreshUserData()
+  }
+})
+
 // Watch both destination types with a single consolidated watcher
 watch([() => values.dest_type, () => values.dest_type_ooh], ([destType, destTypeOoh]) => {
   if (destType !== undefined) {
@@ -205,20 +285,7 @@ watch([() => values.dest_type, () => values.dest_type_ooh], ([destType, destType
   }
 }, { immediate: true })
 
-// Computed properties for destination field mapping
-function getDestinationFieldName(destType: number) {
-  const fieldMap = {
-    0: 'ivr_id',
-    1: 'extension',
-    2: 'extension',
-    5: 'conf_id',
-    6: 'extension',
-    8: 'ingroup',
-  }
-  return (fieldMap as Record<number, string>)[destType] || ''
-}
-
-const destinationFieldName = computed(() => getDestinationFieldName(values.dest_type ?? 0))
+// const destinationFieldName = computed(() => getDestinationFieldName(values.dest_type ?? 0))
 const destinationFieldNameOoh = computed(() => {
   const fieldMap = {
     0: 'ivr_id_ooh',
@@ -248,11 +315,12 @@ const onSubmit = handleSubmit(async (values) => {
       default_did: values.default_did ? '1' : '0',
       redirect_last_agent: values.redirect_last_agent ? '1' : '0',
       dest_type: values.dest_type,
-      ingroup: values.ingroup,
-      conf_id: values.conf_id,
-      extension: values.extension,
-      ivr_id: values.ivr_id,
-      forward_number: formatMaskaToNumber(values.forward_number ?? ''),
+      ivr_id: values.dest_type === 0 ? values.destination : undefined,
+      extension: values.dest_type === 1 || 6 ? values.destination : undefined,
+      voicemail_id: values.dest_type === 2 ? values.destination : undefined,
+      forward_number: values.dest_type === 4 ? values.destination : undefined,
+      conf_id: values.dest_type === 5 ? values.destination : undefined,
+      ingroup: values.dest_type === 8 ? values.destination : undefined,
       dest_type_ooh: values.dest_type_ooh,
       ingroup_ooh: values.ingroup_ooh,
       conf_id_ooh: values.conf_id_ooh,
@@ -260,7 +328,8 @@ const onSubmit = handleSubmit(async (values) => {
       ivr_id_ooh: values.ivr_id_ooh,
       forward_number_ooh: formatMaskaToNumber(values.forward_number_ooh ?? ''),
       sms: values.sms ? '1' : '0',
-      sms_type: values.sms_type ? '1' : '0',
+      enable_sms_ai: values.enable_sms_ai ? '1' : '0',
+      assigned_user_id: values.assigned_user_id,
       set_exclusive_for_user: values.set_exclusive_for_user ? '1' : '0',
       call_time_department_id: values.call_time_department_id,
       call_time_holiday: values.call_time_holiday ? '1' : '0',
@@ -419,7 +488,7 @@ function onCancel() {
                 </div>
 
                 <div v-if="values.dest_type !== 3" class="w-1/2">
-                  <FormField v-if="values.dest_type === 4" v-slot="{ componentField, errorMessage }" name="forward_number">
+                  <FormField v-if="values.dest_type === 4" v-slot="{ componentField, errorMessage }" name="destination">
                     <FormItem>
                       <FormLabel class="font-normal text-sm">
                         Phone Number
@@ -438,7 +507,7 @@ function onCancel() {
                     </FormItem>
                   </FormField>
 
-                  <FormField v-else v-slot="{ componentField, errorMessage }" :name="destinationFieldName">
+                  <FormField v-else v-slot="{ componentField, errorMessage }" name="destination">
                     <FormItem>
                       <FormLabel class="font-normal text-sm">
                         Destination
@@ -454,22 +523,22 @@ function onCancel() {
                             </SelectItem>
                             <template v-else>
                               <template v-if="values.dest_type === 0">
-                                <SelectItem v-for="item in ivrData" :key="item.id" :value="item.id">
+                                <SelectItem v-for="item in ivrData" :key="item.id" :value="String(item.id)">
                                   {{ item.ivr_desc }}
                                 </SelectItem>
                               </template>
                               <template v-else-if="[1, 2, 6].includes(values.dest_type ?? 0)">
-                                <SelectItem v-for="item in extensionListData" :key="item.id" :value="item.id">
+                                <SelectItem v-for="item in extensionListData" :key="item.id" :value="String(item.id)">
                                   {{ item.first_name }} {{ item.last_name }}
                                 </SelectItem>
                               </template>
                               <template v-else-if="values.dest_type === 5">
-                                <SelectItem v-for="item in conferencingData" :key="item.id" :value="item.id">
+                                <SelectItem v-for="item in conferencingData" :key="item.id" :value="String(item.id)">
                                   {{ item.title }}
                                 </SelectItem>
                               </template>
                               <template v-else-if="values.dest_type === 8">
-                                <SelectItem v-for="item in ringGroupData" :key="item.id" :value="item.id">
+                                <SelectItem v-for="item in ringGroupData" :key="item.id" :value="String(item.id)">
                                   {{ item.title }}
                                 </SelectItem>
                               </template>
@@ -484,7 +553,7 @@ function onCancel() {
               </div>
             </template>
 
-            <!-- Additional toggle switches -->
+            <!-- Enable SMS -->
             <FormField v-slot="{ value, handleChange }" name="sms">
               <FormItem>
                 <div
@@ -503,7 +572,8 @@ function onCancel() {
               </FormItem>
             </FormField>
 
-            <FormField v-slot="{ value, handleChange }" name="sms_type">
+            <!-- SMS AI -->
+            <FormField v-slot="{ value, handleChange }" name="enable_sms_ai">
               <FormItem>
                 <div
                   class="w-full h-11 rounded-sm flex items-center justify-between px-3 text-sm"
@@ -520,6 +590,35 @@ function onCancel() {
                 </div>
               </FormItem>
             </FormField>
+
+            <!-- Assign to user -->
+            <div v-if="values.sms">
+              <FormField v-slot="{ componentField, errorMessage }" name="assigned_user_id">
+                <FormItem>
+                  <FormLabel class="font-normal text-sm">
+                    Assign to User
+                  </FormLabel>
+                  <FormControl>
+                    <Select v-bind="componentField">
+                      <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                        <SelectValue placeholder="Select User" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem v-if="userDataStatus === 'pending'" :value="null" disabled>
+                          <Icon name="eos-icons:loading" />
+                        </SelectItem>
+                        <template v-else>
+                          <SelectItem v-for="item in userData" :key="item.id" :value="item.id">
+                            {{ item.first_name }} {{ item.last_name }}
+                          </SelectItem>
+                        </template>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage class="text-sm" />
+                </FormItem>
+              </FormField>
+            </div>
 
             <FormField v-slot="{ value, handleChange }" name="set_exclusive_for_user">
               <FormItem>
@@ -720,7 +819,7 @@ function onCancel() {
         </div>
 
         <!-- Form Actions -->
-        <div class="sticky bottom-0 right-0 w-full bg-white p-4 gap-2 flex border rounded-b-lg">
+        <div class="sticky bottom-0 right-0 w-full bg-white p-4 gap-2 flex items-center justify-center border rounded-b-lg">
           <Button class="w-1/2 h-[52px]" variant="outline" type="button" @click="onCancel">
             <Icon name="material-symbols:close" size="20" />
             Cancel
