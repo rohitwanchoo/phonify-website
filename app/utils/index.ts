@@ -29,6 +29,10 @@ export function showToast(options: ToastOptions) {
   })
 }
 
+export function handleError(err: { message: string }) {
+  showToast({ type: 'error', message: err.message || 'An error occurred' })
+}
+
 interface ErrorResponse {
   errors: {
     [field: string]: string[] | string // Messages can be either an array or a single string

@@ -66,7 +66,7 @@ const shortCuts = computed(() => [
     onClick() {
       if (!isRegistered.value) {
         showToast({
-          message: 'Webphone is not registered',
+          message: 'Webphone is not registered. Please refresh the page and try again.',
           type: 'error',
         })
         return

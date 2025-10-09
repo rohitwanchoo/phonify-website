@@ -8,6 +8,7 @@ const isCallActive = useState('sipml5.isCallActive', () => false)
 const callStatus = useState<'idle' | 'connecting' | 'active' | 'incoming' | 'ringing'>('sipml5.callStatus', () => 'idle')
 const callDuration = useState('sipml5.callDuration', () => 0)
 const isRinging = useState('sipml5.isRinging', () => false)
+const isMuted = useState('sipml5.isMuted', () => false)
 const callerDetails = useState('sipml5.callerDetails', () => ({
   name: '',
   number: '',
@@ -227,6 +228,9 @@ export function useSIPml5() {
         callStartTime = null
         callDuration.value = 0
 
+        // Reset mute state when call ends
+        isMuted.value = false
+
         consola.info('📞 Call ended')
 
         // Clean up the audio element if it exists
@@ -361,11 +365,12 @@ export function useSIPml5() {
       })
       return
     }
-
+    console.log('SIPml5 library loaded:', JSON.parse(JSON.stringify(window.SIPml)))
     const SIPml = window.SIPml
 
     // Initialize SIPml
     SIPml.init(() => {
+      // debugger
       consola.info('🔧 Initializing SIPml5 with config...')
       const stackConfig = {
         realm: user.value?.domain,
@@ -487,6 +492,9 @@ export function useSIPml5() {
         callStartTime = null
         callDuration.value = 0
 
+        // Reset mute state when call is ended
+        isMuted.value = false
+
         // Clean up the audio element
         const remoteAudio = document.getElementById('remoteAudio') as HTMLAudioElement
         if (remoteAudio) {
@@ -544,6 +552,9 @@ export function useSIPml5() {
         }
         callStartTime = null
         callDuration.value = 0
+
+        // Reset mute state when call is rejected
+        isMuted.value = false
       }
     }
   }
@@ -560,6 +571,9 @@ export function useSIPml5() {
     }
     callStartTime = null
     callDuration.value = 0
+
+    // Reset mute state during cleanup
+    isMuted.value = false
 
     if (callSession) {
       try {
@@ -605,6 +619,42 @@ export function useSIPml5() {
     isInitialized,
   })
 
+  // Mute/unmute microphone
+  const mute = () => {
+    if (callSession) {
+      try {
+        callSession.mute('audio', true)
+        isMuted.value = true
+        consola.info('🔇 Microphone muted')
+      }
+      catch (error) {
+        consola.error('❌ Error muting microphone:', error)
+      }
+    }
+  }
+
+  const unmute = () => {
+    if (callSession) {
+      try {
+        callSession.mute('audio', false)
+        isMuted.value = false
+        consola.info('🔊 Microphone unmuted')
+      }
+      catch (error) {
+        consola.error('❌ Error unmuting microphone:', error)
+      }
+    }
+  }
+
+  const toggleMute = () => {
+    if (isMuted.value) {
+      unmute()
+    }
+    else {
+      mute()
+    }
+  }
+
   return {
     // State
     isRegistered: readonly(isRegistered),
@@ -612,6 +662,7 @@ export function useSIPml5() {
     callStatus: readonly(callStatus),
     callDuration: readonly(callDuration),
     isRinging: readonly(isRinging),
+    isMuted: readonly(isMuted),
     callerDetails: readonly(callerDetails),
 
     // Methods
@@ -622,5 +673,8 @@ export function useSIPml5() {
     rejectCall,
     cleanup,
     getSIPStatus,
+    mute,
+    unmute,
+    toggleMute,
   }
 }

@@ -4,7 +4,7 @@ import Button from '@/components/ui/button/Button.vue'
 
 const emits = defineEmits(['hangup'])
 
-const { callerDetails, callStatus, callDuration } = useSIPml5()
+const { callerDetails, callStatus, callDuration, isMuted, toggleMute } = useSIPml5()
 const minimize = ref(true)
 
 // Format phone number for display
@@ -66,8 +66,8 @@ onMounted(() => {
       <Button variant="default" class="bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]/70 h-[44px] flex-1">
         <Icon name="material-symbols:pause" class="text-xl" />
       </Button>
-      <Button variant="default" class="bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]/70 h-[44px] flex-1">
-        <Icon name="material-symbols:mic-off" class="text-xl" />
+      <Button variant="default" class="bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]/70 h-[44px] flex-1" @click="toggleMute">
+        <Icon :name="isMuted ? 'material-symbols:mic' : 'material-symbols:mic-off'" class="text-xl" />
       </Button>
       <Button variant="default" class="bg-red-600 hover:bg-red-600/80 h-[44px] flex-1" @click="emits('hangup')">
         <Icon name="material-symbols:call-end" class="text-xl" />
