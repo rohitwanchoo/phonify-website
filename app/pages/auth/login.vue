@@ -13,7 +13,7 @@ const router = useRouter()
 // TODO: Remove this after testing
 const form = ref({
   email: 'demo_crm@iocod.com',
-  password: 'demo_test',
+  password: 'demo@1990',
 })
 
 const isLoading = ref(false)

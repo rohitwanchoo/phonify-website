@@ -376,7 +376,7 @@ export function useSIPml5() {
         realm: user.value?.domain,
         impi: user.value?.alt_extension || '', // Private Identity
         impu: `sip:${user.value?.alt_extension}@${user.value?.domain}`, // Public Identity
-        password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
+        password: passwordDecrypt(user.value?.secret || '') || '',
         display_name: user.value?.name || 'Web Client',
         websocket_proxy_url: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
         ice_servers: [{ urls: 'stun:stun.l.google.com:19302' }],
