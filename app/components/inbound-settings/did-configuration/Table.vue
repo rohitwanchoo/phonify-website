@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
@@ -9,11 +8,13 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown, Edit, MoreVertical, Trash2 } from 'lucide-vue-next'
 
 import { h, ref } from 'vue'
@@ -47,19 +48,45 @@ import { cn } from '@/lib/utils'
 const props = withDefaults(defineProps<{
   loading: boolean
   totalRows: number
-  list: DidConfiguration
+  list: any[]
   start: number // pagination start
   limit?: number // pagination limit
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'changeLimit', 'refresh'])
-const router = useRouter()
 
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'changeLimit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
+
+const router = useRouter()
+
+const { data: ivrData } = await useLazyAsyncData('get-ivr', () =>
+  useApi().post('/ivr'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: extensionListData } = await useLazyAsyncData('get-extension-list', () =>
+  useApi().post('/extension-list'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: conferencingData } = await useLazyAsyncData('get-conferencing', () =>
+  useApi().post('/conferencing'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: ringGroupData } = await useLazyAsyncData('get-ring-group', () =>
+  useApi().post('/ring-group'), {
+  transform: res => res.data,
+  immediate: true,
+})
 
 const destinationTypes = {
   0: 'IVR',
@@ -73,9 +100,9 @@ const destinationTypes = {
 }
 
 interface DidConfiguration {
+  id: number
   cli: string
   voice: string
-  status: string
   default_did: string
   conf_id: string
   cnam: string
@@ -83,39 +110,125 @@ interface DidConfiguration {
   forward_number: string
   sms: string
   set_exclusive_for_user: string
+  voip_provider: string
+  destination: string
+  assigned_user_name: string
 }
 
-// Dummy meta data
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  last_page: 5,
-  total: 50,
-})
+function resolveDestination(dest_type: string, destination: string) {
+  switch (dest_type) {
+    case '0': // IVR
+      return ivrData.value?.find((item: any) => String(item.id) === String(destination))?.ivr_desc || '-'
+
+    case '1': // Extension
+    case '2': // Voicemail
+    case '6': // Fax
+    { const ext = extensionListData.value?.find((item: any) => String(item.id) === String(destination))
+      return ext ? `${ext.first_name} ${ext.last_name}` : '-' }
+
+    case '3': // DNC
+      return null
+
+    case '4': // DID
+      return formatNumber(destination)
+
+    case '5': // Conferencing
+      return conferencingData.value?.find((item: any) => String(item.id) === String(destination))?.title || '-'
+
+    case '8': // Ring-Group
+      return ringGroupData.value?.find((item: any) => String(item.id) === String(destination))?.title || '-'
+
+    default:
+      return '-'
+  }
+}
+
+// Confirmation dialog for deleting
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+const selectedDIDForDelete = ref()
+
+async function handleDelete() {
+  if (!selectedDIDForDelete.value)
+    return
+
+  try {
+    const res = await useApi().post('/delete-did', {
+      did_id: selectedDIDForDelete.value,
+    })
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+    refreshNuxtData('did-configuration-list')
+  }
+  catch (err) {
+    showToast({
+      message: `${err}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedDIDForDelete.value = null
+  }
+}
+
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
+}
 
 const columnHelper = createColumnHelper<DidConfiguration>()
-
 const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
 
   columnHelper.accessor('cli', {
     header: ({ column }) =>
-      h('div', { class: 'text-center' }, 'Phone Number'),
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
       const voice = row.original.voice
       const default_did = row.original.default_did
       const conf_id = row.original.conf_id
-      return h('div', { class: 'flex items-center justify-center gap-2 ' }, [
+      return h('div', { class: 'flex items-center justify-start gap-2 ' }, [
         // Phone number
         h('div', formatNumber(row.original.cli)),
 
         // Three status tags
         h('div', { class: 'flex gap-1' }, [
-          default_did
+          default_did === '1'
           && h('div', {
             class: 'bg-blue-50 border border-blue-600 text-primary text-xs px-2 py-0.5 rounded-sm',
           }, 'Default'),
@@ -129,6 +242,14 @@ const columns = [
           && h('div', {
             class: 'bg-purple-50 border border-purple-600 text-primary text-xs px-2 py-0.5 rounded-sm',
           }, 'Configured'),
+        ]),
+
+        // Provider
+        h('div', { class: 'flex gap-1' }, [
+          row.original.voip_provider
+          && h('div', {
+            class: 'bg-red-50 border border-red-600 text-primary text-xs px-2 py-0.5 rounded-sm capitalize',
+          }, row.original.voip_provider),
         ]),
       ])
     },
@@ -154,11 +275,15 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Destination Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, destinationTypes[Number(row.original.dest_type) as keyof typeof destinationTypes] || '-')
+      const type = row.original.dest_type
+      const label = type != null && type in destinationTypes
+        ? destinationTypes[type as unknown as keyof typeof destinationTypes]
+        : '-'
+      return h('div', { class: 'text-center font-normal text-sm' }, label)
     },
   }),
 
-  columnHelper.accessor('extension', {
+  columnHelper.accessor('destination', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -166,8 +291,9 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Destination', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      // TODO: Need to add bind extension here currently is not available from API
-      return h('div', { class: 'text-center font-normal text-sm' }, '-')
+      const { dest_type, destination } = row.original
+      const resolved = resolveDestination(dest_type, destination)
+      return h('div', { class: 'text-center font-normal text-sm' }, resolved ?? '-')
     },
   }),
 
@@ -188,15 +314,15 @@ const columns = [
       }, isSMS ? 'Yes' : 'No')
     },
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('assigned_user_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+      }, () => ['Assigned User', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.status || '-')
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.assigned_user_name || '-')
     },
   }),
 
@@ -237,7 +363,10 @@ const columns = [
             'Edit',
           ]),
           h(DropdownMenuItem, {
-            onClick: () => console.log('Delete', row.original.id),
+            onClick: () => {
+              selectedDIDForDelete.value = row.original.id
+              revealDeleteConfirm()
+            },
             class: 'flex items-center gap-2 text-red-600',
           }, [
             h(Trash2, { class: 'h-4 w-4 text-red-500' }),
@@ -253,51 +382,50 @@ const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-function changeLimit(val: number) {
-  emits('changeLimit', val)
-}
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg my-6 overflow-x-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
-            v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
+            v-for="header in headerGroup.headers"
+            :key="header.id"
             class="bg-gray-50"
-            :class="cn(
-              { 'sticky bg-background/95': header.column.getIsPinned() },
-              header.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-            )"
           >
-            <FlexRender v-if="!header.isPlaceholder" class="" :render="header.column.columnDef.header" :props="header.getContext()" />
+            <FlexRender
+              v-if="!header.isPlaceholder"
+              :render="header.column.columnDef.header"
+              :props="header.getContext()"
+            />
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -308,27 +436,23 @@ function changeLimit(val: number) {
           </TableCell>
         </TableRow>
         <template v-else-if="table.getRowModel().rows?.length">
-          <template v-for="row in table.getRowModel().rows" :key="row.id">
-            <TableRow :data-state="row.getIsSelected() && 'selected'">
-              <TableCell
-                v-for="cell in row.getVisibleCells()" :key="cell.id" :data-pinned="cell.column.getIsPinned()"
-                class="p-[12px]"
-                :class="cn(
-                  { 'sticky bg-background/95': cell.column.getIsPinned() },
-                  cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-                )"
-              >
-                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-              </TableCell>
-            </TableRow>
-            <TableRow v-if="row.getIsExpanded()">
-              <TableCell :colspan="row.getAllCells().length">
-                {{ JSON.stringify(row.original) }}
-              </TableCell>
-            </TableRow>
-          </template>
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            :data-state="row.getIsSelected() && 'selected'"
+          >
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="p-[12px]"
+            >
+              <FlexRender
+                :render="cell.column.columnDef.cell"
+                :props="cell.getContext()"
+              />
+            </TableCell>
+          </TableRow>
         </template>
-
         <TableRow v-else>
           <TableCell
             :colspan="columns.length"
@@ -340,13 +464,13 @@ function changeLimit(val: number) {
       </TableBody>
     </Table>
   </div>
+
   <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
-
+        Showing
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -357,7 +481,6 @@ function changeLimit(val: number) {
             </SelectContent>
           </Select>
         </span>
-
         of {{ totalRows }} entries
       </div>
     </div>
@@ -369,4 +492,13 @@ function changeLimit(val: number) {
       />
     </div>
   </div>
+
+  <!-- CONFIRM DELETE -->
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirmHandler"
+    :cancel="deleteCancel"
+    title="Delete DID Configuration"
+    description="You are about to delete this DID configuration. Do you wish to proceed?"
+  />
 </template>

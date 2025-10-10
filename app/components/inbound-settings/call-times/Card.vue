@@ -30,7 +30,9 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: 'Call Timing',
+  },
+  description: {
+    type: String,
   },
 })
 
@@ -102,10 +104,10 @@ function handleEditClick() {
               {{ title }}
             </h4>
             <p class="text-xs font-light text-gray-400">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur illum vitae, error ratione nesciunt distinctio aliquam molestias delectus ipsa velit eveniet repellat. Aliquam veritatis veniam animi, voluptatum repellendus explicabo cum.
+              {{ description }}
             </p>
           </div>
-          <AccordionTrigger>
+          <AccordionTrigger class="py-0">
             <template #icon>
               <Button variant="outline" size="icon" class="relative" @click="toggleAccordion">
                 <Icon
@@ -116,7 +118,7 @@ function handleEditClick() {
             </template>
           </AccordionTrigger>
         </div>
-        <AccordionContent class="">
+        <AccordionContent>
           <div class="border border-r-0 border-l-0 overflow-hidden">
             <Table>
               <TableHeader>

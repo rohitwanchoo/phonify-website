@@ -224,9 +224,6 @@ const table = useVueTable({
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
 </script>
