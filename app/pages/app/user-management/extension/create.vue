@@ -873,15 +873,15 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-col md:flex-row gap-x-3 items-start">
-          <div class="w-full md:w-1/2">
+          <div class="w-full md:w-1/2 ">
             <FormField v-slot="{ componentField, errorMessage }" class="" name="group_id">
               <FormItem v-auto-animate>
                 <FormLabel class="font-normal text-sm">
                   Group
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField" multiple>
-                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                  <Select v-bind="componentField" multiple class="w-full !h-11">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11 truncate overflow-ellipsis">
                       <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Group" />
                     </SelectTrigger>
                     <SelectContent>

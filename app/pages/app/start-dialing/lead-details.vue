@@ -2,8 +2,8 @@
 import { Button } from '~/components/ui/button'
 
 // Use dialer composable
-const { openDialer, callState, endCall, closeDialer, startCall } = useDialer()
-
+const { openDialer, closeDialer } = useDialer()
+const { callStatus } = useSIPml5()
 const leadId = ref(247)
 
 const openDisposition = ref(false)
@@ -17,18 +17,18 @@ const { data: leadData, status: leadDataStatus } = await useLazyAsyncData('lead-
 })
 
 // Watch for call state changes to auto-open disposition dialog
-watch(() => callState.value.isActive, (currentState, previousState) => {
-  // Call just ended (was active, now inactive)
-  if (previousState === true && currentState === false) {
-    // Small delay to ensure UI transitions smoothly
-    nextTick(() => {
-      openDisposition.value = true
-    })
-  }
+// watch(() => callStatus?.value, (currentState, previousState) => {
+//   // Call just ended (was active, now inactive)
+//   if (previousState === true && currentState === false) {
+//     // Small delay to ensure UI transitions smoothly
+//     nextTick(() => {
+//       openDisposition.value = true
+//     })
+//   }
 
-  // Update previous state
-  previousCallState.value = currentState
-}, { immediate: true })
+//   // Update previous state
+//   previousCallState.value = currentState
+// }, { immediate: true })
 
 // Use computed instead of ref for reactive data
 const data = computed(() => [
@@ -228,7 +228,7 @@ function handleRedial() {
 
       <!-- Dynamic Call/Hangup Button -->
       <Button
-        v-if="callState.isActive"
+        v-if="callStatus === 'active'"
         variant="destructive"
         name="hangup"
         class="w-full flex-1 cursor-pointer"

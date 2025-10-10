@@ -10,6 +10,7 @@ const { data: callTimingList, status: callTimingListStatus, refresh: refreshCall
     query: {
       start: start.value,
       limit: limit.value,
+      search: search.value,
     },
   }), {
   transform: res => res.data,
@@ -22,6 +23,7 @@ function changePage(page: number) {
 
 function changeLimit(val: number) {
   limit.value = Number(val)
+  start.value = 0
   return refreshCallTimingList()
 }
 
@@ -54,14 +56,28 @@ watch(() => open.value, (val) => {
       <template #actions>
         <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search List" @update:model-value="searchText" />
         <div>
-          <CallTimesCreate v-model:open="open" :data="editRowData" @complete="refreshCallTimingList" />
+          <CallTimesCreate
+            v-model:open="open"
+            :data="editRowData"
+            @complete="refreshCallTimingList"
+          />
         </div>
       </template>
     </BaseHeader>
 
     <!-- TABLE -->
     <div>
-      <CallTimesTable :limit="limit" :total-rows="callTimingList?.total_rows" :start="start" :list="callTimingList?.data || []" :loading="callTimingListStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @edit="onEdit" @refresh="refreshCallTimingList" />
+      <CallTimesTable
+        :limit="limit"
+        :total-rows="callTimingList?.total_rows"
+        :start="start"
+        :list="callTimingList?.data || []"
+        :loading="callTimingListStatus === 'pending'"
+        @page-navigation="changePage"
+        @change-limit="changeLimit"
+        @edit="onEdit"
+        @refresh="refreshCallTimingList"
+      />
     </div>
   </div>
 </template>

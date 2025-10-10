@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -86,6 +85,7 @@ export interface callTimingList {
   week_plan: Partial<Record<string, { start: string, end: string }>>
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
+  actions?: string
 }
 
 const sheet = ref(false)

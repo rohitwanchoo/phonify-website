@@ -4,7 +4,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
@@ -36,7 +35,7 @@ function navigateToPath(val: any) {
           <BreadcrumbList>
             <div v-for="(item, index) in breadcrumbs" :key="item.label" class="flex items-center gap-x-2">
               <BreadcrumbItem>
-                <BreadcrumbLink class="font-normal" :class="item.active && 'text-primary'" @click="item.href && navigateToPath(item.href)">
+                <BreadcrumbLink class="font-normal cursor-pointer" :class="item.active && 'text-primary cursor-auto'" @click="item.href && navigateToPath(item.href)">
                   {{ item.label }}
                 </BreadcrumbLink>
               </BreadcrumbItem>

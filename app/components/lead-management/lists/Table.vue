@@ -85,8 +85,6 @@ const {
 } = useConfirmDialog()
 
 const selectedListForDelete = ref<leadList | null>(null)
-const isEditDialogOpen = ref(false)
-const selectedRowData = ref<leadList | null>(null)
 
 // Function to handle deleting a list
 async function handleDelete() {
@@ -288,7 +286,6 @@ const table = useVueTable({
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
   manualPagination: true,
   state: {
-
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },

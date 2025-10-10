@@ -40,6 +40,16 @@ export default defineNuxtConfig({
     ],
   },
   css: ['~/assets/css/tailwind.css'],
+  app: {
+    head: {
+      script: [
+        {
+          src: 'https://www.doubango.org/sipml5/SIPml-api.js',
+          defer: true
+        }
+      ]
+    }
+  },
   shadcn: {
     /**
      * Prefix for all the imported component
@@ -64,6 +74,8 @@ export default defineNuxtConfig({
     // Public keys (exposed to the client-side)
     public: {
       apiBaseUrl: '/api/proxy',
+      asteriskDomain: process.env.NUXT_ASTERISK_DOMAIN || 'sip2.voiptella.com',
+      asteriskWsPort: process.env.NUXT_ASTERISK_WS_PORT || '8089',
     },
   },
   nitro: {

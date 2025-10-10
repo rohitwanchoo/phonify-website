@@ -69,6 +69,8 @@ export function useApi() {
           extension: response.data.extension,
           alt_extension: response.data.alt_extension,
           app_extension: response.data.app_extension,
+          secret: response.data.secret,
+          domain: response.data.domain,
         },
         expires_at: response.data.expires_at,
         server: response.data.server,

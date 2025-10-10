@@ -31,6 +31,8 @@ const { data: listData, status: listStatus } = await useLazyAsyncData('list', ()
 
 const { data: leadsList, refresh: refreshLead, status: leadsStatus } = await useLazyAsyncData('search-leads', () =>
   useApi().post('/search-leads', {
+    start: start.value,
+    limit: limit.value,
     list_data: selectedLists.value.map((item: listItem) => item.list_id),
     header_column: selectedHeader.value?.column_name,
     header_value: headerValue.value,
@@ -273,7 +275,7 @@ function changeLimit(val: number) {
       <LeadManagementLeadTable
         v-if="leadsList?.data?.length"
         :limit="limit"
-        :total-rows="leadsList?.record_count"
+        :total-rows="leadsList?.total_rows"
         :start="start"
         :list="leadsList?.data"
         :list-headers="listHeaders"
