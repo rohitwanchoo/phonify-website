@@ -34,7 +34,6 @@ const breadcrumbs = [
     active: true,
   },
 ]
-
 const router = useRouter()
 const route = useRoute()
 
@@ -101,8 +100,8 @@ const formSchema = toTypedSchema(
   z.object({
     cli: z.string(),
     cnam: z.string().min(1, 'Caller name is required'),
-    default_did: z.boolean(),
-    redirect_last_agent: z.boolean(),
+    default_did: z.boolean().default(false),
+    redirect_last_agent: z.boolean().default(false),
     dest_type: z.number().optional(),
     destination: z.string().optional(),
     dest_type_ooh: z.number().optional(),
@@ -111,26 +110,26 @@ const formSchema = toTypedSchema(
     extension_ooh: z.number().optional(),
     ivr_id_ooh: z.number().optional(),
     forward_number_ooh: z.string().optional(),
-    sms: z.boolean(),
-    enable_sms_ai: z.boolean(),
+    sms: z.boolean().default(false),
+    enable_sms_ai: z.boolean().default(false),
     assigned_user_id: z.number().optional(),
-    set_exclusive_for_user: z.boolean(),
+    set_exclusive_for_user: z.boolean().default(false),
     call_time_department_id: z.number(),
-    call_time_holiday: z.boolean(),
-    call_screening_status: z.boolean(),
+    call_time_holiday: z.boolean().default(false),
+    call_screening_status: z.boolean().default(false),
     voip_provider: z.string(),
   }).superRefine((data, ctx) => {
     // Validate dest_type when redirect_last_agent is false
-    if (!data.redirect_last_agent && !data.dest_type) {
+    if (!data.redirect_last_agent && (data.dest_type === undefined || null)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['dest_type'],
-        message: 'Destination type is required when redirect last agent is disabled',
+        message: 'Destination type is required',
       })
     }
 
     // Validate dest_type_ooh when call_time_holiday is true
-    if (data.call_time_holiday && !data.dest_type_ooh) {
+    if (data.call_time_holiday && (data.dest_type_ooh === undefined || null)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['dest_type_ooh'],
@@ -143,7 +142,7 @@ const formSchema = toTypedSchema(
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['assigned_user_id'],
-        message: 'Assigned user is required when sms is enabled',
+        message: 'Assigned user is required',
       })
     }
 
@@ -241,7 +240,7 @@ watch(didData, (newData) => {
     setFieldValue('forward_number_ooh', newData?.forward_number_ooh)
     setFieldValue('sms', newData?.sms === '1')
     setFieldValue('enable_sms_ai', newData?.enable_sms_ai === '1')
-    setFieldValue('assigned_user_id', Number(newData?.assigned_user_id))
+    setFieldValue('assigned_user_id', Number(newData?.assigned_user_id) || 0)
     setFieldValue('set_exclusive_for_user', newData?.set_exclusive_for_user === '1')
     setFieldValue('call_time_department_id', Number(newData?.call_time_department_id))
     setFieldValue('call_time_holiday', newData?.call_time_holiday === '1')
@@ -329,7 +328,7 @@ const onSubmit = handleSubmit(async (values) => {
       forward_number_ooh: formatMaskaToNumber(values.forward_number_ooh ?? ''),
       sms: values.sms ? '1' : '0',
       enable_sms_ai: values.enable_sms_ai ? '1' : '0',
-      assigned_user_id: values.assigned_user_id,
+      sms_email: values.assigned_user_id,
       set_exclusive_for_user: values.set_exclusive_for_user ? '1' : '0',
       call_time_department_id: values.call_time_department_id,
       call_time_holiday: values.call_time_holiday ? '1' : '0',
@@ -527,7 +526,7 @@ function onCancel() {
                                   {{ item.ivr_desc }}
                                 </SelectItem>
                               </template>
-                              <template v-else-if="[1, 2, 6].includes(values.dest_type ?? 0)">
+                              <template v-else-if="values.dest_type === 1 || 2 || 6">
                                 <SelectItem v-for="item in extensionListData" :key="item.id" :value="String(item.id)">
                                   {{ item.first_name }} {{ item.last_name }}
                                 </SelectItem>
@@ -824,7 +823,11 @@ function onCancel() {
             <Icon name="material-symbols:close" size="20" />
             Cancel
           </Button>
-          <Button class="w-1/2 h-[52px]" type="submit" :loading="isSubmitting" :disabled="isSubmitting">
+          <Button
+            class="w-1/2 h-[52px]" type="submit"
+            :loading="isSubmitting"
+            :disabled="isSubmitting || didStatus === 'pending' || callTimesStatus === 'pending' || destTypeStatus === 'pending' || ivrStatus === 'pending' || extensionListStatus === 'pending' || conferencingStatus === 'pending' || ringGroupStatus === 'pending' || userDataStatus === 'pending'"
+          >
             <Icon name="material-symbols:save" size="20" />
             Save
           </Button>

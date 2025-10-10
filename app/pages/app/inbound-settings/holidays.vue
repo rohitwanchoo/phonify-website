@@ -2,7 +2,6 @@
 import { Icon, InboundSettingsHolidaysTable } from '#components'
 import { ref } from 'vue'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 
 const isDialogOpen = ref(false)
 
