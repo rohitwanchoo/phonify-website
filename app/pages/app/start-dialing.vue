@@ -123,6 +123,10 @@ function initiateCampaign() {
               <SelectItem v-if="campaignListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
                 <Icon name="eos-icons:loading" />
               </SelectItem>
+              <!-- if empty campaign list -->
+              <SelectItem v-else-if="campaignList.length === 0" class="text-center justify-center" :value="null" disabled>
+                No campaigns available
+              </SelectItem>
               <template v-else>
                 <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
                   {{ option.title }}
