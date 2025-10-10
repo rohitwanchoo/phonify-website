@@ -225,7 +225,6 @@ function removeExtension(index: number) {
                 Extensions
               </FormLabel>
               <FormControl>
-                {{ selectedExtensions }}
                 <div :class="errorMessage && 'border-red-600'" class="p-4 text-sm text-gray-500 flex items-center border rounded-lg cursor-pointer">
                   <div v-if="!selectedExtensions.length" class="hover:text-primary" @click="addExtensionSheet = true">
                     Select extensions

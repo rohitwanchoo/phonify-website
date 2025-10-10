@@ -50,6 +50,7 @@ function updateGroup() {
   loading.value = true
   useApi().patch(`/extension-group/${tempGroup.value?.id}`, {
     title: title.value,
+    extensions: [],
   }).then((res) => {
     showToast({ message: res.message })
     open.value = false

@@ -69,6 +69,7 @@ const { data: campaignList, status: campaignListStatus } = await useLazyAsyncDat
 })
 
 const initiateLoading = ref(false)
+
 function initiateCampaign() {
   if (selectedCampaign.value) {
     initiateLoading.value = true
@@ -83,6 +84,29 @@ function initiateCampaign() {
     })
   }
 }
+
+// function initiateCampaign() {
+//   if (selectedCampaign.value) {
+//     initiateLoading.value = true
+//     $fetch('https://api.voiptella.com/extension-login', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Accept': 'application/json',
+//         'Authorization': `Bearer ${session.value?.token}`,
+//       },
+//       body: JSON.stringify({
+//         campaign_id: selectedCampaign.value,
+//       }),
+//     }).then((res: any) => {
+//       showToast({ type: 'success', message: res.message })
+//     }).catch((err) => {
+//       handleError(err)
+//     }).finally(() => {
+//       initiateLoading.value = false
+//     })
+//   }
+// }
 </script>
 
 <template>
@@ -131,7 +155,7 @@ function initiateCampaign() {
       </template>
     </BaseHeader>
 
-    <!-- <div v-if="selectedCampaign" class="flex max-h-[calc(100vh-166px)] h-full overflow-y-auto mt-6">
+    <div v-if="selectedCampaign" class="flex max-h-[calc(100vh-166px)] h-full overflow-y-auto mt-6">
       <div v-if="show" class="lg:min-w-[300px] p-2 bg-primary flex flex-col gap-5 rounded-l-[20px] overflow-y-auto">
         <NuxtLink
           v-for="(item, index) in sidePanel"
@@ -151,6 +175,6 @@ function initiateCampaign() {
       <div class="h-full w-full overflow-y-auto">
         <NuxtPage />
       </div>
-    </div> -->
+    </div>
   </div>
 </template>

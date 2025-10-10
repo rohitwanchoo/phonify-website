@@ -47,17 +47,41 @@ interface Props {
 
 export interface Extension {
   siNo?: number
+  user_id: number
   extension: string
-  name: string
+  first_name: string
+  last_name: string
   email: string
   phoneNumber: string
   webPhone: string
   actions: string
 
 }
-const details = ref(false)
+const sheet = ref(false)
+
 
 const columnHelper = createColumnHelper<Extension>()
+
+const extensionLoadingId = ref(0)
+
+const extensionById = ref<Extension>()
+function getExtensionByID(id: number) {
+  extensionLoadingId.value = id
+
+  useApi().post('extension', {
+    extension_id: id,
+  }).then((res: any) => {
+    extensionById.value = res.data
+    sheet.value = true
+  }).catch(({ data }) => {
+    showToast({
+      type: 'error',
+      message: data.message,
+    })
+  }).finally(() => {
+    extensionLoadingId.value = 0
+  })
+}
 
 const columns = [
 
@@ -85,40 +109,40 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, row.getValue('name')),
+    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
   }),
 
-  columnHelper.accessor('email', {
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email'))
-    },
-  }),
+  // columnHelper.accessor('email', {
+  //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
+  //   cell: ({ row }) => {
+  //     return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email'))
+  //   },
+  // }),
 
-  columnHelper.accessor('phoneNumber', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('phoneNumber'))
-    },
-  }),
-  columnHelper.accessor('webPhone', {
-    header: ({ column }) => {
-      return h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Web Phone', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-    },
-    cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('webPhone'))
-    },
-  }),
+  // columnHelper.accessor('phoneNumber', {
+  //   header: ({ column }) => {
+  //     return h('div', { class: 'text-center' }, h(Button, {
+  //       class: 'text-sm font-normal',
+  //       variant: 'ghost',
+  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+  //     }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+  //   },
+  //   cell: ({ row }) => {
+  //     return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('phoneNumber'))
+  //   },
+  // }),
+  // columnHelper.accessor('webPhone', {
+  //   header: ({ column }) => {
+  //     return h('div', { class: 'text-center' }, h(Button, {
+  //       class: 'text-sm font-normal',
+  //       variant: 'ghost',
+  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+  //     }, () => ['Web Phone', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+  //   },
+  //   cell: ({ row }) => {
+  //     return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('webPhone'))
+  //   },
+  // }),
 
   columnHelper.accessor('actions', {
     header: () => {
@@ -126,7 +150,7 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-        h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => details.value = true }, h(Icon, { name: 'lucide:eye' })),
+         h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => getExtensionByID(row.original?.user_id) }, h(Icon, { name: extensionLoadingId.value === row.original?.user_id ? 'eos-icons:bubble-loading' : 'lucide:eye' })),
         h(Actions),
         // h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
       ])
@@ -195,7 +219,7 @@ function handlePageChange(page: number) {
       <TableBody class="bg-white">
         <TableRow v-if="loading">
           <TableCell :colspan="columns?.length" class="h-20 text-center">
-            <BaseSkelton v-for="i in 10" :key="i" class="h-14 w-full mb-4" />
+            <BaseSkelton v-for="i in 10" :key="i" class="h-11 w-full mb-4" />
           </TableCell>
         </TableRow>
         <template v-else-if="table.getRowModel().rows?.length">
@@ -224,5 +248,7 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <UserManagementDetails v-model="details" />
+
+ <!-- DETAILS -->
+  <UserManagementDetails v-model:open="sheet" :data="extensionById as Extension"  />
 </template>

@@ -18,8 +18,8 @@ import {
 
 <template>
   <DropdownMenu>
-    <DropdownMenuTrigger as-child>
-      <Button variant="ghost" size="icon">
+    <DropdownMenuTrigger @click.stop as-child>
+      <Button @click.stop variant="ghost" size="icon">
         <Icon name="lucide:ellipsis-vertical" size="20" />
       </Button>
     </DropdownMenuTrigger>

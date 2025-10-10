@@ -7,13 +7,15 @@ const { callStatus } = useSIPml5()
 const leadId = ref(247)
 
 const openDisposition = ref(false)
+// const  { callStatus } = useSIPml5()
 
 // Track previous call state to detect when call ends
 const previousCallState = ref(false)
 
-const { data: leadData, status: leadDataStatus } = await useLazyAsyncData('lead-details', () =>
-  useApi().get(`/lead/${leadId.value}`), {
+const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = await useLazyAsyncData('lead-details', () =>
+  useApi().post(`/get-lead`), {
   transform: res => res.data,
+  immediate: false,
 })
 
 // Watch for call state changes to auto-open disposition dialog
@@ -153,9 +155,24 @@ function handleRedial() {
     )
   })
 }
+
+watch(() => callStatus?.value, (currentState, previousState) => {
+  // call status active
+  if (currentState === 'active') {
+    setTimeout(() => {
+      refreshLeadData()
+    }, 5000)
+    // Small delay to ensure UI transitions smoothly
+    // nextTick(() => {
+    //   openDisposition.value = true
+    // })
+  }
+ 
+}, { immediate: true })
 </script>
 
 <template>
+  {{ leadData }}
   <div class="relative h-full">
     <div class="p-5 bg-gray-50 rounded-tr-lg">
       <!-- Show loading state while data is being fetched -->
@@ -228,7 +245,7 @@ function handleRedial() {
 
       <!-- Dynamic Call/Hangup Button -->
       <Button
-        v-if="callStatus === 'active'"
+       
         variant="destructive"
         name="hangup"
         class="w-full flex-1 cursor-pointer"
@@ -238,7 +255,7 @@ function handleRedial() {
         Hangup
       </Button>
       <Button
-        v-else
+     
         class="w-full flex-1 cursor-pointer bg-green-600 hover:bg-green-500"
         name="call"
         @click="handleCallStart"

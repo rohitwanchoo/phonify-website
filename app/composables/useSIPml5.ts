@@ -365,7 +365,7 @@ export function useSIPml5() {
       })
       return
     }
-    console.log('SIPml5 library loaded:', JSON.parse(JSON.stringify(window.SIPml)))
+
     const SIPml = window.SIPml
 
     // Initialize SIPml
