@@ -161,18 +161,17 @@ watch(() => callStatus?.value, (currentState, previousState) => {
   if (currentState === 'active') {
     setTimeout(() => {
       refreshLeadData()
-    }, 5000)
+    }, 2000)
     // Small delay to ensure UI transitions smoothly
     // nextTick(() => {
     //   openDisposition.value = true
     // })
   }
- 
 }, { immediate: true })
 </script>
 
 <template>
-  {{ leadData }}
+  <!-- {{ leadData }} -->
   <div class="relative h-full">
     <div class="p-5 bg-gray-50 rounded-tr-lg">
       <!-- Show loading state while data is being fetched -->
@@ -245,7 +244,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
 
       <!-- Dynamic Call/Hangup Button -->
       <Button
-       
+
         variant="destructive"
         name="hangup"
         class="w-full flex-1 cursor-pointer"
@@ -255,7 +254,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
         Hangup
       </Button>
       <Button
-     
+
         class="w-full flex-1 cursor-pointer bg-green-600 hover:bg-green-500"
         name="call"
         @click="handleCallStart"
