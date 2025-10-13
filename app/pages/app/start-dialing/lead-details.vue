@@ -1,12 +1,18 @@
 <script setup lang="ts">
+import { number } from 'zod'
 import { Button } from '~/components/ui/button'
 
 // Use dialer composable
 const { openDialer, closeDialer } = useDialer()
-const { callStatus } = useSIPml5()
+const { callStatus, callerDetails } = useSIPml5()
+const { user } = useAuth()
+
 const leadId = ref(247)
+const route = useRoute()
+const campaignId = ref(route.query.campaign_id)
 
 const openDisposition = ref(false)
+const dispositions = ref([])
 // const  { callStatus } = useSIPml5()
 
 // Track previous call state to detect when call ends
@@ -14,7 +20,7 @@ const previousCallState = ref(false)
 
 const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = await useLazyAsyncData('lead-details', () =>
   useApi().post(`/get-lead`), {
-  transform: res => res.data,
+  transform: res => res,
   immediate: false,
 })
 
@@ -32,97 +38,35 @@ const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = awa
 //   previousCallState.value = currentState
 // }, { immediate: true })
 
-// Use computed instead of ref for reactive data
-const data = computed(() => [
-  {
-    label: 'First Name',
-    value: leadData.value?.first_name || 'N/A',
-    copy: false,
-  },
-  {
-    label: 'Last Name',
-    value: leadData.value?.last_name || 'N/A',
-    copy: false,
-  },
-  {
-    label: 'Phone Number',
-    value: leadData.value?.phone_number || '',
-    copy: true,
-  },
-  {
-    label: 'Mobile',
-    value: 'Rogers',
-    copy: false,
-  },
-  {
-    label: 'Email',
-    value: leadData.value?.email || 'N/A',
-    copy: true,
-  },
-  {
-    label: 'Lead Source',
-    value: leadData.value?.lead_source_id || 'N/A',
-    copy: false,
-  },
-  {
-    label: 'City',
-    value: leadData.value?.city || 'N/A',
-    copy: false,
-  },
-  {
-    label: 'State',
-    value: leadData.value?.state || 'N/A',
-    copy: false,
-  },
-  {
-    label: 'ZIp',
-    value: leadData.value?.zip || 'N/A',
-    copy: false,
-  },
-  {
-    label: 'Funding Amount',
-    value: `$ ${formatWithCommas(leadData.value?.funding_amount || '100000')}`,
-    copy: false,
-  },
-  {
-    label: 'Annual Revenue',
-    value: `$ ${formatWithCommas(leadData.value?.annual_revenue || '520000')}`,
-    copy: false,
-  },
-  {
-    label: 'Business Type',
-    value: leadData.value?.business_type || 'Construction',
-    copy: false,
-  },
-  {
-    label: 'Credit Score',
-    value: leadData.value?.credit_score || '730',
-    copy: false,
-  },
-])
+const hangupLoading = ref(false)
 
-function handleHangup() {
-  endCall()
-  closeDialer()
-  // Don't manually open disposition here - the watcher will handle it
+async function handleHangup() {
+  hangupLoading.value = true
+  try {
+    await useApi().post('hang-up', {
+      id: leadData.value?.lead_id,
+    })
+    const disposition = await useApi().post('disposition_by_campaignId', {
+      campaign_id: campaignId.value,
+    })
+    dispositions.value = disposition.data || []
+    openDisposition.value = true
+  }
+  catch (error) {
+    showToast({
+      message: String(error),
+      type: 'error',
+    })
+    // Optionally show user feedback
+  }
+  finally {
+    hangupLoading.value = false
+  }
 }
 
 // Handle disposition dialog close
 function handleDispositionClose() {
   openDisposition.value = false
-}
-
-// Handle manual call initiation
-function handleCallStart() {
-  // Close disposition if it's open when starting a new call
-  if (openDisposition.value) {
-    openDisposition.value = false
-  }
-
-  openDialer({
-    phoneNumber: leadData.value?.phone_number,
-    leadId: leadId.value,
-  })
 }
 
 // Handle redial functionality
@@ -138,21 +82,20 @@ function handleRedial() {
         message: 'No phone number available for redial',
         type: 'warning',
       })
-      return
     }
 
     // Initiate the new call
-    openDialer({
-      phoneNumber: leadData.value.phone_number,
-      leadId: leadId.value,
-    })
+    // openDialer({
+    //   phoneNumber: leadData.value.phone_number,
+    //   leadId: leadId.value,
+    // })
 
     // Start the redial call directly
-    startCall(
-      leadData.value.phone_number,
-      '+1', // Default country code, you might want to make this dynamic
-      leadId.value,
-    )
+    // startCall(
+    //   leadData.value.phone_number,
+    //   '+1', // Default country code, you might want to make this dynamic
+    //   leadId.value,
+    // )
   })
 }
 
@@ -171,6 +114,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
 </script>
 
 <template>
+  {{ dispositions }}
   <!-- {{ leadData }} -->
   <div class="relative h-full">
     <div class="p-5 bg-gray-50 rounded-tr-lg">
@@ -192,18 +136,18 @@ watch(() => callStatus?.value, (currentState, previousState) => {
 
       <!-- Show actual data when loaded -->
       <div v-else class="border border-gray-100 rounded-lg">
-        <div class="bg-[#00A086] text-white text-2xl font-medium px-5 py-3 rounded-t-lg">
+        <!-- <div class="bg-[#00A086] text-white text-2xl font-medium px-5 py-3 rounded-t-lg">
           {{ leadData?.first_name }} {{ leadData?.last_name }}
-        </div>
+        </div> -->
         <div class="bg-white p-5 grid grid-cols-3 gap-x-4 gap-y-3 rounded-b-lg">
-          <div v-for="(item, index) in data" :key="index" class="flex flex-col gap-2">
+          <div v-for="(item, index) in leadData?.data" :key="index" class="flex flex-col gap-2">
             <span class="text-gray-500 text-xs">{{ item.label }}</span>
             <div class="flex items-center gap-2">
               <span class="text-sm text-primary">
-                {{ item.label === 'Phone Number' ? formatNumber(item.value) : item.value }}
+                {{ item.is_dialing ? formatNumber(item.value) : item.value }}
               </span>
               <Icon
-                v-if="item.copy === true"
+                v-if="item.is_dialing === true"
                 name="material-symbols:content-copy-outline"
                 size="16"
                 class="cursor-pointer text-black hover:text-green-800"
@@ -225,18 +169,18 @@ watch(() => callStatus?.value, (currentState, previousState) => {
     </div>
 
     <div class="sticky bottom-0 p-5 flex gap-4 justify-between bg-white shadow-md overflow-x-auto">
-      <Button variant="outline" name="transfer" class="w-full flex-1 cursor-pointer">
+      <!-- <Button variant="outline" name="transfer" class="w-full flex-1 cursor-pointer">
         <Icon name="material-symbols:sync-alt" size="20" />
         Transfer
-      </Button>
+      </Button> -->
       <Button variant="outline" name="voice-drop" class="w-full flex-1 cursor-pointer">
         <Icon name="material-symbols:mic" size="20" />
         Voice Drop
       </Button>
-      <Button variant="outline" name="export-lead" class="w-full flex-1 cursor-pointer">
+      <!-- <Button variant="outline" name="export-lead" class="w-full flex-1 cursor-pointer">
         <Icon name="material-symbols:upload-file" size="20" />
         Export Lead
-      </Button>
+      </Button> -->
       <Button variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="openDialer">
         <Icon name="material-symbols:dialpad" size="20" />
         Dial-pad
@@ -244,7 +188,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
 
       <!-- Dynamic Call/Hangup Button -->
       <Button
-
+        :loading="hangupLoading"
         variant="destructive"
         name="hangup"
         class="w-full flex-1 cursor-pointer"
@@ -253,7 +197,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
         <Icon name="material-symbols:call-end" size="20" />
         Hangup
       </Button>
-      <Button
+      <!-- <Button
 
         class="w-full flex-1 cursor-pointer bg-green-600 hover:bg-green-500"
         name="call"
@@ -261,12 +205,15 @@ watch(() => callStatus?.value, (currentState, previousState) => {
       >
         <Icon name="material-symbols:call" size="20" />
         Call
-      </Button>
+      </Button> -->
     </div>
 
     <!-- Disposition Dialog - Always present, controlled by openDisposition -->
     <StartDialingLeadDetailsSelectDisposition
       :is-open="openDisposition"
+      :dispositions="dispositions"
+      :campaign-id="Number(campaignId)"
+      :lead-id="Number(leadData?.lead_id)"
       @close="handleDispositionClose"
       @redial="handleRedial"
     />
