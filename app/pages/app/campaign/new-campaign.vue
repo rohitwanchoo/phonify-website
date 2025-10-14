@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Campaign } from '~/types/campaign'
-import { Button } from '@/components/ui/button'
 
 const route = useRoute()
 const id = route.query.id
@@ -97,12 +95,12 @@ function goToNext() {
 
 <template>
   <BaseHeader :title="isEdit ? 'Update Campaign' : 'Create New Campaign'" :breadcrumbs="breadcrumbs">
-    <template #actions>
+    <!-- <template #actions>
       <Button variant="outline" class="h-11">
         <icon name="material-symbols:save-rounded" size="18" />
         Save as Draft
       </Button>
-    </template>
+    </template> -->
   </BaseHeader>
   <CampaignStepper :stepper="stepper">
     <component :is="stepper.current.value.component" :is-preview="isPreview" :data-loading="campaignByIdStatus === 'pending'" @reset-data="setData" @completed="(e: any) => goToNext()" @go-to="(e: any) => stepper.goTo(e)" />

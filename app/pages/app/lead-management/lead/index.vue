@@ -188,7 +188,7 @@ function changeLimit(val: number) {
                 <ComboboxInput
                   v-model="listSearchTerm"
                   class="border-none p-0 focus-visible:ring-0 h-auto min-w-[100px] flex-1"
-                  placeholder="Select lists..."
+                  placeholder="Search lists"
                   @click="listOpen = true"
                 />
               </div>
@@ -288,7 +288,7 @@ function changeLimit(val: number) {
       <div v-else class="text-center text-sm font-normal mt-20">
         <!-- Step 1: No lists selected -->
         <p v-if="selectedLists.length === 0">
-          Please select a list from the dropdown above to view and manage leads.
+          Please search a list from the search lists above to view and manage leads.
         </p>
 
         <!-- Step 2: Lists selected but no header selected -->

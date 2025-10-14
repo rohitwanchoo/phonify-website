@@ -2,7 +2,7 @@
 import { useDebounceFn } from '@vueuse/core'
 import { ref } from 'vue'
 import { Button } from '~/components/ui/button'
-import ListTable from './table.vue'
+import ListTable from './Table.vue'
 
 const emit = defineEmits(['completed'])
 const route = useRoute()
@@ -14,13 +14,46 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
-const dialogRef = ref()
-
-function openDialog() {
-  dialogRef.value?.open()
-}
+const showConfigureDialog = ref(false)
 
 const assignLoading = ref(false)
+
+interface ListHeader {
+  id: number
+  list_id: number
+  header: string
+  column_name: string
+  label_id: number
+  is_search: number
+  is_dialing: number
+  is_visible: number
+  is_editable: number
+  is_deleted: number
+  updated_at: string
+  alternate_phone: string | null
+}
+
+interface ListData {
+  campaign: string
+  list: string
+  campaign_id: number
+  list_id: number
+  updated_at: string
+  is_active: number
+  list_header: ListHeader[]
+}
+
+const listData = ref<ListData>()
+
+async function getListHeaders({ campaign_id, list_id }: { campaign_id: string, list_id: string }) {
+  const response = await useApi().post('/list', { campaign_id, list_id })
+  listData.value = response.data
+}
+
+async function openListConfigureDialog(val: { campaign_id: string, list_id: string, list: string }) {
+  await getListHeaders(val)
+  showConfigureDialog.value = true
+}
 
 function handleContinue() {
   // assign list to campaign
@@ -93,9 +126,7 @@ onMounted(() => {
       <div class="flex items-center justify-between gap-5">
         <BaseInputSearch v-model="search" @update:model-value="searchList" />
 
-        <Button class="h-10 cursor-pointer" @click="openDialog">
-          + Create List
-        </Button>
+        <LeadManagementListsCreate @complete="openListConfigureDialog" />
       </div>
     </div>
     <!-- data -->
@@ -113,6 +144,5 @@ onMounted(() => {
     </Button>
   </div>
 
-  <!-- Dialog component -->
-  <CampaignSelectListDialog ref="dialogRef" />
+  <LeadManagementListsConfigureListDialog :list-data="listData" :open="showConfigureDialog" @update:open="showConfigureDialog = $event" @complete="listRefresh" />
 </template>
