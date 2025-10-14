@@ -248,12 +248,12 @@ onMounted(async () => {
 
 <template>
   <BaseHeader :title="pageTitle" :breadcrumbs="breadcrumbs">
-    <template #actions>
+    <!-- <template #actions>
       <Button variant="outline" class="h-11">
         <icon name="material-symbols:save-rounded" size="18" />
         Save as Draft
       </Button>
-    </template>
+    </template> -->
   </BaseHeader>
   <div class=" relative h-[calc(100vh-190px)] overflow-y-auto mt-5">
     <div class=" m-5">

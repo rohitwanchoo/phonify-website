@@ -296,7 +296,7 @@ watch(() => props.open, (val) => {
 
 <template>
   <Dialog :open="props.open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-w-[90vw] w-[90vw]  sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
+    <DialogContent class="max-w-[90vw] w-[90vw] sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
       <DialogHeader>
         <DialogTitle class="text-primary">
           Configure List
@@ -409,7 +409,7 @@ watch(() => props.open, (val) => {
           </TableBody>
         </Table>
       </div>
-      <div class="flex justify-between items-center pt-2 bg-white sticky bottom-0">
+      <div class="flex justify-between items-center pt-2 pb-6 bg-white sticky -bottom-6">
         <Button type="button" variant="outline" class="w-[49%] border-red-500 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 h-11" @click="closeDialog">
           <Icon name="lucide:x" class="w-4 h-4 mr-1" />
           Discard

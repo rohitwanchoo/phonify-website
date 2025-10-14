@@ -13,7 +13,6 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
@@ -22,26 +21,15 @@ import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import moment from 'moment'
 
-import { computed, h, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -112,14 +100,43 @@ async function openSheet(id: number) {
     selectedCampaign.value = res[0]
     sheet.value = true
   }
-  catch (error) {
+  catch (error: any) {
     showToast({
       type: 'error',
-      message: error?.message || 'An error occurred while fetching campaign details.',
+      message: error?.message,
     })
   }
   finally {
     campaignLoadingId.value = null
+  }
+}
+
+async function updateStatus(id: number, status: number) {
+  try {
+    const res = await useApi().post('/status-update-campaign-list', {
+      campaign_id: id,
+      status,
+    })
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('campaigns-list')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
   }
 }
 
@@ -161,7 +178,7 @@ const columns = [
 
   columnHelper.accessor('lists', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowListData)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowList)),
   }),
 
   columnHelper.display({
@@ -206,33 +223,21 @@ const columns = [
     },
   }),
 
-  columnHelper.display({
-    id: 'campaignStatus',
+  columnHelper.accessor('status', {
     header: ({ column }) =>
-      h('div', { class: 'text-center ' }, h(Button, {
-        class: 'text-sm font-normal',
+      h('div', { class: 'text-center w-full' }, h(Button, {
+        class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, h(Switch, {
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
         'modelValue': row.original.status === 1,
         'onUpdate:modelValue': (val: boolean) => {
-          row.original.status = val ? 1 : 0
+          updateStatus(row.original.id, val ? 1 : 0)
         },
       })),
-    sortingFn: (rowA, rowB, columnId) => {
-      const valueA = rowA.original.status === 1
-      const valueB = rowB.original.status === 1
-      if (valueA === valueB)
-        return 0
-      if (valueA && !valueB)
-        return -1
-      if (!valueA && valueB)
-        return 1
-      return 0
-    },
   }),
 
   columnHelper.display({
@@ -292,9 +297,6 @@ const table = useVueTable({
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
     get expanded() { return expanded.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
 

@@ -2,7 +2,6 @@
 import moment from 'moment'
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -18,6 +17,7 @@ interface Campaign {
   caller_id?: string
   custom_caller_id?: string
   country_code?: string
+  rowList?: string
   send_crm?: number
   email?: number
   sms?: number
@@ -160,7 +160,7 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">List Associated</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                2
+                {{ campaign?.rowList }}
               </p>
             </div>
 

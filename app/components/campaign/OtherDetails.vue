@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Campaign } from '~/types/campaign'
 import { useFilter } from 'reka-ui'
 
 import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
@@ -16,12 +15,11 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 
-import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input'
+import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete } from '@/components/ui/tags-input'
 import { Button } from '~/components/ui/button'
 
 interface Props {
@@ -78,7 +76,7 @@ const searchTerm = ref('')
 const { contains } = useFilter({ sensitivity: 'base' })
 
 const filteredDispositionList = computed(() => {
-  const options = dispositionList?.value.filter((item: { id: number }) => !formState.value?.disposition_id?.includes(item?.id))
+  const options = dispositionList?.value.filter((item: { id: number; status: number }) => !formState.value?.disposition_id?.includes(item?.id) && item.status === 1)
   return searchTerm.value ? options.filter((option: { title: string }) => contains(option.title, searchTerm.value)) : options
 })
 </script>

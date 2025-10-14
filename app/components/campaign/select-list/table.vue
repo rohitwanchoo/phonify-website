@@ -10,7 +10,6 @@ import {
 import { Check, ChevronsUpDown, Eye } from 'lucide-vue-next'
 
 import moment from 'moment'
-import { h, popScopeId, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -103,7 +102,7 @@ const columns = [
         'List Name',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list || row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list || row.original.l_title),
   }),
 
   // Created Date column (sortable)

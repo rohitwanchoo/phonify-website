@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
-import moment from 'moment'
-import { computed, ref } from 'vue'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 
 const start = ref<number>(0)
 const limit = ref<number>(10)
