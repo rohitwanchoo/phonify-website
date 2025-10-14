@@ -74,7 +74,7 @@ function handleSave() {
     disposition_id: selectedDisposition.value,
     lead_id: props.leadId,
     pause_calling: pauseCalling.value ? 1 : 0,
-    ai_call: 0,
+    api_call: 0,
   }).then((response) => {
     emit('save')
     showToast({
@@ -104,7 +104,7 @@ function handleDialogClose() {
     <DialogTrigger as-child>
       <slot />
     </DialogTrigger>
-    <DialogContent class="rounded-[12px] w-full sm:max-w-[715px]">
+    <DialogContent class="rounded-[12px] w-full sm:max-w-[715px]" :disable-outside-pointer-events="true">
       <DialogHeader class="pb-3 border-b border-b-[#0000000D]">
         <DialogTitle class="text-primary text-base font-medium">
           Select Disposition

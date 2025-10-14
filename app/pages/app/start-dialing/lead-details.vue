@@ -43,8 +43,12 @@ const hangupLoading = ref(false)
 async function handleHangup() {
   hangupLoading.value = true
   try {
-    await useApi().post('hang-up', {
-      id: leadData.value?.lead_id,
+    const hangupResponse = await useApi().post('hang-up', {
+      id: user.value?.id,
+    })
+    showToast({
+      message: hangupResponse?.data?.message || 'Hangup successful',
+      type: 'success',
     })
     const disposition = await useApi().post('disposition_by_campaignId', {
       campaign_id: campaignId.value,
@@ -114,6 +118,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
 </script>
 
 <template>
+  {{ campaignId }}
   {{ dispositions }}
   <!-- {{ leadData }} -->
   <div class="relative h-full">
