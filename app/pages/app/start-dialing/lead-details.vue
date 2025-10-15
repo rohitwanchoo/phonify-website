@@ -108,21 +108,24 @@ watch(() => callStatus?.value, (currentState, previousState) => {
   if (currentState === 'active') {
     setTimeout(() => {
       refreshLeadData()
-    }, 2000)
+    }, 500)
     // Small delay to ensure UI transitions smoothly
     // nextTick(() => {
     //   openDisposition.value = true
     // })
   }
 }, { immediate: true })
+
+function onSaveDisposition() {
+  openDisposition.value = false
+  refreshLeadData()
+}
 </script>
 
 <template>
-  {{ campaignId }}
-  {{ dispositions }}
   <!-- {{ leadData }} -->
   <div class="relative h-full">
-    <div class="p-5 bg-gray-50 rounded-tr-lg">
+    <div v-if="leadData?.data" class="p-5 bg-gray-50 rounded-tr-lg">
       <!-- Show loading state while data is being fetched -->
       <div v-if="leadDataStatus === 'pending'" class="bg-gray-50 rounded-lg">
         <div class="border border-gray-100 rounded-lg">
@@ -173,7 +176,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
       </div>
     </div>
 
-    <div class="sticky bottom-0 p-5 flex gap-4 justify-between bg-white shadow-md overflow-x-auto">
+    <div v-if="leadData?.lead_id" class="sticky bottom-0 p-5 flex gap-4 justify-between bg-white shadow-md overflow-x-auto">
       <!-- <Button variant="outline" name="transfer" class="w-full flex-1 cursor-pointer">
         <Icon name="material-symbols:sync-alt" size="20" />
         Transfer
@@ -197,6 +200,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
         variant="destructive"
         name="hangup"
         class="w-full flex-1 cursor-pointer"
+        :disabled="!leadData?.lead_id"
         @click="handleHangup"
       >
         <Icon name="material-symbols:call-end" size="20" />
@@ -219,6 +223,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
       :dispositions="dispositions"
       :campaign-id="Number(campaignId)"
       :lead-id="Number(leadData?.lead_id)"
+      @save="onSaveDisposition"
       @close="handleDispositionClose"
       @redial="handleRedial"
     />

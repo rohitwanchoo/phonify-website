@@ -157,6 +157,7 @@ function handleDialogClose() {
         <Button
           class="w-full h-11 flex-1 cursor-pointer"
           :disabled="!selectedDisposition"
+          :loading="saveLoading"
           @click="handleSave"
         >
           <Icon name="material-symbols:save" size="20" />
