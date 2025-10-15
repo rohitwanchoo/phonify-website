@@ -10,13 +10,13 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: 'Search List',
+  placeholder: 'Search',
   class: '',
 })
 const model = defineModel<string>()
 
 function onClear(){
-  if(model) 
+  if (model.value)
     model.value = ''
 }
 </script>

@@ -40,10 +40,10 @@ function searchText() {
     <!-- HEADER -->
     <BaseHeader title="Campaign">
       <template #actions>
-        <BaseInputSearch v-model="searchKeyword" @update:model-value="searchText" />
+        <BaseInputSearch v-model="searchKeyword" placeholder="Search Campaign" @update:model-value="searchText" />
         <Nuxt-link to="/app/campaign/new-campaign">
           <Button class="h-11">
-            <Icon class="!text-white" name="lucide:plus" />
+            <Icon class="!text-white text-xl" name="material-symbols:add" />
             Create Campaign
           </Button>
         </Nuxt-link>
