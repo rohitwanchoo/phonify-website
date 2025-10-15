@@ -25,32 +25,32 @@ const sidePanel = ref([
   {
     title: 'Lead Details',
     icon: 'material-symbols:person',
-    link: '/app/start-dialing/lead-details',
+    link: selectedCampaign.value ? `/app/start-dialing/lead-details?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/lead-details',
   },
   {
     title: 'Send SMS',
     icon: 'material-symbols:chat',
-    link: '/app/start-dialing/send-sms',
+    link: selectedCampaign.value ? `/app/start-dialing/send-sms?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-sms',
   },
   {
     title: 'Send Email',
     icon: 'material-symbols:mail',
-    link: '/app/start-dialing/send-email',
+    link: selectedCampaign.value ? `/app/start-dialing/send-email?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-email',
   },
   {
     title: 'Agent Script',
     icon: 'material-symbols:script',
-    link: '/app/start-dialing/agent-script',
+    link: selectedCampaign.value ? `/app/start-dialing/agent-script?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/agent-script',
   },
   {
     title: 'Notes',
     icon: 'material-symbols:description',
-    link: '/app/start-dialing/notes',
+    link: selectedCampaign.value ? `/app/start-dialing/notes?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/notes',
   },
   {
     title: 'Events',
     icon: 'material-symbols:event',
-    link: '/app/start-dialing/events',
+    link: selectedCampaign.value ? `/app/start-dialing/events?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/events',
   },
 ])
 
@@ -72,6 +72,11 @@ const initiateLoading = ref(false)
 
 function initiateCampaign() {
   if (selectedCampaign.value) {
+    navigateTo({
+      query: {
+        campaign_id: selectedCampaign.value,
+      },
+    })
     initiateLoading.value = true
     useApi().post('/extension-login', {
       campaign_id: selectedCampaign.value,
@@ -159,7 +164,7 @@ function initiateCampaign() {
       </template>
     </BaseHeader>
 
-    <div v-if="selectedCampaign" class="flex max-h-[calc(100vh-166px)] h-full overflow-y-auto mt-6">
+    <div class="flex max-h-[calc(100vh-166px)] h-full overflow-y-auto mt-6">
       <div v-if="show" class="lg:min-w-[300px] p-2 bg-primary flex flex-col gap-5 rounded-l-[20px] overflow-y-auto">
         <NuxtLink
           v-for="(item, index) in sidePanel"

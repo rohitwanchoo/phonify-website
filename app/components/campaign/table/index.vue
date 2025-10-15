@@ -57,6 +57,8 @@ const props = withDefaults(defineProps<{
 
 const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 
+const { user } = useAuth()
+
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -138,6 +140,25 @@ async function updateStatus(id: number, status: number) {
       type: 'error',
     })
   }
+}
+
+function resetCampaign(campaign_id: number) {
+  useApi().get('/add-lead-temp', {
+    params: {
+      campaign_id,
+      id: user.value?.id,
+    },
+  }).then((response) => {
+    showToast({
+      message: response.message,
+    })
+    // emits('refresh')
+  }).catch((err) => {
+    showToast({
+      type: 'error',
+      message: err.message,
+    })
+  })
 }
 
 const columnHelper = createColumnHelper<any>()
@@ -266,7 +287,7 @@ const columns = [
         },
         onDelete: () => { deleteMethod(row?.original) },
         onCopy: () => { },
-        onReset: () => { },
+        onReset: () => { resetCampaign(row.original.id) },
       }),
     ]),
   }),
