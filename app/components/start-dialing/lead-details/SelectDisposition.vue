@@ -24,8 +24,6 @@ interface Props {
   isOpen?: boolean
   dispositions?: Disposition[]
 }
-const route = useRoute()
-
 const props = withDefaults(defineProps<Props>(), {
   leadId: undefined,
   isOpen: false,
@@ -37,6 +35,8 @@ const emit = defineEmits<{
   save: []
   redial: []
 }>()
+
+const route = useRoute()
 
 const selectedDisposition = ref<number>()
 const title = ref('')

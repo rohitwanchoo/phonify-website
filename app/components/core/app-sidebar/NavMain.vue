@@ -67,8 +67,9 @@ function isActive(url: string) {
             <SidebarMenuItem>
               <CollapsibleTrigger as-child>
                 <SidebarMenuButton
+                  :disabled="item.disabled"
                   :tooltip="item.title"
-                  :data-active="item.items.some(sub => isActive(sub.url))"
+                  :data-active="item.items.some((sub: MenuItem) => isActive(sub.url))"
                   class="lg:h-10"
                 >
                   <div class="translate-y-0.5 top-1/120 relative">
@@ -88,11 +89,16 @@ function isActive(url: string) {
                   >
                     <SidebarMenuSubButton
                       as-child
+                      :disabled="subItem.disabled"
                       :data-active="isActive(subItem.url)"
+                      :class="subItem.disabled && '!text-primary/20 pointer-events-none'"
                       class="text-primary/70 hover:text-primary ml-1 lg:h-10 hover:bg-accent pb-1 border-l-2 hover:border-primary rounded-none pl-4"
                     >
-                      <NuxtLink :to="subItem.url">
-                        <span>{{ subItem.title }}</span>
+                      <div v-if="subItem.disabled">
+                        {{ subItem.title }}
+                      </div>
+                      <NuxtLink v-else :to="subItem.url">
+                        <span>{{ subItem.title }} </span>
                       </NuxtLink>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
@@ -106,6 +112,8 @@ function isActive(url: string) {
             <SidebarMenuButton
               as-child
               :tooltip="item.title"
+              :disabled="item.disabled"
+              :class="item.disabled && '!text-primary/20 pointer-events-none'"
               :data-active="isActive(item.url)"
               class="lg:h-10 "
             >
