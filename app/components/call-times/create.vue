@@ -134,7 +134,15 @@ const { handleSubmit, validate, resetForm, setFieldValue } = useForm({
   initialValues: initialValues.value,
 })
 
-function toggleDay(_day: string) {
+function toggleDay(day: string) {
+  const dayIndex = initialValues.value.weeks.findIndex(w => w.day === day)
+
+  // If unchecked, clear the time values
+  if (!selectedDays.value[day as keyof typeof selectedDays.value] && dayIndex !== -1) {
+    setFieldValue(`weeks.${dayIndex}.start`, '')
+    setFieldValue(`weeks.${dayIndex}.end`, '')
+  }
+
   if (!Object.values(selectedDays.value).includes(true)) {
     validate()
   }

@@ -23,13 +23,6 @@ import { h, ref } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Table,
   TableBody,
   TableCell,
@@ -186,17 +179,12 @@ const table = useVueTable({
     },
   },
 })
-
-function handlePageChange(page: number) {
-  console.log('Page changed to:', page)
-  meta.value.current_page = page
-}
 </script>
 
 <template>
   <div class="border rounded-lg my-6 overflow-hidden">
     <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
-      Call Timing #
+      Holiday List
     </div>
     <Table>
       <TableHeader>
