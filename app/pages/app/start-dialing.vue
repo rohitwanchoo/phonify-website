@@ -54,7 +54,10 @@ const sidePanel = computed(() => [
   },
 ])
 
-const isActive = (link: string) => route.path.startsWith(link)
+function isActive(link: string) {
+  const base = link.split('?')[0]
+  return base ? route.path.startsWith(base) : false
+}
 
 onMounted(() => {
   if (route.path === '/app/start-dialing') {
