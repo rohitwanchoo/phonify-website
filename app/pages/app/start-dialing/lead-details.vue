@@ -106,9 +106,9 @@ function handleRedial() {
 watch(() => callStatus?.value, (currentState, previousState) => {
   // call status active
   if (currentState === 'active') {
-    setTimeout(() => {
+    // setTimeout(() => {
       refreshLeadData()
-    }, 2000)
+    // }, 2000)
     // Small delay to ensure UI transitions smoothly
     // nextTick(() => {
     //   openDisposition.value = true

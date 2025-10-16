@@ -12,6 +12,24 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Switch } from '~/components/ui/switch'
 
+const props = withDefaults(defineProps<Props>(), {
+  leadId: undefined,
+  isOpen: false,
+  dispositions: () => [],
+})
+const emit = defineEmits<{
+  close: []
+  save: []
+  redial: []
+}>()
+const { endCall } = useSIPml5()
+const { closeDialer } = useDialer()
+
+function hangup() {
+  endCall()
+  closeDialer()
+}
+
 interface Disposition {
   title: string
   id: number
@@ -24,18 +42,6 @@ interface Props {
   isOpen?: boolean
   dispositions?: Disposition[]
 }
-const props = withDefaults(defineProps<Props>(), {
-  leadId: undefined,
-  isOpen: false,
-  dispositions: () => [],
-})
-
-const emit = defineEmits<{
-  close: []
-  save: []
-  redial: []
-}>()
-
 const route = useRoute()
 
 const selectedDisposition = ref<number>()
@@ -68,6 +74,7 @@ function handleSave() {
     // You might want to show an error message here
     return
   }
+  saveLoading.value = true
   useApi().post('save-disposition', {
     campaign_id: route.query.campaign_id,
     disposition_id: selectedDisposition.value,
@@ -76,6 +83,9 @@ function handleSave() {
     api_call: 0,
   }).then((response) => {
     emit('save')
+    if (pauseCalling.value) {
+      hangup()
+    }
     showToast({
       message: response?.data?.message || 'Disposition saved successfully',
       type: 'success',
@@ -103,7 +113,7 @@ function handleDialogClose() {
     <DialogTrigger as-child>
       <slot />
     </DialogTrigger>
-    <DialogContent class="rounded-[12px] w-full sm:max-w-[715px]" :disable-outside-pointer-events="true">
+    <DialogContent class="rounded-[12px] w-full sm:max-w-[715px]" :disable-outside-pointer-events="true" @pointer-down-outside.prevent>
       <DialogHeader class="pb-3 border-b border-b-[#0000000D]">
         <DialogTitle class="text-primary text-base font-medium">
           Select Disposition
