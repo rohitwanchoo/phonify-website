@@ -248,6 +248,9 @@ const onSubmit = handleSubmit(async (values) => {
   if (isEdit.value) {
     Api = '/edit-campaign'
   }
+  // if (formState.value.time_based_calling) {
+  //   cleanedPayload.call_time = values.call_time
+  // }
 
   useApi().post(Api, cleanedPayload).then(async (response: any) => {
     showToast({
@@ -272,6 +275,10 @@ const onSubmit = handleSubmit(async (values) => {
   // emits('completed')
   // console.log('Form submitted!', values)
 })
+
+function startDialing() {
+  navigateTo({ path: '/app/start-dialing/lead-details', query: { campaign_id: id } })
+}
 
 onMounted(() => {
   if (!isEdit.value) {
@@ -312,7 +319,7 @@ onMounted(() => {
       </form>
     </div>
     <div v-if="isPreview" class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading">
+      <Button class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
         <Icon name="material-symbols:call" />
         Start Dialing
       </Button>

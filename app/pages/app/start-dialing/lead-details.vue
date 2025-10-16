@@ -51,9 +51,9 @@ async function handleHangup() {
       type: 'success',
     })
     const disposition = await useApi().post('disposition_by_campaignId', {
-      campaign_id: campaignId.value,
+      campaign_id: route.query.campaign_id,
     })
-    dispositions.value = disposition.data || []
+    dispositions.value = disposition?.data || []
     openDisposition.value = true
   }
   catch (error) {
@@ -106,9 +106,9 @@ function handleRedial() {
 watch(() => callStatus?.value, (currentState, previousState) => {
   // call status active
   if (currentState === 'active') {
-    setTimeout(() => {
+    // setTimeout(() => {
       refreshLeadData()
-    }, 500)
+    // }, 2000)
     // Small delay to ensure UI transitions smoothly
     // nextTick(() => {
     //   openDisposition.value = true
@@ -123,9 +123,8 @@ function onSaveDisposition() {
 </script>
 
 <template>
-  <!-- {{ leadData }} -->
   <div class="relative h-full">
-    <div v-if="leadData?.data" class="p-5 bg-gray-50 rounded-tr-lg">
+    <div v-if="leadData?.lead_id" class="p-5 bg-gray-50 rounded-tr-lg">
       <!-- Show loading state while data is being fetched -->
       <div v-if="leadDataStatus === 'pending'" class="bg-gray-50 rounded-lg">
         <div class="border border-gray-100 rounded-lg">
@@ -221,7 +220,6 @@ function onSaveDisposition() {
     <StartDialingLeadDetailsSelectDisposition
       :is-open="openDisposition"
       :dispositions="dispositions"
-      :campaign-id="Number(campaignId)"
       :lead-id="Number(leadData?.lead_id)"
       @save="onSaveDisposition"
       @close="handleDispositionClose"

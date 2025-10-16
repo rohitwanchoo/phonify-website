@@ -21,40 +21,49 @@ const show = computed(() => {
 
 const selectedCampaign = ref()
 
-const sidePanel = ref([
+const sidePanel = computed(() => [
   {
     title: 'Lead Details',
     icon: 'material-symbols:person',
     link: selectedCampaign.value ? `/app/start-dialing/lead-details?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/lead-details',
+    disabled: false,
   },
   {
     title: 'Send SMS',
     icon: 'material-symbols:chat',
     link: selectedCampaign.value ? `/app/start-dialing/send-sms?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-sms',
+    disabled: true,
   },
   {
     title: 'Send Email',
     icon: 'material-symbols:mail',
     link: selectedCampaign.value ? `/app/start-dialing/send-email?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-email',
+    disabled: true,
   },
   {
     title: 'Agent Script',
     icon: 'material-symbols:script',
     link: selectedCampaign.value ? `/app/start-dialing/agent-script?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/agent-script',
+    disabled: true,
   },
   {
     title: 'Notes',
     icon: 'material-symbols:description',
     link: selectedCampaign.value ? `/app/start-dialing/notes?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/notes',
+    disabled: true,
   },
   {
     title: 'Events',
     icon: 'material-symbols:event',
     link: selectedCampaign.value ? `/app/start-dialing/events?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/events',
+    disabled: true,
   },
 ])
 
-const isActive = (link: string) => route.path.startsWith(link)
+function isActive(link: string) {
+  const base = link.split('?')[0]
+  return base ? route.path.startsWith(base) : false
+}
 
 onMounted(() => {
   if (route.path === '/app/start-dialing') {
@@ -71,24 +80,34 @@ const { data: campaignList, status: campaignListStatus } = await useLazyAsyncDat
 const initiateLoading = ref(false)
 
 function initiateCampaign() {
+  initiateLoading.value = true
+  useApi().post('/extension-login', {
+    campaign_id: selectedCampaign.value,
+  }).then((res) => {
+    showToast({ type: 'success', message: res.message })
+  }).catch((err) => {
+    handleError(err)
+  }).finally(() => {
+    initiateLoading.value = false
+  })
+}
+async function setRouteForInitCampaign() {
   if (selectedCampaign.value) {
-    navigateTo({
+    await navigateTo({
       query: {
         campaign_id: selectedCampaign.value,
       },
     })
-    initiateLoading.value = true
-    useApi().post('/extension-login', {
-      campaign_id: selectedCampaign.value,
-    }).then((res) => {
-      showToast({ type: 'success', message: res.message })
-    }).catch((err) => {
-      handleError(err)
-    }).finally(() => {
-      initiateLoading.value = false
-    })
+    initiateCampaign()
   }
 }
+
+onMounted(() => {
+  if (route.query.campaign_id) {
+    selectedCampaign.value = Number(route.query.campaign_id)
+    initiateCampaign()
+  }
+})
 
 // function initiateCampaign() {
 //   if (selectedCampaign.value) {
@@ -157,7 +176,7 @@ function initiateCampaign() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button :loading="initiateLoading" :disabled="!selectedCampaign" class="h-11" @click="initiateCampaign">
+          <Button :loading="initiateLoading" :disabled="!selectedCampaign" class="h-11" @click="setRouteForInitCampaign">
             Submit
           </Button>
         </div>
@@ -170,9 +189,12 @@ function initiateCampaign() {
           v-for="(item, index) in sidePanel"
           :key="index"
           :data-cy="`${item.title}-navigate`"
-          :to="item.link"
+          :to="!item.disabled ? item.link : null"
           class="flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:text-primary"
-          :class="isActive(item.link) ? 'bg-white text-primary' : 'bg-primary text-white'"
+          :class="[
+            isActive(item.link) ? 'bg-white text-primary' : 'bg-primary text-white',
+            item.disabled && 'opacity-50 cursor-not-allowed',
+          ]"
         >
           <Icon :name="item.icon" size="24" />
           <span class="text-sm">

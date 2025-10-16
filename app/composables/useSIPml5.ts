@@ -347,7 +347,7 @@ export function useSIPml5() {
     }
   }
 
-  const initializeSIP = async () => {
+  async function initializeSIP() {
     if (isInitialized) {
       consola.info('SIPml5 already initialized')
       return
