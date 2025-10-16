@@ -218,8 +218,6 @@ async function copyCampaign(c_id: number) {
   }
 }
 
-
-
 const columnHelper = createColumnHelper<any>()
 
 const columns = [
@@ -239,26 +237,26 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
 
-  columnHelper.display({
-    id: 'callTime',
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => {
-      const start = row.original.call_time_start
-      const end = row.original.call_time_end
-      return h('div', { class: 'uppercase text-center text-sm' }, start && end
-        ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
-        : 'N/A')
-    },
-  }),
+  // columnHelper.display({
+  //   id: 'callTime',
+  //   header: ({ column }) =>
+  //     h('div', { class: 'text-center' }, h(Button, {
+  //       class: 'text-sm font-normal',
+  //       variant: 'ghost',
+  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+  //     }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+  //   cell: ({ row }) => {
+  //     const start = row.original.call_time_start
+  //     const end = row.original.call_time_end
+  //     return h('div', { class: 'uppercase text-center text-sm' }, start && end
+  //       ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
+  //       : 'N/A')
+  //   },
+  // }),
 
   columnHelper.accessor('lists', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowList)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.lists_associated)),
   }),
 
   columnHelper.display({
@@ -269,7 +267,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`,
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.dialed_leads || 0}/${row.original.total_leads || 0}`,
     ),
   }),
 
@@ -281,7 +279,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Hoppers', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: () => h('div', { class: 'text-center font-normal text-center text-sm' }, 0,
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, row.original.hopper_count,
     ),
   }),
 
