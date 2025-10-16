@@ -30,7 +30,9 @@ export function useApi() {
       if (response.status === 401) {
         // Token expired or invalid, clear session
         const { clear } = useUserSession()
-        clear()
+        clear().then(() => {
+          useRouter().push('/auth/login')
+        })
         throw createError({
           statusCode: 401,
           statusMessage: 'Authentication required',
@@ -71,6 +73,7 @@ export function useApi() {
           app_extension: response.data.app_extension,
           secret: response.data.secret,
           domain: response.data.domain,
+          parent_id: response.data.parent_id,
         },
         expires_at: response.data.expires_at,
         server: response.data.server,

@@ -21,14 +21,13 @@ interface Disposition {
 
 interface Props {
   leadId?: number
-  campaignId?: number
   isOpen?: boolean
   dispositions?: Disposition[]
 }
+const route = useRoute()
 
 const props = withDefaults(defineProps<Props>(), {
   leadId: undefined,
-  campaignId: undefined,
   isOpen: false,
   dispositions: () => [],
 })
@@ -70,7 +69,7 @@ function handleSave() {
     return
   }
   useApi().post('save-disposition', {
-    campaign_id: props.campaignId,
+    campaign_id: route.query.campaign_id,
     disposition_id: selectedDisposition.value,
     lead_id: props.leadId,
     pause_calling: pauseCalling.value ? 1 : 0,

@@ -273,6 +273,10 @@ const onSubmit = handleSubmit(async (values) => {
   // console.log('Form submitted!', values)
 })
 
+function startDialing() {
+  navigateTo({ path: '/app/start-dialing/lead-details' , query:{ campaign_id: id }})
+}
+
 onMounted(() => {
   if (!isEdit.value) {
     resetForm()
@@ -312,7 +316,7 @@ onMounted(() => {
       </form>
     </div>
     <div v-if="isPreview" class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading">
+      <Button @click="startDialing" class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading">
         <Icon name="material-symbols:call" />
         Start Dialing
       </Button>

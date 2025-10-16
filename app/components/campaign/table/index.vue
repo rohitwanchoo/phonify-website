@@ -146,7 +146,7 @@ function resetCampaign(campaign_id: number) {
   useApi().get('/add-lead-temp', {
     params: {
       campaign_id,
-      id: user.value?.id,
+      id: user.value?.parent_id,
     },
   }).then((response) => {
     showToast({
@@ -160,6 +160,36 @@ function resetCampaign(campaign_id: number) {
     })
   })
 }
+
+async function copyCampaign(c_id: number) {
+  try {
+    const res = await useApi().post('/copy-campaign', {
+      c_id,
+    })
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      emits('refresh')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
+}
+
+
 
 const columnHelper = createColumnHelper<any>()
 
@@ -286,7 +316,7 @@ const columns = [
           navigateTo({ path: '/app/campaign/new-campaign', query: { id: row.original.id } })
         },
         onDelete: () => { deleteMethod(row?.original) },
-        onCopy: () => { },
+        onCopy: () => { copyCampaign(row.original.id) },
         onReset: () => { resetCampaign(row.original.id) },
       }),
     ]),

@@ -21,7 +21,7 @@ const show = computed(() => {
 
 const selectedCampaign = ref()
 
-const sidePanel = ref([
+const sidePanel = computed(() => [
   {
     title: 'Lead Details',
     icon: 'material-symbols:person',
@@ -71,24 +71,34 @@ const { data: campaignList, status: campaignListStatus } = await useLazyAsyncDat
 const initiateLoading = ref(false)
 
 function initiateCampaign() {
+  initiateLoading.value = true
+  useApi().post('/extension-login', {
+    campaign_id: selectedCampaign.value,
+  }).then((res) => {
+    showToast({ type: 'success', message: res.message })
+  }).catch((err) => {
+    handleError(err)
+  }).finally(() => {
+    initiateLoading.value = false
+  })
+}
+async function setRouteForInitCampaign() {
   if (selectedCampaign.value) {
-    navigateTo({
+    await navigateTo({
       query: {
         campaign_id: selectedCampaign.value,
       },
     })
-    initiateLoading.value = true
-    useApi().post('/extension-login', {
-      campaign_id: selectedCampaign.value,
-    }).then((res) => {
-      showToast({ type: 'success', message: res.message })
-    }).catch((err) => {
-      handleError(err)
-    }).finally(() => {
-      initiateLoading.value = false
-    })
+    initiateCampaign()
   }
 }
+
+onMounted(() => {
+  if (route.query.campaign_id) {
+    selectedCampaign.value = Number(route.query.campaign_id)
+    initiateCampaign()
+  }
+})
 
 // function initiateCampaign() {
 //   if (selectedCampaign.value) {
@@ -157,7 +167,7 @@ function initiateCampaign() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button :loading="initiateLoading" :disabled="!selectedCampaign" class="h-11" @click="initiateCampaign">
+          <Button :loading="initiateLoading" :disabled="!selectedCampaign" class="h-11" @click="setRouteForInitCampaign">
             Submit
           </Button>
         </div>
