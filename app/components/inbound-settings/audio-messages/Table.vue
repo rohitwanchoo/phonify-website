@@ -169,10 +169,6 @@ function changeLimit(val: number) {
 
 <template>
   <div class="w-full overflow-x-auto border rounded-xl bg-white mt-8">
-    <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
-      Audio Message
-    </div>
-
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">

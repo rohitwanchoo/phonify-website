@@ -115,28 +115,28 @@ async function openSheet(id: number) {
 
 async function updateStatus(id: number, status: number) {
   try {
-    const res = await useApi().post('/status-update-campaign-list', {
-      campaign_id: id,
+    const res = await useApi().post('/status-update-campaign', {
+      listId: id,
       status,
     })
 
-    if (res.success === 'true') {
+    if (res.original.success === 'true') {
       showToast({
-        message: res.message,
+        message: res.original.message,
         type: 'success',
       })
       refreshNuxtData('campaigns-list')
     }
     else {
       showToast({
-        message: res.message,
+        message: res.original.message,
         type: 'error',
       })
     }
   }
   catch (err: any) {
     showToast({
-      message: `${err.message}`,
+      message: `${err.original.message}`,
       type: 'error',
     })
   }
@@ -161,6 +161,35 @@ function resetCampaign(campaign_id: number) {
   })
 }
 
+// TO DO: Update hopper status
+// async function updateHopperStatus(id: number, status: number) {
+//   try {
+//     const res = await useApi().post('/status-update-hopper', {
+//       listId: id,
+//       status : [status],
+//     })
+
+//     if (res.success === 'true') {
+//       showToast({
+//         message: res.message,
+//         type: 'success',
+//       })
+//       refreshNuxtData('campaigns-list')
+//     }
+//     else {
+//       showToast({
+//         message: res.message,
+//         type: 'error',
+//       })
+//     }
+//   }
+//   catch (err: any) {
+//     showToast({
+//       message: `${err.message}`,
+//       type: 'error',
+//     })
+//   }
+// }
 async function copyCampaign(c_id: number) {
   try {
     const res = await useApi().post('/copy-campaign', {
@@ -189,15 +218,13 @@ async function copyCampaign(c_id: number) {
   }
 }
 
-
-
 const columnHelper = createColumnHelper<any>()
 
 const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
 
   columnHelper.accessor('title', {
@@ -210,26 +237,26 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
   }),
 
-  columnHelper.display({
-    id: 'callTime',
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => {
-      const start = row.original.call_time_start
-      const end = row.original.call_time_end
-      return h('div', { class: 'uppercase text-center text-sm' }, start && end
-        ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
-        : 'N/A')
-    },
-  }),
+  // columnHelper.display({
+  //   id: 'callTime',
+  //   header: ({ column }) =>
+  //     h('div', { class: 'text-center' }, h(Button, {
+  //       class: 'text-sm font-normal',
+  //       variant: 'ghost',
+  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+  //     }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+  //   cell: ({ row }) => {
+  //     const start = row.original.call_time_start
+  //     const end = row.original.call_time_end
+  //     return h('div', { class: 'uppercase text-center text-sm' }, start && end
+  //       ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
+  //       : 'N/A')
+  //   },
+  // }),
 
   columnHelper.accessor('lists', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.rowList)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.lists_associated)),
   }),
 
   columnHelper.display({
@@ -240,7 +267,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.min_lead_temp || 0}/${row.original.max_lead_temp || 0}`,
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.dialed_leads || 0}/${row.original.total_leads || 0}`,
     ),
   }),
 
@@ -252,7 +279,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Hoppers', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, 0,
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, row.original.hopper_count,
     ),
   }),
 
@@ -421,7 +448,7 @@ function changeLimit(val: number) {
         Showing {{ current_page }} to
 
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(v) => changeLimit(Number(v))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>

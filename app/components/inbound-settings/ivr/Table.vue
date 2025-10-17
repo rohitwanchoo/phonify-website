@@ -185,19 +185,13 @@ function handleEdit(item: typeof props.list[0]) {
   showCreateIvr.value = true
 }
 
-function handleSave(data: { extension: string, audioUrl: string }) {
-  console.log('save initiated')
+function handleSave(_data: { extension: string, audioUrl: string }) {
   emits('refresh')
 }
 </script>
 
 <template>
   <div class="w-full overflow-x-auto border rounded-xl bg-white mt-8 max-h-[85vh]">
-    <!-- Header -->
-    <div class="px-4 py-3 border-b text-sm font-semibold text-gray-800">
-      Call Timing #
-    </div>
-
     <!-- Table -->
     <Table>
       <TableHeader>
@@ -206,7 +200,7 @@ function handleSave(data: { extension: string, audioUrl: string }) {
             v-for="header in headerGroup.headers"
             :key="header.id"
             class="text-center px-4 py-4 text-sm font-medium text-gray-500 bg-gray-50 align-middle"
-            :class="header.column.columnDef.meta?.className"
+            :class="(header.column.columnDef.meta as any)?.className"
           >
             <FlexRender
               v-if="!header.isPlaceholder"

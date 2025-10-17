@@ -11,6 +11,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import Button from '~/components/ui/button/Button.vue'
+
 const { user, logout } = useAuth()
 const router = useRouter()
 
@@ -98,12 +99,13 @@ const userInitials = computed(() => {
             </NuxtLink>
           </DropdownMenuItem>
 
-          <DropdownMenuItem as-child>
+          <!-- For now settings is disabled -->
+          <!-- <DropdownMenuItem as-child>
             <NuxtLink to="/app/settings" class="cursor-pointer">
               <Icon name="material-symbols:settings-outline" class="mr-2 h-4 w-4" />
               <span>Settings</span>
             </NuxtLink>
-          </DropdownMenuItem>
+          </DropdownMenuItem> -->
 
           <DropdownMenuSeparator />
 
