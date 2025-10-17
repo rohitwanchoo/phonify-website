@@ -107,7 +107,7 @@ watch(() => callStatus?.value, (currentState, previousState) => {
   // call status active
   if (currentState === 'active') {
     // setTimeout(() => {
-      refreshLeadData()
+    refreshLeadData()
     // }, 2000)
     // Small delay to ensure UI transitions smoothly
     // nextTick(() => {
@@ -194,12 +194,13 @@ function onSaveDisposition() {
       </Button>
 
       <!-- Dynamic Call/Hangup Button -->
+
       <Button
         :loading="hangupLoading"
         variant="destructive"
         name="hangup"
         class="w-full flex-1 cursor-pointer"
-        :disabled="!leadData?.lead_id"
+        :disabled="!leadData?.lead_id || callStatus !== 'active'"
         @click="handleHangup"
       >
         <Icon name="material-symbols:call-end" size="20" />

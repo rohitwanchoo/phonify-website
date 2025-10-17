@@ -26,8 +26,10 @@ import {
 } from '@/components/ui/tabs'
 
 const route = useRoute()
-// TODO: remove this after demo
+
 const { session } = useUserSession()
+const { callStatus, callerDetails, endCall, isRegistered } = useSIPml5()
+const { closeDialer } = useDialer()
 
 const selectedTab = ref()
 
@@ -101,6 +103,33 @@ const { data: campaignList, status: campaignListStatus } = await useLazyAsyncDat
   immediate: true,
 })
 
+const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = await useLazyAsyncData('lead-details', () =>
+  useApi().post(`/get-lead`), {
+  transform: res => res,
+  immediate: false,
+})
+
+watch(leadData, (val) => {
+  if (!val.lead_id) {
+    endCall()
+    closeDialer()
+    navigateTo('/app/start-dialing/lead-details')
+  }
+})
+
+// watch(() => callStatus?.value, (currentState) => {
+//   // call status active
+//   if (currentState === 'active') {
+//     setTimeout(() => {
+//       refreshLeadData()
+//     }, 2000)
+//     // Small delay to ensure UI transitions smoothly
+//     // nextTick(() => {
+//     //   openDisposition.value = true
+//     // })
+//   }
+// }, { immediate: true })
+
 const initiateLoading = ref(false)
 
 function initiateCampaign() {
@@ -109,6 +138,9 @@ function initiateCampaign() {
     campaign_id: selectedCampaign.value,
   }).then((res) => {
     showToast({ type: 'success', message: res.message })
+    if (callStatus?.value === 'active') {
+      refreshLeadData()
+    }
   }).catch((err) => {
     handleError(err)
   }).finally(() => {
@@ -116,6 +148,13 @@ function initiateCampaign() {
   })
 }
 async function setRouteForInitCampaign() {
+  if (!isRegistered.value) {
+    showToast({
+      message: 'Webphone is not registered. Please refresh the page and try again.',
+      type: 'error',
+    })
+    return
+  }
   if (selectedCampaign.value) {
     await navigateTo({
       query: {
@@ -231,9 +270,9 @@ onMounted(() => {
         <NuxtPage />
       </div>
     </div> -->
-    <div class="h-full ">
-      <Tabs v-model="selectedTab" default-value="lead-details" class="w-full flex flex-row h-full overflow-y-auto mt-6 " orientation="vertical">
-        <div class="max-h-[calc(100vh-166px)] h-full bg-primary rounded-l-lg p-1">
+    <div class="h-full max-h-[calc(100vh-166px)]">
+      <Tabs v-model="selectedTab" default-value="lead-details" class="gap-0 w-full flex flex-row h-full overflow-y-auto mt-6 " orientation="vertical">
+        <div class=" bg-primary rounded-l-lg p-1">
           <TabsList class="flex flex-col justify-start w-[300px] bg-primary h-max !gap-y-[20px]">
             <TabsTrigger
               v-for="(item, index) in sidePanel" :key="index" :value="item.value"
@@ -246,8 +285,8 @@ onMounted(() => {
             </TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="lead-details">
-          <StartDialingLeadDetails />
+        <TabsContent value="lead-details" class="bg-[#FAFAFA] rounded-r-lg">
+          <StartDialingLeadDetails :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
         </TabsContent>
       </Tabs>
     </div>

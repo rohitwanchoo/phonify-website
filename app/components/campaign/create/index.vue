@@ -237,10 +237,10 @@ const onSubmit = handleSubmit(async (values) => {
     time_based_calling: formState.value?.time_based_calling ? 1 : 0,
     status: formState.value.status,
   }
-  // if (!formState.value.time_based_calling) {
-  //   payload.call_time_start = '11:52:24' // start of 12-hour day
-  //   payload.call_time_end = '23:59:59' // end of 12-hour day
-  // }
+  if (!formState.value.time_based_calling) {
+    payload.call_time_start = '00:00'
+    payload.call_time_end = '23:59'
+  }
   // console.log(payload)
   // delete payload.call_time
 
