@@ -230,12 +230,12 @@ onMounted(() => {
                 <SelectItem value="web-phone">
                   Web Phone
                 </SelectItem>
-                <SelectItem value="mobile-app">
+                <!-- <SelectItem value="mobile-app">
                   Mobile App
                 </SelectItem>
                 <SelectItem value="desk-phone">
                   Desk Phone
-                </SelectItem>
+                </SelectItem> -->
               </SelectGroup>
             </SelectContent>
           </Select>
