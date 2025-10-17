@@ -226,7 +226,7 @@ function onSaveDisposition() {
       :is-open="openDisposition"
       :dispositions="dispositions"
       :lead-id="Number(leadData?.lead_id)"
-
+      :list-id="Number(leadData?.list_id)"
       @save="onSaveDisposition"
       @close="handleDispositionClose"
       @redial="handleRedial"

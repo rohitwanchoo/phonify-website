@@ -40,6 +40,7 @@ interface Disposition {
 
 interface Props {
   leadId?: number
+  listId?: number
   isOpen?: boolean
   dispositions?: Disposition[]
 }
@@ -109,6 +110,7 @@ function handleRedial() {
     lead_id: props.leadId,
     api_call: 1,
     pause_calling: pauseCalling.value ? 1 : 0,
+    listId: props.listId,
   }).then((response) => {
     showToast({
       message: response?.data?.message || 'Lead redialed successfully',
@@ -179,7 +181,8 @@ function handleDialogClose() {
         <Button
           variant="outline"
           class="w-full h-11 flex-1 cursor-pointer"
-          :disabled="true"
+          :disabled="!selectedDisposition"
+          :loading="redialLoading"
           @click="handleRedial"
         >
           <Icon name="material-symbols:call" size="20" />
