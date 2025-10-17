@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,7 +24,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -50,13 +48,14 @@ interface RingGroup {
 
 const props = defineProps<{
   tempRingGroup?: RingGroup
+  isEdit?: boolean
 }>()
 
 const emits = defineEmits(['complete'])
 
-const isEdit = computed(() => {
-  return Object.keys(props.tempRingGroup || {}).length > 0
-})
+// const isEdit = computed(() => {
+//   return Object.keys(props.tempRingGroup || {}).length > 0
+// })
 
 const open = defineModel('open', {
   type: Boolean,
@@ -79,12 +78,13 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, setFieldValue, resetForm, values } = useForm({
+const { handleSubmit, setFieldValue, resetForm } = useForm({
   validationSchema: formSchema,
+
 })
 
 watch(open, (newValue) => {
-  if (newValue && isEdit.value) {
+  if (newValue && props.isEdit) {
     setFieldValue('title', props.tempRingGroup?.title || '')
     setFieldValue('description', props.tempRingGroup?.description || '')
     setFieldValue('emails', props.tempRingGroup?.emails || '')
@@ -92,7 +92,11 @@ watch(open, (newValue) => {
     setFieldValue('receive_on', props.tempRingGroup?.receive_on)
   }
   else {
-    resetForm()
+    setFieldValue('title', '')
+    setFieldValue('description', '')
+    setFieldValue('emails', '')
+    setFieldValue('ring_type', 1)
+    setFieldValue('receive_on', '')
   }
 })
 
@@ -164,11 +168,11 @@ function removeExtension(index: number) {
 </script>
 
 <template>
-  <Dialog v-model:open="open" @update:open="onOpenDialog">
+  <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <slot>
         <Button class="h-11">
-          <Icon class="!text-white" name="lucide:plus" />
+          <Icon class="text-xl" name="material-symbols:add" />
           Add Ring Group
         </Button>
       </slot>
@@ -178,12 +182,11 @@ function removeExtension(index: number) {
         <DialogTitle class="text-[16px] font-medium flex justify-between">
           {{ isEdit ? 'Edit Ring Group' : 'Add Ring Group' }}
           <DialogClose class="cursor-pointer flex items-center">
-            <Icon name="mdi:close" size="20" />
+            <Icon class="text-xl" name="material-symbols:close" />
           </DialogClose>
         </DialogTitle>
         <Separator />
       </DialogHeader>
-      <!-- {{ selectedExtensions }} -->
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
           <FormField

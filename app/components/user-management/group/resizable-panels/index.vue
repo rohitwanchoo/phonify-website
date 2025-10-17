@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { useConfirmDialog, useDebounceFn } from '@vueuse/core'
-
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-
 import { ScrollArea } from '@/components/ui/scroll-area'
-
 import {
   Select,
   SelectContent,
@@ -16,75 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
-
-import { Button } from '~/components/ui/button'
-
 import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
-import Actions from '../Actions.vue'
 
+// ==================== TYPES ====================
 interface Group {
   id: number
   title: string
   count: number
 }
 
-// const props = withDefaults(defineProps<Props>(), {})
-const emits = defineEmits(['refresh', 'onRename'])
-
-const route = useRoute()
-const router = useRouter()
-const searchField = ref('')
-
-const { data: extensionGroup, status: extensionGroupStatus, refresh: refreshExtensionGroup } = await useLazyAsyncData('extension-group-list', () =>
-  useApi().get('extension-group', {
-    params: {
-      search: searchField.value,
-    }
-  }), {
-  transform: (res) => {
-    return res.data
-  },
-})
-
-// watch extensionGroup status
-watch(() => extensionGroupStatus.value, async (newStatus) => {
-  if (newStatus === 'success' && extensionGroup.value?.length) {
-    const firstExtensionGroup = extensionGroup.value[0]
-    toggledGroup.value = firstExtensionGroup
-    // add route query as the first element id
-    const id = route.query.id 
-    if (!id) {
-     await navigateTo({
-        query: {
-          ...route.query,
-          id: firstExtensionGroup.id,
-        },
-      })
-    }else{
-     await router.push({
-        query: {
-          id: id,
-        },
-      })
-    }
-   await refreshNuxtData('extension-list-by-group-id')
-   const { data: extensions } = useNuxtData('extension-list-by-group-id')
-   selectedExtensions.value = extensions.value.map((item: any) => ({
-    first_name: item.first_name,
-    last_name: item.last_name,
-    extension: item.extension,
-  }))
-        
-  }
-})
 export interface Extension {
   siNo?: number
   extension: string
@@ -93,24 +31,60 @@ export interface Extension {
   phoneNumber: string
   webPhone: string
   actions?: string
-
 }
+
+// ==================== EMITS ====================
+const emits = defineEmits(['refresh', 'onRename'])
+
+// ==================== COMPOSABLES ====================
+const route = useRoute()
+const router = useRouter()
+
+// ==================== STATE ====================
+// Search and Pagination
+const searchField = ref('')
+const limit = ref(10)
+const start = ref(0)
+
+// UI State
 const addExtensionSheet = ref(false)
+const toggledGroup = ref<{ id: string, title: string, count: number, status: number }>()
+const selectedGroup = ref({})
 const selectedExtensions = ref<any>([])
 
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
-const meta: Meta = {
-  current_page: 1,
-  per_page: 20,
-  last_page: 1,
-  total: 20,
-}
+// ==================== DATA FETCHING ====================
+const {
+  data: extensionGroup,
+  status: extensionGroupStatus,
+  refresh: refreshExtensionGroup,
+} = await useLazyAsyncData('extension-group-list', () =>
+  useApi().get('extension-group', {
+    params: {
+      search: searchField.value,
+      limit: limit.value,
+      start: start.value,
+    },
+  }), {
+  transform: res => res,
+})
 
+const {
+  data: extensionDataByGroupId,
+  status: extensionDataStatus,
+  refresh: refreshExtensionDataByGroupId,
+} = await useLazyAsyncData('extension-list-by-group-id', () =>
+  useApi().get(`/extension-group-map?group_id=${toggledGroup.value?.id}`, {}), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+// ==================== COMPUTED ====================
+const total = computed(() => extensionGroup.value?.total || 0)
+const current_page = computed(() => Math.floor(start.value / limit.value) + 1)
+const per_page = computed(() => limit.value)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
+
+// ==================== CONFIRM DIALOG ====================
 const {
   isRevealed: showDeleteConfirm,
   reveal: revealDeleteConfirm,
@@ -118,8 +92,32 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const toggledGroup = ref<{ id: string, title: string, count: number, status: number }>()
-const selectedGroup = ref({})
+// ==================== PAGINATION METHODS ====================
+function handlePageChange(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  refreshExtensionGroup()
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    limit.value = Number(val)
+    refreshExtensionGroup()
+  }
+}
+
+// ==================== SEARCH METHODS ====================
+const debouncedSearch = useDebounceFn(() => {
+  refreshExtensionGroup()
+}, 1000, { maxWait: 5000 })
+
+function searchGroup() {
+  debouncedSearch()
+}
+
+// ==================== GROUP METHODS ====================
+function onSelectGroup() {
+  refreshExtensionDataByGroupId()
+}
 
 async function deleteGroup(group: Group) {
   selectedGroup.value = group
@@ -140,42 +138,15 @@ async function deleteGroup(group: Group) {
   }
 }
 
-// const route = useRoute()
-// const id = route.params.id
-
-// TODO: need to integrate extension list by group id
-
-const { data: extensionByGroupId, status, refresh } = await useLazyAsyncData('extension-list-by-group-id', () =>
-  useApi().get(`/extension-group-map?group_id=${route.query.id}`, {
-  }), {
-  transform: (res) => {
-    return res.data
-  },
-  immediate: false,
-})
-
-// watch(() => route.query.id, (id) => {
-//   refresh()
-// })
-
-function onSelectGroup() {
-  refresh()
+function renameGroup(val: any) {
+  emits('onRename', val)
 }
 
-
-const debouncedSearch = useDebounceFn(() => {
-refreshExtensionGroup()
-}, 1000, { maxWait: 5000 })
-
-
-function searchGroup() {
-  debouncedSearch()
-}
-
-function addExtension(){
+// ==================== EXTENSION METHODS ====================
+function addExtension() {
   useApi().patch('/extension-group-update', {
     group_id: toggledGroup.value?.id,
-    title:toggledGroup.value?.title,
+    title: toggledGroup.value?.title,
     status: !!toggledGroup.value?.status,
     extensions: selectedExtensions.value.map((item: any) => item.extension),
   }).then((res: any) => {
@@ -193,38 +164,95 @@ function addExtension(){
   })
 }
 
-function renameGroup(val: any){
- emits('onRename', val)
-}
+// ==================== WATCHERS ====================
+watch(() => extensionGroupStatus.value, async (newStatus) => {
+  if (newStatus === 'success' && extensionGroup.value?.total) {
+    const firstExtensionGroup = extensionGroup.value.data[0]
+    toggledGroup.value = firstExtensionGroup
+
+    const id = route.query.id
+    if (!id) {
+      await navigateTo({
+        query: {
+          ...route.query,
+          id: firstExtensionGroup.id,
+        },
+      })
+    }
+    else {
+      await router.push({
+        query: { id },
+      })
+    }
+
+    await refreshNuxtData('extension-list-by-group-id')
+    const { data: extensions } = useNuxtData('extension-list-by-group-id')
+    selectedExtensions.value = extensions.value.map((item: any) => ({
+      first_name: item.first_name,
+      last_name: item.last_name,
+      extension: item.extension,
+    }))
+  }
+})
 </script>
 
 <template>
   <ResizablePanelGroup
     id="handle-demo-group-1"
     direction="horizontal"
-    class="h-full rounded-lg border mt-4"
+    class="h-full max-h-[calc(100vh-225px)] rounded-lg border mt-4"
   >
-    <ResizablePanel id="handle-demo-panel-1" class="bg-primary p-[18px] " :default-size="25" :min-size="16">
+    <!-- LEFT PANEL: Groups List -->
+    <ResizablePanel
+      id="handle-demo-panel-1"
+      class="bg-primary p-[18px]"
+      :default-size="25"
+      :min-size="16"
+    >
       <div class="relative">
-        <Input class="bg-white h-11" v-model="searchField" @update:model-value="searchGroup" placeholder="Search Groups" />
-        <Icon name="lucide:search" class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2" />
+        <Input
+          v-model="searchField"
+          class="bg-white h-11"
+          placeholder="Search Groups"
+          @update:model-value="searchGroup"
+        />
+        <Icon
+          class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2 text-xl"
+          name="material-symbols:search"
+        />
       </div>
+
       <Separator class="my-2 bg-[#FFFFFF1A]" />
-      <ScrollArea class="h-[calc(100vh-280px)]">
-        <UserManagementGroupResizablePanelsGroupTabs v-model="toggledGroup" @update:model-value="onSelectGroup" :loading="extensionGroupStatus === 'pending'" :extension-group="extensionGroup" @on-delete="deleteGroup" @on-rename="renameGroup" />
+
+      <ScrollArea class="h-[calc(100vh-200px)] pb-[110px]">
+        <UserManagementGroupResizablePanelsGroupTabs
+          v-model="toggledGroup"
+          :loading="extensionGroupStatus === 'pending'"
+          :extension-group="extensionGroup?.data"
+          @update:model-value="onSelectGroup"
+          @on-delete="deleteGroup"
+          @on-rename="renameGroup"
+        />
       </ScrollArea>
     </ResizablePanel>
+
     <ResizableHandle id="handle-demo-handle-1" with-handle />
-    <ResizablePanel id="handle-demo-panel-2" :default-size="75" :min-size="50">
+
+    <!-- RIGHT PANEL: Extensions List -->
+    <ResizablePanel
+      id="handle-demo-panel-2"
+      :default-size="75"
+      :min-size="50"
+    >
       <div class="px-[12px] py-[14px] flex justify-between items-center">
         <div class="font-medium text-[16px]">
           {{ toggledGroup?.title }}
         </div>
+
         <div class="flex gap-x-2">
-          <div class="relative">
-            <Input placeholder="Search List" class="h-11 w-[250px]" />
-            <Icon name="lucide:search" class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2" />
-          </div>
+          <!-- TO DO: need to add search functionality when API(extension-group-map) is ready -->
+          <!-- <BaseInputSearch v-model="search" class="w-full mt-1" placeholder="Search" @update:model-value="searchText" /> -->
+
           <UserManagementGroupAddExtension
             v-model="addExtensionSheet"
             v-model:selected-extensions="selectedExtensions"
@@ -232,19 +260,28 @@ function renameGroup(val: any){
           />
         </div>
       </div>
-      <div class="max-h-[calc(100vh-280px)] h-full overflow-y-auto">
-        <UserManagementGroupTable :list="extensionByGroupId" :loading="status === 'pending' || extensionGroupStatus === 'pending'" :meta="meta" />
+
+      <div class="max-h-[calc(100vh-200px)] pb-[72px] h-full overflow-y-auto">
+        <UserManagementGroupTable
+          :list="extensionDataByGroupId"
+          :loading="extensionDataStatus === 'pending' || extensionGroupStatus === 'pending'"
+        />
       </div>
     </ResizablePanel>
   </ResizablePanelGroup>
 
-  <div class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <!-- PAGINATION -->
+  <div class="flex items-center justify-end space-x-2 pt-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
+        Showing {{ start + 1 }} to
 
         <span>
-          <Select :default-value="10">
+          <Select
+            :default-value="10"
+            :model-value="limit"
+            @update:model-value="(val) => changeLimit(Number(val))"
+          >
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -256,17 +293,27 @@ function renameGroup(val: any){
           </Select>
         </span>
 
-        of {{ meta?.total }} entries
+        of {{ total }} entries
       </div>
     </div>
+
     <div class="space-x-2">
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)"
+        :total-items="Number(total)"
+        :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)"
+        :last-page="Number(last_page)"
+        @page-change="handlePageChange"
       />
     </div>
   </div>
 
-  <!-- CONFIRM DELETE -->
-  <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Extension Group" description="You are about to delete extension group. Do you wish to proceed?" />
+  <!-- CONFIRM DELETE DIALOG -->
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirm"
+    :cancel="deleteCancel"
+    title="Delete Extension Group"
+    description="You are about to delete extension group. Do you wish to proceed?"
+  />
 </template>
