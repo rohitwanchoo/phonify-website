@@ -101,7 +101,8 @@ const columns = [
     },
   }),
 
-  columnHelper.accessor('name', {
+  columnHelper.accessor(row => `${row.first_name} ${row.last_name}`, {
+    id: 'name',
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
@@ -111,38 +112,6 @@ const columns = [
     },
     cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
   }),
-
-  // columnHelper.accessor('email', {
-  //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
-  //   cell: ({ row }) => {
-  //     return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email'))
-  //   },
-  // }),
-
-  // columnHelper.accessor('phoneNumber', {
-  //   header: ({ column }) => {
-  //     return h('div', { class: 'text-center' }, h(Button, {
-  //       class: 'text-sm font-normal',
-  //       variant: 'ghost',
-  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-  //     }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-  //   },
-  //   cell: ({ row }) => {
-  //     return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('phoneNumber'))
-  //   },
-  // }),
-  // columnHelper.accessor('webPhone', {
-  //   header: ({ column }) => {
-  //     return h('div', { class: 'text-center' }, h(Button, {
-  //       class: 'text-sm font-normal',
-  //       variant: 'ghost',
-  //       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-  //     }, () => ['Web Phone', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
-  //   },
-  //   cell: ({ row }) => {
-  //     return h('div', { class: 'text-center font-normal text-center text-sm' }, row.getValue('webPhone'))
-  //   },
-  // }),
 
   columnHelper.accessor('actions', {
     header: () => {

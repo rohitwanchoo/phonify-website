@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
@@ -11,23 +10,20 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
 import { useConfirmDialog } from '@vueuse/core'
-import { ChevronsUpDown, CircleCheck, Copy } from 'lucide-vue-next'
+import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -42,20 +38,21 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   loading: boolean
-  // meta: Meta
+  totalRows: number
   list: any[]
-}>()
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
 
-const emits = defineEmits(['pageNavigation', 'refresh', 'edit'])
-
-interface Meta {
-  current_page: number
-  per_page: number
-  last_page: number
-  total: number
-}
+const emits = defineEmits(['pageNavigation', 'changeLimit', 'edit'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const {
   isRevealed: showDeleteConfirm,
@@ -64,18 +61,36 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-async function deleteMethod() {
+async function handleDelete(id: number) {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
     return false
   }
-  // console.log(row)
-  // TODO: API CALL HERE
+  try {
+    const res = await useApi().post('/delete-ring-group', {
+      ring_id: id,
+    })
 
-  showToast({
-    type: 'success',
-    message: 'Ring Group deleted successfully',
-  })
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      refreshNuxtData('ring-group-list')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
 }
 
 interface GroupList {
@@ -86,6 +101,22 @@ interface GroupList {
   emails: string
   actions: string
   extension_count: number
+}
+
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
+function deleteConfirmHandler() {
+  deleteConfirm() // close dialog
+  handleDelete() // now delete safely
 }
 
 const columnHelper = createColumnHelper<GroupList>()
@@ -134,12 +165,11 @@ const columns = [
     header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
       h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer', onClick: () => emits('edit', row.original) }, h(Icon, { name: 'material-symbols:edit-square' })),
-      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => deleteMethod(row.original) }, h(Icon, { name: 'material-symbols:delete' })),
+      h(Button, { size: 'icon', variant: 'outline', class: 'cursor-pointer border-red-600 text-red-600 hover:text-red-600/80', onClick: () => handleDelete(row.original.id) }, h(Icon, { name: 'material-symbols:delete' })),
 
     ]),
   }),
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
@@ -156,14 +186,14 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  initialState: { pagination: { pageSize: 10 } },
+  initialState: { pagination: { pageSize: props.limit } },
   manualPagination: true,
-  pageCount: props.meta?.last_page,
-  rowCount: props.meta?.total,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
     pagination: {
-      pageIndex: props.meta?.current_page,
-      pageSize: props.meta?.per_page,
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
     },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
@@ -171,10 +201,6 @@ const table = useVueTable({
     get rowSelection() { return rowSelection.value },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
 </script>
 
 <template>
@@ -222,13 +248,12 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -239,15 +264,14 @@ function handlePageChange(page: number) {
             </SelectContent>
           </Select>
         </span>
-
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>
@@ -255,20 +279,3 @@ function handlePageChange(page: number) {
   <!-- CONFIRM DELETE -->
   <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Group List" description="You are about to delete group list. Do you wish to proceed?" />
 </template>
-
-<style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.25s ease-out;
-}
-
-.slide-up-enter-from {
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(-30px);
-}
-</style>

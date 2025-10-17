@@ -38,7 +38,6 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 
-import { cn } from '@/lib/utils'
 import resetImage from '~/assets/svg/reset.svg'
 import Action from './Action.vue'
 
@@ -73,18 +72,37 @@ const {
   cancel: resetCancel,
 } = useConfirmDialog()
 
-async function deleteMethod() {
+async function handleDelete(original: Extension) {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
     return false
   }
-  // console.log(row)
-  // TODO: API CALL HERE
+  try {
+    const res = await useApi().post('/edit-extension', {
+      extension_id: original.id,
+      is_deleted: 1,
+    })
 
-  showToast({
-    type: 'success',
-    message: 'Extension deleted successfully',
-  })
+    if (res?.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      emits('refresh')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
 }
 
 async function resetExtension(row: { extension: number }) {
@@ -93,23 +111,26 @@ async function resetExtension(row: { extension: number }) {
     return false
   }
 
-  useApi().post(`/delete-ext-live`, { sip: row.extension }).then((res) => {
-    showToast({
-      type: 'success',
-      message: res.message,
-    })
-    emits('refresh')
+  useApi().post(`/delete-ext-live`, { extension: row.extension }).then((res) => {
+    if (res?.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      emits('refresh')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
   }).catch((err) => {
     showToast({
       message: err.message,
       type: 'error',
     })
   })
-  // // console.log(row)
-  // showToast({
-  //   type: 'success',
-  //   message: 'Extension reset successfully',
-  // })
 }
 
 const extensionLoadingId = ref(0)
@@ -140,12 +161,23 @@ const changePermissionModel = ref(false)
 
 const copy = ref('')
 
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
+
 const columnHelper = createColumnHelper<Extension>()
 
 const columns = [
   columnHelper.accessor('siNo', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + (row.index + 1)),
   }),
 
   columnHelper.accessor('extension', {
@@ -182,11 +214,11 @@ const columns = [
       ),
   }),
 
-  // columnHelper.accessor('first_name', {
-  //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
-  //   cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.first_name + ' ' + row.original.last_name),
-
-  // }),
+  columnHelper.accessor(row => `${row.first_name} ${row.last_name}`, {
+    id: 'name',
+    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
+  }),
 
   columnHelper.accessor('email', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
@@ -213,7 +245,7 @@ const columns = [
           })
         },
         onDelete: () => {
-          deleteMethod(row?.original)
+          handleDelete(row?.original)
         },
         onChangePassword: () => {
           selectedExtension.value = row?.original
@@ -230,7 +262,6 @@ const columns = [
     ]),
   }),
 ]
-
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
@@ -262,14 +293,6 @@ const table = useVueTable({
     get rowSelection() { return rowSelection.value },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-
-function changeLimit(val: number) {
-  emits('changeLimit', val)
-}
 </script>
 
 <template>
@@ -322,9 +345,8 @@ function changeLimit(val: number) {
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing {{ current_page }} to
-
         <span>
-          <Select :default-value="10" :model-value="limit" @update:model-value="changeLimit">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
@@ -335,7 +357,6 @@ function changeLimit(val: number) {
             </SelectContent>
           </Select>
         </span>
-
         of {{ totalRows }} entries
       </div>
     </div>

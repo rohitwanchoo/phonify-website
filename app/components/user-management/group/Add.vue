@@ -96,8 +96,8 @@ watch(() => open.value, (val) => {
   <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <slot>
-        <Button>
-          <Icon class="!text-white" name="lucide:plus" />
+        <Button class="h-11">
+          <Icon class="!text-white text-xl" name="material-symbols:add" />
           Add Group
         </Button>
       </slot>
@@ -122,14 +122,14 @@ watch(() => open.value, (val) => {
       </div>
       <DialogFooter>
         <DialogClose class="w-1/2">
-          <Button variant="outline" class="border-red-600 w-full h-11">
-            <Icon name="mdi:close" />
+          <Button variant="outline" class="w-full h-11">
+            <Icon class=" text-xl" name="material-symbols:close" />
             Close
           </Button>
         </DialogClose>
 
         <Button variant="default" :disabled="!title || loading" class="w-1/2 h-11" @click="save">
-          <Icon :name="loading ? 'line-md:loading-twotone-loop' : 'material-symbols:save-outline'" />
+          <Icon class="!text-white text-xl" name="material-symbols:save-outline" />
           Save
         </Button>
       </DialogFooter>

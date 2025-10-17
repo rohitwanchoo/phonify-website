@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Extension } from '@/types/extension'
+import { useDebounceFn } from '@vueuse/core'
 import { Button } from '@/components/ui/button'
 
 import { Separator } from '@/components/ui/separator'
@@ -14,9 +15,7 @@ import {
 } from '@/components/ui/sheet'
 import { Checkbox } from '~/components/ui/checkbox'
 
-import { Input } from '~/components/ui/input'
-
-const props = defineProps({
+const _props = defineProps({
   showButton: {
     type: Boolean,
     default: true,
@@ -25,13 +24,27 @@ const props = defineProps({
 
 const emits = defineEmits(['submit'])
 
+const pageStart = ref(0)
+const search = ref('')
+
 const open = defineModel<boolean>()
-const { data: extensions, status } = await useLazyAsyncData('extension', () =>
-  useApi().get('extension'), {
-  transform: (res) => {
-    return res.data
-  },
+const { data: extensions, status: extensionStatus, refresh: refreshExtensionList } = await useLazyAsyncData('extension-list-sheet', () =>
+  useApi().get('extension', {
+    params: {
+      search: search.value,
+    },
+  }), {
+  transform: res => res.data,
 })
+
+const debouncedSearch = useDebounceFn(() => {
+  pageStart.value = 0
+  refreshExtensionList()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
+}
 
 const selectedExtensions = defineModel<Extension[]>('selectedExtensions', { default: [] })
 
@@ -65,7 +78,7 @@ function submit() {
     <SheetTrigger>
       <slot>
         <Button v-if="showButton" variant="outline" class="h-11">
-          <Icon name="mdi:plus" />
+          <Icon class="text-xl" name="material-symbols:add" />
           Add Extension
         </Button>
       </slot>
@@ -78,22 +91,19 @@ function submit() {
       </SheetHeader>
       <div class="overflow-y-auto">
         <div class=" mx-auto px-5 overflow-y-auto">
-          <div class="flex gap-x-2">
-            <div class="relative flex-1">
-              <Input class="h-11 focus-visible:ring-0 " placeholder="Search Extension" />
-              <Icon name="lucide:search" class="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer" />
-            </div>
-            <Button variant="outline" size="icon" class="border-gray-200 h-11 w-11">
-              <Icon name="material-symbols:sort" />
-            </Button>
-          </div>
+          <BaseInputSearch v-model="search" class="w-full mt-1" placeholder="Search" @update:model-value="searchText" />
           <Separator class="my-3 bg-gray-100" />
-          <template v-if="status === 'pending'">
+          <template v-if="extensionStatus === 'pending'">
             <div v-for="n in 10" :key="n">
               <BaseSkelton classes="!rounded-none" class="h-10" />
               <Separator class="my-3 bg-gray-100" />
             </div>
           </template>
+          <div v-if="extensionStatus === 'success' && extensions?.length === 0">
+            <div class="text-center text-sm text-gray-500">
+              No extensions found
+            </div>
+          </div>
           <div
             v-for="extension in extensions"
             v-else :key="extension.name" class="border-b border-gray-100 py-[19px]
@@ -114,8 +124,8 @@ function submit() {
       <SheetFooter class="">
         <SheetClose as-child>
           <Button type="submit" class="h-[52px]" @click="submit">
-            <Icon name="mdi:plus" />
-            Add Extension
+            <Icon class="text-xl" name="material-symbols:save" />
+            Save
           </Button>
         </SheetClose>
       </SheetFooter>

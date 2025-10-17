@@ -1,15 +1,17 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 
-const pageStart = ref(0)
+const start = ref(0)
 const limit = ref(10)
+const search = ref('')
 
-const { data: extensionList, status, refresh } = await useLazyAsyncData('extension-list', () =>
+const { data: extensionData, status: extensionStatus, refresh: refreshExtensionList } = await useLazyAsyncData('extension-list', () =>
   useApi().get('extension', {
     params: {
-      start: pageStart.value,
+      start: start.value,
       limit: limit.value,
+      search: search.value,
     },
   }), {
   transform: (res) => {
@@ -18,40 +20,46 @@ const { data: extensionList, status, refresh } = await useLazyAsyncData('extensi
 })
 
 function changePage(page: number) {
-  pageStart.value = Number((page - 1) * limit.value)
-  return refresh()
+  start.value = Number((page - 1) * limit.value)
+  return refreshExtensionList()
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  return refresh()
+  return refreshExtensionList()
+}
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshExtensionList()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
 }
 </script>
 
 <template>
-  <!-- {{ extensionList }} -->
-
-  <div class="">
+  <div>
     <BaseHeader title="Extension List">
       <template #actions>
         <div class="relative w-full md:w-auto ">
-          <BaseInputSearch></BaseInputSearch>
-          <!-- <Input placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" /> -->
+          <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
         </div>
-        <Button variant="outline" class="text-black bg-white h-11" @click="toastTest">
-          <Icon class="!text-black" name="lucide:download" />
+        <!-- TO DO: Add Excel Download Button (API needed) -->
+        <!-- <Button variant="outline" class="text-black h-11">
+          <Icon class="!text-black text-xl" name="material-symbols:download" />
           Excel
-        </Button>
+        </Button> -->
         <NuxtLink to="/app/user-management/extension/create">
           <Button class="h-11">
-            <Icon class="!text-white" name="lucide:plus" />
+            <Icon class="!text-white text-xl" name="material-symbols:add" />
             Add Extensions
           </Button>
         </NuxtLink>
       </template>
     </BaseHeader>
 
-    <UserManagementExtensionTable :limit="limit" :total-rows="extensionList?.total_rows" :start="pageStart" :list="extensionList?.data || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" />
+    <UserManagementExtensionTable :limit="limit" :total-rows="extensionData?.total_rows" :start="start" :list="extensionData?.data || []" :loading="extensionStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refreshExtensionList" />
   </div>
 </template>
