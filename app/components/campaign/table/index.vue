@@ -150,13 +150,13 @@ function resetCampaign(campaign_id: number) {
     },
   }).then((response) => {
     showToast({
-      message: response.message,
+      message: response.message || 'Campaign reset successfully',
     })
     // emits('refresh')
   }).catch((err) => {
     showToast({
       type: 'error',
-      message: err.message,
+      message: err.message || 'Campaign reset failed',
     })
   })
 }

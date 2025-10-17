@@ -26,7 +26,7 @@ const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('c
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   file: z.array(z.instanceof(File)).min(1, 'File is required'),
-  campaign_id: z.number().min(1, 'Campaign is required'),
+  campaign_id: z.number().optional(),
   duplicate_check: z.boolean().optional(),
 })
 const file = ref<File>()

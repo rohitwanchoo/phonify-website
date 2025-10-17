@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const emits = defineEmits(['openDialer'])
 
-const { isRegistered } = useSIPml5()
+const { isRegistered, initializeSIP } = useSIPml5()
 
 interface ShortcutData {
   height?: number

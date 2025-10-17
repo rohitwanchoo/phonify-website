@@ -2,9 +2,10 @@
 import { number } from 'zod'
 import { Button } from '~/components/ui/button'
 
+const props = defineProps<Props>()
+const emits = defineEmits(['refreshLeadData'])
 // Use dialer composable
 const { openDialer, closeDialer } = useDialer()
-const { callStatus, callerDetails } = useSIPml5()
 const { user } = useAuth()
 
 const leadId = ref(247)
@@ -13,16 +14,33 @@ const campaignId = ref(route.query.campaign_id)
 
 const openDisposition = ref(false)
 const dispositions = ref([])
+
+interface Props {
+  leadData: {
+    number: string
+    lead_id: number
+    list_id: number
+    data: Record<string, {
+      label: string
+      value: string
+      is_dialing: number
+      is_visible: number
+      is_editable: number
+      alternate_phone: string | null
+    }>
+  }
+  leadDataStatus: string
+}
 // const  { callStatus } = useSIPml5()
 
 // Track previous call state to detect when call ends
 const previousCallState = ref(false)
 
-const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = await useLazyAsyncData('lead-details', () =>
-  useApi().post(`/get-lead`), {
-  transform: res => res,
-  immediate: false,
-})
+// const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = await useLazyAsyncData('lead-details', () =>
+//   useApi().post(`/get-lead`), {
+//   transform: res => res,
+//   immediate: false,
+// })
 
 // Watch for call state changes to auto-open disposition dialog
 // watch(() => callStatus?.value, (currentState, previousState) => {
@@ -81,12 +99,12 @@ function handleRedial() {
   // Small delay to ensure dialog closes smoothly before starting new call
   nextTick(() => {
     // Check if we have a valid phone number
-    if (!leadData.value?.phone_number) {
-      showToast({
-        message: 'No phone number available for redial',
-        type: 'warning',
-      })
-    }
+    // if (!leadData.value?.phone_number) {
+    //   showToast({
+    //     message: 'No phone number available for redial',
+    //     type: 'warning',
+    //   })
+    // }
 
     // Initiate the new call
     // openDialer({
@@ -103,22 +121,9 @@ function handleRedial() {
   })
 }
 
-watch(() => callStatus?.value, (currentState, previousState) => {
-  // call status active
-  if (currentState === 'active') {
-    // setTimeout(() => {
-      refreshLeadData()
-    // }, 2000)
-    // Small delay to ensure UI transitions smoothly
-    // nextTick(() => {
-    //   openDisposition.value = true
-    // })
-  }
-}, { immediate: true })
-
 function onSaveDisposition() {
   openDisposition.value = false
-  refreshLeadData()
+  emits('refreshLeadData')
 }
 </script>
 
@@ -151,10 +156,10 @@ function onSaveDisposition() {
             <span class="text-gray-500 text-xs">{{ item.label }}</span>
             <div class="flex items-center gap-2">
               <span class="text-sm text-primary">
-                {{ item.is_dialing ? formatNumber(item.value) : item.value }}
+                {{ item.is_dialing === 1 ? formatNumber(item.value) : item.value }}
               </span>
               <Icon
-                v-if="item.is_dialing === true"
+                v-if="item.is_dialing === 1"
                 name="material-symbols:content-copy-outline"
                 size="16"
                 class="cursor-pointer text-black hover:text-green-800"
@@ -180,7 +185,7 @@ function onSaveDisposition() {
         <Icon name="material-symbols:sync-alt" size="20" />
         Transfer
       </Button> -->
-      <Button variant="outline" name="voice-drop" class="w-full flex-1 cursor-pointer">
+      <Button disabled variant="outline" name="voice-drop" class="w-full flex-1 cursor-pointer">
         <Icon name="material-symbols:mic" size="20" />
         Voice Drop
       </Button>
@@ -188,7 +193,7 @@ function onSaveDisposition() {
         <Icon name="material-symbols:upload-file" size="20" />
         Export Lead
       </Button> -->
-      <Button variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="openDialer">
+      <Button disabled variant="outline" name="dial-pad" class="w-full flex-1 cursor-pointer" @click="openDialer">
         <Icon name="material-symbols:dialpad" size="20" />
         Dial-pad
       </Button>
@@ -221,6 +226,7 @@ function onSaveDisposition() {
       :is-open="openDisposition"
       :dispositions="dispositions"
       :lead-id="Number(leadData?.lead_id)"
+
       @save="onSaveDisposition"
       @close="handleDispositionClose"
       @redial="handleRedial"
