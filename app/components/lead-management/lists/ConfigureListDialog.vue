@@ -48,7 +48,7 @@ const emit = defineEmits(['update:open', 'complete'])
 
 const listSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required'),
-  new_campaign_id: z.number().min(1, 'Campaign is required'),
+  campaign_id: z.number().optional(),
 }))
 
 const dialingError = ref('')

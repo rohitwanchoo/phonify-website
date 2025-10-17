@@ -2,7 +2,7 @@
 import { useDebounceFn } from '@vueuse/core'
 import { ref } from 'vue'
 import { Button } from '~/components/ui/button'
-import ListTable from './Table.vue'
+import ListTable from './table.vue'
 
 const emit = defineEmits(['completed'])
 const route = useRoute()

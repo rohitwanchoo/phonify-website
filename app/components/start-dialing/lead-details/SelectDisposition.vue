@@ -24,6 +24,7 @@ const emit = defineEmits<{
 }>()
 const { endCall } = useSIPml5()
 const { closeDialer } = useDialer()
+const { user } = useAuth()
 
 function hangup() {
   endCall()
@@ -85,6 +86,7 @@ function handleSave() {
     emit('save')
     if (pauseCalling.value) {
       hangup()
+      closeDialer()
     }
     showToast({
       message: response?.data?.message || 'Disposition saved successfully',
@@ -97,9 +99,28 @@ function handleSave() {
   })
 }
 
+const redialLoading = ref(false)
 function handleRedial() {
-  emit('redial')
-  open.value = false
+  redialLoading.value = true
+  useApi().post('/redial-call', {
+    id: user.value?.id,
+    campaign_id: route.query.campaign_id,
+    disposition_id: selectedDisposition.value,
+    lead_id: props.leadId,
+    api_call: 1,
+    pause_calling: pauseCalling.value ? 1 : 0,
+  }).then((response) => {
+    showToast({
+      message: response?.data?.message || 'Lead redialed successfully',
+      type: 'success',
+    })
+    // close dialog
+    emit('close')
+  }).catch((error) => {
+    handleError(error)
+  }).finally(() => {
+    redialLoading.value = false
+  })
 }
 
 // Handle dialog close via escape key or click outside
@@ -113,7 +134,7 @@ function handleDialogClose() {
     <DialogTrigger as-child>
       <slot />
     </DialogTrigger>
-    <DialogContent class="rounded-[12px] w-full sm:max-w-[715px]" :disable-outside-pointer-events="true" @pointer-down-outside.prevent>
+    <DialogContent class="rounded-[12px] w-full sm:max-w-[715px] [&>button]:hidden" :disable-outside-pointer-events="true" @pointer-down-outside.prevent>
       <DialogHeader class="pb-3 border-b border-b-[#0000000D]">
         <DialogTitle class="text-primary text-base font-medium">
           Select Disposition
@@ -158,6 +179,7 @@ function handleDialogClose() {
         <Button
           variant="outline"
           class="w-full h-11 flex-1 cursor-pointer"
+          :disabled="true"
           @click="handleRedial"
         >
           <Icon name="material-symbols:call" size="20" />

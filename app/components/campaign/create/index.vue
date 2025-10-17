@@ -237,7 +237,11 @@ const onSubmit = handleSubmit(async (values) => {
     time_based_calling: formState.value?.time_based_calling ? 1 : 0,
     status: formState.value.status,
   }
-
+  if (!formState.value.time_based_calling) {
+    payload.call_time_start = '00:00'
+    payload.call_time_end = '23:59'
+  }
+  // console.log(payload)
   // delete payload.call_time
 
   // remove undefined keys from payload
@@ -248,9 +252,6 @@ const onSubmit = handleSubmit(async (values) => {
   if (isEdit.value) {
     Api = '/edit-campaign'
   }
-  // if (formState.value.time_based_calling) {
-  //   cleanedPayload.call_time = values.call_time
-  // }
 
   useApi().post(Api, cleanedPayload).then(async (response: any) => {
     showToast({
