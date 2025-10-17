@@ -28,7 +28,7 @@ const pageStart = ref(0)
 const search = ref('')
 
 const open = defineModel<boolean>()
-const { data: extensions, status: extensionStatus, refresh: refreshExtensionList } = await useLazyAsyncData('extension-list', () =>
+const { data: extensions, status: extensionStatus, refresh: refreshExtensionList } = await useLazyAsyncData('extension-list-sheet', () =>
   useApi().get('extension', {
     params: {
       search: search.value,
@@ -99,6 +99,11 @@ function submit() {
               <Separator class="my-3 bg-gray-100" />
             </div>
           </template>
+          <div v-if="extensionStatus === 'success' && extensions?.length === 0">
+            <div class="text-center text-sm text-gray-500">
+              No extensions found
+            </div>
+          </div>
           <div
             v-for="extension in extensions"
             v-else :key="extension.name" class="border-b border-gray-100 py-[19px]

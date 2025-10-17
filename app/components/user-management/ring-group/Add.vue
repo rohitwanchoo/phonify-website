@@ -97,6 +97,7 @@ watch(open, (newValue) => {
     setFieldValue('emails', '')
     setFieldValue('ring_type', 1)
     setFieldValue('receive_on', '')
+    setFieldValue('extension', [])
   }
 })
 
