@@ -76,7 +76,7 @@ const searchTerm = ref('')
 const { contains } = useFilter({ sensitivity: 'base' })
 
 const filteredDispositionList = computed(() => {
-  const options = dispositionList?.value.filter((item: { id: number; status: number }) => !formState.value?.disposition_id?.includes(item?.id) && item.status === 1)
+  const options = dispositionList?.value.filter((item: { id: number, status: number }) => !formState.value?.disposition_id?.includes(item?.id) && item.status === 1)
   return searchTerm.value ? options.filter((option: { title: string }) => contains(option.title, searchTerm.value)) : options
 })
 </script>
@@ -209,8 +209,8 @@ const filteredDispositionList = computed(() => {
                   </ComboboxList>
                 </ComboboxAnchor>
               </Combobox>
-              <div v-else class="text-[16px] font-normal text-primary flex gap-2 mt-1 ">
-                <div v-for="item in formState.disposition_id" :key="item" class="rounded-[6px] items-center border border-[#00A086] bg-[#00A0861A] h-[22px] px-[7px] flex item-center justify-between " :value="item">
+              <div v-else class="text-[16px] font-normal text-primary flex gap-2 mt-1 flex-wrap">
+                <div v-for="item in formState.disposition_id" :key="item" class="rounded-[6px] items-center border border-[#00A086] bg-[#00A0861A] h-[22px] px-[7px] flex item-center justify-between text-wrap " :value="item">
                   <div class="text-xs">
                     {{ dispositionList?.find((val: { id: any }) => val.id === item).title }}
                   </div>
