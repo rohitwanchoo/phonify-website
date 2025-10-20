@@ -102,7 +102,7 @@ const columns = [
   columnHelper.accessor('header', {
     header: () =>
       h('div', { class: 'text-center' }, 'File Header'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.header),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.header || '-'),
   }),
 
   columnHelper.accessor('is_search', {

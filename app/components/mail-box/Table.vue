@@ -109,7 +109,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Name', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.userName),
+    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.userName || '-'),
   }),
   columnHelper.accessor('ip', {
     header: () =>
@@ -117,7 +117,7 @@ const columns = [
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
       }, () => ['IP']),
-    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.ip),
+    cell: ({ row }) => h('div', { class: 'text-center text-md' }, row.original.ip || '-'),
   }),
   columnHelper.accessor('userAgent', {
     header: ({ column }) =>
@@ -126,7 +126,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Agent', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-md break-words' }, row.original.userAgent),
+    cell: ({ row }) => h('div', { class: 'text-center text-md break-words' }, row.original.userAgent || '-'),
   }),
   columnHelper.accessor('loggedIn', {
     header: ({ column }) =>
@@ -138,7 +138,7 @@ const columns = [
     cell: ({ row }) =>
       h('div', {
         class: 'flex justify-center text-sm w-full',
-      }, moment(row.original.loggedIn).format('YYYY-MM-DD HH:mm:ss')),
+      }, moment(row.original.loggedIn).format('YYYY-MM-DD HH:mm:ss') || '-'),
 
   }),
 ]

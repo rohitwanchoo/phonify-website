@@ -102,7 +102,7 @@ const columns = [
   columnHelper.accessor('header', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'File Header'),
     cell: ({ getValue }) =>
-      h('div', { class: 'text-center font-normal text-sm' }, getValue()),
+      h('div', { class: 'text-center font-normal text-sm' }, getValue() || '-'),
   }),
 
   // Dialing Column (Radio Button)
@@ -154,7 +154,7 @@ const columns = [
                   key: item.value,
                   value: item.label,
                 }, {
-                  default: () => item.label,
+                  default: () => item.label || '-',
                 }),
               ),
             }),

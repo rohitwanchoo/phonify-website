@@ -124,7 +124,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title') || '-')
     },
   }),
 
@@ -157,7 +157,7 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, moment(row.original.created_at).format('DD/MM/YYYY hh:mm A')),
+        h('div', { class: 'text-xs' }, moment(row.original.created_at).format('DD/MM/YYYY hh:mm A') || '-'),
       ])
     },
   }),

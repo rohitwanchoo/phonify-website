@@ -137,7 +137,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Client Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.client_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.client_name || '-'),
   }),
 
   columnHelper.accessor('sip_trunk_name', {
@@ -148,7 +148,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Trunk Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.original.sip_trunk_name)
+      return h('div', { class: 'text-center font-normal text-sm' }, row.original.sip_trunk_name || '-')
     },
   }),
 

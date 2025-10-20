@@ -166,7 +166,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip_address),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ip_address || '-'),
   }),
   columnHelper.accessor('label', {
     header: ({ column }) =>
@@ -178,7 +178,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.label),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.label || '-'),
   }),
   columnHelper.accessor('is_primary', {
     header: ({ column }) =>

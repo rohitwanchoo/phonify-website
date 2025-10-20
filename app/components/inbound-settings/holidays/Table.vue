@@ -107,7 +107,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Holiday', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.name || '-'),
   }),
 
   columnHelper.display({
@@ -123,7 +123,7 @@ const columns = [
       const d = row.original.date
       const date = `${m} ${d}`
       // const label = `${monthNames[m]} ${d.padStart(2, '0')}`
-      return h('div', { class: 'text-center font-normal text-sm' }, `${date}`)
+      return h('div', { class: 'text-center font-normal text-sm' }, `${date}` || '-')
     },
   }),
 

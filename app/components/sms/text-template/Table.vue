@@ -111,7 +111,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Template Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.template),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.template || '-'),
   }),
   columnHelper.accessor('message', {
     header: ({ column }) => h('div', { class: 'flex justify-center' }, [
@@ -121,7 +121,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Message', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.message),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.message || '-'),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) => h('div', { class: 'flex justify-center' }, [

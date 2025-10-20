@@ -54,7 +54,7 @@ const columns = [
 
   columnHelper.accessor('subscription', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Subscription'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.subscription),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.subscription || '-'),
   }),
   columnHelper.accessor('period', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Billing Period'),
@@ -67,7 +67,7 @@ const columns = [
   }),
   columnHelper.accessor('amount', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'subtotal'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `$${row.original.amount}`),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `$${row.original.amount || '-'}`,),
   }),
 
 ]

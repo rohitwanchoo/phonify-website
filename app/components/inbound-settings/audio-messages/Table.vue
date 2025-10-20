@@ -91,7 +91,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Description', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ivr_desc),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.ivr_desc || '-'),
   }),
 
   columnHelper.accessor('audio_url', {

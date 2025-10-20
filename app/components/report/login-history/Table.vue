@@ -88,7 +88,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Name', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, `${row.original.first_name} ${row.original.last_name}` || '-'),
   }),
   columnHelper.accessor('ip', {
     header: ({ column }) =>
@@ -97,7 +97,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['IP', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.ip),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, row.original.ip || '-'),
   }),
   columnHelper.accessor('user_agent', {
     header: ({ column }) =>
@@ -106,7 +106,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['User Agent', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-xs break-words' }, row.original.user_agent),
+    cell: ({ row }) => h('div', { class: 'text-center text-xs break-words font-normal' }, row.original.user_agent || '-'),
   }),
   columnHelper.accessor('created_at', {
     header: ({ column }) =>
@@ -117,8 +117,8 @@ const columns = [
       }, () => ['Logged In', h(ChevronsUpDown, { class: 'ml-1 h-4 w-4' })]),
     cell: ({ row }) =>
       h('div', {
-        class: 'flex justify-center text-sm w-full',
-      }, moment(row.original.created_at).format('YYYY-MM-DD HH:mm:ss')),
+        class: 'flex justify-center text-sm w-full font-normal',
+      }, moment(row.original.created_at).format('YYYY-MM-DD HH:mm:ss') || '-'),
 
   }),
 ]

@@ -142,7 +142,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('full_name'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('full_name') || '-')
     },
   }),
   columnHelper.accessor('extension', {
@@ -154,7 +154,7 @@ const columns = [
       }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension') || '-')
     },
   }),
 
@@ -167,7 +167,7 @@ const columns = [
       }, () => ['Campaign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title') || '-')
     },
   }),
 
@@ -180,7 +180,7 @@ const columns = [
       }, () => ['Lead Id', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('lead_id'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('lead_id') || '-')
     },
   }),
 
@@ -203,7 +203,7 @@ const columns = [
 
       const statusText = statusMap[row.original.status]
 
-      return h('div', { class: 'flex justify-center' }, h('span', { class: 'text-sm font-normal text-center' }, statusText),
+      return h('div', { class: 'flex justify-center' }, h('span', { class: 'text-sm font-normal text-center' }, statusText || '-'),
       )
     },
   }),

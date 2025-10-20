@@ -224,7 +224,7 @@ const columns = [
       const conf_id = row.original.conf_id
       return h('div', { class: 'flex items-center justify-start gap-2 ' }, [
         // Phone number
-        h('div', formatNumber(row.original.cli)),
+        h('div', formatNumber(row.original.cli) || '-'),
 
         // Three status tags
         h('div', { class: 'flex gap-1' }, [

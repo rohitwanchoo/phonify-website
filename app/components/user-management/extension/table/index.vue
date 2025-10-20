@@ -187,7 +187,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension') || '-'),
   }),
 
   columnHelper.accessor('secret', {
@@ -217,12 +217,12 @@ const columns = [
   columnHelper.accessor(row => `${row.first_name} ${row.last_name}`, {
     id: 'name',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Name'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.first_name} ${row.original.last_name}` || '-'),
   }),
 
   columnHelper.accessor('email', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.getValue('email') || '-'),
   }),
 
   columnHelper.accessor('mobile', {

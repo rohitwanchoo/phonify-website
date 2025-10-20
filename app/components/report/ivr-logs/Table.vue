@@ -77,7 +77,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 1', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1 || '-'),
   }),
 
   columnHelper.accessor('field2', {
@@ -87,7 +87,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 2', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field2 || '-'),
   }),
 
   columnHelper.accessor('field3', {
@@ -97,7 +97,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 3', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field3 || '-'),
   }),
 
   columnHelper.accessor('field4', {
@@ -107,7 +107,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 4', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field4 || '-'),
   }),
   columnHelper.accessor('field5', {
     header: ({ column }) =>
@@ -116,7 +116,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Field 5', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field5 || '-'),
   }),
 ]
 

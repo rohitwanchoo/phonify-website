@@ -155,7 +155,7 @@ const columns = [
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title')),
+      h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title') || '-'),
   }),
 
   // Created Date
@@ -169,7 +169,7 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')),
+        h('div', { class: 'text-xs' }, moment(row.original.updated_at).format('DD MMM YYYY hh:mm A') || '-'),
       ])
     },
   }),
@@ -188,7 +188,7 @@ const columns = [
       return h('div', { class: 'flex justify-center' }, h('span', {
         class: cn(
           'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
-          status === 'Active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
+          status === 'Active' ? 'bg-green-600 text-white' : 'bg-red-600 text-white',
         ),
       }, status))
     },

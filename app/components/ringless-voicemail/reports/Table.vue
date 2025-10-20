@@ -91,7 +91,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign || '-'),
   }),
 
   columnHelper.accessor('cli', {
@@ -101,7 +101,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['CLI', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.cli),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.cli || '-'),
   }),
 
   columnHelper.accessor('type', {
@@ -111,7 +111,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.type),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.type || '-'),
   }),
 
   columnHelper.accessor('number', {
@@ -121,7 +121,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.number),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.number || '-'),
   }),
 
   columnHelper.accessor('stateCity', {
@@ -131,7 +131,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['State/City', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.stateCity),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.stateCity || '-'),
   }),
 
   columnHelper.accessor('startTime', {
@@ -141,7 +141,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Start Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.startTime),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.startTime || '-'),
   }),
 
   columnHelper.accessor('endTime', {
@@ -151,7 +151,7 @@ const columns = [
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['End Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.endTime),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.endTime || '-'),
   }),
 
   columnHelper.accessor('recording', {

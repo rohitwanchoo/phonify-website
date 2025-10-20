@@ -57,19 +57,19 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'State'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.state),
+      h('div', { class: 'text-sm text-center' }, row.original.state || '-'),
   }),
   columnHelper.accessor('city', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'City'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.city),
+      h('div', { class: 'text-sm text-center' }, row.original.city || '-'),
   }),
   columnHelper.accessor('did', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatNumber(row.original.did)),
+      h('div', { class: 'text-sm text-center' }, formatNumber(row.original.did) || '-'),
   }),
   columnHelper.accessor('cnam', {
     header: () =>
@@ -81,13 +81,13 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Areacode'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.areacode),
+      h('div', { class: 'text-sm text-center' }, row.original.areacode || '-'),
   }),
   columnHelper.accessor('totalCalls', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalCalls)),
+      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalCalls) || '-'),
   }),
 ]
 

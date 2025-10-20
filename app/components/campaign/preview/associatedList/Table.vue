@@ -62,7 +62,7 @@ const columns = [
         'List Name',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.getValue('listName')),
+    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.getValue('listName') || '-'),
   }),
 
   // Created Date column (sortable)
@@ -78,7 +78,7 @@ const columns = [
       ]),
     cell: ({ row }) => {
       const date = new Date(row.getValue('createdDate'))
-      return h('div', { class: 'text-sm text-center' }, moment(date).format('DD/MM/YYYY h:mmA'))
+      return h('div', { class: 'text-sm text-center' }, moment(date).format('DD/MM/YYYY h:mmA') || '-')
     },
   }),
 
@@ -93,7 +93,7 @@ const columns = [
         'Total Leads',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.getValue('totalLeads')),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.getValue('totalLeads') || '-'),
   }),
 
   // Action column

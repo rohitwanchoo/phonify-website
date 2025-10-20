@@ -234,7 +234,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title || '-'),
   }),
 
   // columnHelper.display({
@@ -256,7 +256,7 @@ const columns = [
 
   columnHelper.accessor('lists', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Lists'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.lists_associated)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatWithCommas(row.original.lists_associated || '-')),
   }),
 
   columnHelper.display({
@@ -267,8 +267,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.dialed_leads || 0}/${row.original.total_leads || 0}`,
-    ),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, `${row.original.dialed_leads || 0}/${row.original.total_leads || 0}` || '-'),
   }),
 
   columnHelper.display({
@@ -279,8 +278,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Hoppers', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, row.original.hopper_count,
-    ),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-center text-sm' }, row.original.hopper_count || '-'),
   }),
 
   columnHelper.display({
@@ -294,9 +292,9 @@ const columns = [
     cell: ({ row }) => {
       const updated = row.original.updated
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : ''),
+        h('div', updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : '-'),
         h('br'),
-        h('div', { class: 'text-xs' }, updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') : ''),
+        h('div', { class: 'text-xs' }, updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') : '-'),
       ])
     },
   }),

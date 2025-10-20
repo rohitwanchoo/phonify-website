@@ -100,7 +100,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.extension),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.extension || '-'),
   }),
   columnHelper.accessor('campaign', {
     header: ({ column }) =>
@@ -109,7 +109,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign || '-'),
   }),
   columnHelper.accessor('id', {
     header: ({ column }) =>
@@ -118,7 +118,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Lead ID', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.id),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.id || '-'),
   }),
   columnHelper.accessor('number', {
     header: ({ column }) =>
@@ -127,7 +127,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.number)),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.number) || '-'),
   }),
   columnHelper.accessor('startTime', {
     header: ({ column }) =>
@@ -136,7 +136,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Callback Time', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, moment(row.original.startTime).format('MMM D, YYYY h:mm A')),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, moment(row.original.startTime).format('MMM D, YYYY h:mm A') || '-'),
   }),
   columnHelper.display({
     id: 'action',

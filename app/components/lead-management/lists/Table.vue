@@ -178,7 +178,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list || '-'),
   }),
   // Campaign name
   columnHelper.accessor('campaign', {
@@ -188,7 +188,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaign),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaign || '-'),
   }),
   // Total leads
   columnHelper.accessor('rowListData', {
@@ -198,7 +198,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Total Leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.rowListData),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.rowListData || '-'),
   }),
   // Created date formatted using moment.js
   columnHelper.accessor('updated_at', {
@@ -210,7 +210,7 @@ const columns = [
       }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
       const date = row.original.updated_at
-      return h('div', { class: 'text-center font-normal text-sm w-full' }, date ? moment(date).format('DD/MM/YYYY hh:mm A') : '')
+      return h('div', { class: 'text-center font-normal text-sm w-full' }, date ? moment(date).format('DD/MM/YYYY hh:mm A') : '-')
     },
   }),
   // Status toggle column

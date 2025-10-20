@@ -90,7 +90,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.contact_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.contact_name || '-'),
     enableSorting: true,
   }),
   columnHelper.accessor('receiver', {
@@ -104,7 +104,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.receiver)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.receiver || '-')),
     enableSorting: true,
   }),
   columnHelper.accessor('sender', {
@@ -118,7 +118,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.sender)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.sender || '-')),
     enableSorting: true,
   }),
   columnHelper.accessor('message', {
@@ -132,7 +132,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.message),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.message || '-'),
     enableSorting: true,
   }),
   columnHelper.accessor('date', {
@@ -150,8 +150,8 @@ const columns = [
       const formattedDate = moment(row.original.date).format('DD/MM/YYYY')
       const formattedTime = moment(row.original.date).format('hh:mm A')
       return h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
-        h('div', formattedDate),
-        h('div', formattedTime),
+        h('div', formattedDate || '-'),
+        h('div', formattedTime || '-'),
       ])
     },
     enableSorting: true,
