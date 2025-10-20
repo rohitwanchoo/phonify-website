@@ -58,6 +58,7 @@ function onModelUpdate(val: boolean) {
     </template>
   </BaseHeader>
   <UserManagementRingGroupTable
+    :start="start"
     :limit="limit"
     :total-rows="ringGroupList?.total"
     :list="ringGroupList?.data || []"

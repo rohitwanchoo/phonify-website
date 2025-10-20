@@ -193,7 +193,7 @@ function changeLimit(val: any) {
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in 15" :key="n" :value="n">
+              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
