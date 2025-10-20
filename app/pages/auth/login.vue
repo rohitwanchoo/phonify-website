@@ -88,7 +88,7 @@ function handleKeyPress(event) {
       >
       <div class="flex justify-end mt-4">
         <label class="text-sm text-[#0C1421] cursor-pointer" for="forget-password">
-          Forget Password?
+          Forgot Password?
         </label>
       </div>
     </div>
