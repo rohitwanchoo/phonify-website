@@ -11,21 +11,21 @@ const dateFilter = ref<{ startTime: string, endTime: string, userId?: number[] }
 })
 
 // state wise call report
-const { data: stateWiseCalls, refresh: refreshStateWiseCalls, status: stateWiseCallsStatus } = await useLazyAsyncData('state-wise-call-report', () =>
+const { data: stateWiseCalls, refresh: refreshStateWiseCalls, status: stateWiseCallsStatus } = await useAsyncData('state-wise-call-report', () =>
   useApi().post('/state-wise-call', dateFilter.value), {
   transform: res => res.data,
   immediate: false,
 })
 
 // agent wise call summery
-const { data: agentWiseCallCount, refresh: refreshAgentWiseCall, status: agentWiseCallStatus } = await useLazyAsyncData('agent-wise-call-summery', () =>
+const { data: agentWiseCallCount, refresh: refreshAgentWiseCall, status: agentWiseCallStatus } = await useAsyncData('agent-wise-call-summery', () =>
   useApi().post('/cdr-call-agent-count', dateFilter.value), {
   transform: res => res.data.totalAgent,
 })
 
 // scheduled Meetings
 // TODO: not getting data here
-const { data: scheduledMeetings, refresh: refreshscheduledMeetings, status: scheduledMeetingStatus } = await useLazyAsyncData('get-scheduled-meeting', () =>
+const { data: scheduledMeetings, refresh: refreshscheduledMeetings, status: scheduledMeetingStatus } = await useAsyncData('get-scheduled-meeting', () =>
   useApi().post('/callback', dateFilter.value), {
   transform: res => res.data,
 })
@@ -38,7 +38,7 @@ function setStateWiseCalls() {
   refreshStateWiseCalls()
 }
 
-const { data: dashboardData, status: dashboardDataStatus, refresh: refreshDashboardData } = await useLazyAsyncData('dashboard-data', () =>
+const { data: dashboardData, status: dashboardDataStatus, refresh: refreshDashboardData } = await useAsyncData('dashboard-data', () =>
   useApi().post('/dashboard', dateFilter.value), {
   transform: res => res.data,
 })
@@ -94,12 +94,9 @@ function onUserSelect(val: any) {
 onMounted(() => {
   setStateWiseCalls()
 })
-
-
 </script>
 
 <template>
-
   <div class="flex flex-1 flex-col gap-6 md:rounded-tl-xl bg-white">
     <dashboardCardsSection :counts />
     <dashboardUsers :total-agents="totalAgentCount" @on-date-picker-update="onDatePickerChange" @on-user-select="onUserSelect" />

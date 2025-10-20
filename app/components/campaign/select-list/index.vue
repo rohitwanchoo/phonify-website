@@ -118,7 +118,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="px-4 py-6 h-[calc(100vh-255px)]">
+  <div class="px-4 py-6 h-[calc(100vh-250px)]">
     <div class="flex w-full flex-col sm:flex-row sm:justify-between items-center">
       <h2 class="text-xl text-primary">
         Lists
@@ -137,7 +137,7 @@ onMounted(() => {
     />
   </div>
 
-  <div class="sticky bg-white bottom-0 right-0 w-full shadow-2xl p-4">
+  <div class=" bg-white p-4 mt-2">
     <Button :loading="assignLoading" :disable="assignLoading" class="w-full h-[52px] cursor-pointer" type="submit" @click="handleContinue">
       Continue
       <Icon name="lucide:arrow-right" size="20" />
