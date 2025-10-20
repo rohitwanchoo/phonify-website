@@ -4,7 +4,7 @@ import Button from '@/components/ui/button/Button.vue'
 
 const emits = defineEmits(['hangup'])
 
-const { callerDetails, callStatus, callDuration, isMuted, toggleMute } = useSIPml5()
+const { callerDetails, callStatus, callDuration, isMuted, toggleMute, sendDTMF } = useSIPml5()
 const minimize = ref(true)
 
 // Format phone number for display
@@ -16,8 +16,9 @@ function formatPhoneNumber(number: string): string {
   return number
 }
 
-function appendDigit(digit: number) {
-  return digit
+function appendDigit(digit: number | string) {
+  // Send DTMF to the active call
+  sendDTMF(digit)
 }
 
 const formattedCallDuration = computed(() => {
@@ -116,6 +117,7 @@ onMounted(() => {
       <Button
         variant="ghost"
         class="h-16 w-full text-lg font-normal text-[#1F1E1C] hover:bg-gray-50 rounded-none border-r"
+        @click="appendDigit(0)"
       >
         0
       </Button>

@@ -105,11 +105,11 @@ const data = {
       { title: 'Allowed IPs', url: '/app/configuration/allowed-ips', disabled: false },
     ] },
     { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: true },
-    { title: 'Report', url: '/app/report', icon: 'icons:report', disabled: true, items: [
+    { title: 'Report', url: '/app/report', icon: 'icons:report', disabled: false, items: [
       // { title: 'Call Transfer ', url: '/app/report/call-transfer', disabled: false },
       // { title: 'Live Call', url: '/app/report/live-call', disabled: false },
       // { title: 'IVR Logs', url: '/app/report/ivr-logs', disabled: false },
-      // { title: 'Call Data Reports', url: '/app/report/call-data-reports', disabled: false },
+      { title: 'Call Data Reports', url: '/app/report/call-data-reports', disabled: false },
       // { title: 'Callback', url: '/app/report/callback', disabled: false },
       // { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports', disabled: false },
       // { title: 'Count Report', url: '/app/report/count-report', disabled: false },

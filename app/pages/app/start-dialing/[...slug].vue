@@ -239,7 +239,7 @@ onMounted(() => {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button :loading="initiateLoading" :disabled="!selectedCampaign" class="h-11" @click="setRouteForInitCampaign">
+          <Button :loading="initiateLoading" :disabled="!selectedCampaign || initiateLoading" class="h-11" @click="setRouteForInitCampaign">
             Submit
           </Button>
         </div>

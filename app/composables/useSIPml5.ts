@@ -655,6 +655,30 @@ export function useSIPml5() {
     }
   }
 
+  // Send DTMF digit during an active call
+  const sendDTMF = (digit: string | number) => {
+    const d = String(digit)
+    if (!/^[0-9*#]$/.test(d)) {
+      consola.warn('Invalid DTMF digit:', d)
+      showToast({ type: 'warning', message: `Invalid DTMF digit: ${d}` })
+      return
+    }
+    if (!callSession || !isCallActive.value) {
+      consola.warn('No active call to send DTMF')
+      showToast({ type: 'warning', message: 'No active call to send DTMF' })
+      return
+    }
+    try {
+      // SIPml5 API: callSession.dtmf(digit)
+      const ret = (callSession as any).dtmf(d)
+      consola.info('📟 Sent DTMF:', d, 'ret=', ret)
+    }
+    catch (error) {
+      consola.error('❌ Error sending DTMF:', error)
+      showToast({ type: 'error', message: 'Failed to send DTMF' })
+    }
+  }
+
   return {
     // State
     isRegistered: readonly(isRegistered),
@@ -676,5 +700,6 @@ export function useSIPml5() {
     mute,
     unmute,
     toggleMute,
+    sendDTMF,
   }
 }

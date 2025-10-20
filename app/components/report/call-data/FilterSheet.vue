@@ -168,7 +168,7 @@ function clearFilters() {
     <SheetContent class="w-full md:min-w-[483px] flex flex-col h-full">
       <SheetHeader class="bg-[#162D3A]">
         <SheetTitle class="text-white">
-          Count Report
+          Call Report
         </SheetTitle>
       </SheetHeader>
 
@@ -389,6 +389,9 @@ function clearFilters() {
                       <SelectItem v-if="stateListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
+                      <SelectItem v-else-if="stateListStatus !== 'pending' && stateList.length === 0" class="text-center justify-center" :value="null" disabled>
+                        No State / City / Area Code Found
+                      </SelectItem>
                       <template v-else>
                         <SelectItem v-for="option in stateList" :key="option.id" :value="option.id">
                           {{ option.name }}
@@ -398,7 +401,7 @@ function clearFilters() {
                   </Select>
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                  <Button variant="outline" class=" h-11 border border-primary rounded-sm flex justify-between items-center gap-2 px-3 w-[49%]">
+                  <!-- <Button variant="outline" class=" h-11 border border-primary rounded-sm flex justify-between items-center gap-2 px-3 w-[49%]">
                     <div class="flex gap-2 items-center justify-center text-sm text-primary">
                       <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
                       Download PDF
@@ -411,7 +414,7 @@ function clearFilters() {
                       Download Excel
                     </div>
                     <Icon name="material-symbols:download" class="text-xl text-primary" />
-                  </Button>
+                  </Button> -->
                 </div>
               </div>
             </div>

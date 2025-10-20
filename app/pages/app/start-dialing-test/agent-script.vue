@@ -1,3 +1,0 @@
-<template>
-  Agent Script
-</template>

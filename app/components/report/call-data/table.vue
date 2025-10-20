@@ -101,16 +101,6 @@ function dispositionTitle(dispositionId: number) {
   return foundDisposition?.title || 'N/A'
 }
 
-// Filter extension name based on extension
-function extensionName(extensionNumber: number) {
-  if (!extensionNumber)
-    return 'N/'
-  const foundExtension = extensionData.value.find(
-    (c: any) => c.extension === extensionNumber,
-  )
-  return foundExtension?.first_name || 'N/A'
-}
-
 // Pagination handlers
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
@@ -137,7 +127,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, extensionName(row.original.extension)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.extension),
   }),
 
   columnHelper.accessor('campaign_id', {
@@ -355,7 +345,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
