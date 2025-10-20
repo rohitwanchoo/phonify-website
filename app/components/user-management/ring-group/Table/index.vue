@@ -95,6 +95,7 @@ async function handleDelete(id: number) {
 
 interface GroupList {
   id: number
+  siNo: number
   title: string
   description: string
   number_of_extension: string
@@ -114,17 +115,12 @@ function changeLimit(val: number | null) {
   }
 }
 
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
-}
-
 const columnHelper = createColumnHelper<GroupList>()
 
 const columns = [
-  columnHelper.accessor('#', {
+  columnHelper.accessor('siNo', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + (row.index + 1)),
   }),
 
   columnHelper.accessor('title', {
@@ -258,7 +254,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [10, 20, 30, 40, 50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
