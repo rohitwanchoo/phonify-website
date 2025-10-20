@@ -36,15 +36,13 @@ const props = defineProps<Props>()
 
 const StatusClass = (status: string) => status === 'Active' ? 'bg-green-600' : 'bg-red-600'
 
-export interface Payment {
-  name: string
-  phone: string
-  userStatus: 'Active' | 'Inactive'
-  email: string
+export interface LiveCall {
+  extension: string
+  type: string
 }
 
 interface Props {
-  list: Payment[]
+  list: LiveCall[]
   loading?: boolean
 }
 
@@ -81,27 +79,28 @@ interface Props {
 //   },
 // ]
 
-const columnHelper = createColumnHelper<Payment>()
+const columnHelper = createColumnHelper<LiveCall>()
 
 const columns = [
 
-  columnHelper.accessor('phone', {
+  columnHelper.accessor('extension', {
     header: () => h('div', { class: 'text-center' }, 'Phone'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal' }, row.getValue('phone'))
+      return h('div', { class: 'text-center font-normal' }, formatNumber(String(row.original.extension)))
     },
   }),
 
-  columnHelper.accessor('userStatus', {
+  columnHelper.accessor('type', {
     header: ({ column }) => {
       return h('div', { class: 'text-right' }, h(Button, {
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Call Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-right font-normal mr-2 text-sm' }, h('div', { class: `rounded-full w-[83px] ml-auto h-[30px] text-white text-[14px] flex items-center justify-center  ${StatusClass(row.original.userStatus)}` }, row.getValue('userStatus'),
-      ))
+      return h('div', { class: 'text-center capitalize' }, row.original.type)
+      // return h('div', { class: 'text-right font-normal mr-2 text-sm' }, h('div', { class: `rounded-full w-[83px] ml-auto h-[30px] text-white text-[14px] flex items-center justify-center  ${StatusClass(row.original.userStatus)}` }, row.getValue('userStatus'),
+      // ))
     },
   }),
 
@@ -146,7 +145,7 @@ const table = useVueTable({
         Live Call
       </div>
       <div class="text-sm">
-        Total Live Call : 24
+        Total Live Call : {{ table.getRowModel().rows?.length || 0 }}
       </div>
     </div>
     <div class="w-full">
