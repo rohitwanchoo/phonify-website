@@ -3,6 +3,7 @@ import { useDraggable, useFocus, useWindowSize } from '@vueuse/core'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
 // Define props and emits
 defineProps<{
@@ -21,6 +22,9 @@ const {
   endCall,
   answerCall,
   rejectCall,
+  isRegistered,
+  disconnectWebphone,
+  initializeSIP,
 } = useSIPml5()
 
 const { isDialerOpen, dialerPhoneNumber } = useDialer()
@@ -71,6 +75,7 @@ async function makeCall() {
 // Watch for call state changes to handle auto-minimize
 watch(() => callStatus.value, (newStatus) => {
   if (newStatus === 'active' || newStatus === 'ringing' || newStatus === 'incoming') {
+    debugger
     closeDialer()
   }
 })
@@ -157,6 +162,15 @@ onBeforeUnmount(() => {
 function onAcceptCall() {
   answerCall()
 }
+
+function changeWebPhoneStatus(val: boolean) {
+  if (!val) {
+    disconnectWebphone()
+  }
+  else {
+    initializeSIP()
+  }
+}
 </script>
 
 <template>
@@ -216,8 +230,12 @@ function onAcceptCall() {
             <Icon name="material-symbols:close" class="text-md" />
           </Button>
         </div>
-        <div class="bg-[#162D3A] px-8 space-y-2.5 mt-14 mb-10">
+
+        <div class=" px-8 space-y-2.5 mt-14 mb-10">
           <!-- Country Selector -->
+          <!-- <Switch
+            v-model="isRegistered" class="data-[state=checked]:bg-green-600" @update:model-value="changeWebPhoneStatus"
+          /> -->
           <Select v-model="selectedCountry">
             <SelectTrigger class="w-full bg-[#00A08633] border-none text-white">
               <SelectValue placeholder="Select country" />

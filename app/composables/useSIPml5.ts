@@ -347,6 +347,41 @@ export function useSIPml5() {
     }
   }
 
+  // Helper: create and start a SIPml5 stack
+  const createAndStartStack = (SIPml: any) => {
+    consola.info('🔧 Initializing SIPml5 stack...')
+    const stackConfig = {
+      realm: user.value?.domain,
+      impi: user.value?.alt_extension || '',
+      impu: `sip:${user.value?.alt_extension}@${user.value?.domain}`,
+      password: passwordDecrypt(user.value?.secret || '') || '',
+      display_name: user.value?.name || 'Web Client',
+      websocket_proxy_url: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
+      ice_servers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      events_listener: { events: '*', listener: onSipEventStack },
+    }
+
+    consola.info('🔧 SIPml5 config:', {
+      realm: stackConfig.realm,
+      impi: stackConfig.impi,
+      impu: stackConfig.impu,
+      websocket_proxy_url: stackConfig.websocket_proxy_url,
+      password: stackConfig.password,
+    })
+
+    try {
+      sipStack = new SIPml.Stack(stackConfig)
+      sipStack.start()
+    }
+    catch (error) {
+      consola.error('❌ Failed to create SIP stack:', error)
+      showToast({
+        type: 'error',
+        message: `SIP initialization failed: ${error}`,
+      })
+    }
+  }
+
   async function initializeSIP() {
     if (isInitialized) {
       consola.info('SIPml5 already initialized')
@@ -367,41 +402,20 @@ export function useSIPml5() {
     }
 
     const SIPml = window.SIPml
+    consola.info(SIPml)
 
-    // Initialize SIPml
+    // If SIPml global is already initialized, just create/start a new stack
+    const alreadyInit = typeof SIPml.isInitialized === 'function' ? SIPml.isInitialized() : !!SIPml.b_initialized
+    if (alreadyInit) {
+      consola.info('SIPml5 already initialized globally; creating new SIP stack...')
+      createAndStartStack(SIPml)
+      return
+    }
+
+    // Otherwise, initialize the SIPml library first
     SIPml.init(() => {
-      // debugger
-      consola.info('🔧 Initializing SIPml5 with config...')
-      const stackConfig = {
-        realm: user.value?.domain,
-        impi: user.value?.alt_extension || '', // Private Identity
-        impu: `sip:${user.value?.alt_extension}@${user.value?.domain}`, // Public Identity
-        password: passwordDecrypt(user.value?.secret || '') || '',
-        display_name: user.value?.name || 'Web Client',
-        websocket_proxy_url: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
-        ice_servers: [{ urls: 'stun:stun.l.google.com:19302' }],
-        events_listener: { events: '*', listener: onSipEventStack },
-      }
-
-      consola.info('🔧 SIPml5 config:', {
-        realm: stackConfig.realm,
-        impi: stackConfig.impi,
-        impu: stackConfig.impu,
-        websocket_proxy_url: stackConfig.websocket_proxy_url,
-        password: stackConfig.password,
-      })
-
-      try {
-        sipStack = new SIPml.Stack(stackConfig)
-        sipStack.start()
-      }
-      catch (error) {
-        consola.error('❌ Failed to create SIP stack:', error)
-        showToast({
-          type: 'error',
-          message: `SIP initialization failed: ${error}`,
-        })
-      }
+      consola.info('🔧 SIPml5 library init callback')
+      createAndStartStack(SIPml)
     }, (error: any) => {
       consola.error('❌ SIPml5 initialization failed:', error)
       showToast({
@@ -611,6 +625,38 @@ export function useSIPml5() {
     callSession = null
   }
 
+  // Explicit disconnect function for the webphone
+  const disconnectWebphone = () => {
+    consola.info('🔌 Disconnecting webphone...')
+    try {
+      // Perform core cleanup
+      cleanup()
+
+      // Clear audio elements
+      const remoteAudio = document.getElementById('remoteAudio') as HTMLAudioElement | null
+      if (remoteAudio) {
+        try {
+          remoteAudio.srcObject = null
+        }
+        catch {}
+      }
+      const ringingAudio = document.getElementById('ringingAudio') as HTMLAudioElement | null
+      if (ringingAudio) {
+        try {
+          ringingAudio.pause()
+          ringingAudio.currentTime = 0
+        }
+        catch {}
+      }
+
+      showToast({ type: 'success', message: 'Webphone disconnected' })
+    }
+    catch (error) {
+      consola.error('❌ Error disconnecting webphone:', error)
+      showToast({ type: 'error', message: 'Failed to disconnect webphone' })
+    }
+  }
+
   // Get current SIP status
   const getSIPStatus = () => ({
     isRegistered: isRegistered.value,
@@ -696,6 +742,7 @@ export function useSIPml5() {
     answerCall,
     rejectCall,
     cleanup,
+    disconnectWebphone,
     getSIPStatus,
     mute,
     unmute,

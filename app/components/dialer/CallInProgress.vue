@@ -77,8 +77,11 @@ onMounted(() => {
   </div>
 
   <div v-else>
-    <div class="flex flex-col items-center bg-[#162D3A] px-8 pb-10">
-      <div class="h-0.5 w-10 bg-white/50 mb-4 mt-1 mx-auto cursor-pointer" @click="minimize = !minimize" />
+    <div class="flex flex-col items-center bg-[#162D3A] px-8 pb-10 relative">
+      <div class="h-0.5 w-10 bg-white/50 mb-4 mt-1 mx-auto cursor-pointer" />
+      <Button class="absolute top-3 right-3" size="icon" @click="minimize = !minimize">
+        <Icon name="material-symbols:collapse-content" class="text-white text-2xl cursor-pointer" />
+      </Button>
 
       <div class="border border-white rounded-xl bg-[#00A086] size-[54px] flex items-center justify-center mb-4 mt-12 ">
         <Icon name="material-symbols:person" class="text-2xl text-white" />
