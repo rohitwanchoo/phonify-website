@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Campaign } from '~/types/campaign'
+import { useFocus } from '@vueuse/core'
 
 import {
   FormControl,
@@ -30,6 +31,9 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits(['resetFields', 'submit'])
+
+const target = shallowRef()
+useFocus(target, { initialValue: true })
 
 const { countryCodeList, enableEditSection } = useCreateCampaign()
 
@@ -101,7 +105,7 @@ function saveCampaign() {
                 Name
               </FormLabel>
               <FormControl>
-                <Input v-if="enableEdit" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
+                <Input v-if="enableEdit" ref="target" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
                 <div v-else class="text-[16px] font-normal text-primary">
                   {{ values.title }}
                 </div>

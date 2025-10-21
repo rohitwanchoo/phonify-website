@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import AddEmailSchedule from '~/components/campaign/marketing-campaign/AddEmailSchedule.vue'
 import AddTextSchedule from '~/components/campaign/marketing-campaign/AddTextSchedule.vue'
 import { Input } from '~/components/ui/input'
-import { computed, ref } from 'vue'
 
 const showAddEmailSchedule = ref(false)
 const showAddTextSchedule = ref(false)
@@ -25,7 +25,6 @@ const breadcrumbs = [
 ]
 </script>
 
-
 <template>
   <div class="flex flex-col h-[calc(100vh-110px)] overflow-auto">
     <div class="flex-1 overflow-y-auto">
@@ -34,18 +33,18 @@ const breadcrumbs = [
         <template #actions>
           <!-- Search -->
           <div class="relative mt-4 md:mt-0">
-          <Input v-model="searchQuery" placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
-        </div>
+            <Input v-model="searchQuery" placeholder="Search List" />
+            <Icon class="absolute top-[9px] right-2" name="lucide:search" />
+          </div>
 
           <!-- Add Buttons -->
           <Button class="mt-4 md:mt-0 hover:bg-white text-black bg-white border border-black" @click="showAddEmailSchedule = true">
             <Icon name="lucide:plus" class="w-4 h-4" />
-             Email Schedule
+            Email Schedule
           </Button>
           <Button class="mt-4 md:mt-0 text-black hover:bg-white bg-white border border-black" @click="showAddTextSchedule = true">
             <Icon name="lucide:plus" class="w-4 h-4" />
-           Text Schedule
+            Text Schedule
           </Button>
           <!-- Modals -->
           <AddEmailSchedule v-model:open="showAddEmailSchedule" />
@@ -58,4 +57,3 @@ const breadcrumbs = [
     </div>
   </div>
 </template>
-

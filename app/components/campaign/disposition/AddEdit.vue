@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
+import { useFocus } from '@vueuse/core'
 import { useForm } from 'vee-validate'
-
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,6 +33,9 @@ interface Props {
 const props = defineProps<Props>()
 
 const emits = defineEmits(['complete'])
+
+const focusInput = shallowRef()
+useFocus(focusInput, { initialValue: true })
 
 const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'required').max(50),
@@ -87,8 +90,8 @@ const dispositionType = [
 
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
-  if(isEdit.value)
-  values = { ...values, disposition_id: props.data?.id }
+  if (isEdit.value)
+    values = { ...values, disposition_id: props.data?.id }
 
   try {
     let api = '/add-disposition'
@@ -164,7 +167,7 @@ function onModelOpen(val: boolean) {
                 Name
               </FormLabel>
               <FormControl>
-                <Input placeholder="Enter Dispoition Name" v-bind="componentField" class="h-11" />
+                <Input ref="focusInput" placeholder="Enter Dispoition Name" v-bind="componentField" class="h-11" />
               </FormControl>
               <FormMessage class="text-xs" />
             </FormItem>

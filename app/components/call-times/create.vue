@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
+import { useFocus } from '@vueuse/core'
 import { FieldArray, useForm } from 'vee-validate'
 
 import * as z from 'zod'
@@ -36,6 +37,9 @@ interface Props {
 const props = defineProps<Props>()
 
 const emits = defineEmits(['complete'])
+
+const focusInput = shallowRef()
+useFocus(focusInput, { initialValue: true })
 
 const selectedDays = ref({
   default: false,
@@ -304,7 +308,7 @@ function onModelOpen(val: boolean) {
                 Title
               </FormLabel>
               <FormControl>
-                <Input placeholder="Enter call time name" v-bind="componentField" class="h-11" />
+                <Input ref="focusInput" placeholder="Enter call time name" v-bind="componentField" class="h-11" />
               </FormControl>
               <FormMessage />
             </FormItem>

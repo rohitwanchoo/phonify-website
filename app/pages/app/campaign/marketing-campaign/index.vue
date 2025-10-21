@@ -138,11 +138,11 @@ const lastPage = computed(() => Math.ceil(totalRows.value / limit.value))
     <BaseHeader title="Marketing Campaign">
       <template #actions>
         <div class="relative mt-4 md:mt-0">
-          <Input v-model="searchQuery" placeholder="Search List" />
-          <Icon class="absolute top-[9px] right-2" name="lucide:search" />
+          <Input v-model="searchQuery" placeholder="Search List" class="h-11" />
+          <Icon class="absolute top-3 right-2" name="material-symbols:search" size="20" />
         </div>
-        <Button @click="showAddCampaign = true">
-          <Icon class="mr-1" name="lucide:plus" />
+        <Button @click="showAddCampaign = true" class="h-11">
+          <Icon name="material-symbols:add" size="20" />
           Add Campaign
         </Button>
       </template>

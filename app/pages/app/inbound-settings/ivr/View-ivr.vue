@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import { ref, h, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { Icon } from '#components'
 import { createColumnHelper, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { computed, h, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -20,7 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 const breadcrumbs = [
   { label: 'IVR', href: '/app/inbound-settings/ivr' },
@@ -52,20 +52,20 @@ const columns = [
     header: () => h('div', { class: 'text-center align-middle' }, 'DTMF'),
     cell: ({ row }) => {
       return h(Select, {
-        modelValue: row.original.dtmf,
-        'onUpdate:modelValue': (val) => row.original.dtmf = val,
+        'modelValue': row.original.dtmf,
+        'onUpdate:modelValue': val => row.original.dtmf = val,
       }, () => [
         h(SelectTrigger, { class: 'w-full flex items-center' }, () => [
-          h(SelectValue, { placeholder: 'Select DTMF' })
+          h(SelectValue, { placeholder: 'Select DTMF' }),
         ]),
         h(SelectContent, {}, () => [
           h(SelectGroup, {}, () => [
             h(SelectLabel, {}, 'DTMF Options'),
             ...dtmfOptions.value.map(option =>
-              h(SelectItem, { value: option, key: option }, () => option)
-            )
-          ])
-        ])
+              h(SelectItem, { value: option, key: option }, () => option),
+            ),
+          ]),
+        ]),
       ])
     },
   }),
@@ -73,20 +73,20 @@ const columns = [
     header: () => h('div', { class: 'text-center align-middle' }, 'DTMF Title'),
     cell: ({ row }) => {
       return h(Select, {
-        modelValue: row.original.title,
-        'onUpdate:modelValue': (val) => row.original.title = val,
+        'modelValue': row.original.title,
+        'onUpdate:modelValue': val => row.original.title = val,
       }, () => [
         h(SelectTrigger, { class: 'w-full flex items-center' }, () => [
-          h(SelectValue, { placeholder: 'Select Title' })
+          h(SelectValue, { placeholder: 'Select Title' }),
         ]),
         h(SelectContent, {}, () => [
           h(SelectGroup, {}, () => [
             h(SelectLabel, {}, 'Title Options'),
             ...titleOptions.value.map(option =>
-              h(SelectItem, { value: option, key: option }, () => option)
-            )
-          ])
-        ])
+              h(SelectItem, { value: option, key: option }, () => option),
+            ),
+          ]),
+        ]),
       ])
     },
   }),
@@ -94,20 +94,20 @@ const columns = [
     header: () => h('div', { class: 'text-center align-middle' }, 'Destination Type'),
     cell: ({ row }) => {
       return h(Select, {
-        modelValue: row.original.destinationType,
-        'onUpdate:modelValue': (val) => row.original.destinationType = val,
+        'modelValue': row.original.destinationType,
+        'onUpdate:modelValue': val => row.original.destinationType = val,
       }, () => [
         h(SelectTrigger, { class: 'w-full flex items-center' }, () => [
-          h(SelectValue, { placeholder: 'Select Type' })
+          h(SelectValue, { placeholder: 'Select Type' }),
         ]),
         h(SelectContent, {}, () => [
           h(SelectGroup, {}, () => [
             h(SelectLabel, {}, 'Destination Types'),
             ...destinationTypeOptions.value.map(option =>
-              h(SelectItem, { value: option, key: option }, () => option)
-            )
-          ])
-        ])
+              h(SelectItem, { value: option, key: option }, () => option),
+            ),
+          ]),
+        ]),
       ])
     },
   }),
@@ -115,20 +115,20 @@ const columns = [
     header: () => h('div', { class: 'text-center align-middle' }, 'Destination'),
     cell: ({ row }) => {
       return h(Select, {
-        modelValue: row.original.destination,
-        'onUpdate:modelValue': (val) => row.original.destination = val,
+        'modelValue': row.original.destination,
+        'onUpdate:modelValue': val => row.original.destination = val,
       }, () => [
         h(SelectTrigger, { class: 'w-full flex items-center' }, () => [
-          h(SelectValue, { placeholder: 'Select Destination' })
+          h(SelectValue, { placeholder: 'Select Destination' }),
         ]),
         h(SelectContent, {}, () => [
           h(SelectGroup, {}, () => [
             h(SelectLabel, {}, 'Destinations'),
             ...userOptions.value.map(option =>
-              h(SelectItem, { value: option.name, key: option.id }, () => option.name)
-            )
-          ])
-        ])
+              h(SelectItem, { value: option.name, key: option.id }, () => option.name),
+            ),
+          ]),
+        ]),
       ])
     },
   }),
@@ -137,34 +137,34 @@ const columns = [
     header: () => h('div', { class: 'text-center text-sm font-normal align-middle' }, 'Actions'),
     cell: ({ row }) => {
       const isLastRow = row.index === tableData.value.length - 1
-      
+
       return h('div', { class: 'flex items-center justify-center h-full' }, [
-        isLastRow 
+        isLastRow
           ? h(Button, {
               variant: 'outline',
               size: 'icon',
               class: 'text-primary border-primary',
-              onClick: () => addNewRow()
+              onClick: () => addNewRow(),
             }, [
-              h(Icon, { 
-                name: 'material-symbols:add', 
-                class: 'text-lg' 
-              })
+              h(Icon, {
+                name: 'material-symbols:add',
+                class: 'text-lg',
+              }),
             ])
           : h(Button, {
               variant: 'outline',
               size: 'icon',
               class: 'text-red-500 hover:text-red-500 border-red-500',
-              onClick: () => tableData.value = tableData.value.filter(item => item.id !== row.original.id)
+              onClick: () => tableData.value = tableData.value.filter(item => item.id !== row.original.id),
             }, [
-              h(Icon, { 
-                name: 'material-symbols:delete', 
-                class: 'text-lg' 
-              })
-            ])
+              h(Icon, {
+                name: 'material-symbols:delete',
+                class: 'text-lg',
+              }),
+            ]),
       ])
-    }
-  })
+    },
+  }),
 ]
 
 const table = useVueTable({
@@ -175,9 +175,9 @@ const table = useVueTable({
   getCoreRowModel: getCoreRowModel(),
 })
 
-const addNewRow = () => {
-  const newId = tableData.value.length > 0 
-    ? Math.max(...tableData.value.map(item => item.id)) + 1 
+function addNewRow() {
+  const newId = tableData.value.length > 0
+    ? Math.max(...tableData.value.map(item => item.id)) + 1
     : 1
 
   const newRow = {
@@ -185,13 +185,13 @@ const addNewRow = () => {
     dtmf: '',
     title: '',
     destinationType: '',
-    destination: ''
+    destination: '',
   }
 
   tableData.value = [...tableData.value, newRow]
 }
 
-const onSubmit = () => {
+function onSubmit() {
   loading.value = true
   console.log('Table data to be saved:', tableData.value)
   setTimeout(() => {
@@ -206,12 +206,14 @@ function onCancel() {
 </script>
 
 <template>
-  <BaseHeader title="Lorem ipsum dolor sit amet consectetur." :breadcrumbs="breadcrumbs" />
+  <BaseHeader title="IVR Menu" :breadcrumbs="breadcrumbs" />
   <div class="relative h-[calc(100vh-190px)] overflow-y-hidden border rounded-lg">
     <div class="space-y-4 h-full">
       <div class="h-full rounded-lg bg-white">
         <div class="border-b px-5 py-5 flex items-center justify-between">
-          <div class="text-lg font-medium text-primary/100">Set IVR Menu</div>
+          <div class="text-lg font-medium text-primary/100">
+            Set IVR Menu
+          </div>
         </div>
         <div class="overflow-auto">
           <Table class="w-full">
