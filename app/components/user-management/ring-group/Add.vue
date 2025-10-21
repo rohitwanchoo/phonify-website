@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Extension } from '~/types/extension'
 import { toTypedSchema } from '@vee-validate/zod'
+import { useFocus } from '@vueuse/core'
 
 import { useForm } from 'vee-validate'
 import * as z from 'zod'
@@ -53,6 +54,9 @@ const props = defineProps<{
 
 const emits = defineEmits(['complete'])
 
+const focusInput = shallowRef()
+useFocus(focusInput, { initialValue: true })
+
 // const isEdit = computed(() => {
 //   return Object.keys(props.tempRingGroup || {}).length > 0
 // })
@@ -78,7 +82,7 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, setFieldValue, resetForm } = useForm({
+const { handleSubmit, setFieldValue } = useForm({
   validationSchema: formSchema,
 
 })
@@ -199,7 +203,7 @@ function removeExtension(index: number) {
                 Name
               </FormLabel>
               <FormControl>
-                <Input v-bind="componentField" class="h-11" />
+                <Input ref="focusInput" v-bind="componentField" class="h-11" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -322,12 +326,12 @@ function removeExtension(index: number) {
           <DialogFooter>
             <DialogClose class="sm:w-1/2">
               <Button variant="outline" class="h-11  w-full">
-                <Icon name="mdi:close" />
+                <Icon name="material-symbols:close" size="20" />
                 Close
               </Button>
             </DialogClose>
-            <Button :disabled="loading" for="form" class="h-11 sm:w-1/2" type="submit" @click="onSubmit">
-              <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save'" />
+            <Button :disabled="loading" for="form" class="h-11 sm:w-1/2" type="submit" :loading="loading" @click="onSubmit">
+              <Icon name="material-symbols:save" size="20" />
               {{ isEdit ? 'Update' : 'Save' }}
             </Button>
           </DialogFooter>

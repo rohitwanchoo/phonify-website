@@ -44,7 +44,7 @@ async function handleAddCallTime(newCallTime: any) {
     <BaseHeader title="Call Times">
       <template #actions>
         <!-- Trigger Button -->
-        <Button @click="isDialogOpen = true">
+        <Button @click="isDialogOpen = true" class="h-11">
           <Icon name="material-symbols:add" class="text-xl text-white" />
           Add Call Time
         </Button>

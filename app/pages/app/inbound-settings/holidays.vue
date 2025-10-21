@@ -18,8 +18,8 @@ const { data: holidayList, status, refresh } = await useLazyAsyncData('did-get-a
     <BaseHeader title="Holidays">
       <template #actions>
         <!-- Dialog Trigger Button -->
-        <Button @click="isDialogOpen = true">
-          <Icon class="!text-white" name="lucide:plus" />
+        <Button @click="isDialogOpen = true" class="h-11">
+          <Icon class="text-xl" name="material-symbols:add" />
           Add Holiday
         </Button>
 

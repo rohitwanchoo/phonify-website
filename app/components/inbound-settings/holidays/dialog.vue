@@ -206,11 +206,11 @@ const onSubmit = handleSubmit((values) => {
             class="w-[49%]"
             @click="emit('update:open', false)"
           >
-            <Icon name="material-symbols:close" />
+            <Icon name="material-symbols:close" size="20" />
             Cancel
           </Button>
-          <Button :loading type="submit" class="w-[49%]">
-            <Icon name="material-symbols:save" />
+          <Button :loading="loading" type="submit" class="w-[49%]">
+            <Icon name="material-symbols:save" size="20" />
             Save
           </Button>
         </DialogFooter>

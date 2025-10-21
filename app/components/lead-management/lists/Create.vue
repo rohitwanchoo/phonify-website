@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Icon } from '#components'
-
 import { toTypedSchema } from '@vee-validate/zod'
+
+import { useFocus } from '@vueuse/core'
 import { useField, useForm } from 'vee-validate'
 import { ref } from 'vue'
 import { z } from 'zod'
@@ -16,6 +17,9 @@ const emits = defineEmits(['complete'])
 const { user } = useAuth()
 const showDialog = ref(false)
 // const showConfigureDialog = ref(false)
+
+const focusInput = shallowRef()
+useFocus(focusInput, { initialValue: true })
 
 const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('create-list-campaign', () =>
   useApi().post('/campaign'), {
@@ -85,7 +89,6 @@ function closeDialog() {
 //   closeDialog()
 //   showConfigureDialog.value = true
 // }
-const focusInput = ref<any>(null)
 function onModelOpen(val: boolean) {
   if (val) {
     refreshCampaigns()

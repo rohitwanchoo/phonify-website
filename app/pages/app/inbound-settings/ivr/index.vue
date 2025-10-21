@@ -29,8 +29,8 @@ const { data: ivrList, status: ivrStatus, refresh: ivrRefresh } = useLazyAsyncDa
     <BaseHeader title="IVR-Interactive Voice Response">
       <template #actions>
         <!-- Trigger Button -->
-        <Button @click="showCreateIvr = true">
-          <Icon name="lucide:plus" class="mr-1" />
+        <Button @click="showCreateIvr = true" class="h-11">
+          <Icon name="material-symbols:add" class="text-xl" />
           Add IVR
         </Button>
 
