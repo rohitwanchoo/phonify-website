@@ -184,7 +184,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Group Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title') || '-')
     },
   }),
   columnHelper.accessor('updated_at', {
@@ -197,7 +197,7 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, `${moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')}`),
+        h('div', { class: 'text-xs' }, `${moment(row.original.updated_at).format('DD MMM YYYY hh:mm A')}` || '-'),
       ])
     },
   }),

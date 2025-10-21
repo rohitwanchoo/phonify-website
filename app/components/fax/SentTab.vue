@@ -62,7 +62,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['ID', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.id),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.id || '-'),
   }),
 
   columnHelper.accessor('sender', {
@@ -72,7 +72,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Sender', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender || '-'),
   }),
 
   columnHelper.accessor('recipientFax', {
@@ -82,7 +82,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Recipient Fax', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.recipientFax)),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.recipientFax) || '-'),
   }),
 
   columnHelper.accessor('date', {
@@ -93,7 +93,7 @@ const columnHelper = createColumnHelper<any>()
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, moment(row.original.date).format('MMMM D, YYYY')),
+      h('div', { class: 'text-center text-sm' }, moment(row.original.date).format('MMMM D, YYYY') || '-'),
   }),
 
   columnHelper.accessor('status', {

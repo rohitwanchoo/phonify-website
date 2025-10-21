@@ -185,7 +185,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title') || '-')
     },
   }),
   columnHelper.accessor('d_type', {
@@ -197,7 +197,7 @@ const columns = [
       }, () => ['Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, dispositionType(row.getValue('d_type')))
+      return h('div', { class: 'text-center font-normal text-sm' }, dispositionType(row.getValue('d_type')) || '-')
     },
   }),
 

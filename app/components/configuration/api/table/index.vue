@@ -160,7 +160,7 @@ const columns = [
         'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('campaign', {
@@ -179,7 +179,7 @@ const columns = [
   }),
   columnHelper.accessor('url', {
     header: () => h('div', { class: 'inline-flex items-center justify-center w-full' }, 'URL'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.url),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.url || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('method', {
@@ -192,7 +192,7 @@ const columns = [
         'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.method),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.method || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('is_deleted', {
@@ -244,7 +244,7 @@ const columns = [
         'onClick': () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.updated_at).format('DD/MM/YYYY HH:MM A')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.updated_at).format('DD/MM/YYYY HH:MM A') || '-'),
     sortingFn: 'datetime',
   }),
   columnHelper.display({

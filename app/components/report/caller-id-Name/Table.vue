@@ -103,7 +103,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Caller ID', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.cli),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.cli || '-'),
   }),
 
   columnHelper.accessor('cnam', {
@@ -113,7 +113,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Caller ID Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.cnam),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.cnam || '-'),
   }),
 
   columnHelper.accessor('created_at', {
@@ -125,7 +125,7 @@ const columns = [
       }, () => ['Generation Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
-        h('div', formatDate(row.original.created_at)),
+        h('div', formatDate(row.original.created_at) || '-'),
       ]),
   }),
 
@@ -138,7 +138,7 @@ const columns = [
       }, () => ['Callback Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
-        h('div', row.original.callback_time),
+        h('div', row.original.callback_time || '-'),
       ]),
   }),
 ]

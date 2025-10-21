@@ -127,7 +127,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.extension),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.extension || '-'),
   }),
 
   columnHelper.accessor('campaign_id', {
@@ -137,7 +137,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Camapign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, campaignTitle(row.original.campaign_id)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, campaignTitle(row.original.campaign_id) || '-'),
   }),
 
   columnHelper.accessor('cli', {
@@ -147,7 +147,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['CLI', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.cli.toString())),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.cli.toString()) || '-'),
   }),
 
   columnHelper.accessor('route', {
@@ -157,7 +157,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Route', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.route),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.route || '-'),
   }),
   columnHelper.accessor('type', {
     header: ({ column }) =>
@@ -166,7 +166,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.type),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.type || '-'),
   }),
   columnHelper.accessor('number', {
     header: ({ column }) =>
@@ -175,7 +175,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.number.toString())),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.number.toString()) || '-'),
   }),
   columnHelper.accessor('disposition_id', {
     header: ({ column }) =>
@@ -184,7 +184,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Disposition', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, dispositionTitle(row.original.disposition_id)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, dispositionTitle(row.original.disposition_id) || '-'),
   }),
   columnHelper.accessor('duration', {
     header: ({ column }) =>
@@ -193,7 +193,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Duration', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.duration || 'N/A'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.duration || '-'),
   }),
   columnHelper.accessor('area_code', {
     header: ({ column }) =>
@@ -202,7 +202,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['State/City', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.area_code),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.area_code || '-'),
   }),
   columnHelper.accessor('start_time', {
     header: ({ column }) =>
@@ -211,7 +211,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Start Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.start_time),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.start_time || '-'),
   }),
   columnHelper.accessor('end_time', {
     header: ({ column }) =>
@@ -220,7 +220,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['End Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.end_time),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.end_time || '-'),
   }),
   columnHelper.accessor('call_recording', {
     header: ({ column }) =>

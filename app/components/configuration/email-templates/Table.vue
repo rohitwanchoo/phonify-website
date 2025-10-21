@@ -186,7 +186,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Template Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.template_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.template_name || '-'),
   }),
   columnHelper.accessor('template_html', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -194,7 +194,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Template HTML', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-[40vw] m-auto  truncate' }, row.original.template_html),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-[40vw] m-auto  truncate' }, row.original.template_html || '-'),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>

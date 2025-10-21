@@ -86,7 +86,7 @@ const columns = [
   columnHelper.accessor('extension', {
     header: () => h('div', { class: 'text-center' }, 'Phone'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal' }, formatNumber(String(row.original.extension)))
+      return h('div', { class: 'text-center font-normal' }, formatNumber(String(row.original.extension)) || '-')
     },
   }),
 
@@ -98,7 +98,7 @@ const columns = [
       }, () => ['Call Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center capitalize' }, row.original.type)
+      return h('div', { class: 'text-center capitalize' }, row.original.type || '-')
       // return h('div', { class: 'text-right font-normal mr-2 text-sm' }, h('div', { class: `rounded-full w-[83px] ml-auto h-[30px] text-white text-[14px] flex items-center justify-center  ${StatusClass(row.original.userStatus)}` }, row.getValue('userStatus'),
       // ))
     },

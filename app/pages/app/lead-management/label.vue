@@ -51,7 +51,7 @@ function searchText() {
     </div>
     <!-- Display Order -->
     <LeadManagementLabelDisplayOrder
-      v-if="labelStatus !== 'pending'"
+      :label-status="labelStatus"
       :label-list="labelData?.data"
       class="hidden lg:block"
     />

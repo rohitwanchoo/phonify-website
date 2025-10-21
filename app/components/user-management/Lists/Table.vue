@@ -74,7 +74,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.listName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.listName || '-'),
   }),
   columnHelper.accessor('campaignName', {
     header: ({ column }) =>
@@ -83,7 +83,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaignName),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaignName || '-'),
   }),
   columnHelper.accessor('totalLeads', {
     header: ({ column }) =>
@@ -92,7 +92,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Total Leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.totalLeads),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.totalLeads || '-'),
   }),
   columnHelper.accessor('createdDate', {
     header: ({ column }) =>
@@ -103,7 +103,7 @@ const columns = [
       }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
       const date = row.original.createdDate
-      return h('div', { class: 'text-center font-normal text-sm w-full' }, date ? moment(date).format('DD/MM/YYYY hh:mm A') : '')
+      return h('div', { class: 'text-center font-normal text-sm w-full' }, date ? moment(date).format('DD/MM/YYYY hh:mm A') : '-')
     },
   }),
   columnHelper.accessor('status', {

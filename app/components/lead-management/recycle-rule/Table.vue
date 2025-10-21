@@ -156,7 +156,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaign),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.campaign || '-'),
   }),
   columnHelper.accessor('list', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -164,7 +164,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list || '-'),
   }),
   columnHelper.accessor('disposition', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -180,7 +180,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Day', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.day),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.day || '-'),
   }),
   columnHelper.accessor('time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -188,7 +188,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.time),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.time || '-'),
   }),
   columnHelper.accessor('call_time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -196,7 +196,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_time),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_time || '-'),
   }),
   columnHelper.accessor('is_deleted', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {

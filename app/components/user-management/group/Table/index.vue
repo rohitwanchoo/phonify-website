@@ -97,7 +97,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension') || '-')
     },
   }),
 
@@ -110,7 +110,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${row.original.first_name} ${row.original.last_name}`),
+    cell: ({ row }) => h('div', { class: 'lowercase text-center text-sm' }, `${row.original.first_name} ${row.original.last_name}` || '-'),
   }),
 
   columnHelper.accessor('actions', {

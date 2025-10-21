@@ -149,7 +149,7 @@ const columns = [
     },
     cell: ({ row }) => {
       const number = String(row.original.number)
-      return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(number))
+      return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(number) || '-')
     },
   }),
 
@@ -158,7 +158,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('extension') || '-')
     },
   }),
 
@@ -167,7 +167,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Comment', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('comment'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('comment') || '-')
     },
   }),
 

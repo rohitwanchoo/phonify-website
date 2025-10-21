@@ -70,31 +70,31 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID Number'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.didNumber)),
+      h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.didNumber) || '-'),
   }),
   columnHelper.accessor('inboundCalls', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.inboundCalls)),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.inboundCalls) || '-'),
   }),
   columnHelper.accessor('totalCallTime', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Call Time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatTime(row.original.totalCallTime)),
+      h('div', { class: 'text-center text-sm' }, formatTime(row.original.totalCallTime) || '-'),
   }),
   columnHelper.accessor('avgHandleTime', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Average Handle time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatTime(row.original.avgHandleTime)),
+      h('div', { class: 'text-center text-sm' }, formatTime(row.original.avgHandleTime) || '-'),
   }),
   columnHelper.accessor('smsSent', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.smsSent)),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.smsSent) || '-'),
   }),
   columnHelper.accessor('smsReceived', {
     header: () =>

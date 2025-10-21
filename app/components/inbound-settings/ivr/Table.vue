@@ -108,7 +108,7 @@ const columns = [
         onClick: () => column.toggleSorting(),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-light text-center' }, row.original.ivr_desc),
+    cell: ({ row }) => h('div', { class: 'text-sm font-light text-center' }, row.original.ivr_desc || '-'),
     sortingFn: 'alphanumeric',
     meta: { className: 'w-[50%]' },
   }),
