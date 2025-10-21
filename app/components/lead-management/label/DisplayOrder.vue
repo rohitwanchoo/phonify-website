@@ -5,6 +5,7 @@ import Button from '~/components/ui/button/Button.vue'
 // Props
 const props = defineProps<{
   labelList: { id: number, title: string, display_order: number }[] | undefined
+  labelStatus: string
 }>()
 
 const el = useTemplateRef<HTMLElement>('el')
@@ -52,6 +53,7 @@ const sortableList = ref<{ id: number, title: string, display_order: number }[]>
 // Track if we're currently updating to prevent watch conflicts
 const isUpdating = ref(false)
 const isProcessingDrag = ref(false)
+const loadingRefreshBtn = ref(false)
 
 // Watch for changes in the sorted list and update sortableList
 watch(sortedList, (newList) => {
@@ -61,7 +63,11 @@ watch(sortedList, (newList) => {
 }, { immediate: true })
 
 // Refresh function
-function refreshOrder() {
+async function refreshOrder() {
+  loadingRefreshBtn.value = true
+  // Wait 3 seconds before proceeding
+  await new Promise(resolve => setTimeout(resolve, 3000))
+  loadingRefreshBtn.value = false
   if (sortedList.value.length > 0) {
     isUpdating.value = false
     sortableList.value = [...sortedList.value]
@@ -143,13 +149,21 @@ useSortable(el, sortableList, {
           Drag and drop labels to change positions
         </p>
       </div>
-      <Button variant="ghost" class="bg-white h-11 w-11 px-0" @click="refreshOrder">
+      <Button variant="ghost" class="bg-white h-11 w-11 px-0 gap-0" :disabled="isProcessingDrag || loadingRefreshBtn" :loading="loadingRefreshBtn" @click="refreshOrder">
         <Icon name="material-symbols:refresh" size="20" />
       </Button>
     </div>
 
+    <!-- Loading state -->
+    <div v-if="props.labelStatus === 'pending'">
+      <div class="space-y-2 max-h-[calc(100vh-270px)]">
+        <BaseSkelton v-for="i in 9" :key="i" class="h-[50px] w-full" rounded="rounded-md" />
+      </div>
+    </div>
+
     <!-- Draggable list -->
     <div
+      v-else
       ref="el"
       class="space-y-2 max-h-[calc(100vh-270px)] overflow-y-auto"
     >

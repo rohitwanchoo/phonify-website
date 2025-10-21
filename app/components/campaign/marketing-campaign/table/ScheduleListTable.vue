@@ -93,7 +93,6 @@ const mockData = [
 const addAbortDialogOpen = ref(false)
 const addAbortRowData = ref<any>(null)
 const columnHelper = createColumnHelper<any>()
-const router = useRouter()
 
 const columns = [
   columnHelper.display({
@@ -119,7 +118,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.list),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.list || '-'),
   }),
   columnHelper.accessor('template', {
     header: ({ column }) =>
@@ -131,7 +130,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.template),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.template || '-'),
   }),
   columnHelper.accessor('account', {
     header: ({ column }) =>
@@ -143,7 +142,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.account),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.account || '-'),
   }),
   columnHelper.accessor('type', {
     header: ({ column }) =>
@@ -155,7 +154,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.type),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.type || '-'),
   }),
   columnHelper.accessor('scheduled_time', {
     header: ({ column }) =>
@@ -167,7 +166,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.scheduled_time),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.scheduled_time || '-'),
   }),
   columnHelper.accessor('complete_time', {
     header: ({ column }) =>
@@ -179,7 +178,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.complete_time),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.complete_time || '-'),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>
@@ -222,7 +221,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.total),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.total || '-'),
   }),
   columnHelper.accessor('sent', {
     header: ({ column }) =>
@@ -234,7 +233,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sent),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sent || '-'),
   }),
   columnHelper.accessor('failed', {
     header: ({ column }) =>
@@ -246,7 +245,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.failed),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.failed || '-'),
   }),
   columnHelper.display({
     id: 'actions',

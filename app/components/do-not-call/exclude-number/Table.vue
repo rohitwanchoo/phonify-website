@@ -155,7 +155,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['First Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('first_name'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('first_name') || '-')
     },
   }),
 
@@ -164,7 +164,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Last Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('last_name'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('last_name') || '-')
     },
   }),
 
@@ -173,7 +173,7 @@ const columns = [
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Company Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('company_name'))
+      return h('div', { class: 'text-center font-normal text-sm' }, row.getValue('company_name') || '-')
     },
   }),
 
@@ -183,7 +183,7 @@ const columns = [
     },
     cell: ({ row }) => {
         const number = String(row.getValue('number'))
-      return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(number))
+      return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(number) || '-')
     },
   }),
 

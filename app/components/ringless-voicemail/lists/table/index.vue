@@ -106,7 +106,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['List', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title || '-'),
   }),
   columnHelper.accessor('campaign_name', {
     header: ({ column }) =>
@@ -115,7 +115,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name || '-'),
   }),
   columnHelper.display({
     id: 'dialed',
@@ -125,7 +125,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Dialed/Total leads', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.ringless_lead_report_count || 0}/${row.original.total_leads || 0}`),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.ringless_lead_report_count || 0}/${row.original.total_leads || 0}` || '-'),
   }),
   columnHelper.display({
     id: 'createdDate',
@@ -139,7 +139,7 @@ const columns = [
       const created = row.original.created_at
       return h('div', { class: 'text-center font-normal text-sm' }, [
         h('div', created ? moment(created).format('YYYY-MM-DD') : ''),
-        h('div', { class: 'text-xs' }, created ? moment(created).format('hh:mm A') : ''),
+        h('div', { class: 'text-xs' }, created ? moment(created).format('hh:mm A') : '-'),
       ])
     },
   }),

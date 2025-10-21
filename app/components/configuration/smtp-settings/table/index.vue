@@ -95,7 +95,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender_type),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender_type || '-'),
   }),
 
   columnHelper.accessor('from_name', {
@@ -107,7 +107,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.from_name),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.from_name || '-'),
   }),
 
   columnHelper.accessor('mail_driver', {
@@ -119,7 +119,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_driver),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_driver || '-'),
   }),
 
   columnHelper.accessor('mail_host', {
@@ -131,7 +131,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_host),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_host || '-'),
   }),
 
   columnHelper.accessor('mail_port', {
@@ -143,7 +143,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_port),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_port || '-'),
   }),
 
   columnHelper.accessor('mail_username', {
@@ -155,7 +155,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_username),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_username || '-'),
   }),
 
   columnHelper.accessor('mail_encryption', {
@@ -167,7 +167,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_encryption),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.mail_encryption || '-'),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>

@@ -106,7 +106,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.whitelist_ip),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.whitelist_ip || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('user', {
@@ -132,7 +132,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.server_ip),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.server_ip || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('created_at', {
@@ -146,7 +146,7 @@ const columns = [
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
     // 06/09/2025 10:00 AM
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.created_at).format('MM/DD/YYYY HH:mm A')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, moment(row.original.created_at).format('MM/DD/YYYY HH:mm A') || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('ip_location', {

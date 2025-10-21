@@ -28,7 +28,7 @@ const columns = [
 
   columnHelper.accessor('extension', {
     header: 'Extension',
-    cell: ({ row }) => h('span', { class: 'text-xs font-light' }, row.original.extension),
+    cell: ({ row }) => h('span', { class: 'text-xs font-light' }, row.original.extension || '-'),
     meta: { className: 'w-[120px] text-center' },
   }),
 

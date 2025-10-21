@@ -89,7 +89,7 @@ const columns = [
         h(AvatarImage, { src: `https://randomuser.me/api/portraits/med/men/${75 + row.index}.jpg`, alt: 'unovue', class: ' object-cover' }),
         h(AvatarFallback, 'CN'),
       ]),
-      h('div', { class: 'font-normal text-sm' }, row.getValue('name')),
+      h('div', { class: 'font-normal text-sm' }, row.getValue('name') || '-'),
     ]),
   }),
 
@@ -100,13 +100,13 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Email', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
-    cell: ({ row }) => h('div', { class: 'lowercase text-center' }, row.getValue('email')),
+    cell: ({ row }) => h('div', { class: 'lowercase text-center' }, row.getValue('email') || '-'),
   }),
 
   columnHelper.accessor('phone', {
     header: () => h('div', { class: 'text-center' }, 'Phone'),
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal' }, row.getValue('phone'))
+      return h('div', { class: 'text-center font-normal' }, row.getValue('phone') || '-')
     },
   }),
 
@@ -118,7 +118,7 @@ const columns = [
       }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-right font-normal mr-5 text-sm' }, h('div', { class: `rounded-full w-[83px] ml-auto h-[30px] text-white text-[14px] flex items-center justify-center  ${StatusClass(row.original.userStatus)}` }, row.getValue('userStatus'),
+      return h('div', { class: 'text-right font-normal mr-5 text-sm' }, h('div', { class: `rounded-full w-[83px] ml-auto h-[30px] text-white text-[14px] flex items-center justify-center  ${StatusClass(row.original.userStatus)}` }, row.getValue('userStatus') || '-',
       ))
     },
   }),

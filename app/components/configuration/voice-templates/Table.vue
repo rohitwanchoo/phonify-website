@@ -106,7 +106,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.templete_name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.templete_name || '-'),
   }),
   columnHelper.accessor('templete_desc', {
     header: ({ column }) =>
@@ -118,7 +118,7 @@ const columns = [
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-xs truncate max-w-[30vw] xl:max-w-[40vw] mx-auto' }, row.original.templete_desc),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-xs truncate max-w-[30vw] xl:max-w-[40vw] mx-auto' }, row.original.templete_desc || '-'),
   }),
   columnHelper.accessor('status', {
     header: ({ column }) =>

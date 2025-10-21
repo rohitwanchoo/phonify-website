@@ -109,7 +109,7 @@ const columns = computed(() => {
             onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
           }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
         ]),
-      cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id),
+      cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.id || '-'),
     }),
   )
 

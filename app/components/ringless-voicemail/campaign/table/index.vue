@@ -223,7 +223,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title || '-'),
   }),
 
   columnHelper.display({
@@ -250,7 +250,7 @@ const columns = [
     cell: ({ row }) => {
       const dialed = row.original.ringless_lead_report_count || 0
       const total = row.original.ringless_list?.reduce((sum: number, list: any) => sum + (list.total_leads || 0), 0) || 0
-      return h('div', { class: 'text-center font-normal text-center text-sm' }, `${dialed}/${total}`)
+      return h('div', { class: 'text-center font-normal text-center text-sm' }, `${dialed}/${total}` || '-')
     },
   }),
 
@@ -278,7 +278,7 @@ const columns = [
       const end = row.original.call_time_end
       return h('div', { class: 'uppercase text-center text-sm' }, start && end
         ? `${moment(start, 'HH:mm:ss').format('hh:mm A')} - ${moment(end, 'HH:mm:ss').format('hh:mm A')}`
-        : 'N/A')
+        : '-')
     },
   }),
 
@@ -295,7 +295,7 @@ const columns = [
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
         h('div', created ? moment(created).format('YYYY-MM-DD') : ''),
         h('br'),
-        h('div', { class: 'text-xs' }, created ? moment(created).format('hh:mm A') : ''),
+        h('div', { class: 'text-xs' }, created ? moment(created).format('hh:mm A') : '-'),
       ])
     },
   }),

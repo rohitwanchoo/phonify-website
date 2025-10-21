@@ -70,27 +70,27 @@ const columnHelper = createColumnHelper<agentWiseDialerCallList>()
 const columns = [
   columnHelper.accessor('agentName', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Agent Name'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.agentName),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.agentName || '-'),
   }),
   columnHelper.accessor('extension', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Extension'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.extension),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.extension || '-'),
   }),
   columnHelper.accessor('totalcalls', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalcalls)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalcalls) || '-'),
   }),
   columnHelper.accessor('dialer_call', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Outbound Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.dialer_call)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.dialer_call) || '-'),
   }),
   columnHelper.accessor('c2c_call', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'C2C Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.c2c_call)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.c2c_call) || '-'),
   }),
   columnHelper.accessor('desktop_call', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.desktop_call)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.desktop_call) || '-'),
   }),
   columnHelper.display({
     id: 'totalCallTime',
@@ -100,14 +100,13 @@ const columns = [
         row.original.dialer_call_time_spent_in_second
         + row.original.c2c_call_time_spent_in_second
         + row.original.desktop_call_time_spent_in_second,
-      )),
+      ) || '-'),
   }),
   columnHelper.display({
     id: 'avgHandleTime',
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Average Handle Time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatTime(row.original.avgHandleTime ?? calculateAvgHandleTime(row.original)),
-      ),
+      h('div', { class: 'text-sm text-center' }, formatTime(row.original.avgHandleTime ?? calculateAvgHandleTime(row.original)) || '-'),
   }),
   columnHelper.display({
     id: 'sms_sent',

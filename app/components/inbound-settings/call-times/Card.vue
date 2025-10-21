@@ -57,7 +57,7 @@ const columns = [
   // Day column
   columnHelper.accessor('day', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Day'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex items-center justify-center h-full' }, row.original.day),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm flex items-center justify-center h-full' }, row.original.day || '-'),
   }),
 
   // From time column
@@ -67,7 +67,7 @@ const columns = [
       const time = row.original.from
       return h('div', {
         class: 'text-center font-normal text-sm flex items-center justify-center h-full',
-      }, time ? moment(time, 'HH:mm:ss').format('hh:mm A') : 'NA')
+      }, time ? moment(time, 'HH:mm:ss').format('hh:mm A') : '-')
     },
   }),
 
@@ -78,7 +78,7 @@ const columns = [
       const time = row.original.to
       return h('div', {
         class: 'text-center font-normal text-sm flex items-center justify-center h-full',
-      }, time ? moment(time, 'HH:mm:ss').format('hh:mm A') : 'NA')
+      }, time ? moment(time, 'HH:mm:ss').format('hh:mm A') : '-')
     },
   }),
 ]

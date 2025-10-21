@@ -117,7 +117,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.name),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.name || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('host', {
@@ -129,7 +129,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.host),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.host || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('username', {
@@ -141,7 +141,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.username),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.username || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.accessor('secret', {
@@ -153,7 +153,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => h(ChevronsUpDown, { class: 'h-4 w-4' })),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-center font-mono text-sm' }, row.original.secret),
+    cell: ({ row }) => h('div', { class: 'text-center font-mono text-sm' }, row.original.secret || '-'),
     sortingFn: 'alphanumeric',
   }),
   columnHelper.display({

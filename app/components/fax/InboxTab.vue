@@ -61,7 +61,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Sender', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.sender || '-'),
   }),
 
   columnHelper.accessor('inboundFax', {
@@ -71,7 +71,7 @@ const columnHelper = createColumnHelper<any>()
         class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Inbound Fax No', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.inboundFax)),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.inboundFax) || '-'),
   }),
 
   columnHelper.accessor('date', {
@@ -82,7 +82,7 @@ const columnHelper = createColumnHelper<any>()
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, moment(row.original.date).format('MMMM D, YYYY')),
+      h('div', { class: 'text-center text-sm' }, moment(row.original.date).format('MMMM D, YYYY') || '-'),
   }),
 
   columnHelper.display({

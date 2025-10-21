@@ -130,13 +130,13 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.title || '-'),
   }),
 
   columnHelper.accessor('description', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Description'),
     cell: ({ row }) =>
-      h('div', { class: 'flex items-center justify-center gap-2 text-sm font-normal' }, row.original.description),
+      h('div', { class: 'flex items-center justify-center gap-2 text-sm font-normal' }, row.original.description || '-'),
   }),
 
   columnHelper.accessor('extension_count', {
@@ -147,14 +147,14 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['No. of Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'flex items-center justify-center gap-1 text-sm font-normal' }, [
-      row.original.extension_count,
+      row.original.extension_count || '-',
       h(Icon, { name: 'material-symbols:visibility-outline', class: 'h-5 w-5 cursor-pointer' }),
     ]),
   }),
 
   columnHelper.accessor('emails', {
     header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Email'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.emails),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.emails || '-'),
   }),
 
   columnHelper.accessor('actions', {
