@@ -149,7 +149,7 @@ useSortable(el, sortableList, {
           Drag and drop labels to change positions
         </p>
       </div>
-      <Button variant="ghost" class="bg-white h-11 w-11 px-0" :disabled="isProcessingDrag || loadingRefreshBtn" :loading="loadingRefreshBtn" @click="refreshOrder">
+      <Button variant="ghost" class="bg-white h-11 w-11 px-0 gap-0" :disabled="isProcessingDrag || loadingRefreshBtn" :loading="loadingRefreshBtn" @click="refreshOrder">
         <Icon name="material-symbols:refresh" size="20" />
       </Button>
     </div>
