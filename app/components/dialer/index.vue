@@ -75,7 +75,6 @@ async function makeCall() {
 // Watch for call state changes to handle auto-minimize
 watch(() => callStatus.value, (newStatus) => {
   if (newStatus === 'active' || newStatus === 'ringing' || newStatus === 'incoming') {
-    debugger
     closeDialer()
   }
 })

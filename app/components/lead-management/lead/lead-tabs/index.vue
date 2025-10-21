@@ -9,6 +9,7 @@ import {
 
 const props = defineProps({
   activityData: Object,
+  activityLoading: Boolean,
   leadData: Object,
 })
 </script>
@@ -33,10 +34,10 @@ const props = defineProps({
         </TabsList>
       </div>
 
-      <div class="p-2 bg-[#FAFAFA] h-full lg:max-h-[calc(100vh-260px)] overflow-y-auto">
+      <div class="p-2 bg-[#FAFAFA] h-full lg:max-h-[calc(100vh-230px)] overflow-y-auto">
         <TabsContent value="activity">
-          <div class="bg-white  rounded-md border border-[#F4F4F5]">
-            <LeadManagementLeadLeadTabsActivity :lead-activity-data="props.activityData" />
+          <div class="bg-white rounded-md">
+            <LeadManagementLeadLeadTabsActivity :activity-loading="activityLoading" :lead-activity-data="activityData" />
           </div>
         </TabsContent>
         <TabsContent value="text">

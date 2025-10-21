@@ -361,13 +361,13 @@ export function useSIPml5() {
       events_listener: { events: '*', listener: onSipEventStack },
     }
 
-    consola.info('🔧 SIPml5 config:', {
-      realm: stackConfig.realm,
-      impi: stackConfig.impi,
-      impu: stackConfig.impu,
-      websocket_proxy_url: stackConfig.websocket_proxy_url,
-      password: stackConfig.password,
-    })
+    // consola.info('🔧 SIPml5 config:', {
+    //   realm: stackConfig.realm,
+    //   impi: stackConfig.impi,
+    //   impu: stackConfig.impu,
+    //   websocket_proxy_url: stackConfig.websocket_proxy_url,
+    //   password: stackConfig.password,
+    // })
 
     try {
       sipStack = new SIPml.Stack(stackConfig)

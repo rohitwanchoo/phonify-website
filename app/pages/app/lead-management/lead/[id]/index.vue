@@ -7,7 +7,6 @@ const leadID = route.params.id
 
 const listId = route.query.list_id
 
-
 // get lead detail with ID from params
 const { data: leadData, status: leadStatus } = await useLazyAsyncData('lead-details', () =>
   useApi().post('/get-data-for-edit-lead-page', {
@@ -17,18 +16,35 @@ const { data: leadData, status: leadStatus } = await useLazyAsyncData('lead-deta
   transform: res => res.data.leadData,
 })
 
+const leadNumber = ref('')
+// get lead activity data
+const { data: leadActivityData, status: leadActivityStatus, refresh: refreshLeadActivity } = await useLazyAsyncData('lead-activity', () =>
+  useApi().post('/get-cdr', {
+    phone_number: leadNumber.value,
+  }), {
+  immediate: false,
+})
 
-// define leadActivityData manually
-const leadActivityData = ref()
+// if leadStatus === success and leadData.length > 0 then refresh leadActivityData
+watch(leadStatus, async (newStatus) => {
+  if (newStatus === 'success' && Object.keys(leadData.value).length > 0) {
+    const isDialingObject = Object.values(leadData.value).find((item: any) => item.is_dialing === 1)
+    if (isDialingObject) {
+      leadNumber.value = (isDialingObject as any).value
+      await refreshLeadActivity()
+    }
+  }
+})
+
 const leadDispositionData = ref()
 
 // watch leadStatus
 watch(leadStatus, async (newStatus) => {
   if (newStatus !== 'pending' && leadData.value?.phone_number) {
-    const { data: leadActivity } = await useApi().post('/get-cdr', {
-      phone_number: leadData.value.phone_number,
-    })
-    leadActivityData.value = leadActivity
+    // const { data: leadActivity } = await useApi().post('/get-cdr', {
+    //   phone_number: leadData.value.phone_number,
+    // })
+    // leadActivityData.value = leadActivity
 
     const { data: disposition } = await useApi().post('/search-recycle-rule', {
       phone_number: leadData.value.phone_number,
@@ -72,7 +88,7 @@ const breadcrumbs = [
       <LeadManagementLeadDetails :data="leadData" :loading="leadStatus === 'pending'" />
     </div>
     <div class="lg:col-span-8">
-      <LeadManagementLeadLeadTabs :activity-data="leadActivityData" :lead-data="leadData" />
+      <LeadManagementLeadLeadTabs :activity-loading="leadActivityStatus === 'pending' || leadStatus === 'pending'" :activity-data="leadActivityData" :lead-data="leadData" />
     </div>
   </div>
 </template>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { Button } from '@/components/ui/button'
+
 import {
   FormControl,
   FormField,
@@ -7,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-
 import {
   Select,
   SelectContent,
@@ -20,53 +21,8 @@ import {
 
 const props = defineProps({
   leadActivityData: Object,
+  activityLoading: Boolean,
 })
-
-const callLogs = [
-  {
-    id: 1,
-    user: {
-      name: 'Alice Smith',
-      id: '33184',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    },
-    timestamp: '2025-01-25T13:42:53',
-    phone: '9024412385',
-    status: 'Callback',
-    icon: 'material-symbols:play-circle',
-  },
-  {
-    id: 2,
-    user: {
-      name: 'John Doe',
-      id: '22891',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    },
-    timestamp: '2025-01-26T09:15:12',
-    phone: '9835519876',
-    status: '',
-    icon: 'material-symbols:chat',
-  },
-  {
-    id: 3,
-    user: {
-      name: 'Smith',
-      id: '22891',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    },
-    timestamp: '2025-01-26T09:15:12',
-    phone: '9835519876',
-    status: 'Cancelled User',
-    icon: 'material-symbols:play-circle',
-  },
-]
-
-const dummyData = ref([
-  { id: 1, extension: '123456', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 2, extension: '234567', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 3, extension: '345678', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 4, extension: '456789', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-])
 
 const countryCode = [
   { id: 1, name: 'United States' },
@@ -89,21 +45,25 @@ function formatDate(iso: string) {
   }).replace(',', '')
 }
 
-// Helper to get audioUrl by log id
-function getAudioUrl(id: number) {
-  return dummyData.value.find(d => d.id === id)?.audioUrl || ''
-}
-const visibleAudioId = ref<number | null>(null)
+const visibleItem = ref<number | null>(null)
 
 function toggleAudio(id: number) {
-  visibleAudioId.value = visibleAudioId.value === id ? null : id
+  visibleItem.value = visibleItem.value === id ? null : id
+}
+
+function toggleMessage(id: number) {
+  visibleItem.value = visibleItem.value === id ? null : id
 }
 </script>
 
 <template>
-  <div class="mx-auto bg-[#FAFAFA] space-y-2">
+  <div v-if="activityLoading">
+    <BaseSkelton v-for="i in 9" :key="i" class="h-14 w-full mb-2" rounded="rounded-sm" />
+  </div>
+
+  <div v-else class="mx-auto bg-[#FAFAFA] space-y-2">
     <div
-      v-for="log in callLogs"
+      v-for="log in leadActivityData?.data.updateData"
       :key="log.id"
       class="border border-[#F4F4F5] rounded-md p-2 gap-4 bg-white"
     >
@@ -111,27 +71,28 @@ function toggleAudio(id: number) {
       <!-- Top Row: Avatar + Details + Actions -->
       <div class="flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <img
-            :src="log.user.avatar"
+          <div
             alt="Avatar"
-            class="w-10 h-10 rounded-full object-cover"
+            class="w-10 h-10 rounded-full flex items-center justify-center"
           >
+            <Icon name="mdi:account-circle" size="30" class="  text-[#00A086]" />
+          </div>
           <div>
             <p class="text-xs md:text-sm text-gray-500">
-              {{ formatDate(log.timestamp) }}
+              {{ formatDate(log.start_time) }}
             </p>
             <p class="text-xs md:text-sm text-gray-800">
-              <span class="font-sm">{{ log.user.name }}</span>
-              <span> ({{ log.user.id }})</span>
-              <span class="text-gray-500"> made a manual call to </span>
-              <span class="font-sm">{{ log.phone }}</span>
+              <span class="font-sm">{{ log?.extension || 'Unknown' }}</span>
+              <span> ({{ log?.cli || 'N/A' }})</span>
+              <span class="text-gray-500">  to </span>
+              <span class="font-sm">{{ log?.number || 'N/A' }}</span>
             </p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <!-- Dropdown if log.id === 3 -->
-          <template v-if="log.id === 3">
+          <!-- <template v-if="log.id === 3">
             <FormField v-slot="{ componentField }" name="countryCode">
               <FormItem>
                 <FormControl>
@@ -154,40 +115,52 @@ function toggleAudio(id: number) {
                 <FormMessage class="text-sm" />
               </FormItem>
             </FormField>
-          </template>
+          </template> -->
 
           <!-- Status button only if status exists -->
-          <template v-else-if="log.status && log.status.trim() !== ''">
+          <!-- <template v-else-if="log.status && log.status.trim() !== ''">
             <button
               class="text-[12px] px-3 py-1 border border-[#00A086] bg-[#00A0861A] text-black rounded-md text-center min-w-[150px]"
             >
               {{ log.status }}
             </button>
-          </template>
+          </template> -->
 
           <!-- Only show play/close icon if not chat -->
-          <span
-            v-if="log.icon !== 'material-symbols:chat' && getAudioUrl(log.id)"
+          <Button
+            v-if="log.call_recording"
+            variant="outline"
+            size="icon"
             class="w-8 h-8 flex items-center justify-center border border-primary rounded-md"
             @click="toggleAudio(log.id)"
           >
-            <Icon :name="visibleAudioId === log.id ? 'material-symbols:close' : 'material-symbols:play-circle'" />
-          </span>
+            <Icon :name="visibleItem === log.id ? 'material-symbols:close' : 'material-symbols:play-circle'" />
+          </Button>
           <!-- Chat icon button if needed -->
-          <button
-            v-if="log.icon === 'material-symbols:chat'"
-            class="w-8 h-8 flex items-center justify-center border border-primary rounded-md"
+          <Button
+            v-if="log.message"
+            variant="outline"
+            size="icon"
+            class="w-8 h-8 flex items-center justify-center border border-primary rounded-md "
+            @click="toggleMessage(log.id)"
           >
-            <Icon name="material-symbols:chat" />
-          </button>
+            <Icon :name="visibleItem === log.id ? 'material-symbols:close' : 'material-symbols:chat'" />
+          </Button>
         </div>
       </div>
+      <Transition>
+        <div v-if="visibleItem === log.id && log.message" class="mt-4 px-4 pb-2">
+          <p class="text-sm md:text-md text-gray-800">
+            {{ log.message }}
+          </p>
+        </div>
+      </Transition>
 
       <!-- Audio shown below the entire block, only for play-circle -->
       <Transition>
-        <div v-if="visibleAudioId === log.id && getAudioUrl(log.id)" class="mt-4">
+        <div v-if="visibleItem === log.id && log.call_recording" class="mt-4">
           <audio controls class="w-full h-[40px]">
-            <source :src="getAudioUrl(log.id)" type="audio/mpeg">
+            <source :src="log.call_recording" type="audio/mpeg">
           </audio>
         </div>
       </Transition>
