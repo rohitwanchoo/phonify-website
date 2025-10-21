@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { object } from 'zod'
-import { Button } from '@/components/ui/button'
+import { useFocus } from '@vueuse/core'
 
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -81,6 +81,9 @@ function setRenameValues() {
   }
 }
 
+const input = shallowRef()
+useFocus(input, { initialValue: true })
+
 watch(() => open.value, (val) => {
   if (val) {
     setRenameValues()
@@ -90,10 +93,20 @@ watch(() => open.value, (val) => {
     tempGroup.value = null
   }
 })
+
+// function onUpdateOpen(val: boolean) {
+//   if (val) {
+//     nextTick(() => {
+//       inputFocus.value = true
+//     })
+//   }
+// }
 </script>
 
 <template>
-  <Dialog v-model:open="open">
+  <Dialog
+    v-model:open="open"
+  >
     <DialogTrigger as-child>
       <slot>
         <Button class="h-11">
@@ -117,9 +130,11 @@ watch(() => open.value, (val) => {
           <Label for="name" class="text-right text-sm">
             Name
           </Label>
-          <Input id="name" v-model="title" class="h-11" />
+
+          <Input id="name" ref="input" v-model="title" class="h-11" />
         </div>
       </div>
+
       <DialogFooter>
         <DialogClose class="w-1/2">
           <Button variant="outline" class="w-full h-11">
@@ -127,8 +142,7 @@ watch(() => open.value, (val) => {
             Close
           </Button>
         </DialogClose>
-
-        <Button variant="default" :disabled="!title || loading" class="w-1/2 h-11" @click="save">
+        <Button variant="default" :loading="loading" :disabled="!title || loading" class="w-1/2 h-11" @click="save">
           <Icon class="!text-white text-xl" name="material-symbols:save-outline" />
           Save
         </Button>

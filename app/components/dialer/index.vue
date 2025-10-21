@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDraggable, useWindowSize } from '@vueuse/core'
+import { useDraggable, useFocus, useWindowSize } from '@vueuse/core'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -17,15 +17,17 @@ const { width } = useWindowSize()
 // Use SIPml5 composable directly
 const {
   callStatus,
-
   startCall,
   endCall,
   answerCall,
   rejectCall,
-
 } = useSIPml5()
 
 const { isDialerOpen, dialerPhoneNumber } = useDialer()
+
+// Ref for phone number input
+const phoneNumberInput = useTemplateRef<HTMLInputElement>('phoneNumberInput')
+useFocus(phoneNumberInput, { initialValue: true })
 
 // Reactive state
 const selectedCountry = ref('us')
@@ -241,6 +243,7 @@ function onAcceptCall() {
               {{ currentCountry?.code }}
             </span>
             <Input
+              ref="phoneNumberInput"
               v-model="phoneNumber"
               v-maska="'(###) ###-####'"
               placeholder="Enter phone number"
