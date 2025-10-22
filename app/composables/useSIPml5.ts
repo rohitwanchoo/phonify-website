@@ -9,7 +9,7 @@ const callStatus = useState<'idle' | 'connecting' | 'active' | 'incoming' | 'rin
 const callDuration = useState('sipml5.callDuration', () => 0)
 const isRinging = useState('sipml5.isRinging', () => false)
 const isMuted = useState('sipml5.isMuted', () => false)
-const isInitializing = useState('sipml5.isInitializing', () => true)
+const isInitializing = useState('sipml5.isInitializing', () => false)
 const callerDetails = useState('sipml5.callerDetails', () => ({
   name: '',
   number: '',
