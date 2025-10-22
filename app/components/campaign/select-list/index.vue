@@ -138,9 +138,9 @@ onMounted(() => {
   </div>
 
   <div class=" bg-white p-4 mt-2">
-    <Button :loading="assignLoading" :disable="assignLoading" class="w-full h-[52px] cursor-pointer" type="submit" @click="handleContinue">
+    <Button :loading="assignLoading" :disabled="assignLoading || selectedRowIds.length === 0" class="w-full h-[52px] cursor-pointer" type="submit" @click="handleContinue">
       Continue
-      <Icon name="lucide:arrow-right" size="20" />
+      <Icon name="material-symbols:arrow-right-alt" size="20" />
     </Button>
   </div>
 
