@@ -91,7 +91,7 @@ const dispositionType = [
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
   if (isEdit.value)
-    values = { ...values, disposition_id: props.data?.id }
+    values = { ...values, disposition_id: props.data?.id } as any
 
   try {
     let api = '/add-disposition'

@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon, LeadManagementLabelEdit } from '#components'
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -71,11 +71,6 @@ const {
 
 const selectedLabelIdForDelete = ref<number | null>(null)
 
-// controls dialog visibility
-const isEditDialogOpen = ref(false)
-// stores the row to edit
-const selectedRowData = ref<labelList | null>(null)
-
 async function handleDelete() {
   if (!selectedLabelIdForDelete.value)
     return
@@ -117,11 +112,6 @@ export interface labelList {
   updated_at: string
   status: string
   actions?: string
-}
-
-function onEdit(row: labelList) {
-  selectedRowData.value = row
-  isEditDialogOpen.value = true
 }
 
 async function updateStatus(id: number, status: string) {
@@ -232,7 +222,7 @@ const columns = [
                 size: 'icon',
                 variant: 'outline',
                 class: 'cursor-pointer',
-                onClick: () => onEdit(row.original),
+                onClick: () => emits('edit', row.original),
               }, h(Icon, { name: 'material-symbols:edit-square' }))),
               h(TooltipContent, { side: 'top' }, 'Edit Label'),
             ],
@@ -356,7 +346,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
@@ -374,8 +364,6 @@ const table = useVueTable({
       />
     </div>
   </div>
-
-  <LeadManagementLabelEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction

@@ -156,7 +156,7 @@ useSortable(el, sortableList, {
 
     <!-- Loading state -->
     <div v-if="props.labelStatus === 'pending'">
-      <div class="space-y-2 max-h-[calc(100vh-270px)]">
+      <div class="space-y-2 max-h-[calc(100vh-290px)]">
         <BaseSkelton v-for="i in 9" :key="i" class="h-[50px] w-full" rounded="rounded-md" />
       </div>
     </div>
@@ -165,7 +165,7 @@ useSortable(el, sortableList, {
     <div
       v-else
       ref="el"
-      class="space-y-2 max-h-[calc(100vh-270px)] overflow-y-auto"
+      class="space-y-2 max-h-[calc(100vh-290px)] overflow-y-auto"
     >
       <div
         v-for="(item, index) in sortableList"
