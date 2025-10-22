@@ -4,7 +4,7 @@ import type {
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
-import { Icon, LeadManagementLabelEdit } from '#components'
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,

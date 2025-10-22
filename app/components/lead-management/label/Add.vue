@@ -9,40 +9,54 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 
+const props = defineProps<{
+  initialData?: Record<string, any> | null
+  isEdit?: boolean
+}>()
+
 const open = defineModel<boolean>('open', { default: false })
 
 const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required'),
 }))
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    title: '',
+    title: props.initialData?.title ?? null,
   },
 })
 
 const loading = ref(false)
 
-watch(open, (newVal) => {
-  if (newVal) {
-    resetForm({
-      values: {
-        title: '',
-      },
-      errors: {},
-    })
+watch(() => open.value, (newVal) => {
+  if (newVal && props.isEdit) {
+    setFieldValue('title', props.initialData?.title)
+  }
+  else {
+    setFieldValue('title', '')
   }
 })
 
 const onSubmit = handleSubmit(async (values) => {
-  const payload = {
-    title: values.title,
+  const api = props.isEdit ? '/edit-label' : '/add-label'
+  let payload = {}
+  if (props.isEdit) {
+    payload = {
+      label_id: props.initialData?.id,
+      title: values.title,
+      is_delete: props.initialData?.is_delete,
+    }
+  }
+  else {
+    payload = {
+      title: values.title,
+    }
   }
 
   try {
     loading.value = true
-    const response = await useApi().post('/add-label', {
+    const response = await useApi().post(api, {
       ...payload,
     })
     if (response.success === 'true') {
@@ -77,16 +91,20 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <Dialog v-model:open="open">
     <DialogTrigger as-child>
-      <Button class="h-11">
-        <Icon class="!text-white" name="material-symbols:add" size="20" />
-        Add Label
-      </Button>
+      <slot>
+        <Button class="h-11">
+          <Icon class="!text-white" name="material-symbols:add" size="20" />
+          Add Label
+        </Button>
+      </slot>
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Add Label</DialogTitle>
+        <DialogTitle>
+          {{ props.isEdit ? 'Edit' : 'Add' }} Label
+        </DialogTitle>
       </DialogHeader>
-      <Separator class="my-1" />
+      <Separator />
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
           <FormField v-slot="{ componentField }" name="title">

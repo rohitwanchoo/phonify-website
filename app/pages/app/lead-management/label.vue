@@ -5,16 +5,28 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
-const showDialog = ref(false)
-
 const { data: labelData, status: labelStatus, refresh: labelRefresh } = await useLazyAsyncData('label', () =>
   useApi().post('/label', {
-    // start: start.value,
-    // limit: limit.value,
     title: search.value,
   }), {
   transform: res => res,
 })
+
+const isEdit = ref(false)
+const open = ref(false)
+const editRowData = ref({})
+
+// Function to open the edit model
+function onEdit(original: any) {
+  editRowData.value = original
+  open.value = true
+  isEdit.value = true
+}
+function onModelUpdate(val: boolean) {
+  if (!val) {
+    isEdit.value = false
+  }
+}
 
 function changePage(page: number) {
   start.value = Number((page - 1) * limit.value)
@@ -40,14 +52,14 @@ function searchText() {
   <BaseHeader title="Labels">
     <template #actions>
       <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Labels" @update:model-value="searchText" />
-      <LeadManagementLabelAdd v-model:open="showDialog" />
+      <LeadManagementLabelAdd v-model:open="open" :initial-data="editRowData" :is-edit="isEdit" @update:open="onModelUpdate" />
     </template>
   </BaseHeader>
 
   <div class="flex gap-4 justify-between mt-6">
     <!-- TABLE -->
-    <div class="w-full h-[calc(100vh-165px)] overflow-y-auto">
-      <LeadManagementLabelTable :limit="limit" :total-rows="labelData?.total" :start="start" :list="labelData?.data || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" />
+    <div class="w-full h-[calc(100vh-175px)] overflow-y-auto">
+      <LeadManagementLabelTable :limit="limit" :total-rows="labelData?.total" :start="start" :list="labelData?.data || []" :loading="labelStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="labelRefresh" @edit="onEdit" />
     </div>
     <!-- Display Order -->
     <LeadManagementLabelDisplayOrder
