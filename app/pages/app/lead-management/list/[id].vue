@@ -25,7 +25,10 @@ const search = ref('')
 const { data: listLeads, status: listLeadsStatus, refresh: leadsRefresh } = await useLazyAsyncData(
   'list-view-leads',
   () =>
-    useApi().post(`/list-data/${id.value}/content?lower_limit=${start.value}&upper_limit=${limit.value}&search=${search.value}`),
+    useApi().post(`/list-data/${id.value}/content?search=${search.value}`, {
+      start: start.value,
+      limit: limit.value,
+    }),
   {
     transform: res => res.data,
   },
