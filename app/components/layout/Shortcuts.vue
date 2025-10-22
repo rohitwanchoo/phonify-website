@@ -46,31 +46,35 @@ const { x, y, style, isDragging } = useDraggable(el, {
 const shortCuts = computed(() => [
   {
     name: 'Chat',
+    value: 'chat',
     status: true,
     icon: 'material-symbols:forum-outline',
   },
   {
     name: 'ChatAI',
+    value: 'chatai',
     status: true,
     icon: 'material-symbols:mail-outline',
   },
   {
     name: 'Fax',
+    value: 'fax',
     status: true,
     icon: 'material-symbols:fax-outline',
   },
   {
     name: 'Webphone',
+    value: 'webphone',
     status: isRegistered.value,
     icon: 'ic:baseline-phone',
     onClick() {
-      if (!isRegistered.value) {
-        showToast({
-          message: 'Webphone is not registered. Please refresh the page and try again.',
-          type: 'error',
-        })
-        return
-      }
+      // if (!isRegistered.value) {
+      //   showToast({
+      //     message: 'Webphone is not registered. Please refresh the page and try again.',
+      //     type: 'error',
+      //   })
+      //   return
+      // }
       emits('openDialer')
     },
   },
@@ -94,8 +98,11 @@ onMounted(() => {
       <TooltipProvider>
         <Tooltip v-for="item in shortCuts" :key="item.name">
           <TooltipTrigger as-child>
-            <div :class="item.status ? 'bg-[#00A086]' : 'bg-[#f19d3e]'" class="bg-[#00A086] mix-blend-normal rounded-full h-[36px] w-[36px] flex items-center justify-center cursor-pointer" @click="item.onClick">
+            <div :class="item.status ? 'bg-[#00A086]' : 'bg-[#f19d3e]'" class="bg-[#00A086] mix-blend-normal rounded-full h-[36px] w-[36px] flex items-center justify-center cursor-pointer relative" @click="item.onClick">
               <icon :name="item.icon" class="text-white" />
+              <div v-if="item.value === 'webphone'">
+                <div :class="item.status ? 'bg-green-600' : 'bg-red-600'" class="absolute top-[2px] right-[-2px] w-[10px] h-[10px]  rounded-full border border-[#D3D7DA]" />
+              </div>
             </div>
           </TooltipTrigger>
           <TooltipContent side="left">

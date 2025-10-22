@@ -4,9 +4,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs'
 
 // Define props and emits
-defineProps<{
+const props = defineProps<{
   modelValue?: boolean
 }>()
 
@@ -25,6 +30,7 @@ const {
   isRegistered,
   disconnectWebphone,
   initializeSIP,
+  isInitializing
 } = useSIPml5()
 
 const { isDialerOpen, dialerPhoneNumber } = useDialer()
@@ -41,6 +47,17 @@ const isConnecting = computed(() => callStatus.value === 'connecting')
 
 const activeCall = computed(() => callStatus.value === 'active' || callStatus.value === 'ringing')
 // const activeCall = computed(() => true)
+const activeTab = ref<'active' | 'inactive'>('inactive')
+
+watch(isRegistered, (newTab) => {
+  if (newTab) {
+    activeTab.value = 'active'
+  } else {
+    activeTab.value = 'inactive'
+  }
+})
+
+
 
 // Connection timeout ref for cleanup
 const connectionTimeout = ref<NodeJS.Timeout | null>(null)
@@ -162,8 +179,8 @@ function onAcceptCall() {
   answerCall()
 }
 
-function changeWebPhoneStatus(val: boolean) {
-  if (!val) {
+function handleTabChange(val: any) {
+  if (val === 'inactive') {
     disconnectWebphone()
   }
   else {
@@ -235,6 +252,19 @@ function changeWebPhoneStatus(val: boolean) {
           <!-- <Switch
             v-model="isRegistered" class="data-[state=checked]:bg-green-600" @update:model-value="changeWebPhoneStatus"
           /> -->
+          <div class="text-xs font-medium text-center">Webphone Status:</div>
+          <Tabs v-model="activeTab" @update:model-value="handleTabChange" class="rounded-md"  >
+            <TabsList class="grid w-full grid-cols-2 p-[2px]">
+              <TabsTrigger :disabled="isInitializing"  class="font-normal text-xs data-[state=active]:bg-green-600 data-[state=active]:text-white" value="active">
+                <Icon v-if="activeTab === 'active'" size="16" name="material-symbols:radio-button-checked-outline" class="text-md text-white"></Icon>
+                
+                Active 
+              </TabsTrigger>
+              <TabsTrigger :disabled="isInitializing" class="font-normal text-xs data-[state=active]:bg-[#E8AE24] data-[state=active]:text-white" value="inactive">
+                Inactive
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
           <Select v-model="selectedCountry">
             <SelectTrigger class="w-full bg-[#00A08633] border-none text-white">
               <SelectValue placeholder="Select country" />

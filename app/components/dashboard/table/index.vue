@@ -6,7 +6,7 @@ const props = defineProps({
 // list live calls
 const { data: liveCallList, status: liveCallStatus } = await useLazyAsyncData('get-live-call-list', () =>
   useApi().post('/live-call', props.payload), {
-  transform: res => res.data,
+  transform: res => res?.data,
 })
 </script>
 
@@ -16,7 +16,7 @@ const { data: liveCallList, status: liveCallStatus } = await useLazyAsyncData('g
       <dashboardTableCallCount />
     </div>
     <div class="col-span-6 lg:col-span-2 w-full">
-      <dashboardTableLiveCall :list="liveCallList" :loading="liveCallStatus === 'pending'" />
+      <dashboardTableLiveCall :list="liveCallList || []" :loading="liveCallStatus === 'pending'" />
     </div>
   </div>
 </template>

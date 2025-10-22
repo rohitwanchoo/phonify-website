@@ -9,6 +9,7 @@ const callStatus = useState<'idle' | 'connecting' | 'active' | 'incoming' | 'rin
 const callDuration = useState('sipml5.callDuration', () => 0)
 const isRinging = useState('sipml5.isRinging', () => false)
 const isMuted = useState('sipml5.isMuted', () => false)
+const isInitializing = useState('sipml5.isInitializing', () => true)
 const callerDetails = useState('sipml5.callerDetails', () => ({
   name: '',
   number: '',
@@ -273,10 +274,12 @@ export function useSIPml5() {
               if (evt.type === 'connected') {
                 isRegistered.value = true
                 isInitialized = true
+                isInitializing.value = false
                 consola.success('✅ SIP registration successful - ready to receive calls!')
               }
               else if (evt.type === 'terminated') {
                 isRegistered.value = false
+                isInitializing.value = false
                 consola.error('⚠️ SIP registration terminated')
               }
             },
@@ -339,6 +342,7 @@ export function useSIPml5() {
         consola.error('❌ SIP Stack failed:', e.type)
         isRegistered.value = false
         isInitialized = false
+        isInitializing.value = false
         showToast({
           type: 'error',
           message: 'SIP initialization failed',
@@ -385,8 +389,11 @@ export function useSIPml5() {
   async function initializeSIP() {
     if (isInitialized) {
       consola.info('SIPml5 already initialized')
+      isInitializing.value = false
       return
     }
+
+    isInitializing.value = true
 
     // Initialize audio context for ringing on user interaction
     initializeAudioOnUserInteraction()
@@ -398,6 +405,7 @@ export function useSIPml5() {
         type: 'error',
         message: 'SIPml5 library not available. Please refresh the page.',
       })
+      isInitializing.value = false
       return
     }
 
@@ -422,6 +430,7 @@ export function useSIPml5() {
         type: 'error',
         message: 'Failed to initialize SIPml5 library',
       })
+      isInitializing.value = false
     })
   }
 
@@ -620,6 +629,7 @@ export function useSIPml5() {
     isCallActive.value = false
     callStatus.value = 'idle'
     isInitialized = false
+    isInitializing.value = false
     sipStack = null
     registerSession = null
     callSession = null
@@ -649,7 +659,7 @@ export function useSIPml5() {
         catch {}
       }
 
-      showToast({ type: 'success', message: 'Webphone disconnected' })
+      // showToast({ type: 'success', message: 'Webphone disconnected' })
     }
     catch (error) {
       consola.error('❌ Error disconnecting webphone:', error)
@@ -733,6 +743,7 @@ export function useSIPml5() {
     callDuration: readonly(callDuration),
     isRinging: readonly(isRinging),
     isMuted: readonly(isMuted),
+    isInitializing: readonly(isInitializing),
     callerDetails: readonly(callerDetails),
 
     // Methods

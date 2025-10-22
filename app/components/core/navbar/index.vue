@@ -10,10 +10,23 @@ import {
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs'
 import Button from '~/components/ui/button/Button.vue'
 
 const { user, logout } = useAuth()
 const router = useRouter()
+
+const {
+  disconnectWebphone,
+  initializeSIP,
+  isInitializing,
+  isRegistered,
+} = useSIPml5()
 
 // Handle logout
 async function handleLogout() {
@@ -44,13 +57,51 @@ const userInitials = computed(() => {
   }
   return name.substring(0, 2).toUpperCase()
 })
+const activeTab = ref<'active' | 'inactive'>('inactive')
+
+watch(isRegistered, (newTab) => {
+  if (newTab) {
+    activeTab.value = 'active'
+  }
+  else {
+    activeTab.value = 'inactive'
+  }
+})
+
+function handleTabChange(val: any) {
+  if (val === 'inactive') {
+    disconnectWebphone()
+  }
+  else {
+    initializeSIP()
+  }
+}
 </script>
 
 <template>
   <div class="w-full bg-secondary text-primary h-[45px] lg:h-[63px] flex items-center justify-between md:justify-end px-4 py-[30px]">
     <SidebarTrigger class="md:hidden" />
-
+    <!-- {{ !isRegistered }} -->
+    <!-- {{ isInitializing }} -->
     <div class="flex gap-3 text-xs md:text-sm items-center">
+      <div class="bg-white py-1 px-[7px] rounded-[8px] flex items-center gap-2">
+        <Icon name="material-symbols:call" size="16" class="text-md" />
+        <div class="text-xs">
+          Webphone Status :
+        </div>
+        <Tabs v-model="activeTab" class="rounded-md" @update:model-value="handleTabChange">
+          <TabsList class="grid  grid-cols-2 p-[2px] w-[162px] h-[32px]">
+            <TabsTrigger :disabled="isInitializing" class="font-normal text-xs data-[state=active]:bg-green-600 data-[state=active]:text-white" value="active">
+              <Icon v-if="activeTab === 'active'" size="16" name="material-symbols:radio-button-checked-outline" class="text-md text-white" />
+              Active
+            </TabsTrigger>
+            <TabsTrigger :disabled="isInitializing" class="font-normal text-xs data-[state=active]:bg-[#E8AE24] data-[state=active]:text-white" value="inactive">
+              Inactive
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       <!-- Notifications Button -->
       <nuxt-link to="/app/notifications">
         <Button class="bg-white px-3 py-2 h-12 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">

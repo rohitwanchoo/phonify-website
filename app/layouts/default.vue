@@ -16,14 +16,14 @@ const { width, height } = useElementSize(containerElement)
 const containerWidth = computed(() => width.value)
 
 // Use the SIPml5 composable
-const { initializeSIP, cleanup } = useSIPml5()
+const { cleanup } = useSIPml5()
 
 // Initialize SIP on component mount
-onMounted(() => {
-  setTimeout(() => {
-    initializeSIP()
-  }, 3000)
-})
+// onMounted(() => {
+//   setTimeout(() => {
+//     initializeSIP()
+//   }, 3000)
+// })
 
 // Cleanup SIP on component unmount
 onUnmounted(() => {
