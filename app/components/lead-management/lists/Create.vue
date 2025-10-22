@@ -30,17 +30,17 @@ const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('c
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   file: z.array(z.instanceof(File)).min(1, 'File is required'),
-  campaign_id: z.number().optional(),
+  campaign: z.number().optional(),
   duplicate_check: z.boolean().optional(),
 })
 const file = ref<File>()
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, setFieldError } = useForm({
   validationSchema: toTypedSchema(formSchema),
   initialValues: {
     title: '',
     file: [],
-    campaign_id: 0,
+    campaign: 0,
     duplicate_check: false,
   },
 })
@@ -59,7 +59,9 @@ const onSubmit = handleSubmit((values) => {
   const formData = new FormData()
   formData.append('title', values.title)
   formData.append('file', file.value as File) // Append the first file from the array
-  formData.append('campaign', values.campaign_id.toString())
+  if (values.campaign) {
+    formData.append('campaign', values.campaign.toString())
+  }
   formData.append('duplicate_check', values.duplicate_check ? '1' : '0')
   formData.append('id', user.value?.id?.toString() ?? '')
 
@@ -70,13 +72,15 @@ const onSubmit = handleSubmit((values) => {
     showToast({
       message: response.message,
     })
-    emits('complete', { campaign_id: values.campaign_id.toString(), list_id: response?.list_id.toString(), list: values.title })
+    emits('complete', { campaign_id: values.campaign?.toString() ?? '', list_id: response?.list_id.toString(), list: values.title })
     closeDialog()
   }).catch((error) => {
+    console.log(error.data)
     showToast({
       type: 'error',
       message: error.message,
     })
+    handleFieldErrors({ errors: error.data }, setFieldError as any)
   }).finally(() => {
     loading.value = false
   })
@@ -140,7 +144,7 @@ function onModelOpen(val: boolean) {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField, errorMessage }" name="campaign_id">
+          <FormField v-slot="{ componentField, errorMessage }" name="campaign">
             <FormItem>
               <FormLabel>Campaign</FormLabel>
               <FormControl>
