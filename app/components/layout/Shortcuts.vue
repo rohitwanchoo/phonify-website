@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const emits = defineEmits(['openDialer'])
 
-const { isRegistered, initializeSIP } = useSIPml5()
+const { isRegistered, isInitializing } = useSIPml5()
 
 interface ShortcutData {
   height?: number
@@ -66,7 +66,7 @@ const shortCuts = computed(() => [
     name: 'Webphone',
     value: 'webphone',
     status: isRegistered.value,
-    icon: 'ic:baseline-phone',
+    icon: isInitializing.value ? 'eos-icons:loading' : 'ic:baseline-phone',
     onClick() {
       // if (!isRegistered.value) {
       //   showToast({

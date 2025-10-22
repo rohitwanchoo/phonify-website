@@ -13,7 +13,12 @@ import { Button } from '~/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 
+const props = defineProps<Props>()
 const emits = defineEmits(['complete'])
+interface Props {
+  campaignId?: number
+}
+
 const { user } = useAuth()
 const showDialog = ref(false)
 // const showConfigureDialog = ref(false)
@@ -21,7 +26,7 @@ const showDialog = ref(false)
 const focusInput = shallowRef()
 useFocus(focusInput, { initialValue: true })
 
-const { data: campaigns, refresh: refreshCampaigns } = await useLazyAsyncData('create-list-campaign', () =>
+const { data: campaigns, refresh: refreshCampaigns, status: campaignsStatus } = await useLazyAsyncData('create-list-campaign', () =>
   useApi().post('/campaign'), {
   transform: res => res.data,
   immediate: false,
@@ -40,7 +45,7 @@ const { handleSubmit, resetForm, setFieldError } = useForm({
   initialValues: {
     title: '',
     file: [],
-    campaign: 0,
+    campaign: props.campaignId || 0,
     duplicate_check: false,
   },
 })
@@ -75,7 +80,6 @@ const onSubmit = handleSubmit((values) => {
     emits('complete', { campaign_id: values.campaign?.toString() ?? '', list_id: response?.list_id.toString(), list: values.title })
     closeDialog()
   }).catch((error) => {
-    console.log(error.data)
     showToast({
       type: 'error',
       message: error.message,
@@ -149,7 +153,7 @@ function onModelOpen(val: boolean) {
               <FormLabel>Campaign</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full !h-11" :class="errorMessage && 'border-red-500'">
+                  <SelectTrigger :disabled="campaignsStatus === 'pending'" class="w-full !h-11" :class="errorMessage && 'border-red-500'">
                     <SelectValue placeholder="Select campaign" class="text-xs md:text-sm" />
                   </SelectTrigger>
                   <SelectContent class="w-full">

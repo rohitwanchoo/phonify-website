@@ -126,7 +126,7 @@ onMounted(() => {
       <div class="flex items-center justify-between gap-5">
         <BaseInputSearch v-model="search" @update:model-value="searchList" />
 
-        <LeadManagementListsCreate @complete="openListConfigureDialog" />
+        <LeadManagementListsCreate :campaign-id="Number(campaign_id)" @complete="openListConfigureDialog" />
       </div>
     </div>
     <!-- data -->
