@@ -60,11 +60,6 @@ const monthOptions = [
   { value: '12', label: 'December' },
 ]
 
-const dayOptions = ref(Array.from({ length: 31 }, (_, i) => {
-  const d = (i + 1).toString().padStart(2, '0')
-  return d
-}))
-
 const isEditMode = computed(() => !!props.isEdit)
 
 const formSchema = toTypedSchema(z.object({
@@ -73,8 +68,60 @@ const formSchema = toTypedSchema(z.object({
   date: z.string().min(1, 'Select a date'),
 }))
 
-const { handleSubmit, resetForm, setValues } = useForm({
+const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
   validationSchema: formSchema,
+})
+
+// Helper function to check if a year is a leap year
+const isLeapYear = (year: number): boolean => {
+  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)
+}
+
+// Get days in month based on selected month
+const getDaysInMonth = (month: string): number => {
+  const monthNum = parseInt(month)
+  const currentYear = new Date().getFullYear()
+  
+  // Days in each month
+  const daysInMonths: Record<number, number> = {
+    1: 31,  // January
+    2: isLeapYear(currentYear) ? 29 : 28,  // February
+    3: 31,  // March
+    4: 30,  // April
+    5: 31,  // May
+    6: 30,  // June
+    7: 31,  // July
+    8: 31,  // August
+    9: 30,  // September
+    10: 31, // October
+    11: 30, // November
+    12: 31, // December
+  }
+  
+  return daysInMonths[monthNum] || 31
+}
+
+// Computed property for day options based on selected month
+const dayOptions = computed(() => {
+  const selectedMonth = values.month
+  const maxDays = selectedMonth ? getDaysInMonth(selectedMonth) : 31
+  
+  return Array.from({ length: maxDays }, (_, i) => {
+    return (i + 1).toString().padStart(2, '0')
+  })
+})
+
+// Watch for month changes and adjust day if necessary
+watch(() => values.month, (newMonth) => {
+  if (newMonth && values.date) {
+    const maxDays = getDaysInMonth(newMonth)
+    const currentDay = parseInt(values.date)
+    
+    // If selected day exceeds max days in new month, reset to max day
+    if (currentDay > maxDays) {
+      setFieldValue('date', maxDays.toString().padStart(2, '0'))
+    }
+  }
 })
 
 watch(open, async (newValue) => {
