@@ -88,18 +88,14 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, setFieldValue } = useForm({
+const { handleSubmit, setFieldValue, setValues, resetForm } = useForm({
   validationSchema: formSchema,
 
 })
 
 watch(open, (newValue) => {
   if (newValue && props.isEdit && props.tempRingGroup) {
-    setFieldValue('title', props.tempRingGroup.title || '')
-    setFieldValue('description', props.tempRingGroup.description || '')
-    setFieldValue('emails', props.tempRingGroup.emails || '')
-    setFieldValue('ring_type', Number(props.tempRingGroup.ring_type) || 1)
-    setFieldValue('receive_on', props.tempRingGroup.receive_on || '')
+    setValues({...props.tempRingGroup})
 
     // Parse extension_name and extension_id to create extension objects
     if (props.tempRingGroup.extension_name && props.tempRingGroup.extension_id) {
@@ -121,7 +117,7 @@ watch(open, (newValue) => {
         }
       })
 
-      selectedExtensions.value = parsedExtensions
+      selectedExtensions.value = parsedExtensions as Extension[]
       setFieldValue('extension', parsedExtensions)
     }
     else {
@@ -131,12 +127,16 @@ watch(open, (newValue) => {
   }
   else {
     // Reset form for new ring group
-    setFieldValue('title', '')
-    setFieldValue('description', '')
-    setFieldValue('emails', '')
-    setFieldValue('ring_type', 1)
-    setFieldValue('receive_on', '')
-    setFieldValue('extension', [])
+    setValues({
+      title: '',
+      description: '',
+      emails: '',
+      ring_type: 1,
+      receive_on: '',
+      extension: [],
+    })
+    resetForm()
+
     selectedExtensions.value = []
   }
 })
