@@ -93,9 +93,9 @@ const { handleSubmit, setFieldValue, setValues, resetForm } = useForm({
 
 })
 
-watch(open, (newValue) => {
+watch(open, async (newValue) => {
   if (newValue && props.isEdit && props.tempRingGroup) {
-    setValues({...props.tempRingGroup})
+    setValues({ ...props.tempRingGroup })
 
     // Parse extension_name and extension_id to create extension objects
     if (props.tempRingGroup.extension_name && props.tempRingGroup.extension_id) {
@@ -126,17 +126,18 @@ watch(open, (newValue) => {
     }
   }
   else {
-    // Reset form for new ring group
-    setValues({
-      title: '',
-      description: '',
-      emails: '',
-      ring_type: 1,
-      receive_on: '',
-      extension: [],
+    // Reset form for new ring group without triggering validation flicker
+    resetForm({
+      values: {
+        title: '',
+        description: '',
+        emails: '',
+        ring_type: 1,
+        receive_on: '',
+        extension: [],
+      },
+      errors: {},
     })
-    resetForm()
-
     selectedExtensions.value = []
   }
 })
@@ -222,7 +223,7 @@ const receiveOn = [
       <DialogHeader class="gap-y-[17px]">
         <DialogTitle class="text-[16px] font-medium flex justify-between">
           {{ isEdit ? 'Edit Ring Group' : 'Add Ring Group' }}
-          <DialogClose class="cursor-pointer flex items-center">
+          <DialogClose  class="cursor-pointer flex items-center">
             <Icon class="text-xl" name="material-symbols:close" />
           </DialogClose>
         </DialogTitle>
