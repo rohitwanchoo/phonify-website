@@ -214,7 +214,7 @@ const columns = [
       return h('div', { class: 'flex justify-center' }, h('span', {
         class: cn(
           'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
-          enable_sms === 'YES' ? 'bg-green-500 text-white' : 'bg-red-500 text-white',
+          enable_sms === 'YES' ? 'bg-green-^00 text-white' : 'bg-red-600 text-white',
         ),
       }, enable_sms))
     },

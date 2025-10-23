@@ -712,6 +712,72 @@ export function useSIPml5() {
   }
 
   // Send DTMF digit during an active call
+  let dtmfAudioContext: AudioContext | null = null
+
+  // DTMF frequency pairs (Hz)
+  const DTMF_FREQ: Record<string, [number, number]> = {
+    '1': [697, 1209],
+    '2': [697, 1336],
+    '3': [697, 1477],
+    '4': [770, 1209],
+    '5': [770, 1336],
+    '6': [770, 1477],
+    '7': [852, 1209],
+    '8': [852, 1336],
+    '9': [852, 1477],
+    '0': [941, 1336],
+    '*': [941, 1209],
+    '#': [941, 1477],
+  }
+
+  const ensureDTMFAudioContext = async (): Promise<AudioContext> => {
+    const AC = (window.AudioContext || (window as any).webkitAudioContext)
+    if (!dtmfAudioContext) {
+      dtmfAudioContext = new AC()
+    }
+    if (dtmfAudioContext.state === 'suspended') {
+      try {
+        await dtmfAudioContext.resume()
+      }
+      catch (error) {
+        consola.warn('⚠️ Could not resume DTMF audio context:', error)
+      }
+    }
+    return dtmfAudioContext
+  }
+
+  const playDialpadTone = async (digit: string | number, durationMs = 120) => {
+    const d = String(digit)
+    const pair = DTMF_FREQ[d]
+    if (!pair) return
+    try {
+      const ctx = await ensureDTMFAudioContext()
+      const now = ctx.currentTime
+      const [f1, f2] = pair
+      const osc1 = ctx.createOscillator()
+      const osc2 = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      gain.gain.setValueAtTime(0.12, now)
+      osc1.type = 'sine'
+      osc2.type = 'sine'
+      osc1.frequency.setValueAtTime(f1, now)
+      osc2.frequency.setValueAtTime(f2, now)
+
+      osc1.connect(gain)
+      osc2.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc1.start(now)
+      osc2.start(now)
+      const stopAt = now + durationMs / 1000
+      osc1.stop(stopAt)
+      osc2.stop(stopAt)
+    }
+    catch (error) {
+      consola.warn('⚠️ DTMF tone play failed:', error)
+    }
+  }
   const sendDTMF = (digit: string | number) => {
     const d = String(digit)
     if (!/^[0-9*#]$/.test(d)) {
@@ -722,9 +788,13 @@ export function useSIPml5() {
     if (!callSession || !isCallActive.value) {
       consola.warn('No active call to send DTMF')
       showToast({ type: 'warning', message: 'No active call to send DTMF' })
+      // Even if not in a call, still play local keypad tone for UX
+      void playDialpadTone(d)
       return
     }
     try {
+      // Play local keypad tone
+      void playDialpadTone(d)
       // SIPml5 API: callSession.dtmf(digit)
       const ret = (callSession as any).dtmf(d)
       consola.info('📟 Sent DTMF:', d, 'ret=', ret)
@@ -759,5 +829,6 @@ export function useSIPml5() {
     unmute,
     toggleMute,
     sendDTMF,
+    playDialpadTone,
   }
 }
