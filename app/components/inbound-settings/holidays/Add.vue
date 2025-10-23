@@ -9,10 +9,12 @@ import * as z from 'zod'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '~/components/ui/dialog'
 
 import {
@@ -32,22 +34,27 @@ import {
 } from '~/components/ui/select'
 
 const props = defineProps<{
-  open: boolean
-  rowData?: { id: number, name: string, month: string, date: string }
+  initialData?: { id: number, name: string, month: string, date: string }
+  isEdit?: boolean
 }>()
 
-const emit = defineEmits(['update:open', 'refresh'])
+const emit = defineEmits(['refresh', 'complete', 'update:open'])
+
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
 
 const monthOptions = [
-  { value: '01', label: 'January' },
-  { value: '02', label: 'February' },
-  { value: '03', label: 'March' },
-  { value: '04', label: 'April' },
-  { value: '05', label: 'May' },
-  { value: '06', label: 'June' },
-  { value: '07', label: 'July' },
-  { value: '08', label: 'August' },
-  { value: '09', label: 'September' },
+  { value: '1', label: 'January' },
+  { value: '2', label: 'February' },
+  { value: '3', label: 'March' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'May' },
+  { value: '6', label: 'June' },
+  { value: '7', label: 'July' },
+  { value: '8', label: 'August' },
+  { value: '9', label: 'September' },
   { value: '10', label: 'October' },
   { value: '11', label: 'November' },
   { value: '12', label: 'December' },
@@ -58,19 +65,7 @@ const dayOptions = ref(Array.from({ length: 31 }, (_, i) => {
   return d
 }))
 
-function getDayNumbersInMonth(month: any) {
-  const currentYear = new Date().getFullYear()
-  const date = moment(`${currentYear}-${month}`, 'YYYY-MM')
-  const daysInMonth = date.daysInMonth()
-
-  const days = Array.from({ length: daysInMonth }, (_, i) => {
-    const d = (i + 1).toString().padStart(2, '0')
-    return d
-  })
-  dayOptions.value = days
-}
-
-const isEditMode = computed(() => !!props.rowData)
+const isEditMode = computed(() => !!props.isEdit)
 
 const formSchema = toTypedSchema(z.object({
   name: z.string().min(1, 'Holiday name is required'),
@@ -82,16 +77,22 @@ const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: formSchema,
 })
 
-watch(() => props.open, (isOpen) => {
-  if (isOpen && props.rowData) {
+watch(open, async (newValue) => {
+  if (newValue && props.isEdit && props.initialData) {
     setValues({
-      name: props.rowData.name,
-      month: props.rowData.month,
-      date: props.rowData.date,
+      name: props.initialData.name,
+      month: String(props.initialData.month),
+      date: String(props.initialData.date).padStart(2, '0'),
     })
   }
   else {
-    resetForm()
+    resetForm({
+      values: {
+        name: '',
+        month: '',
+        date: '',
+      },
+    })
   }
 })
 
@@ -101,50 +102,75 @@ const onSubmit = handleSubmit((values) => {
   loading.value = true
   const api = '/save-holiday-detail'
 
-  const payload = {
-    data: {
-      ...values,
-      date: Number(values.date),
-      month: Number(values.month),
-    },
-  }
-  // console.log(payload)
+  let payload = {}
 
-  useApi().post(api, payload).then((response) => {
-    showToast({
-      message: response.message,
-    })
+  if (props.isEdit && props.initialData) {
+    payload = {
+      holiday_id: props.initialData.id,
+      name: values.name,
+      date: values.date,
+      month: values.month,
+    }
+  }
+  else {
+    payload = {
+      holiday_id: 0,
+      name: values.name,
+      date: values.date,
+      month: values.month,
+    }
+  }
+
+  useApi().post(api, { data: payload }).then((response) => {
+    if (response.success === 'true') {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+      emit('refresh')
+      emit('complete')
+      open.value = false
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
   }).catch((error) => {
     showToast({
-      type: 'error',
       message: error.message,
+      type: 'error',
     })
-    emit('refresh')
-    emit('update:open', false)
   }).finally(() => {
     loading.value = false
   })
-  // emit('submit', values)
-  // emit('update:open', false)
 })
 </script>
 
 <template>
-  <Dialog :open="open" @update:open="(val) => emit('update:open', val)">
+  <Dialog v-model:open="open">
+    <DialogTrigger as-child>
+      <slot>
+        <Button class="h-11">
+          <Icon class="text-xl" name="material-symbols:add" />
+          Add Holiday
+        </Button>
+      </slot>
+    </DialogTrigger>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>
           {{ isEditMode ? 'Edit Holiday' : 'Create New Holiday' }}
         </DialogTitle>
       </DialogHeader>
-
-      <form class="space-y-4 py-2" @submit.prevent="onSubmit">
+      <form class="space-y-4 py-2" @submit="onSubmit">
         <!-- Name -->
         <FormField v-slot="{ componentField }" name="name">
           <FormItem>
             <FormLabel>Name</FormLabel>
             <FormControl>
-              <Input placeholder="Enter Holiday name" class="h-11" v-bind="componentField" />
+              <Input v-bind="componentField" placeholder="Enter Holiday name" class="h-11" />
             </FormControl>
             <FormMessage class="text-xs" />
           </FormItem>
@@ -155,7 +181,7 @@ const onSubmit = handleSubmit((values) => {
           <FormItem>
             <FormLabel>Month</FormLabel>
             <FormControl>
-              <Select v-bind="componentField" @update:model-value="(val) => getDayNumbersInMonth(val)">
+              <Select v-bind="componentField">
                 <SelectTrigger class="!h-11 w-full">
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
@@ -199,19 +225,16 @@ const onSubmit = handleSubmit((values) => {
         </FormField>
 
         <!-- Footer Buttons -->
-        <DialogFooter class="pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            class="w-[49%]"
-            @click="emit('update:open', false)"
-          >
-            <Icon name="material-symbols:close" size="20" />
-            Cancel
-          </Button>
-          <Button :loading="loading" type="submit" class="w-[49%]">
+        <DialogFooter>
+          <DialogClose class="sm:w-1/2">
+            <Button variant="outline" class="h-11  w-full">
+              <Icon name="material-symbols:close" size="20" />
+              Close
+            </Button>
+          </DialogClose>
+          <Button :disabled="loading" for="form" class="h-11 sm:w-1/2" type="submit" :loading="loading" @click="onSubmit">
             <Icon name="material-symbols:save" size="20" />
-            Save
+            {{ isEdit ? 'Update' : 'Save' }}
           </Button>
         </DialogFooter>
       </form>
