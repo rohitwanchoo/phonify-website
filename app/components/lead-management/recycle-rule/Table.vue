@@ -52,7 +52,7 @@ const props = withDefaults(defineProps<{
 })
 
 // Computed pagination variables
-const emits = defineEmits(['pageNavigation', 'changeLimit'])
+const emits = defineEmits(['pageNavigation', 'changeLimit', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -64,15 +64,14 @@ export interface recycleRulesList {
   campaign_id: number
   campaign_name: string
   list_id: number
-  disposition_id: number
-  day: string
+  dispositions: string
+  days: string[]
   time: string
-  call_time: number
+  call_times: number[]
   is_deleted: 0
   updated_at: string
   campaign: string
   list: string
-  disposition: string
 }
 
 // Confirmation dialog for deleting
@@ -84,13 +83,6 @@ const {
 } = useConfirmDialog()
 
 const selectedRecycleRuleForDelete = ref()
-const isEditDialogOpen = ref(false)
-const selectedRowData = ref<recycleRulesList | null>(null)
-
-function onEdit(row: recycleRulesList) {
-  selectedRowData.value = row
-  isEditDialogOpen.value = true
-}
 
 async function handleDelete() {
   if (!selectedRecycleRuleForDelete.value)
@@ -166,21 +158,21 @@ const columns = [
     }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list || '-'),
   }),
-  columnHelper.accessor('disposition', {
+  columnHelper.accessor('dispositions', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-    }, () => ['Disposition', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.disposition || '—'),
+    }, () => ['Dispositions', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.dispositions || '—'),
   }),
-  columnHelper.accessor('day', {
+  columnHelper.accessor('days', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-    }, () => ['Day', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.day || '-'),
+    }, () => ['Days', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full capitalize' }, row.original.days.join(', ') || '-'),
   }),
   columnHelper.accessor('time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -190,13 +182,13 @@ const columns = [
     }, () => ['Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.time || '-'),
   }),
-  columnHelper.accessor('call_time', {
+  columnHelper.accessor('call_times', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_time || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_times.join(', ') || '-'),
   }),
   columnHelper.accessor('is_deleted', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -219,7 +211,7 @@ const columns = [
               size: 'icon',
               variant: 'outline',
               class: 'text-primary h-7 w-7 min-w-0',
-              onClick: () => onEdit(row.original),
+              onClick: () => emits('edit', row.original),
             }, h(Icon, { name: 'material-symbols:edit-square', size: 14 }))),
             h(TooltipContent, { side: 'top' }, () => 'Edit'),
           ],
@@ -355,7 +347,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
@@ -373,8 +365,6 @@ const table = useVueTable({
     </div>
   </div>
 
-  <!-- EDIT RECYCLE RULE -->
-  <LeadManagementRecycleRuleEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"

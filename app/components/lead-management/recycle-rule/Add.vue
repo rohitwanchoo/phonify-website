@@ -10,6 +10,11 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 
+const props = defineProps<{
+  initialData?: Record<string, any> | null
+  isEdit?: boolean
+}>()
+
 const open = defineModel<boolean>('open', { default: false })
 
 // campaign list options
@@ -32,15 +37,6 @@ const { data: dispositionList, status: dispositionListStatus, refresh: dispositi
   transform: res => res.data,
   immediate: false,
 })
-
-function onDialogOpen(val: boolean) {
-  if (val) {
-    campaignRefresh()
-    leadListRefresh()
-    dispositionRefresh()
-    resetForm()
-  }
-}
 
 // day options
 const dayOptions = [
@@ -70,65 +66,114 @@ const callTimeOptions = [
   { value: 14, label: 'less than or equal to 14' },
   { value: 15, label: 'less than or equal to 15' },
 ]
-
-const formSchema = toTypedSchema(z.object({
-  campaign: z.number().min(1, 'Campaign is required'),
-  list: z.number().min(1, 'List is required'),
-  disposition: z.number().min(1, 'Disposition is required'),
-  day: z.array(z.string()).min(1, 'At least one day is required'),
-  callTime: z.number().min(1, 'Call Time is required'),
-  fromTime: z.string().min(1, 'From time is required'),
-  toTime: z.string().min(1, 'To time is required'),
-}))
-
-const { handleSubmit, resetForm } = useForm({
-  validationSchema: formSchema,
-  initialValues: {
-    campaign: 0,
-    list: 0,
-    disposition: 0,
-    day: [],
-    callTime: 2,
-    fromTime: '',
-    toTime: '',
-  },
-})
-
 const selectedDays = ref<string[]>([])
 const daySelectTemp = ref('')
 
 const loading = ref(false)
 
+const formSchema = toTypedSchema(z.object({
+  campaign_id: z.number().min(1, 'Campaign is required'),
+  list_id: z.number().min(1, 'List is required'),
+  disposition_id: z.number().min(1, 'Disposition is required'),
+  days: z.array(z.string()).min(1, 'At least one day is required'),
+  callTime: z.number().min(1, 'Call Time is required'),
+  fromTime: z.string().min(1, 'From time is required'),
+  toTime: z.string().min(1, 'To time is required'),
+}))
+
+const { handleSubmit, resetForm, setValues } = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    campaign_id: props.initialData?.campaign_id,
+    list_id: props.initialData?.list_id,
+    disposition_id: props.initialData?.disposition_ids,
+    days: props.initialData?.days || [],
+    callTime: props.initialData?.call_time || 2,
+    fromTime: props.initialData?.time || '',
+    toTime: props.initialData?.time || '',
+  },
+})
+
+watch(() => open.value, (newVal) => {
+  campaignRefresh()
+  leadListRefresh()
+  dispositionRefresh()
+
+  if (newVal && props.isEdit) {
+    setValues({ ...props.initialData })
+    selectedDays.value = props.initialData?.days || []
+  }
+  else {
+    resetForm({
+      values: {
+        campaign_id: undefined,
+        list_id: undefined,
+        disposition_id: undefined,
+        days: [],
+        callTime: 2,
+        fromTime: '',
+        toTime: '',
+      },
+    })
+    selectedDays.value = []
+  }
+})
+
 const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.day)))
 
 const onSubmit = handleSubmit(async (values) => {
-  const payload = {
-    campaign_id: values.campaign,
-    list_id: values.list,
-    disposition: [values.disposition],
-    day: values.day,
-    time: values.fromTime, // or `${values.fromTime}-${values.toTime}`
-    call_time: Number(values.callTime),
+  let payload = {}
+  if (!props.isEdit) {
+    payload = {
+      campaign_id: values.campaign_id,
+      list_id: values.list_id,
+      disposition: [values.disposition_id],
+      day: values.days,
+      time: values.fromTime, // or `${values.fromTime}-${values.toTime}`
+      call_time: Number(values.callTime),
+    }
   }
+  else {
+    payload = {
+      recycle_rule_id: props.initialData?.id,
+      campaign_id: values.campaign_id,
+      list_id: values.list_id,
+      disposition_id: [values.disposition_id],
+      day: values.days,
+      time: values.fromTime, // Format HH:mm:ss to HH:mm
+      call_time: Number(values.callTime),
+      is_deleted: 0,
+    }
+  }
+
+  const api = props.isEdit ? '/edit-recycle-rule' : '/add-recycle-rule'
 
   try {
     loading.value = true
-    const response = await useApi().post('/add-recycle-rule', {
+    const response = await useApi().post(api, {
       ...payload,
     })
-    showToast({
-      message: response.message,
-      type: response.success ? 'success' : 'error',
-    })
-    resetForm()
-    open.value = false
-    loading.value = false
-    refreshNuxtData('recycle-rule')
-    selectedDays.value = []
+    if (response.success === 'true') {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+      resetForm()
+      open.value = false
+      loading.value = false
+      refreshNuxtData('recycle-rule')
+      selectedDays.value = []
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
   }
-  catch (error) {
+  catch (error: any) {
     showToast({
-      message: `${error}`,
+      message: `${error.message}`,
       type: 'error',
     })
   }
@@ -136,11 +181,10 @@ const onSubmit = handleSubmit(async (values) => {
     loading.value = false
   }
 })
-
 </script>
 
 <template>
-  <Dialog v-model:open="open" @update:open="onDialogOpen">
+  <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <Button class="h-11">
         <Icon class="!text-white" name="material-symbols:add" size="20" />
@@ -149,14 +193,17 @@ const onSubmit = handleSubmit(async (values) => {
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Add Recycle Rule</DialogTitle>
+        <DialogTitle>
+          {{ props.isEdit ? 'Edit' : 'Add' }} Recycle Rule
+        </DialogTitle>
       </DialogHeader>
-      <Separator class="my-1" />
+      {{ props.initialData }}
+      <Separator />
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
           <FormField
             v-slot="{ componentField }"
-            name="campaign"
+            name="campaign_id"
           >
             <FormItem>
               <FormLabel>Campaign</FormLabel>
@@ -180,7 +227,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="list">
+          <FormField v-slot="{ componentField }" name="list_id">
             <FormItem>
               <FormLabel>List</FormLabel>
               <FormControl>
@@ -203,7 +250,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="disposition">
+          <FormField v-slot="{ componentField }" name="disposition_id">
             <FormItem>
               <FormLabel>Disposition</FormLabel>
               <FormControl>
@@ -226,7 +273,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="day">
+          <FormField v-slot="{ componentField }" name="days">
             <FormItem>
               <FormLabel>Select Day</FormLabel>
               <FormControl>
