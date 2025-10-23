@@ -33,6 +33,22 @@ const countryCode = [
 // Track selected value for each log by id
 const selectedCountryCodes = ref<{ [id: number]: string }>({})
 
+// get disposition name from id
+const { data: dispositionList } = await useLazyAsyncData('get-disposition-list-activity-lo', () =>
+  useApi().post('/disposition', {
+
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+})
+
+// get disposition name from id
+function getDispositionName(id: number): string {
+  const disposition = dispositionList.value?.find((item: { id: number, title: string }) => item.id === id)
+  return disposition?.title || 'N/A'
+}
+
 function formatDate(iso: string) {
   const date = new Date(iso)
   return date.toLocaleString('en-GB', {
@@ -91,6 +107,9 @@ function toggleMessage(id: number) {
         </div>
 
         <div class="flex items-center gap-2">
+          <div v-if="log.call_recording && log.disposition_id" class="text-[12px] border border-[#00A086] rounded-md px-2 h-[28px] flex items-center justify-center bg-[#00A0861A]">
+            {{ getDispositionName(log?.disposition_id) }}
+          </div>
           <!-- Dropdown if log.id === 3 -->
           <!-- <template v-if="log.id === 3">
             <FormField v-slot="{ componentField }" name="countryCode">
