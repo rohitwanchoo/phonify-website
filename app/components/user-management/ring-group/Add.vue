@@ -44,6 +44,8 @@ interface RingGroup {
   ring_type: number
   description: string
   receive_on: string
+  extension_name: string
+  extension_id: number[]
   extension: Extension[]
 }
 
@@ -57,14 +59,18 @@ const emits = defineEmits(['complete'])
 const focusInput = shallowRef()
 useFocus(focusInput, { initialValue: true })
 
-// const isEdit = computed(() => {
-//   return Object.keys(props.tempRingGroup || {}).length > 0
-// })
-
 const open = defineModel('open', {
   type: Boolean,
   default: false,
 })
+
+const addExtensionSheet = ref(false)
+
+const selectedExtensions = ref<Extension[]>([])
+
+function removeExtension(index: number) {
+  selectedExtensions.value.splice(index, 1)
+}
 
 const formSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'name is required').max(50, 'max'),
@@ -82,47 +88,86 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, setFieldValue } = useForm({
+const { handleSubmit, setFieldValue, setValues, resetForm } = useForm({
   validationSchema: formSchema,
 
 })
 
-watch(open, (newValue) => {
-  if (newValue && props.isEdit) {
-    setFieldValue('title', props.tempRingGroup?.title || '')
-    setFieldValue('description', props.tempRingGroup?.description || '')
-    setFieldValue('emails', props.tempRingGroup?.emails || '')
-    setFieldValue('ring_type', Number(props.tempRingGroup?.ring_type) || 1)
-    setFieldValue('receive_on', props.tempRingGroup?.receive_on)
+watch(open, async (newValue) => {
+  if (newValue && props.isEdit && props.tempRingGroup) {
+    setValues({ ...props.tempRingGroup })
+
+    // Parse extension_name and extension_id to create extension objects
+    if (props.tempRingGroup.extension_name && props.tempRingGroup.extension_id) {
+      const extensionNames = props.tempRingGroup.extension_name.split(',')
+      const extensionIds = props.tempRingGroup.extension_id
+
+      const parsedExtensions = extensionNames.map((nameStr: string, index: number) => {
+        // Parse "Name LastName-12345" format
+        const parts = nameStr.trim().split('-')
+        const extensionNum = parts[parts.length - 1]
+        const fullName = parts.slice(0, -1).join('-').trim()
+        const nameParts = fullName.split(' ')
+
+        return {
+          id: extensionIds[index],
+          extension: Number(extensionNum),
+          first_name: nameParts[0] || '',
+          last_name: nameParts.slice(1).join(' ') || '',
+        }
+      })
+
+      selectedExtensions.value = parsedExtensions as Extension[]
+      setFieldValue('extension', parsedExtensions)
+    }
+    else {
+      selectedExtensions.value = []
+      setFieldValue('extension', [])
+    }
   }
   else {
-    setFieldValue('title', '')
-    setFieldValue('description', '')
-    setFieldValue('emails', '')
-    setFieldValue('ring_type', 1)
-    setFieldValue('receive_on', '')
-    setFieldValue('extension', [])
+    // Reset form for new ring group without triggering validation flicker
+    resetForm({
+      values: {
+        title: '',
+        description: '',
+        emails: '',
+        ring_type: 1,
+        receive_on: '',
+        extension: [],
+      },
+      errors: {},
+    })
+    selectedExtensions.value = []
   }
 })
 
 const loading = ref(false)
 const onSubmit = handleSubmit((values) => {
   loading.value = true
-  // // Handle form submission
-  // console.log(values)
+  const api = props.isEdit ? '/edit-ring-group' : '/add-ring-group'
   const payload = {
     ...values,
     emails: [values.emails],
     extension: values.extension.map((item: { extension: number }) => item.extension),
+    ring_id: props.isEdit ? props.tempRingGroup?.id : undefined,
   }
-  useApi().post('/add-ring-group', payload).then((res) => {
-    showToast({
-      type: 'success',
-      message: res.message,
-    })
-    loading.value = false
-    emits('complete')
-    open.value = false
+  useApi().post(api, payload).then((res) => {
+    if (res.success === 'true') {
+      showToast({
+        type: 'success',
+        message: res.message,
+      })
+      loading.value = false
+      emits('complete')
+      open.value = false
+    }
+    else {
+      showToast({
+        type: 'error',
+        message: res.message,
+      })
+    }
   }).catch((err) => {
     showToast({
       type: 'error',
@@ -162,14 +207,6 @@ const receiveOn = [
     name: 'Mobile',
   },
 ]
-
-const addExtensionSheet = ref(false)
-
-const selectedExtensions = ref<Extension[]>([])
-
-function removeExtension(index: number) {
-  selectedExtensions.value.splice(index, 1)
-}
 </script>
 
 <template>
@@ -186,7 +223,7 @@ function removeExtension(index: number) {
       <DialogHeader class="gap-y-[17px]">
         <DialogTitle class="text-[16px] font-medium flex justify-between">
           {{ isEdit ? 'Edit Ring Group' : 'Add Ring Group' }}
-          <DialogClose class="cursor-pointer flex items-center">
+          <DialogClose  class="cursor-pointer flex items-center">
             <Icon class="text-xl" name="material-symbols:close" />
           </DialogClose>
         </DialogTitle>
