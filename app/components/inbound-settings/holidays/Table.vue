@@ -1,27 +1,32 @@
 <script setup lang="ts">
 import type {
   ColumnFiltersState,
-  ExpandedState,
   SortingState,
   VisibilityState,
 } from '@tanstack/vue-table'
 import { Icon } from '#components'
-
 import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
 import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
-
 import { h, ref } from 'vue'
 
 import { Button } from '@/components/ui/button'
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -33,12 +38,21 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: any[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
+})
 
-const emits = defineEmits(['refresh'])
-
-const isDialogOpen = ref(false)
-const selectedRowData = ref<any>(null)
+const emits = defineEmits(['pageNavigation', 'changeLimit', 'edit', 'refresh'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 const {
   isRevealed: showDeleteConfirm,
@@ -47,10 +61,6 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-interface Props {
-  list: any[]
-  loading: boolean
-}
 const monthNames: Record<string, string> = {
   '01': 'January',
   '02': 'February',
@@ -66,31 +76,48 @@ const monthNames: Record<string, string> = {
   '12': 'December',
 }
 
-async function deleteHoliday(id: number) {
+async function handleDelete(id: number) {
   const { isCanceled } = await revealDeleteConfirm()
   if (isCanceled) {
     return false
   }
-  useApi().post('/delete-holiday', {
-    holiday_id: id,
-  }).then((response) => {
-    showToast({
-      message: response.message,
+  try {
+    const res = await useApi().post('/delete-holiday', {
+      holiday_id: id,
     })
-    emits('refresh')
-  }).catch((error) => {
+
+    if (res.success === 'true') {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      emits('refresh')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
     showToast({
+      message: `${err.message}`,
       type: 'error',
-      message: error.message,
     })
-  })
+  }
 }
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  last_page: 5,
-  total: 50,
-})
+
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('changeLimit', val)
+  }
+}
 
 const columnHelper = createColumnHelper<any>()
 const columns = [
@@ -135,15 +162,14 @@ const columns = [
         h(Button, {
           class: 'bg-white text-black border border-black px-2.5 hover:bg-white',
           onClick: () => {
-            selectedRowData.value = row.original
-            isDialogOpen.value = true
+            emits('edit', row.original)
           },
         }, [h(Icon, { name: 'material-symbols:edit-square', size: 16 })]),
         h(Button, {
           class: 'p-0 rounded-md border border-red-500 text-red-500 hover:text-red-500',
           variant: 'outline',
           size: 'icon',
-          onClick: () => deleteHoliday(row.original.id),
+          onClick: () => handleDelete(row.original.id),
         }, h(Icon, { name: 'material-symbols:delete', size: 17 })),
       ]),
     meta: { className: 'w-[100px] text-center' },
@@ -154,29 +180,31 @@ const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
   get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
   onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-  onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
-    columnPinning: {
-      left: ['status'],
-    },
   },
 })
 </script>
@@ -240,10 +268,33 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+    <div class="flex-1 text-xs text-primary">
+      <div class="flex items-center gap-x-2 justify-center sm:justify-start">
+        Showing {{ current_page }} to
+        <span>
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
+            <SelectTrigger class="w-fit gap-x-1 px-2">
+              <SelectValue placeholder="" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
+                {{ n }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </span>
+        of {{ totalRows }} entries
+      </div>
+    </div>
+    <div class="space-x-2">
+      <!-- Pagination Controls -->
+      <TableServerPagination
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
+      />
+    </div>
+  </div>
 
-  <InboundSettingsHolidaysDialog
-    v-model:open="isDialogOpen"
-    :row-data="selectedRowData"
-  />
   <ConfirmAction v-model="showDeleteConfirm" :confirm="deleteConfirm" :cancel="deleteCancel" title="Delete Holiday" description="You are about to delete a Holiday. Do you wish to proceed?" />
 </template>
