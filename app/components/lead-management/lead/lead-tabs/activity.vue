@@ -76,6 +76,11 @@ function toggleMessage(id: number) {
   <div v-if="activityLoading">
     <BaseSkelton v-for="i in 9" :key="i" class="h-14 w-full mb-2" rounded="rounded-sm" />
   </div>
+  <div v-else-if="!leadActivityData?.data.updateData.length" class="h-[calc(100vh-260px)] overflow-hidden flex items-center justify-center">
+    <div class="text-center text-gray-500 py-8">
+      No activity logs available
+    </div>
+  </div>
 
   <div v-else class="mx-auto bg-[#FAFAFA] space-y-2">
     <div
