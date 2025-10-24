@@ -7,6 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
+
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
@@ -81,11 +83,11 @@ function handleTabChange(val: any) {
 <template>
   <div class="w-full bg-secondary text-primary h-[45px] lg:h-[63px] flex items-center justify-between md:justify-end px-4 py-[30px]">
     <SidebarTrigger class="md:hidden" />
-    <!-- {{ !isRegistered }} -->
-    <!-- {{ isInitializing }} -->
+
+    <!-- WebsWebphone Status -->
     <div class="flex gap-3 text-xs md:text-sm items-center">
       <div class="bg-white py-1 px-[7px] rounded-[8px] flex items-center gap-2">
-        <Icon name="material-symbols:call" size="16" class="text-md" />
+        <Icon name="material-symbols:call" size="18" class="text-md" />
         <div class="text-xs">
           Webphone Status :
         </div>
@@ -101,32 +103,37 @@ function handleTabChange(val: any) {
           </TabsList>
         </Tabs>
       </div>
-
+      <Separator orientation="vertical" height="5px" class="min-h-[40px]" />
+      <Button size="icon" class="px-3 bg-white w-max h-10 rounded-md flex items-center justify-center hover:bg-gray-50 text-primary text-xs font-normal gap-x-2">
+        <Icon name="material-symbols-light:help" size="24" class="text-black" />
+        Help Center
+      </Button>
       <!-- Notifications Button -->
       <nuxt-link to="/app/notifications">
-        <Button class="bg-white px-3 py-2 h-12 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
-          <Icon name="material-symbols-light:notifications" class="text-xl md:text-2xl text-black" />
+        <Button size="icon" class="bg-white w-10 h-10 rounded-md flex items-center justify-center hover:bg-gray-50 text-primary">
+          <Icon name="material-symbols-light:notifications" size="24" class="text-black" />
         </Button>
       </nuxt-link>
       <!-- User Dropdown -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <button class="bg-white px-3 py-2 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          <Button size="icon" class="bg-white w-auto rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 px-3 py-[11px] h-10">
             <div class="flex items-center gap-2">
               <!-- User Avatar -->
-              <div class="w-6 h-6 md:w-8 md:h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs md:text-sm font-medium">
+              <Icon size="18" name="fa-solid:user-alt" class="text-lg md:text-xl text-primary" />
+              <!-- <div class="w-6 h-6 md:w-8 md:h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs md:text-sm font-medium">
                 {{ userInitials }}
-              </div>
+              </div> -->
 
               <!-- User Name -->
-              <span class="hidden sm:inline-block max-w-24 md:max-w-32 truncate">
+              <span class="hidden sm:inline-block max-w-24 md:max-w-32 font-normal text-xs truncate text-primary">
                 {{ displayName }}
               </span>
 
               <!-- Dropdown Arrow -->
-              <Icon name="material-symbols:keyboard-arrow-down" class="text-lg md:text-xl" />
+              <Icon name="material-symbols:keyboard-arrow-down" class="text-lg md:text-xl text-primary" />
             </div>
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" class="w-56">
