@@ -56,13 +56,13 @@ const props = defineProps<{
 
 const emits = defineEmits(['complete'])
 
-const focusInput = shallowRef()
-useFocus(focusInput, { initialValue: true })
-
 const open = defineModel('open', {
   type: Boolean,
   default: false,
 })
+
+const focusInput = shallowRef()
+useFocus(focusInput, { initialValue: true })
 
 const addExtensionSheet = ref(false)
 
@@ -223,7 +223,7 @@ const receiveOn = [
       <DialogHeader class="gap-y-[17px]">
         <DialogTitle class="text-[16px] font-medium flex justify-between">
           {{ isEdit ? 'Edit Ring Group' : 'Add Ring Group' }}
-          <DialogClose  class="cursor-pointer flex items-center">
+          <DialogClose class="cursor-pointer flex items-center">
             <Icon class="text-xl" name="material-symbols:close" />
           </DialogClose>
         </DialogTitle>

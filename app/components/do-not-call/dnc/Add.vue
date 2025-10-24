@@ -8,10 +8,20 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import Textarea from '~/components/ui/textarea/Textarea.vue'
 
-const open = defineModel<boolean>('open', { default: false })
+const props = defineProps<{
+  initialData?: any
+  isEdit?: boolean
+}>()
+
+const emits = defineEmits(['complete'])
+
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
 
 // extension list options
 const { data: extensionList, status: extensionListStatus, refresh: extensionRefresh } = await useLazyAsyncData('extension-group-map', () =>
@@ -39,30 +49,36 @@ const formSchema = toTypedSchema(z.object({
   comment: z.string().min(1, 'Comment is required'),
 }))
 
-const { handleSubmit, isSubmitting, resetForm } = useForm({
+const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
   validationSchema: formSchema,
-  initialValues: {
-    country_code: '1',
-    number: '',
-    extension: 0,
-    comment: '',
-  },
 })
 
-function onDialogOpen(val: boolean) {
-  if (val) {
+watch(open, async (newVal) => {
+  if (newVal && props.isEdit && props.initialData) {
     extensionRefresh()
     countryRefresh()
-
-    nextTick(() => {
-      resetForm()
+    setValues({ ...props.initialData })
+  }
+  else {
+    extensionRefresh()
+    countryRefresh()
+    resetForm({
+      values: {
+        country_code: '1',
+        number: '',
+        extension: 0,
+        comment: '',
+      },
+      errors: {},
     })
   }
-}
+})
 
 const onSubmit = handleSubmit(async (values) => {
   // Clean the phone number - remove formatting before sending to API
-  const cleanNumber = values.number.replace(/\D/g, '')
+  const cleanNumber = props.isEdit ? props.initialData.number : values.number.replace(/\D/g, '')
+
+  const api = props.isEdit ? '/edit-dnc' : '/add-dnc'
 
   const payload = {
     number: cleanNumber,
@@ -71,17 +87,22 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    const response = await useApi().post('/add-dnc', {
-      ...payload,
-    })
-    showToast({
-      message: response.message,
-      type: response.success ? 'success' : 'error',
-    })
-
-    resetForm()
-    open.value = false
-    refreshNuxtData('dnc-list')
+    const response = await useApi().post(api, payload)
+    if (response.success === 'true') {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+      open.value = false
+      refreshNuxtData('dnc-list')
+      emits('complete')
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
   }
   catch (error: any) {
     showToast({
@@ -90,27 +111,23 @@ const onSubmit = handleSubmit(async (values) => {
     })
   }
 })
-
-watch(open, (newVal) => {
-  if (!newVal) {
-    nextTick(() => {
-      resetForm()
-    })
-  }
-})
 </script>
 
 <template>
-  <Dialog v-model:open="open" @update:open="onDialogOpen">
+  <Dialog v-model:open="open">
     <DialogTrigger as-child>
-      <Button class="h-11">
-        <Icon class="!text-white" name="material-symbols:add" size="20" />
-        Add DNC
-      </Button>
+      <slot>
+        <Button class="h-11">
+          <Icon class="!text-white" name="material-symbols:add" size="20" />
+          Add DNC
+        </Button>
+      </slot>
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Add DNC</DialogTitle>
+        <DialogTitle>
+          {{ props.isEdit ? 'Edit DNC' : 'Add DNC' }}
+        </DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
@@ -209,16 +226,19 @@ watch(open, (newVal) => {
               <FormMessage class="text-sm text-left" />
             </FormItem>
           </FormField>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-          <Button class="flex-1 text-primary h-11" variant="outline" @click="open = false">
-            <Icon name="material-symbols:close" size="20" />
-            Close
-          </Button>
-          <Button type="submit" class="flex-1 h-11" :loading="isSubmitting" :disabled="isSubmitting">
-            <Icon name="material-symbols:save" size="20" />
-            Save
-          </Button>
+
+          <DialogFooter>
+            <DialogClose class="sm:w-1/2">
+              <Button variant="outline" class="h-11  w-full">
+                <Icon name="material-symbols:close" size="20" />
+                Close
+              </Button>
+            </DialogClose>
+            <Button :disabled="isSubmitting" for="form" class="h-11 sm:w-1/2" type="submit" :loading="isSubmitting" @click="onSubmit">
+              <Icon name="material-symbols:save" size="20" />
+              {{ isEdit ? 'Update' : 'Save' }}
+            </Button>
+          </DialogFooter>
         </div>
       </form>
     </DialogContent>

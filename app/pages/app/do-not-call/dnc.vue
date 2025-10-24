@@ -5,7 +5,9 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
-const showAddDialog = ref(false)
+const open = ref(false)
+const initialData = ref<any>()
+const isEdit = ref(false)
 
 const { data: dncList, status: dncListStatus, refresh: refreshDncList } = await useLazyAsyncData('dnc-list', () =>
   useApi().post('/dnc', {
@@ -16,11 +18,17 @@ const { data: dncList, status: dncListStatus, refresh: refreshDncList } = await 
   transform: res => res,
 })
 
-const selectedDnc = ref<null | {
-  number: number
-  extension: number
-  comment: string
-}>(null)
+function openEditModel(item: any) {
+  initialData.value = item
+  isEdit.value = true
+  open.value = true
+}
+
+function onModelUpdate(val: boolean) {
+  if (!val) {
+    isEdit.value = false
+  }
+}
 
 function changePage(page: number) {
   start.value = Number((page - 1) * limit.value)
@@ -47,12 +55,22 @@ function searchText() {
     <template #actions>
       <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search Number / Exten.." @update:model-value="searchText" />
       <!-- Upload DNC Dialog -->
-      <DoNotCallDncUpload />
+      <!-- TO DO: Add DNC Upload Dialog -->
+      <!-- <DoNotCallDncUpload /> -->
       <!-- Add DNC Dialog -->
-      <DoNotCallDncAdd v-model:open="showAddDialog" :initial-data="selectedDnc" />
+      <DoNotCallDncAdd v-model:open="open" :initial-data="initialData" :is-edit="isEdit" @update:open="onModelUpdate" @complete="refreshDncList" />
     </template>
   </BaseHeader>
   <div>
-    <DoNotCallDncTable :limit="limit" :total-rows="dncList?.record_count" :start="start" :list="dncList?.data" :loading="dncListStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" @refresh="refreshDncList" />
+    <DoNotCallDncTable
+      :limit="limit"
+      :start="start"
+      :total-rows="dncList?.record_count"
+      :list="dncList?.data"
+      :loading="dncListStatus === 'pending'"
+      @page-navigation="changePage"
+      @limit-change="changeLimit"
+      @edit="openEditModel"
+    />
   </div>
 </template>
