@@ -76,8 +76,8 @@ const formSchema = toTypedSchema(z.object({
   list_id: z.number().min(1, 'List is required'),
   disposition_id: z.number().min(1, 'Disposition is required'),
   days: z.array(z.string()).min(1, 'At least one day is required'),
-  callTime: z.number().min(1, 'Call Time is required'),
-  fromTime: z.string().min(1, 'From time is required'),
+  call_time: z.number().min(1, 'Call Time is required'),
+  time: z.string().min(1, 'From time is required'),
   toTime: z.string().min(1, 'To time is required'),
 }))
 
@@ -88,8 +88,8 @@ const { handleSubmit, resetForm, setValues } = useForm({
     list_id: props.initialData?.list_id,
     disposition_id: props.initialData?.disposition_ids,
     days: props.initialData?.days || [],
-    callTime: props.initialData?.call_time || 2,
-    fromTime: props.initialData?.time || '',
+    call_time: props.initialData?.call_time || 2,
+    time: props.initialData?.time || '',
     toTime: props.initialData?.time || '',
   },
 })
@@ -110,8 +110,8 @@ watch(() => open.value, (newVal) => {
         list_id: undefined,
         disposition_id: undefined,
         days: [],
-        callTime: 2,
-        fromTime: '',
+        call_time: 2,
+        time: '',
         toTime: '',
       },
     })
@@ -129,8 +129,8 @@ const onSubmit = handleSubmit(async (values) => {
       list_id: values.list_id,
       disposition: [values.disposition_id],
       day: values.days,
-      time: values.fromTime, // or `${values.fromTime}-${values.toTime}`
-      call_time: Number(values.callTime),
+      time: values.time,
+      call_time: Number(values.call_time),
     }
   }
   else {
@@ -138,10 +138,10 @@ const onSubmit = handleSubmit(async (values) => {
       recycle_rule_id: props.initialData?.id,
       campaign_id: values.campaign_id,
       list_id: values.list_id,
-      disposition_id: [values.disposition_id],
+      disposition_id: values.disposition_id,
       day: values.days,
-      time: values.fromTime, // Format HH:mm:ss to HH:mm
-      call_time: Number(values.callTime),
+      time: values.time?.slice(0, 5), // Format HH:mm:ss to HH:mm
+      call_time: Number(values.call_time),
       is_deleted: 0,
     }
   }
@@ -197,7 +197,6 @@ const onSubmit = handleSubmit(async (values) => {
           {{ props.isEdit ? 'Edit' : 'Add' }} Recycle Rule
         </DialogTitle>
       </DialogHeader>
-      {{ props.initialData }}
       <Separator />
       <form id="form" @submit="onSubmit">
         <div class="space-y-4">
@@ -323,7 +322,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="callTime">
+          <FormField v-slot="{ componentField }" name="call_time">
             <FormItem>
               <FormLabel>Call Time</FormLabel>
               <FormControl>
@@ -346,7 +345,7 @@ const onSubmit = handleSubmit(async (values) => {
               Time
             </div>
             <div class="flex gap-4">
-              <FormField v-slot="{ componentField }" name="fromTime">
+              <FormField v-slot="{ componentField }" name="time">
                 <FormItem class="flex flex-col flex-1">
                   <FormControl>
                     <div

@@ -62,16 +62,16 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 export interface recycleRulesList {
   id: number
   campaign_id: number
-  campaign_name: string
   list_id: number
-  dispositions: string
+  disposition_id: number
   days: string[]
   time: string
-  call_times: number[]
+  call_time: number
   is_deleted: 0
   updated_at: string
   campaign: string
   list: string
+  disposition: string
 }
 
 // Confirmation dialog for deleting
@@ -158,13 +158,13 @@ const columns = [
     }, () => ['List Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.list || '-'),
   }),
-  columnHelper.accessor('dispositions', {
+  columnHelper.accessor('disposition', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Dispositions', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.dispositions || '—'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.disposition || '—'),
   }),
   columnHelper.accessor('days', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -172,7 +172,7 @@ const columns = [
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Days', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full capitalize' }, row.original.days.join(', ') || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full capitalize' }, row.original.days.map((day: string) => day) || '-'),
   }),
   columnHelper.accessor('time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -182,13 +182,13 @@ const columns = [
     }, () => ['Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.time || '-'),
   }),
-  columnHelper.accessor('call_times', {
+  columnHelper.accessor('call_time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
     }, () => ['Call Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_times.join(', ') || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.call_time || '-'),
   }),
   columnHelper.accessor('is_deleted', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
