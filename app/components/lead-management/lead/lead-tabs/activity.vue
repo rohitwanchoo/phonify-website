@@ -96,9 +96,7 @@ function toggleMessage(id: number) {
 }
 
 function getUserWithExtension(extension: string): string {
-  // return props.leadActivityData?.data?.userData?.find(item => item.extension === String(extension))
   const user = props.leadActivityData?.data?.userData?.find((item: { extension: string }) => item.extension === String(extension))
-
   return user ? `${user?.first_name} ${user?.last_name}` : ''
 }
 </script>

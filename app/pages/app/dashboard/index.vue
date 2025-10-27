@@ -99,7 +99,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-1 flex-col gap-6 md:rounded-tl-xl bg-white">
     <dashboardCardsSection :counts />
-    <dashboardUsers :total-agents="totalAgentCount" @on-date-picker-update="onDatePickerChange" @on-user-select="onUserSelect" />
+    <dashboardUsers :counts :total-agents="totalAgentCount" @on-date-picker-update="onDatePickerChange" @on-user-select="onUserSelect" />
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <dashboardMap :api-data="stateWiseCalls" />
       <dashboardCalendar />

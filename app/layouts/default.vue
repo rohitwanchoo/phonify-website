@@ -47,9 +47,7 @@ onUnmounted(() => {
   </SidebarProvider>
 
   <!-- Dialer teleported to body -->
-
   <Dialer @close="closeDialer" />
-  <!-- <Dialer @close="closeDialer" /> -->
 
   <LayoutShortcuts :data="{ height, containerWidth }" @open-dialer="openDialer()" />
 </template>

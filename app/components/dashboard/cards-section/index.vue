@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import usersIcon from '~/assets/svg/dashboard/users.svg'
+import phoneIcon from '~/assets/svg/dashboard/phone.svg'
+import campaignsIcon from '~/assets/svg/dashboard/campaigns.svg'
+import leadsIcon from '~/assets/svg/dashboard/leads.svg'
+import listsIcon from '~/assets/svg/dashboard/list.svg'
+
+
+
 interface Counts {
   users: number | string
   phoneNumbers: number | string
@@ -19,54 +27,29 @@ const props = defineProps<{
 
 const cardData = computed(() => [
   {
-    image: '/images/dashboard/users.png',
+    image: usersIcon,
     title: 'Users',
     value: props.counts.users,
   },
   {
-    image: '/images/dashboard/phone.png',
+    image: phoneIcon,
     title: 'Phone Numbers',
     value: props.counts.phoneNumbers,
   },
   {
-    image: '/images/dashboard/campaigns.png',
+    image: campaignsIcon,
     title: 'Campaigns',
     value: props.counts.campaigns,
   },
   {
-    image: '/images/dashboard/leads.png',
+    image: leadsIcon,
     title: 'Leads',
     value: props.counts.leads,
   },
   {
-    image: '/images/dashboard/lists.png',
+    image: listsIcon,
     title: 'Lists',
     value: props.counts.lists,
-  },
-  {
-    image: '/images/dashboard/callback.png',
-    title: 'Call Back',
-    value: props.counts.callbacks,
-  },
-  {
-    image: '/images/dashboard/smsrecieve.png',
-    title: 'SMS Received',
-    value: props.counts.smsReceived,
-  },
-  {
-    image: '/images/dashboard/smssent.png',
-    title: 'SMS Sent',
-    value: props.counts.smsSent,
-  },
-  {
-    image: '/images/dashboard/voicemail.png',
-    title: 'Voicemail Received',
-    value: props.counts.voicemailReceived,
-  },
-  {
-    image: '/images/dashboard/Unread.png',
-    title: 'Unread Voicemail',
-    value: props.counts.unreadVoicemail,
   },
 ])
 </script>

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { DateRange } from 'reka-ui'
 import { MoreHorizontal, XIcon } from 'lucide-vue-next'
+import approveIcon from '~/assets/svg/dashboard/callback.svg'
+import smsReceivedIcon from '~/assets/svg/dashboard/smsReceived.svg'
+import smsSentIcon from '~/assets/svg/dashboard/smsSent.svg'
+import voicemailReceivedIcon from '~/assets/svg/dashboard/voicemail.svg'
+import unreadVoicemailIcon from '~/assets/svg/dashboard/unreadVoicemail.svg'
+
+
 
 import moment from 'moment'
 
@@ -20,6 +27,13 @@ import { Separator } from '@/components/ui/separator'
 
 const props = withDefaults(defineProps<{
   totalAgents?: number | 'loading'
+  counts?: {
+    callbacks: number | 'loading'
+    smsReceived: number | 'loading'
+    smsSent: number | 'loading'
+    voicemailReceived: number | 'loading'
+    unreadVoicemail: number | 'loading'
+  }
 }>(), {
   totalAgents: 0,
 })
@@ -172,6 +186,33 @@ const filters = [
 ]
 const selectedUser = ref(0)
 const selectedFilter = ref(2)
+const cardData = computed(() => [
+  {
+    image: approveIcon,
+    title: 'Call Back',
+    value: props.counts?.callbacks,
+  },
+  {
+    image: smsReceivedIcon,
+    title: 'SMS Received',
+    value: props.counts?.smsReceived,
+  },
+  {
+    image: smsSentIcon,
+    title: 'SMS Sent',
+    value: props.counts?.smsSent,
+  },
+  {
+    image: voicemailReceivedIcon,
+    title: 'Voicemail Received',
+    value: props.counts?.voicemailReceived,
+  },
+  {
+    image: unreadVoicemailIcon,
+    title: 'Unread Voicemail',
+    value: props.counts?.unreadVoicemail,
+  },
+])
 
 const data = [
   {
@@ -215,10 +256,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="border rounded-lg p-5">
-    <div class="flex item-center justify-between gap-[20px]">
+  <div class="border rounded-lg">
+    <div class="flex item-center justify-between gap-[20px] px-[20px] py-[12px]">
       <Select v-model="selectedUser" @update:model-value="(val) => emits('onUserSelect', val)">
-        <SelectTrigger class="w-[180px]">
+        <SelectTrigger class="w-[180px] !h-11">
           <SelectValue placeholder="Select User" />
         </SelectTrigger>
         <SelectContent>
@@ -234,7 +275,7 @@ onMounted(() => {
       </Select>
       <div class="flex gap-x-2">
         <Select v-model="selectedFilter" @update:model-value="onWeekFilterChange">
-          <SelectTrigger class="w-[130px]">
+          <SelectTrigger class="w-[130px] !h-11">
             <SelectValue placeholder="Select Filter" />
           </SelectTrigger>
           <SelectContent>
@@ -245,42 +286,75 @@ onMounted(() => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <div class="border-1 rounded-lg h-[36px] border-gray-200 hover:bg-accent flex">
+        <div class="border-1 rounded-[8px] h-11 border-gray-200 hover:bg-accent flex">
           <BaseDateRangePicker v-model:model-value="dateValue" @update:model-value="onDatePickerChange" />
           <XIcon v-if="dateValue?.start && dateValue?.end" class="w-4 mr-2 h-full cursor-pointer" @click="clearDate" />
         </div>
       </div>
     </div>
-    <Separator class="my-6" />
-    <div class="grid grid-cols-1 xl:grid-cols-7 w-full gap-6">
-      <div class="xl:col-span-4">
-        <DashboardUsersChart :area-chart-data="areaChartData" />
-      </div>
-      <div class="grid grid-cols-2 w-full xl:col-span-3 gap-4">
-        <div v-for="item in data" :key="item.id" class="bg-white rounded-lg border p-3 w-full max-h-[103px] col-span-2 md:col-span-1">
-          <h2 class=" font-medium text-black mb-3">
-            {{ item.title }}
-          </h2>
-          <div class="space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="text-[#000000B2] text-sm font-normal">Calls</span>
-              <span class="text-[#1D3E51] font-medium text-sm">{{ item.calls }}</span>
+
+    <Separator class="" />
+    <div class="p-5 space-y-5">
+      <div v-if="props.counts" class=" grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5">
+        <div
+          v-for="(card, index) in cardData"
+          :key="index"
+          :image="card.image"
+          :title="card.title"
+          :value="card.value"
+        >
+          <div class="p-[12px] rounded-xl bg-white border">
+            <div class="flex gap-x-2">
+              <div class="min-w-[26px] min-h-[26px] w-[26px] h-[26px]">
+                <img :src="card.image" alt="" class="w-full h-full object-contain">
+              </div>
+              <div class="text-[16px] font-normal">
+                {{ card.title }}
+              </div>
             </div>
-            <div class="flex justify-between items-center">
-              <span class="text-[#000000B2] text-sm font-normal">Avg Duration</span>
-              <span class="text-[#000000B2] text-sm font-normal">{{ item.avgDuration }}</span>
+            <div class="mt-2">
+              <h1 class="text-2xl font-extrabold">
+                <div v-if="card.value === 'loading'">
+                  <Icon name="eos-icons:loading" />
+                </div>
+                <div v-else>
+                  {{ formatWithCommas(card.value ?? 0) }}
+                </div>
+              </h1>
             </div>
           </div>
         </div>
-        <div class="border col-span-2 rounded-lg p-3 flex item-center justify-between text-sm font-medium">
-          <div>
-            Total Agents Logged In
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-5">
+        <div class="col-span-3">
+          <DashboardUsersChart :area-chart-data="areaChartData" />
+        </div>
+        <div class="grid grid-cols-2 w-full col-span-3 xl:col-span-2 gap-4">
+          <div v-for="item in data" :key="item.id" class="bg-white rounded-lg border p-3 w-full max-h-[103px] col-span-2 md:col-span-1">
+            <h2 class=" font-medium text-black mb-3">
+              {{ item.title }}
+            </h2>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="text-[#000000B2] text-sm font-normal">Calls</span>
+                <span class="text-[#1D3E51] font-medium text-sm">{{ item.calls }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-[#000000B2] text-sm font-normal">Avg Duration</span>
+                <span class="text-[#000000B2] text-sm font-normal">{{ item.avgDuration }}</span>
+              </div>
+            </div>
           </div>
-          <div v-if="totalAgents === 'loading'">
-            <Icon name="eos-icons:loading" />
-          </div>
-          <div v-else>
-            {{ totalAgents }}
+          <div class="border col-span-2 rounded-lg p-3 flex item-center justify-between text-sm font-medium">
+            <div>
+              Total Agents Logged In
+            </div>
+            <div v-if="totalAgents === 'loading'">
+              <Icon name="eos-icons:loading" />
+            </div>
+            <div v-else>
+              {{ totalAgents }}
+            </div>
           </div>
         </div>
       </div>
