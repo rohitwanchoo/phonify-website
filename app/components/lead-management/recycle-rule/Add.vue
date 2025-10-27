@@ -69,16 +69,18 @@ const callTimeOptions = [
 const selectedDays = ref<string[]>([])
 const daySelectTemp = ref('')
 
+const selectedDisposition = ref<number[]>([])
+const dispositionSelectTemp = ref()
+
 const loading = ref(false)
 
 const formSchema = toTypedSchema(z.object({
   campaign_id: z.number().min(1, 'Campaign is required'),
   list_id: z.number().min(1, 'List is required'),
-  disposition_id: z.number().min(1, 'Disposition is required'),
+  disposition_id: z.array(z.number()).min(1, 'Disposition is required'),
   days: z.array(z.string()).min(1, 'At least one day is required'),
   call_time: z.number().min(1, 'Call Time is required'),
   time: z.string().min(1, 'From time is required'),
-  toTime: z.string().min(1, 'To time is required'),
 }))
 
 const { handleSubmit, resetForm, setValues } = useForm({
@@ -86,11 +88,10 @@ const { handleSubmit, resetForm, setValues } = useForm({
   initialValues: {
     campaign_id: props.initialData?.campaign_id,
     list_id: props.initialData?.list_id,
-    disposition_id: props.initialData?.disposition_ids,
+    disposition_id: [],
     days: props.initialData?.days || [],
     call_time: props.initialData?.call_time || 2,
     time: props.initialData?.time || '',
-    toTime: props.initialData?.time || '',
   },
 })
 
@@ -100,26 +101,34 @@ watch(() => open.value, (newVal) => {
   dispositionRefresh()
 
   if (newVal && props.isEdit) {
+    const dispositionIds = Array.isArray(props.initialData?.disposition_id)
+      ? props.initialData.disposition_id
+      : props.initialData?.disposition_id
+        ? [props.initialData.disposition_id]
+        : []
+
     setValues({ ...props.initialData })
     selectedDays.value = props.initialData?.days || []
+    selectedDisposition.value = dispositionIds
   }
   else {
     resetForm({
       values: {
         campaign_id: undefined,
         list_id: undefined,
-        disposition_id: undefined,
+        disposition_id: [],
         days: [],
         call_time: 2,
         time: '',
-        toTime: '',
       },
     })
     selectedDays.value = []
+    selectedDisposition.value = []
   }
 })
 
 const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.day)))
+const availableDispositionOptions = computed(() => (dispositionListStatus.value !== 'pending' ? dispositionList.value : []).filter((opt: any) => !selectedDisposition.value.includes(opt.id)))
 
 const onSubmit = handleSubmit(async (values) => {
   let payload = {}
@@ -127,8 +136,8 @@ const onSubmit = handleSubmit(async (values) => {
     payload = {
       campaign_id: values.campaign_id,
       list_id: values.list_id,
-      disposition: [values.disposition_id],
-      day: values.days,
+      disposition: selectedDisposition.value.map(id => Number(id)),
+      day: selectedDays.value,
       time: values.time,
       call_time: Number(values.call_time),
     }
@@ -138,8 +147,8 @@ const onSubmit = handleSubmit(async (values) => {
       recycle_rule_id: props.initialData?.id,
       campaign_id: values.campaign_id,
       list_id: values.list_id,
-      disposition_id: values.disposition_id,
-      day: values.days,
+      disposition_id: selectedDisposition.value.map(id => Number(id)),
+      day: selectedDays.value,
       time: values.time?.slice(0, 5), // Format HH:mm:ss to HH:mm
       call_time: Number(values.call_time),
       is_deleted: 0,
@@ -163,6 +172,7 @@ const onSubmit = handleSubmit(async (values) => {
       loading.value = false
       refreshNuxtData('recycle-rule')
       selectedDays.value = []
+      selectedDisposition.value = []
     }
     else {
       showToast({
@@ -208,7 +218,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormLabel>Campaign</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
@@ -231,7 +241,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormLabel>List</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select list" />
                   </SelectTrigger>
                   <SelectContent>
@@ -251,23 +261,55 @@ const onSubmit = handleSubmit(async (values) => {
           </FormField>
           <FormField v-slot="{ componentField }" name="disposition_id">
             <FormItem>
-              <FormLabel>Disposition</FormLabel>
+              <FormLabel>Select disposition</FormLabel>
               <FormControl>
-                <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select disposition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-if="dispositionListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
-                      <Icon name="eos-icons:loading" />
-                    </SelectItem>
-                    <template v-else>
-                      <SelectItem v-for="option in dispositionList" :key="option.id" :value="option.id">
-                        {{ option.title }}
+                <div class="relative">
+                  <!-- Dropdown for selecting days -->
+                  <Select
+                    v-bind="componentField"
+                    @update:model-value="(val) => {
+                      const v = val
+                      if (v && !selectedDisposition.includes(Number(v))) {
+                        selectedDisposition.push(Number(v))
+                        dispositionSelectTemp = null
+                      }
+                    }"
+                  >
+                    <SelectTrigger class="w-full flex items-center relative !min-h-11 py-2 !h-auto">
+                      <span v-if="!selectedDisposition.length" class="text-muted-foreground">Select disposition</span>
+                      <div
+                        v-if="selectedDisposition.length"
+                        class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
+                        style="min-height: 1.5rem;"
+                      >
+                        <div
+                          v-for="item in selectedDisposition"
+                          :key="item"
+                          class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
+                        >
+                          {{ dispositionList.find((opt: any) => opt.id === item)?.title || '' }}
+                          <Button
+                            variant="outline"
+                            class="ml-1 p-0 h-fit bg-accent"
+                            @click.stop="selectedDisposition.splice(selectedDisposition.indexOf(item), 1)"
+                          >
+                            <Icon name="material-symbols:close" size="12" />
+                          </Button>
+                        </div>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-if="dispositionListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                        <Icon name="eos-icons:loading" />
                       </SelectItem>
-                    </template>
-                  </SelectContent>
-                </Select>
+                      <template v-else>
+                        <SelectItem v-for="option in availableDispositionOptions" :key="option.id" :value="[option.id]">
+                          {{ option.title }}
+                        </SelectItem>
+                      </template>
+                    </SelectContent>
+                  </Select>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -288,7 +330,7 @@ const onSubmit = handleSubmit(async (values) => {
                       }
                     }"
                   >
-                    <SelectTrigger class="w-full flex items-start relative !min-h-10 py-2 !h-auto">
+                    <SelectTrigger class="w-full flex items-center relative !min-h-11 py-2 !h-auto">
                       <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
                       <div
                         v-if="selectedDays.length"
@@ -327,7 +369,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormLabel>Call Time</FormLabel>
               <FormControl>
                 <Select v-bind="componentField">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select call time" />
                   </SelectTrigger>
                   <SelectContent>
@@ -340,50 +382,22 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <div>
-            <div class="font-medium text-sm mb-1">
-              Time
-            </div>
-            <div class="flex gap-4">
-              <FormField v-slot="{ componentField }" name="time">
-                <FormItem class="flex flex-col flex-1">
-                  <FormControl>
-                    <div
-                      class="flex items-center justify-between border border-gray-300 rounded-md px-2"
-                    >
-                      <div class="text-sm text-muted-foreground">
-                        From:
-                      </div>
-
-                      <Input v-bind="componentField" type="time" class="border-none shadow-none ml-auto w-28 " />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
-              <FormField v-slot="{ componentField }" name="toTime">
-                <FormItem class="flex flex-col flex-1">
-                  <FormControl>
-                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                      <div class="text-sm text-muted-foreground">
-                        To:
-                      </div>
-
-                      <Input v-bind="componentField" type="time" class="border-none shadow-none ml-auto w-28 " />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
-            </div>
-          </div>
+          <FormField v-slot="{ componentField }" name="time">
+            <FormItem>
+              <FormLabel>Time</FormLabel>
+              <FormControl>
+                <Input v-bind="componentField" type="time" class="shadow-none ml-auto w-full h-11 focus-visible:ring-0" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button class="w-[50%] text-primary" variant="outline" @click="open = false">
+          <Button class="w-[50%] text-primary h-11" variant="outline" @click="open = false">
             <Icon name="material-symbols:close" size="20" class="mr-1" />
             Close
           </Button>
-          <Button type="submit" class="w-[50%]" :loading="loading" :disabled="loading">
+          <Button type="submit" class="w-[50%] h-11" :loading="loading" :disabled="loading">
             <Icon name="material-symbols:save" size="20" class="mr-1" />
             Save
           </Button>
