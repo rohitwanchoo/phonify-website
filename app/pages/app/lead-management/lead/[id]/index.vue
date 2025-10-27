@@ -28,7 +28,7 @@ const { data: leadActivityData, status: leadActivityStatus, refresh: refreshLead
 // if leadStatus === success and leadData.length > 0 then refresh leadActivityData
 watch(leadStatus, async (newStatus) => {
   if (newStatus === 'success' && Object.keys(leadData.value).length > 0) {
-    const isDialingObject = Object.values(leadData.value).find((item: any) => item.is_dialing === 1)
+    const isDialingObject = Object.values(leadData.value).find((item: any) => item?.is_dialing === 1)
     if (isDialingObject) {
       leadNumber.value = (isDialingObject as any).value
       await refreshLeadActivity()

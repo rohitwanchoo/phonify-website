@@ -116,7 +116,13 @@ function searchGroup() {
 
 // ==================== GROUP METHODS ====================
 function onSelectGroup() {
-  refreshExtensionDataByGroupId()
+  refreshExtensionDataByGroupId().then(() => {
+    selectedExtensions.value = extensionDataByGroupId.value.map((item: any) => ({
+      first_name: item.first_name,
+      last_name: item.last_name,
+      extension: item.extension,
+    }))
+  })
 }
 
 async function deleteGroup(group: Group) {
@@ -286,7 +292,7 @@ watch(() => extensionGroupStatus.value, async (newStatus) => {
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
