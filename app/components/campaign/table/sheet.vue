@@ -24,9 +24,9 @@ interface Campaign {
   sms?: string
   hopper_count?: number
   send_report?: number
-  max_lead_temp: number
-  min_lead_temp: number
-  updated?: string
+  total_leads: number
+  dialed_leads: number
+  created_date?: string
 }
 
 defineProps<{
@@ -189,7 +189,7 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">Dialed Leads/Total Leads</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.min_lead_temp }}/{{ campaign?.max_lead_temp }}
+                {{ campaign?.dialed_leads }}/{{ campaign?.total_leads }}
               </p>
             </div>
 
@@ -243,7 +243,7 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">Created Date</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.updated }}
+                {{ campaign?.created_date }}
               </p>
             </div>
 
