@@ -76,8 +76,7 @@ const filters = ref({
   disposition: '',
   day: '',
   callTime: '',
-  fromTime: '',
-  toTime: '',
+  time: '',
 })
 
 function onSubmit() {
@@ -99,11 +98,8 @@ function onSubmit() {
   if (filters.value.callTime) {
     filterParams.call_time = Number(filters.value.callTime)
   }
-  if (filters.value.fromTime) {
-    filterParams.from_time = filters.value.fromTime
-  }
-  if (filters.value.toTime) {
-    filterParams.to_time = filters.value.toTime
+  if (filters.value.time) {
+    filterParams.time = filters.value.time
   }
 
   // Emit filter parameters to parent component
@@ -121,8 +117,7 @@ function clearFilters() {
     disposition: '',
     day: '',
     callTime: '',
-    fromTime: '',
-    toTime: '',
+    time: '',
   }
 
   // Emit clear filter event to parent
@@ -236,22 +231,11 @@ function clearFilters() {
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-2">Time Range (Optional)</label>
+                <label class="block text-sm font-medium mb-2">Time Range</label>
                 <div class="flex flex-col sm:flex-row gap-4">
                   <div class="flex-1">
                     <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                      <div class="text-sm text-muted-foreground">
-                        From:
-                      </div>
-                      <Input v-model="filters.fromTime" type="time" class="border-none shadow-none ml-auto w-28 focus-visible:ring-0" />
-                    </div>
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex items-center justify-between border border-gray-300 rounded-md px-2">
-                      <div class="text-sm text-muted-foreground">
-                        To:
-                      </div>
-                      <Input v-model="filters.toTime" type="time" class="border-none shadow-none ml-auto w-28 focus-visible:ring-0" />
+                      <Input v-model="filters.time" type="time" class="border-none shadow-none ml-auto w-full focus-visible:ring-0" />
                     </div>
                   </div>
                 </div>
