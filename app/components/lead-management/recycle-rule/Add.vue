@@ -66,11 +66,7 @@ const callTimeOptions = [
   { value: 14, label: 'less than or equal to 14' },
   { value: 15, label: 'less than or equal to 15' },
 ]
-const selectedDays = ref<string[]>([])
-const daySelectTemp = ref('')
 
-const selectedDisposition = ref<number[]>([])
-const dispositionSelectTemp = ref()
 
 const loading = ref(false)
 
@@ -83,7 +79,7 @@ const formSchema = toTypedSchema(z.object({
   time: z.string().min(1, 'From time is required'),
 }))
 
-const { handleSubmit, resetForm, setValues } = useForm({
+const { handleSubmit, resetForm, setValues, values } = useForm({
   validationSchema: formSchema,
   initialValues: {
     campaign_id: props.initialData?.campaign_id,
@@ -101,15 +97,11 @@ watch(() => open.value, (newVal) => {
   dispositionRefresh()
 
   if (newVal && props.isEdit) {
-    const dispositionIds = Array.isArray(props.initialData?.disposition_id)
-      ? props.initialData.disposition_id
-      : props.initialData?.disposition_id
-        ? [props.initialData.disposition_id]
-        : []
 
-    setValues({ ...props.initialData })
-    selectedDays.value = props.initialData?.days || []
-    selectedDisposition.value = dispositionIds
+    const dispositionIds = [props.initialData?.disposition_id]
+
+    setValues({ ...props.initialData, disposition_id: dispositionIds, days: props.initialData?.days })
+
   }
   else {
     resetForm({
@@ -122,13 +114,11 @@ watch(() => open.value, (newVal) => {
         time: '',
       },
     })
-    selectedDays.value = []
-    selectedDisposition.value = []
   }
 })
 
-const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.day)))
-const availableDispositionOptions = computed(() => (dispositionList.value || []).filter((opt: any) => !selectedDisposition.value.includes(opt.id)))
+const availableDayOptions = computed(() => dayOptions.filter(opt => !values?.days?.includes(opt.day)))
+const availableDispositionOptions = computed(() => (dispositionList.value || []).filter((opt: any) => !values?.disposition_id?.includes(opt.id)))
 
 const onSubmit = handleSubmit(async (values) => {
   let payload = {}
@@ -136,8 +126,8 @@ const onSubmit = handleSubmit(async (values) => {
     payload = {
       campaign_id: values.campaign_id,
       list_id: values.list_id,
-      disposition: selectedDisposition.value.map(id => Number(id)),
-      day: selectedDays.value,
+      disposition: values.disposition_id,
+      day: values.days,
       time: values.time,
       call_time: Number(values.call_time),
     }
@@ -147,8 +137,8 @@ const onSubmit = handleSubmit(async (values) => {
       recycle_rule_id: props.initialData?.id,
       campaign_id: values.campaign_id,
       list_id: values.list_id,
-      disposition_id: selectedDisposition.value.map(id => Number(id)),
-      day: selectedDays.value,
+      disposition_id: values.disposition_id,
+      day: values.days,
       time: values.time?.slice(0, 5), // Format HH:mm:ss to HH:mm
       call_time: Number(values.call_time),
       is_deleted: 0,
@@ -171,8 +161,6 @@ const onSubmit = handleSubmit(async (values) => {
       open.value = false
       loading.value = false
       refreshNuxtData('recycle-rule')
-      selectedDays.value = []
-      selectedDisposition.value = []
     }
     else {
       showToast({
@@ -259,7 +247,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="disposition_id">
+          <FormField v-slot="{ componentField, value }" name="disposition_id">
             <FormItem>
               <FormLabel>Select disposition</FormLabel>
               <FormControl>
@@ -267,31 +255,27 @@ const onSubmit = handleSubmit(async (values) => {
                   <!-- Dropdown for selecting days -->
                   <Select
                     v-bind="componentField"
-                    @update:model-value="(val) => {
-                      const v = val
-                      if (v && !selectedDisposition.includes(Number(v))) {
-                        selectedDisposition.push(Number(v))
-                        dispositionSelectTemp = null
-                      }
-                    }"
+                    multiple
+                   
                   >
                     <SelectTrigger class="w-full flex items-center relative !min-h-11 py-2 !h-auto">
-                      <span v-if="!selectedDisposition.length" class="text-muted-foreground">Select disposition</span>
+                      <span v-if="!value.length" class="text-muted-foreground">Select disposition</span>
                       <div
-                        v-if="selectedDisposition.length"
+                        v-if="value.length"
                         class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
                         style="min-height: 1.5rem;"
                       >
                         <div
-                          v-for="item in selectedDisposition"
+                          v-for="item in value"
                           :key="item"
                           class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
                         >
                           {{ (dispositionList || []).find((opt: any) => opt.id === item)?.title || '' }}
                           <Button
+                            type="menu"
                             variant="outline"
                             class="ml-1 p-0 h-fit bg-accent"
-                            @click.stop="selectedDisposition.splice(selectedDisposition.indexOf(item), 1)"
+                            @click.stop="value.splice(value.indexOf(item), 1)"
                           >
                             <Icon name="material-symbols:close" size="12" />
                           </Button>
@@ -303,7 +287,7 @@ const onSubmit = handleSubmit(async (values) => {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in availableDispositionOptions" :key="option.id" :value="[option.id]">
+                        <SelectItem v-for="option in availableDispositionOptions" :key="option.id" :value="option.id">
                           {{ option.title }}
                         </SelectItem>
                       </template>
@@ -314,7 +298,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="days">
+          <FormField v-slot="{ componentField, value }" name="days">
             <FormItem>
               <FormLabel>Select Day</FormLabel>
               <FormControl>
@@ -322,23 +306,17 @@ const onSubmit = handleSubmit(async (values) => {
                   <!-- Dropdown for selecting days -->
                   <Select
                     v-bind="componentField"
-                    @update:model-value="(val) => {
-                      const v = String(val)
-                      if (v && !selectedDays.includes(v)) {
-                        selectedDays.push(v)
-                        daySelectTemp = ''
-                      }
-                    }"
+                    multiple
                   >
                     <SelectTrigger class="w-full flex items-center relative !min-h-11 py-2 !h-auto">
-                      <span v-if="!selectedDays.length" class="text-muted-foreground">Select day</span>
+                      <span v-if="!value.length" class="text-muted-foreground">Select day</span>
                       <div
-                        v-if="selectedDays.length"
+                        v-if="value.length"
                         class="flex flex-wrap gap-1 items-center w-full pointer-events-auto"
                         style="min-height: 1.5rem;"
                       >
                         <div
-                          v-for="item in selectedDays"
+                          v-for="item in value"
                           :key="item"
                           class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
                         >
@@ -346,7 +324,7 @@ const onSubmit = handleSubmit(async (values) => {
                           <Button
                             variant="outline"
                             class="ml-1 p-0 h-fit bg-accent"
-                            @click.stop="selectedDays.splice(selectedDays.indexOf(item), 1)"
+                            @click.stop="value.splice(value.indexOf(item), 1)"
                           >
                             <Icon name="material-symbols:close" size="12" />
                           </Button>
@@ -354,7 +332,7 @@ const onSubmit = handleSubmit(async (values) => {
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in availableDayOptions" :key="option.day" :value="[option.day]">
+                      <SelectItem v-for="option in availableDayOptions" :key="option.day" :value="option.day">
                         {{ option.label }}
                       </SelectItem>
                     </SelectContent>
