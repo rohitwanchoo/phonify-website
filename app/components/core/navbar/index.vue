@@ -109,7 +109,7 @@ function handleTabChange(val: any) {
         Help Center
       </Button>
       <!-- Notifications Button -->
-      <nuxt-link to="/app/notifications">
+      <nuxt-link to="">
         <Button size="icon" class="bg-white w-10 h-10 rounded-md flex items-center justify-center hover:bg-gray-50 text-primary">
           <Icon name="material-symbols-light:notifications" size="24" class="text-black" />
         </Button>
