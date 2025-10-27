@@ -110,7 +110,7 @@ function submit() {
           px-[12px] last:border-b-0 font-normal text-sm flex items-center justify-between"
           >
             <label :for="extension.id" class="cursor-pointer">
-              {{ extension.first_name }} {{ extension.last_name }} - {{ extension.id }}
+              {{ extension.first_name }} {{ extension.last_name }} - {{ extension.extension }}
             </label>
             <Checkbox
               :id="extension.id"

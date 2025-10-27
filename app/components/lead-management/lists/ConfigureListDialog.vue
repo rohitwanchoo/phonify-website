@@ -296,7 +296,7 @@ watch(() => props.open, (val) => {
 
 <template>
   <Dialog :open="props.open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-w-[90vw] w-[90vw] sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary">
+    <DialogContent class="max-w-[90vw] w-[90vw] sm:min-w-[300px] md:min-w-[600px] lg:min-w-[900px] overflow-x-auto max-h-[70vh] lg:max-h-[95vh] text-primary" @pointer-down-outside.prevent>
       <DialogHeader>
         <DialogTitle class="text-primary">
           Configure List
