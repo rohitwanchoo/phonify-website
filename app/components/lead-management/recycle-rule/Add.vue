@@ -128,7 +128,7 @@ watch(() => open.value, (newVal) => {
 })
 
 const availableDayOptions = computed(() => dayOptions.filter(opt => !selectedDays.value.includes(opt.day)))
-const availableDispositionOptions = computed(() => (dispositionListStatus.value !== 'pending' ? dispositionList.value : []).filter((opt: any) => !selectedDisposition.value.includes(opt.id)))
+const availableDispositionOptions = computed(() => (dispositionList.value || []).filter((opt: any) => !selectedDisposition.value.includes(opt.id)))
 
 const onSubmit = handleSubmit(async (values) => {
   let payload = {}
@@ -287,7 +287,7 @@ const onSubmit = handleSubmit(async (values) => {
                           :key="item"
                           class="flex items-center rounded-[6px] border border-[#00A086] bg-[#00A0861A] px-2 py-1 text-xs h-7 flex-shrink-0"
                         >
-                          {{ dispositionList.find((opt: any) => opt.id === item)?.title || '' }}
+                          {{ (dispositionList || []).find((opt: any) => opt.id === item)?.title || '' }}
                           <Button
                             variant="outline"
                             class="ml-1 p-0 h-fit bg-accent"
