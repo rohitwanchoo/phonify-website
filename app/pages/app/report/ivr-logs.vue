@@ -8,12 +8,13 @@ const limit = ref(10)
 const activeFilters = ref<Record<string, any>>({})
 
 const { data: ivrReport, status: ivrReportStatus, refresh: ivrReportRefresh } = await useLazyAsyncData('transfer-report', () =>
-  useApi().post('/ivr-report', {
+  useApi().post('/report-press1-campaign', {
     ...activeFilters.value,
-    lower_limit: start.value,
-    upper_limit: limit.value,
+    start: start.value,
+    limit: limit.value,
   }), {
   transform: res => res,
+  immediate: true,
 })
 
 function changePage(page: number) {
@@ -57,8 +58,13 @@ async function handleClearFilter() {
     </BaseHeader>
 
     <!-- TABLE -->
-    <div>
-      <ReportIvrLogsTable :limit="limit" :total-rows="ivrReport?.total" :start="start" :list="ivrReport?.data || []" :loading="ivrReportStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
-    </div>
+    <ReportIvrLogsTable
+      :limit="limit"
+      :total-rows="ivrReport?.record_count"
+      :start="start" :list="ivrReport?.data || []"
+      :loading="ivrReportStatus === 'pending'"
+      @page-navigation="changePage"
+      @change-limit="changeLimit"
+    />
   </div>
 </template>

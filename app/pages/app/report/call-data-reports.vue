@@ -3,7 +3,6 @@ const showSheet = ref(false)
 
 const start = ref(0)
 const limit = ref(10)
-const search = ref('')
 
 // Store active filter parameters
 const activeFilters = ref<Record<string, any>>({})
@@ -13,7 +12,6 @@ const { data: report, status: reportStatus, refresh: reportRefresh } = await use
     ...activeFilters.value,
     lower_limit: start.value,
     upper_limit: limit.value,
-    search: search.value,
   }), {
   transform: res => res,
 })
@@ -59,8 +57,13 @@ async function handleClearFilter() {
     </BaseHeader>
 
     <!-- TABLE -->
-    <div>
-      <ReportCallDataTable :limit="limit" :total-rows="report?.record_count" :start="start" :list="report?.data || []" :loading="reportStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" />
-    </div>
+    <ReportCallDataTable
+      :limit="limit"
+      :total-rows="report?.record_count"
+      :start="start" :list="report?.data || []"
+      :loading="reportStatus === 'pending'"
+      @page-navigation="changePage"
+      @limit-change="changeLimit"
+    />
   </div>
 </template>

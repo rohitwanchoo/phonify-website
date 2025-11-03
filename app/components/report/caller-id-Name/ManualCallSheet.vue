@@ -36,7 +36,7 @@ const onSubmit = handleSubmit(async (values) => {
     // Strip formatting before sending to API
     const cleanNumber = stripPhoneFormatting(values.number)
 
-    const response = await useApi().post('/run-manually-call-for-cname', {
+    const response = await useApi().post(`/run-manually-call-for-cname?number=${cleanNumber}`, {
       number: cleanNumber,
     })
 

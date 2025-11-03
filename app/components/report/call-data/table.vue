@@ -32,7 +32,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
-import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
   loading: boolean
@@ -76,29 +75,24 @@ const { data: dispositionData, status: dispositionDataStatus } = await useLazyAs
   transform: res => res.data,
 })
 
-const { data: extensionData, status: extensionDataStatus } = await useLazyAsyncData('extension', () =>
-  useApi().get('/extension'), {
-  transform: res => res.data,
-})
-
 // Filter campaign title based on campaign_id
 function campaignTitle(camapignId: number) {
   if (!camapignId)
-    return 'N/A'
+    return '-'
   const foundCampaign = campaignData.value.find(
     (c: any) => c.id === camapignId,
   )
-  return foundCampaign?.title || 'N/A'
+  return foundCampaign?.title || '-'
 }
 
 // Filter disposition title based on disposition_id
 function dispositionTitle(dispositionId: number) {
   if (!dispositionId)
-    return 'N/A'
+    return '-'
   const foundDisposition = dispositionData.value.find(
     (c: any) => c.id === dispositionId,
   )
-  return foundDisposition?.title || 'N/A'
+  return foundDisposition?.title || '-'
 }
 
 // Pagination handlers
@@ -137,7 +131,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Camapign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, campaignTitle(row.original.campaign_id) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, campaignTitle(row.original.campaign_id)),
   }),
 
   columnHelper.accessor('cli', {
@@ -147,7 +141,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['CLI', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.cli.toString()) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(String(row.original.cli)) || '-'),
   }),
 
   columnHelper.accessor('route', {
@@ -166,7 +160,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.type || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm capitalize' }, row.original.type || '-'),
   }),
   columnHelper.accessor('number', {
     header: ({ column }) =>
@@ -280,25 +274,25 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
-    {{ extensionData?.id }}
+  <div class="border rounded-lg mt-4 max-h-[calc(100vh-222px)] overflow-y-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
-            v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
+            v-for="header in headerGroup.headers"
+            :key="header.id"
             class="bg-gray-50"
-            :class="cn(
-              { 'sticky bg-background/95': header.column.getIsPinned() },
-              header.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-            )"
           >
-            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
+            <FlexRender
+              v-if="!header.isPlaceholder"
+              :render="header.column.columnDef.header"
+              :props="header.getContext()"
+            />
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-if="loading || campaignDataStataus === 'pending' || dispositionDataStatus === 'pending' || extensionDataStatus === 'pending'">
+        <TableRow v-if="loading || campaignDataStataus === 'pending' || dispositionDataStatus === 'pending'">
           <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
             <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
@@ -312,18 +306,15 @@ const table = useVueTable({
             <TableCell
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              :data-pinned="cell.column.getIsPinned()"
               class="p-[12px]"
-              :class="cn(
-                { 'sticky bg-background/95': cell.column.getIsPinned() },
-                cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-              )"
             >
-              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              <FlexRender
+                :render="cell.column.columnDef.cell"
+                :props="cell.getContext()"
+              />
             </TableCell>
           </TableRow>
         </template>
-
         <TableRow v-else>
           <TableCell
             :colspan="columns.length"
@@ -335,10 +326,11 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 pt-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">

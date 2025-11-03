@@ -19,13 +19,13 @@ const open = defineModel<boolean>('open', { default: false })
 const { data: dtmfData, status: dtmfStatus, refresh: dtmfRefresh } = await useLazyAsyncData('dtmf', () =>
   useApi().post('/dtmf'), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 const { data: campaign, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign', () =>
   useApi().post('/campaign'), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 watch(open, (val) => {

@@ -16,23 +16,31 @@ const emit = defineEmits<{
 // Sheet open state
 const open = defineModel<boolean>('open', { default: false })
 
-const { data: extension, status: extensionStatus, refresh: extensionRefresh } = await useLazyAsyncData('extension', () =>
+const { data: extensionData, status: extensionStatus, refresh: extensionRefresh } = await useLazyAsyncData('extension', () =>
   useApi().get('/extension'), {
   transform: res => res.data,
   immediate: false,
 })
 
-const { data: campaign, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign', () =>
+const { data: campaignData, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign', () =>
   useApi().post('/campaign'), {
   transform: res => res.data,
   immediate: false,
 })
 
+const callTransferStatus = [
+  { label: 'CANCEL', value: 1 },
+  { label: 'BUSY', value: 2 },
+  { label: 'ANSWER', value: 3 },
+  { label: 'CHAN UNAVAIL', value: 4 },
+  { label: 'NO ANSWER', value: 5 },
+]
+
 watch(open, (val) => {
   if (val) {
     Promise.all([
-      !extension.value?.length && extensionRefresh(),
-      !campaign.value?.length && campaignRefresh(),
+      !extensionData.value?.length && extensionRefresh(),
+      !campaignData.value?.length && campaignRefresh(),
     ])
   }
 })
@@ -42,7 +50,7 @@ const filters = ref({
   number: '',
   extension: '',
   campaign: '',
-  transfer_status_id: null,
+  status: '',
   start_date: '',
   end_date: '',
 })
@@ -72,8 +80,8 @@ function onSubmit() {
   if (filters.value.campaign) {
     filterParams.campaign = filters.value.campaign
   }
-  if (filters.value.transfer_status_id) {
-    filterParams.transfer_status_id = Number(filters.value.transfer_status_id)
+  if (filters.value.status) {
+    filterParams.transfer_status_id = filters.value.status
   }
   if (filters.value.start_date) {
     filterParams.start_date = filters.value.start_date
@@ -95,7 +103,7 @@ function clearFilters() {
     number: '',
     extension: '',
     campaign: '',
-    transfer_status_id: null,
+    status: '',
     start_date: '',
     end_date: '',
   }
@@ -130,7 +138,7 @@ function clearFilters() {
               <div class="space-y-4">
                 <!-- Work Phone Field -->
                 <div>
-                  <label class="text-sm font-medium text-primary">Work Phone</label>
+                  <label class="text-sm font-medium text-primary">Mobile</label>
                   <Input
                     v-model="filters.number"
                     v-maska="'(###) ###-####'"
@@ -152,7 +160,7 @@ function clearFilters() {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in extension" :key="option.id" :value="option.id">
+                        <SelectItem v-for="option in extensionData" :key="option.id" :value="option.id">
                           {{ option.first_name }} {{ option.last_name }}
                         </SelectItem>
                       </template>
@@ -172,7 +180,7 @@ function clearFilters() {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in campaign" :key="option.id" :value="option.id">
+                        <SelectItem v-for="option in campaignData" :key="option.id" :value="option.id">
                           {{ option.title }}
                         </SelectItem>
                       </template>
@@ -183,16 +191,13 @@ function clearFilters() {
                 <!-- Status Field -->
                 <div>
                   <label class="text-sm font-medium text-primary">Status</label>
-                  <Select v-model="filters.transfer_status_id">
+                  <Select v-model="filters.status">
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select a Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">
-                        Active
-                      </SelectItem>
-                      <SelectItem value="0">
-                        In active
+                      <SelectItem v-for="item in callTransferStatus" :key="item.value" :value="item.value">
+                        {{ item.label }}
                       </SelectItem>
                     </SelectContent>
                   </Select>

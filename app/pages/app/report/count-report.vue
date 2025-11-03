@@ -3,6 +3,7 @@ import type { DateValue } from '@internationalized/date'
 import {
   DateFormatter,
   getLocalTimeZone,
+  today,
 } from '@internationalized/date'
 import { CalendarIcon } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
@@ -17,8 +18,10 @@ const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
 
-const startDate = ref<DateValue>()
-const endDate = ref<DateValue>()
+// Set default dates: end date is today, start date is 7 days before
+const currentDate = today(getLocalTimeZone())
+const startDate = ref<DateValue>(currentDate.subtract({ days: 7 }))
+const endDate = ref<DateValue>(currentDate)
 
 // Helper function to format DateValue to required API format
 function formatDateForAPI(dateValue: DateValue | undefined): string {
@@ -40,8 +43,8 @@ function formatDateForAPI(dateValue: DateValue | undefined): string {
 
 const { data: agentWiseDialerCallStatistics, status: agentWiseDialerCallStatisticsStatus, refresh: agentWiseDialerCallStatisticsRefresh } = await useLazyAsyncData('dialer-all-count-crm', () =>
   useApi().post('/dialer-all-count-crm', {
-    start_date: formatDateForAPI(startDate.value),
-    end_date: formatDateForAPI(endDate.value),
+    start_date: formatDateForAPI(startDate.value as DateValue),
+    end_date: formatDateForAPI(endDate.value as DateValue),
   }), {
   transform: res => res,
   immediate: true,
@@ -49,8 +52,8 @@ const { data: agentWiseDialerCallStatistics, status: agentWiseDialerCallStatisti
 
 const { data: callSummaryData, status: callSummaryStatus, refresh: callSummaryRefresh } = await useLazyAsyncData('call-summary', () =>
   useApi().post('/cdr-dashboard-summary', {
-    startTime: formatDateForAPI(startDate.value),
-    endTime: formatDateForAPI(endDate.value),
+    startTime: formatDateForAPI(startDate.value as DateValue),
+    endTime: formatDateForAPI(endDate.value as DateValue),
     userId: [user.value?.id],
   }), {
   transform: res => res,
@@ -60,8 +63,17 @@ const { data: callSummaryData, status: callSummaryStatus, refresh: callSummaryRe
 const { data: smsCountData, status: smsCountStatus, refresh: smsCountRefresh } = await useLazyAsyncData('sms-count', () =>
   useApi().post('/sms-count', {
     userId: [user.value?.id],
-    startTime: formatDateForAPI(startDate.value),
-    endTime: formatDateForAPI(endDate.value),
+    startTime: formatDateForAPI(startDate.value as DateValue),
+    endTime: formatDateForAPI(endDate.value as DateValue),
+  }), {
+  transform: res => res,
+  immediate: true,
+})
+
+const { data: stateWiseCallData, status: stateWiseCallStatus, refresh: rfreshStateWiseCall } = await useLazyAsyncData('state-wise-call', () =>
+  useApi().post('/state-wise-call', {
+    startTime: formatDateForAPI(startDate.value as DateValue),
+    endTime: formatDateForAPI(endDate.value as DateValue),
   }), {
   transform: res => res,
   immediate: true,
@@ -69,11 +81,10 @@ const { data: smsCountData, status: smsCountStatus, refresh: smsCountRefresh } =
 
 function filterData() {
   // Validate that both dates are selected
-  if (!startDate.value || !endDate.value) {
-    agentWiseDialerCallStatisticsRefresh()
-    callSummaryRefresh()
-    smsCountRefresh()
-  }
+  agentWiseDialerCallStatisticsRefresh()
+  callSummaryRefresh()
+  smsCountRefresh()
+  rfreshStateWiseCall()
 }
 
 // Make callsData reactive to API response changes, only compute after API call completes
@@ -213,7 +224,7 @@ const reportData = computed(() => {
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto p-0">
-            <Calendar v-model="startDate" initial-focus />
+            <Calendar v-model="startDate as DateValue" initial-focus />
           </PopoverContent>
         </Popover>
 
@@ -231,32 +242,32 @@ const reportData = computed(() => {
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto  p-0">
-            <Calendar v-model="endDate" initial-focus />
+            <Calendar v-model="endDate as DateValue" initial-focus />
           </PopoverContent>
         </Popover>
         <!-- Trigger Button -->
-        <Button class="h-11" :disabled="agentWiseDialerCallStatisticsStatus === 'pending' || callSummaryStatus === 'pending'" :loading="agentWiseDialerCallStatisticsStatus === 'pending' || callSummaryStatus === 'pending' || smsCountStatus === 'pending'" @click="filterData">
+        <Button class="h-11" :disabled="agentWiseDialerCallStatisticsStatus === 'pending' || callSummaryStatus === 'pending' || stateWiseCallStatus === 'pending'" :loading="agentWiseDialerCallStatisticsStatus === 'pending' || callSummaryStatus === 'pending' || smsCountStatus === 'pending' || stateWiseCallStatus === 'pending'" @click="filterData">
           <Icon name="material-symbols:search" size="20" class="text-white" />
           Search
         </Button>
+        <!-- TO DO: Api needed for export to pdf
         <Button class="h-11" variant="outline">
           <Icon name="lsicon:file-pdf-filled" class="text-xl text-red-600 border-primary" />
           Export PDF
-        </Button>
+        </Button> -->
       </template>
     </BaseHeader>
-
     <!-- tags here -->
     <div>
-      <ReportCountTagsList heading="Total Inbound/OutBound Calls" :data="callsData" />
-      <ReportCountTagsList heading="Total SMS/FAX Report Details" :data="reportData" />
+      <ReportCountTagsList heading="Total Inbound/OutBound Calls" :data="callsData" :loading="callSummaryStatus === 'pending'" />
+      <ReportCountTagsList heading="Total SMS/FAX Report Details" :data="reportData" :loading="smsCountStatus === 'pending'" />
     </div>
 
     <!-- tables here -->
     <div>
-      <ReportCountTableAgeWise :agent-wise-dialer-call-data="agentWiseDialerCallStatistics?.data.agent" />
+      <ReportCountTableAgentWise :agent-wise-dialer-call-data="agentWiseDialerCallStatistics?.data.agent" />
       <ReportCountTableDidWise />
-      <ReportCountTableAreaWise />
+      <ReportCountTableAreaWise :data="stateWiseCallData?.data" :loading="stateWiseCallStatus === 'pending'" />
     </div>
   </div>
 </template>

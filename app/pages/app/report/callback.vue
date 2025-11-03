@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { Switch } from '@/components/ui/switch'
 
+const { user } = useAuth()
+
 const enableCallbackReminder = ref<boolean>()
 const showSheet = ref(false)
 const activeFilters = ref<Record<string, any>>({})
@@ -14,6 +16,7 @@ const { data: callbackData, status: callbackStatus, refresh: callbackRefresh } =
     ...activeFilters.value,
     lower_limit: start.value,
     upper_limit: limit.value,
+    id: user.value?.id,
     reminder: enableCallbackReminder.value,
   }), {
   transform: res => res,
@@ -86,7 +89,15 @@ async function handleClearFilter() {
     </BaseHeader>
     <!-- TABLE -->
     <div>
-      <ReportCallBackTable :limit="limit" :total-rows="callbackData?.total" :start="start" :list="callbackData?.data || []" :loading="callbackStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+      <ReportCallBackTable
+        :limit="limit"
+        :total-rows="callbackData?.record_count"
+        :start="start"
+        :list="callbackData?.data || []"
+        :loading="callbackStatus === 'pending'"
+        @page-navigation="changePage"
+        @change-limit="changeLimit"
+      />
     </div>
   </div>
 </template>
