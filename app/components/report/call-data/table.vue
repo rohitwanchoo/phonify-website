@@ -15,6 +15,7 @@ import {
 } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
+import { AudioPlayer } from '@/components/ui/audio-player'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -229,21 +230,11 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Recordings', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, [
-      h('audio', {
-        controls: true,
-        class: 'w-full min-w-[240px] h-9',
-        preload: 'metadata',
-      }, [
-        h('source', {
-          src: row.original.call_recording,
-          type: 'audio/mpeg',
-        }),
-        'Browser not supported',
-      ]),
-    ]),
-    sortingFn: 'alphanumeric',
-    meta: { className: 'w-full text-center' },
+    cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, h(AudioPlayer, {
+      variant: 'default',
+      class: 'w-full h-9',
+      src: row.original.call_recording,
+    })),
   }),
 ]
 const sorting = ref<SortingState>([])
