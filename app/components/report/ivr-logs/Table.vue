@@ -90,6 +90,16 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.number) || '-'),
   }),
 
+  columnHelper.accessor('campaign_name', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name || '-'),
+  }),
+
   columnHelper.accessor('route', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {

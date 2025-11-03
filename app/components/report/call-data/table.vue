@@ -226,7 +226,7 @@ const columns = [
       }, () => ['Recordings', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, h(AudioPlayer, {
       variant: 'default',
-      class: 'w-full h-9',
+      containerClass: 'h-10',
       src: row.original.call_recording,
     })),
   }),

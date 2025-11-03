@@ -119,7 +119,7 @@ function onSubmit() {
     filterParams.route = filters.value.route
   }
   if (filters.value.type) {
-    filterParams.type = String(filters.value.type)
+    filterParams.type = filters.value.type
   }
   if (filters.value.did) {
     filterParams.did = filters.value.did
@@ -128,7 +128,7 @@ function onSubmit() {
     filterParams.area_code = [filters.value.area_code]
   }
   if (filters.value.timezone) {
-    filterParams.area_code = [filters.value.timezone]
+    filterParams.timezone = filters.value.timezone
   }
   if (filters.value.start_date) {
     filterParams.start_date = filters.value.start_date
@@ -291,7 +291,7 @@ function clearFilters() {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in campaignType" :key="option.id" :value="option.id">
+                        <SelectItem v-for="option in campaignType" :key="option.id" :value="option.title_url">
                           {{ option.title }}
                         </SelectItem>
                       </template>

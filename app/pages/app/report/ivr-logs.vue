@@ -60,7 +60,7 @@ async function handleClearFilter() {
     <!-- TABLE -->
     <ReportIvrLogsTable
       :limit="limit"
-      :total-rows="ivrReport?.record_count"
+      :total-rows="ivrReport?.total_rows"
       :start="start" :list="ivrReport?.data || []"
       :loading="ivrReportStatus === 'pending'"
       @page-navigation="changePage"
