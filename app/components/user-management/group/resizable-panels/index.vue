@@ -271,6 +271,7 @@ watch(() => extensionGroupStatus.value, async (newStatus) => {
         <UserManagementGroupTable
           :list="extensionDataByGroupId"
           :loading="extensionDataStatus === 'pending' || extensionGroupStatus === 'pending'"
+          @refresh="refreshExtensionDataByGroupId"
         />
       </div>
     </ResizablePanel>
