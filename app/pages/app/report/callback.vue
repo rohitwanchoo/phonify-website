@@ -13,11 +13,18 @@ const limit = ref(10)
 
 const { data: callbackData, status: callbackStatus, refresh: callbackRefresh } = await useLazyAsyncData('callback', () =>
   useApi().post('/callback', {
-    ...activeFilters.value,
-    lower_limit: start.value,
-    upper_limit: limit.value,
+    // ...activeFilters.value,
+    // lower_limit: start.value,
+    // upper_limit: limit.value,
+    // id: user.value?.id,
+    // reminder: enableCallbackReminder.value,
+    // For demo data:
     id: user.value?.id,
-    reminder: enableCallbackReminder.value,
+    extension: '34870',
+    campaign: 45,
+    start_date: '2022-04-03 00:00:00',
+    end_date: '2026-04-03 23:59:59',
+    reminder: true,
   }), {
   transform: res => res,
 })

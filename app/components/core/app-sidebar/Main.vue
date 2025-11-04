@@ -66,7 +66,8 @@ const data = {
       { title: 'Live Call', url: '/app/report/live-call', disabled: false },
       { title: 'IVR Logs', url: '/app/report/ivr-logs', disabled: false },
       { title: 'Call Data Reports', url: '/app/report/call-data-reports', disabled: false },
-      { title: 'Callback', url: '/app/report/callback', disabled: false },
+      // TODO: Callback api integration
+      // { title: 'Callback', url: '/app/report/callback', disabled: false },
       { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports', disabled: false },
       { title: 'Count Report', url: '/app/report/count-report', disabled: false },
       { title: 'Login History', url: '/app/report/login-history', disabled: false },
