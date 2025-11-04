@@ -216,7 +216,7 @@ watch(() => props.src, () => {
     <button class="bg-blue-normal size-7 flex items-center justify-center rounded-full" @click="togglePlay">
       <Icon name="subway:file-6" color="white" size="14" />
     </button>
-    <p v-show="props.variant !== 'compact'" class="text-sm text-gray-500 my-3 text-center px-2">
+    <p v-show="props.variant !== 'compact'" class="text-sm text-gray-500 my-2 text-center px-2">
       Audio is not available
     </p>
   </div>

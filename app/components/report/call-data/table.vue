@@ -53,47 +53,18 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 export interface callReportsList {
   extension: number
-  campaign_id: number
+  campaign_name: string
   cli: number
   route: string
   type: string
   number: number
-  disposition_id: number
+  dispostion_name: string
   duration: string
-  area_code: string
+  state: string
+  city: string
   start_time: string
   end_time: string
   call_recording: string
-}
-
-const { data: campaignData, status: campaignDataStataus } = await useLazyAsyncData('campaign', () =>
-  useApi().post('/campaign'), {
-  transform: res => res.data,
-})
-
-const { data: dispositionData, status: dispositionDataStatus } = await useLazyAsyncData('disposition', () =>
-  useApi().post('/disposition'), {
-  transform: res => res.data,
-})
-
-// Filter campaign title based on campaign_id
-function campaignTitle(camapignId: number) {
-  if (!camapignId)
-    return '-'
-  const foundCampaign = campaignData.value.find(
-    (c: any) => c.id === camapignId,
-  )
-  return foundCampaign?.title || '-'
-}
-
-// Filter disposition title based on disposition_id
-function dispositionTitle(dispositionId: number) {
-  if (!dispositionId)
-    return '-'
-  const foundDisposition = dispositionData.value.find(
-    (c: any) => c.id === dispositionId,
-  )
-  return foundDisposition?.title || '-'
 }
 
 // Pagination handlers
@@ -125,14 +96,14 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.extension || '-'),
   }),
 
-  columnHelper.accessor('campaign_id', {
+  columnHelper.accessor('campaign_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Camapign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, campaignTitle(row.original.campaign_id)),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name || '-'),
   }),
 
   columnHelper.accessor('cli', {
@@ -172,14 +143,14 @@ const columns = [
       }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.number.toString()) || '-'),
   }),
-  columnHelper.accessor('disposition_id', {
+  columnHelper.accessor('dispostion_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Disposition', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, dispositionTitle(row.original.disposition_id) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.dispostion_name || '-'),
   }),
   columnHelper.accessor('duration', {
     header: ({ column }) =>
@@ -190,14 +161,15 @@ const columns = [
       }, () => ['Duration', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.duration || '-'),
   }),
-  columnHelper.accessor('area_code', {
+  columnHelper.display({
+    id: 'stateCity',
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['State/City', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.area_code || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.state || '-'} / ${row.original.city || '-'} `),
   }),
   columnHelper.accessor('start_time', {
     header: ({ column }) =>
@@ -283,7 +255,7 @@ const table = useVueTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-if="loading || campaignDataStataus === 'pending' || dispositionDataStatus === 'pending'">
+        <TableRow v-if="loading">
           <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
             <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>

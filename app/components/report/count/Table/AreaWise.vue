@@ -28,7 +28,11 @@ const props = defineProps<{
 }>()
 
 export interface stateWiseSummary {
-  rowCount: number
+  state: string
+  city: string
+  did: string
+  cnam: string
+  total: number
   area_code: string
   state_code: string
   country_code: string
@@ -37,17 +41,29 @@ export interface stateWiseSummary {
 const columnHelper = createColumnHelper<stateWiseSummary>()
 
 const columns = [
-  columnHelper.accessor('country_code', {
-    header: () =>
-      h('div', { class: 'text-sm font-normal text-center' }, 'Country'),
-    cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.country_code || '-'),
-  }),
-  columnHelper.accessor('state_code', {
+  columnHelper.accessor('state', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'State'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.state_code || '-'),
+      h('div', { class: 'text-sm text-center' }, row.original.state || '-'),
+  }),
+  columnHelper.accessor('city', {
+    header: () =>
+      h('div', { class: 'text-sm font-normal text-center' }, 'City'),
+    cell: ({ row }) =>
+      h('div', { class: 'text-sm text-center' }, row.original.city || '-'),
+  }),
+  columnHelper.accessor('did', {
+    header: () =>
+      h('div', { class: 'text-sm font-normal text-center' }, 'DID'),
+    cell: ({ row }) =>
+      h('div', { class: 'text-sm text-center' }, row.original.did || '-'),
+  }),
+  columnHelper.accessor('cnam', {
+    header: () =>
+      h('div', { class: 'text-sm font-normal text-center' }, 'CNAM'),
+    cell: ({ row }) =>
+      h('div', { class: 'text-sm text-center' }, row.original.cnam || '-'),
   }),
   columnHelper.accessor('area_code', {
     header: () =>
@@ -55,11 +71,11 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-sm text-center' }, row.original.area_code || '-'),
   }),
-  columnHelper.accessor('rowCount', {
+  columnHelper.accessor('total', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.rowCount) || '-'),
+      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.total) || '-'),
   }),
 ]
 
@@ -89,7 +105,7 @@ const table = useVueTable({
 
 // Totals calculation
 const total = computed(() => ({
-  totalCalls: (props.data ?? []).reduce((sum, r) => sum + (r.rowCount || 0), 0),
+  totalCalls: (props.data ?? []).reduce((sum, r) => sum + (r.total || 0), 0),
 }))
 </script>
 
@@ -149,6 +165,8 @@ const total = computed(() => ({
           <TableCell class="text-center">
             Total
           </TableCell>
+          <TableCell class="text-center" />
+          <TableCell class="text-center" />
           <TableCell class="text-center" />
           <TableCell class="text-center" />
           <TableCell class="text-center">
