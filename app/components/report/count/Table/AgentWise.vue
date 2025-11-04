@@ -10,8 +10,6 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
 import { computed, h, ref } from 'vue'
@@ -45,14 +43,20 @@ export interface agentWiseDialerCallList {
   inbound: number
   duration: number
   aht: number
-  outgoing_sms: number
-  incoming_sms: number
+  outgoing_sms: string
+  incoming_sms: string
 }
 
+// Format seconds to HH:MM:SS
 function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+  if (!seconds || seconds < 0 || Number.isNaN(seconds))
+    return '00:00:00'
+
+  const roundedSeconds = Math.round(seconds) // Round to nearest whole number
+  const hours = Math.floor(roundedSeconds / 3600)
+  const minutes = Math.floor((roundedSeconds % 3600) / 60)
+  const secs = roundedSeconds % 60
+
   return [
     hours.toString().padStart(2, '0'),
     minutes.toString().padStart(2, '0'),
@@ -98,11 +102,11 @@ const columns = [
   }),
   columnHelper.accessor('outgoing_sms', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.outgoing_sms ?? 0)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.outgoing_sms) || '-'),
   }),
   columnHelper.accessor('incoming_sms', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'SMS Received'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.incoming_sms ?? 0)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.incoming_sms) || '-'),
   }),
 ]
 
@@ -145,14 +149,16 @@ const total = computed(() => {
     }
   }
   return {
-    grandTotalCalls: props.data.reduce((sum, r) => sum + r.totalcalls, 0),
-    grandOutbound: props.data.reduce((sum, r) => sum + r.outbound, 0),
-    grandC2C: props.data.reduce((sum, r) => sum + r.c2c, 0),
-    grandInbound: props.data.reduce((sum, r) => sum + r.inbound, 0),
+    grandTotalCalls: props.data.reduce((sum, r) => sum + (r.totalcalls ?? 0), 0),
+    grandOutbound: props.data.reduce((sum, r) => sum + (r.outbound ?? 0), 0),
+    grandC2C: props.data.reduce((sum, r) => sum + (r.c2c ?? 0), 0),
+    grandInbound: props.data.reduce((sum, r) => sum + (r.inbound ?? 0), 0),
     grandTotalCallTime: formatTime(props.data.reduce((sum, r) => sum + (r.duration ?? 0), 0)),
-    grandAvgHandleTime: formatTime(props.data.reduce((sum, r) => sum + r.aht, 0)),
-    grandSmsSent: props.data.reduce((sum, r) => sum + (r.outgoing_sms ?? 0), 0),
-    grandSmsReceived: props.data.reduce((sum, r) => sum + (r.incoming_sms ?? 0), 0),
+    grandAvgHandleTime: formatTime(
+      Math.floor(props.data.reduce((sum, r) => sum + (r.aht ?? 0), 0) / props.data.length),
+    ),
+    grandSmsSent: props.data.reduce((sum, r) => sum + (Number(r.outgoing_sms) ?? 0), 0),
+    grandSmsReceived: props.data.reduce((sum, r) => sum + (Number(r.incoming_sms) ?? 0), 0),
   }
 })
 </script>

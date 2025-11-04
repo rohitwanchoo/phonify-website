@@ -38,15 +38,20 @@ export interface inboundDidWiseData {
   inbound: number
   duration: number
   aht: number
-  outgoing: number
-  incoming: number
+  outgoing: string
+  incoming: string
 }
 
 // Format seconds to HH:MM:SS
-function formatTime(seconds: number) {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+function formatTime(seconds: number): string {
+  if (!seconds || seconds < 0 || Number.isNaN(seconds))
+    return '00:00:00'
+
+  const roundedSeconds = Math.round(seconds) // Round to nearest whole number
+  const hours = Math.floor(roundedSeconds / 3600)
+  const minutes = Math.floor((roundedSeconds % 3600) / 60)
+  const secs = roundedSeconds % 60
+
   return [
     hours.toString().padStart(2, '0'),
     minutes.toString().padStart(2, '0'),
@@ -64,30 +69,35 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.cli) || '-'),
   }),
+
   columnHelper.accessor('inbound', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
     cell: ({ row }) =>
       h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.inbound) || '-'),
   }),
+
   columnHelper.accessor('duration', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Call Time'),
     cell: ({ row }) =>
       h('div', { class: 'text-center text-sm' }, formatTime(row.original.duration) || '-'),
   }),
+
   columnHelper.accessor('aht', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Average Handle time'),
     cell: ({ row }) =>
       h('div', { class: 'text-center text-sm' }, formatTime(row.original.aht) || '-'),
   }),
+
   columnHelper.accessor('outgoing', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
     cell: ({ row }) =>
       h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.outgoing) || '-'),
   }),
+
   columnHelper.accessor('incoming', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Received'),
@@ -123,11 +133,13 @@ const table = useVueTable({
 // Totals calculation
 const total = computed(() => {
   return {
-    calls: props.data.reduce((sum, r) => sum + r.inbound, 0),
-    smsSent: props.data.reduce((sum, r) => sum + r.outgoing, 0),
-    smsReceived: props.data.reduce((sum, r) => sum + r.incoming, 0),
-    totalCallTime: formatTime(props.data.reduce((sum, r) => sum + (r.duration ?? 0), 0)),
-    avgHandleTime: formatTime(props.data.reduce((sum, r) => sum + (r.aht ?? 0), 0)),
+    calls: props.data.reduce((sum, r) => sum + Number(r.inbound), 0),
+    smsSent: props.data.reduce((sum, r) => sum + Number(r.outgoing), 0),
+    smsReceived: props.data.reduce((sum, r) => sum + Number(r.incoming), 0),
+    totalCallTime: formatTime(props.data.reduce((sum, r) => sum + (Number(r.duration) ?? 0), 0)),
+    avgHandleTime: formatTime(
+      Math.floor(props.data.reduce((sum, r) => sum + (Number(r.aht) ?? 0), 0) / props.data.length),
+    ),
   }
 })
 </script>
@@ -158,37 +170,49 @@ const total = computed(() => {
       </TableHeader>
 
       <TableBody>
-        <TableRow
-          v-for="row in table.getRowModel().rows"
-          :key="row.id"
-        >
-          <TableCell
-            v-for="cell in row.getVisibleCells()"
-            :key="cell.id"
-            class="text-center p-3 text-sm"
-          >
-            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 5" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
         </TableRow>
+        <template v-else-if="table.getRowModel().rows.length">
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+          >
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="text-center p-3 text-sm"
+            >
+              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+            </TableCell>
+          </TableRow>
 
-        <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">
-            Total
-          </TableCell>
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.calls) }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ total.totalCallTime }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ total.avgHandleTime }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.smsSent) }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.smsReceived) }}
+          <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
+            <TableCell class="text-center">
+              Total
+            </TableCell>
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.calls) }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ total.totalCallTime }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ total.avgHandleTime }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.smsSent) }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.smsReceived) }}
+            </TableCell>
+          </TableRow>
+        </template>
+        <TableRow v-else>
+          <TableCell :colspan="columns.length" class="text-center py-8 text-gray-500">
+            No data available
           </TableCell>
         </TableRow>
       </TableBody>

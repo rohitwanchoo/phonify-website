@@ -154,23 +154,22 @@ const total = computed(() => ({
               </TableCell>
             </TableRow>
           </template>
+          <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
+            <TableCell class="text-center">
+              Total
+            </TableCell>
+            <TableCell class="text-center" />
+            <TableCell class="text-center" />
+            <TableCell class="text-center" />
+            <TableCell class="text-center" />
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.totalCalls) }}
+            </TableCell>
+          </TableRow>
         </template>
         <TableRow v-else>
           <TableCell :colspan="columns.length" class="text-center py-8 text-gray-500">
             No data available
-          </TableCell>
-        </TableRow>
-
-        <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">
-            Total
-          </TableCell>
-          <TableCell class="text-center" />
-          <TableCell class="text-center" />
-          <TableCell class="text-center" />
-          <TableCell class="text-center" />
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.totalCalls) }}
           </TableCell>
         </TableRow>
       </TableBody>
