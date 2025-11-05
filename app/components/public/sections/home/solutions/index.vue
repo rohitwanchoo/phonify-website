@@ -6,19 +6,19 @@ const cards = [
         title: "For Agents:",
         image: "/images/phonify-web/solutions/agents.svg",
         description:
-            "Less clicking, more connecting. Log calls <br> automatically. Follow ups made easy.",
+            "Less clicking, more connecting. Log calls  automatically. Follow ups made easy.",
     },
     {
         title: "For Managers:",
         image: "/images/phonify-web/solutions/managers.svg",
         description:
-            "See everything. Measure what matters. Act <br> quickly.",
+            "See everything. Measure what matters. Act  quickly.",
     },
     {
         title: "For Businesses:",
         image: "/images/phonify-web/solutions/business.svg",
         description:
-            "Run like a big team, even with a small one. <br> AI scales your operations.",
+            "Run like a big team, even with a small one.  AI scales your operations.",
     },
 ];
 </script>
