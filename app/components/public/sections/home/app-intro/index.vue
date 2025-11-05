@@ -1,0 +1,3 @@
+<template>
+    app intro
+</template>

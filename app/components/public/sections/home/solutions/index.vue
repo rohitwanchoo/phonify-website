@@ -1,0 +1,3 @@
+<template>
+    solutions
+</template>
