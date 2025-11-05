@@ -1,5 +1,7 @@
 <template>
-  <div class="p-5 h-screen bg-white">
+  <div class="w-full">
+    <PublicCoreNavbar class="sticky top-0 z-50" />
     <slot />
+    <PublicCoreFooter />
   </div>
 </template>
