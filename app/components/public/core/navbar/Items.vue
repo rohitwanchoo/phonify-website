@@ -1,0 +1,46 @@
+<script setup>
+import { Button } from '~/components/ui/button'
+
+const route = useRoute()
+</script>
+
+<template>
+  <div class="w-full px-4 md:px-0 pt-8 md:pt-0 pb-6 md:pb-0 bg-gray-50 md:bg-white flex flex-col md:flex-row justify-start md:justify-between items-center gap-6">
+    <ul class="flex flex-col md:flex-row items-center gap-6">
+      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/' ? 'underline text-gray-900' : ''">
+        <NuxtLink to="/">
+          Home
+        </NuxtLink>
+      </li>
+      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/features' ? 'underline text-gray-900' : ''">
+        <NuxtLink to="/features">
+          Features
+        </NuxtLink>
+      </li>
+      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/pricing' ? 'underline text-gray-900' : ''">
+        <NuxtLink to="/pricing">
+          Pricing
+        </NuxtLink>
+      </li>
+      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/blogs' ? 'underline text-gray-900' : ''">
+        <NuxtLink to="/blogs">
+          Blogs
+        </NuxtLink>
+      </li>
+      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/contact-us' ? 'underline text-gray-900' : ''">
+        <NuxtLink to="/contact-us">
+          Contact Us
+        </NuxtLink>
+      </li>
+    </ul>
+    <div class="w-full md:w-fit flex flex-col md:flex-row-reverse justify-end items-center gap-3">
+      <Button class="h-12 w-full md:w-fit px-10 py-3 bg-[#1F1E1C] md:bg-[#D11E28] rounded-sm flex justify-center items-center gap-2 text-white font-medium">
+        Start free trail
+        <Icon name="material-symbols:arrow-right" size="16" />
+      </Button>
+      <Button variant="link" class="h-12 w-full md:w-fit px-10 py-3 bg-[#E7E5E4] rounded-sm text-black font-normal">
+        Sign in
+      </Button>
+    </div>
+  </div>
+</template>

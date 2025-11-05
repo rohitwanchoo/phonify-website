@@ -1,0 +1,26 @@
+<script setup>
+import { Button } from '~/components/ui/button'
+</script>
+
+<template>
+  <div class="w-full h-[300px] md:h-[480px] bg-black/90 flex items-center justify-center px-4 relative">
+    <img src="/images/website/sections/waves.gif" alt="" class="absolute top-0 left-0 w-full h-full object-cover">
+    <div class="z-10">
+      <h1 class="text-2xl md:text-5xl text-center text-white font-medium mb-3">
+        Ready to Make <span class="font-semibold italic">Calls Easy?</span>
+      </h1>
+      <p class="text-center justify-start text-stone-200 text-base font-extralight leading-6">
+        Try Phonify and see how simple call management can be.
+      </p>
+      <div class="flex flex-col md:flex-row justify-center items-center gap-3 mt-4 md:mt-8">
+        <Button class="h-12 w-full md:w-fit bg-[#D11E28] text-white rounded-sm">
+          Start free trial
+          <Icon name="material-symbols:arrow-right" size="16" />
+        </Button>
+        <Button variant="outline" class="h-12 w-full md:w-fit bg-white/5 border border-white/40 text-white rounded-sm font-medium px-8">
+          Book a demo
+        </Button>
+      </div>
+    </div>
+  </div>
+</template>
