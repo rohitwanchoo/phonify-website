@@ -3,8 +3,8 @@ import AboutUsCard from './Card.vue'
 </script>
 
 <template>
-    <section class="bg-white overflow-x-hidden min-h-screen">
-        <div class="max-w-7xl mx-auto flex flex-col gap-6 md:gap-16 p-6">
+    <section class="bg-white overflow-x-hidden ">
+        <div class="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-16 p-6">
             <!-- Heading Section -->
             <div class="flex flex-col gap-4 md:gap-5 text-start">
                 <h1 class="font-light text-base">
