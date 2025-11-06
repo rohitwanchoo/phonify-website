@@ -2,34 +2,37 @@
 import { Button } from '~/components/ui/button'
 
 const route = useRoute()
+
+const items = [
+  {
+    name: 'Home',
+    link: '/',
+  },
+  {
+    name: 'Features',
+    link: '/features',
+  },
+  {
+    name: 'Pricing',
+    link: '/pricing',
+  },
+  {
+    name: 'Blogs',
+    link: '/blogs',
+  },
+  {
+    name: 'Contact Us',
+    link: '/contact-us',
+  },
+]
 </script>
 
 <template>
   <div class="w-full px-4 md:px-0 pt-8 md:pt-0 pb-6 md:pb-0 bg-gray-50 md:bg-white flex flex-col md:flex-row justify-start md:justify-between items-center gap-6">
     <ul class="flex flex-col md:flex-row items-center gap-6">
-      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/' ? 'underline text-gray-900' : ''">
-        <NuxtLink to="/">
-          Home
-        </NuxtLink>
-      </li>
-      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/features' ? 'underline text-gray-900' : ''">
-        <NuxtLink to="/features">
-          Features
-        </NuxtLink>
-      </li>
-      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/pricing' ? 'underline text-gray-900' : ''">
-        <NuxtLink to="/pricing">
-          Pricing
-        </NuxtLink>
-      </li>
-      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/blogs' ? 'underline text-gray-900' : ''">
-        <NuxtLink to="/blogs">
-          Blogs
-        </NuxtLink>
-      </li>
-      <li class=" text-gray-700 cursor-pointer" :class="route.path === '/contact-us' ? 'underline text-gray-900' : ''">
-        <NuxtLink to="/contact-us">
-          Contact Us
+      <li v-for="item in items" :key="item.link" class=" text-gray-700 hover:text-black cursor-pointer" :class="route.path === item.link ? 'underline text-gray-900' : ''">
+        <NuxtLink :to="item.link">
+          {{ item.name }}
         </NuxtLink>
       </li>
     </ul>
