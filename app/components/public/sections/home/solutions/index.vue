@@ -25,11 +25,10 @@ const cards = [
 
 <template>
     <section class="bg-[#F8F3F0] overflow-x-hidden">
-        <div class="max-w-7xl mx-auto flex flex-col gap-12 md:gap-16 p-6">
+        <div class="max-w-[1440px] mx-auto flex flex-col gap-12 md:gap-16 py-8 px-6">
             <div class="flex flex-col gap-4 md:text-center text-start">
 
-                <h1
-                    class="font-light text-base ">
+                <h1 class="font-light text-base ">
                     <span
                         class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]"></span>
                     Solutions
