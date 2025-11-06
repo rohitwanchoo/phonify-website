@@ -162,7 +162,7 @@ definePageMeta({
         </div> -->
       <!-- </div>
     </main> -->
-    <!-- <PublicSectionsHomeHero /> -->
+    <PublicSectionsHomeHero />
     <!-- <PublicSectionsHomeAboutUs /> -->
     <PublicSectionsHomeSolutions />
     <!-- <PublicSectionsHomeAppIntro /> -->
