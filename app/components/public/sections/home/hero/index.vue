@@ -23,7 +23,7 @@ import { Button } from '~/components/ui/button'
           </div>
         </div>
         <div class="space-y-4 md:space-y-10">
-          <p class="text-start text-stone-700 text-base md:text-xl font-extralight leading-6">
+          <p class="md:max-w-96 text-end text-stone-700 text-base md:text-xl font-extralight leading-6 md:leading-8">
             For call centers where every second counts.<br>Phonify’s AI cuts the clutter, automates the routine, and keeps your team moving efficiently from call to call.
           </p>
           <div class="flex justify-end items-center gap-3 flex-col md:flex-row">

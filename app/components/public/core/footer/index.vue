@@ -93,7 +93,7 @@ const address = [
                 Company
               </div>
               <div class="flex flex-col justify-start items-start gap-3">
-                <NuxtLink v-for="item in company" :key="item.link" :to="item.link" class="justify-start text-stone-900 font-light leading-6 text-nowrap">
+                <NuxtLink v-for="item in company" :key="item.link" :to="item.link" class="justify-start text-stone-900 font-light leading-6 text-nowrap hover:text-black hover:underline">
                   {{ item.name }}
                 </NuxtLink>
               </div>
