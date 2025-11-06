@@ -3,8 +3,9 @@ import { Button } from '~/components/ui/button'
 </script>
 
 <template>
-  <div class="w-full h-[300px] md:h-[480px] bg-black/90 flex items-center justify-center px-4 relative">
-    <img src="/images/website/sections/waves.gif" alt="" class="absolute top-0 left-0 w-full h-full object-cover">
+  <div class="w-full h-[300px] md:h-[480px] bg-[#1F1E1C] flex items-center justify-center px-4 relative">
+    <img src="/images/website/sections/waves.gif" alt="" class="absolute top-0 left-0 w-full h-full object-cover grayscale opacity-80">
+    <div class="absolute top-0 left-0 w-full h-full bg-black/70 z-10" />
     <div class="z-10">
       <h1 class="text-2xl md:text-5xl text-center text-white font-medium mb-3">
         Ready to Make <span class="font-semibold italic">Calls Easy?</span>

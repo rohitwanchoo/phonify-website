@@ -165,6 +165,7 @@ definePageMeta({
     <PublicSectionsHomeHero />
     <!-- <PublicSectionsHomeAboutUs /> -->
     <PublicSectionsHomeSolutions />
+    <PublicSectionsHomeFeatures />
     <!-- <PublicSectionsHomeAppIntro /> -->
     <!-- <PublicSectionsHomeBlogs /> -->
     <PublicSectionsHomeFaq />
