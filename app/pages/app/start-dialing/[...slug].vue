@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+
 import {
   Select,
   SelectContent,
@@ -27,17 +18,10 @@ import {
 
 const route = useRoute()
 
-const { session } = useUserSession()
 const { callStatus, callerDetails, endCall, isRegistered } = useSIPml5()
 const { closeDialer } = useDialer()
 
 const selectedTab = ref()
-
-const show = computed(() => {
-  const baseRoute = '/app/start-dialing'
-  const sidePanel = route.path.startsWith(baseRoute)
-  return sidePanel
-})
 
 const selectedCampaign = ref()
 
@@ -54,14 +38,14 @@ const sidePanel = computed(() => [
     value: 'send-sms',
     icon: 'material-symbols:chat',
     link: selectedCampaign.value ? `/app/start-dialing/send-sms?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-sms',
-    disabled: true,
+    disabled: false,
   },
   {
     title: 'Send Email',
     value: 'send-email',
     icon: 'material-symbols:mail',
     link: selectedCampaign.value ? `/app/start-dialing/send-email?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-email',
-    disabled: true,
+    disabled: false,
   },
   {
     title: 'Agent Script',
@@ -85,11 +69,6 @@ const sidePanel = computed(() => [
     disabled: true,
   },
 ])
-
-function isActive(link: string) {
-  const base = link.split('?')[0]
-  return base ? route.path.startsWith(base) : false
-}
 
 onMounted(() => {
   if (route.path === '/app/start-dialing') {
@@ -117,19 +96,6 @@ watch(leadData, (val) => {
   }
 })
 
-// watch(() => callStatus?.value, (currentState) => {
-//   // call status active
-//   if (currentState === 'active') {
-//     setTimeout(() => {
-//       refreshLeadData()
-//     }, 2000)
-//     // Small delay to ensure UI transitions smoothly
-//     // nextTick(() => {
-//     //   openDisposition.value = true
-//     // })
-//   }
-// }, { immediate: true })
-
 const initiateLoading = ref(false)
 
 function initiateCampaign() {
@@ -150,8 +116,8 @@ function initiateCampaign() {
 async function setRouteForInitCampaign() {
   if (!isRegistered.value) {
     showToast({
-      message: 'Webphone is not registered. Please refresh the page and try again.',
-      type: 'error',
+      message: 'Webphone is not registered. Please register it first.',
+      type: 'warning',
     })
     return
   }
@@ -194,6 +160,40 @@ onMounted(() => {
 //     })
 //   }
 // }
+
+const leadDataTemp = {
+  success: true,
+  message: 'lead detail.',
+  number: '7622132802',
+  lead_id: 735448,
+  list_id: 202,
+  data: {
+    option_1: {
+      label: 'First Name',
+      value: 'Easify',
+      is_dialing: 0,
+      is_visible: 1,
+      is_editable: 0,
+      alternate_phone: null,
+    },
+    option_2: {
+      label: 'Last Name',
+      value: 'Two',
+      is_dialing: 0,
+      is_visible: 1,
+      is_editable: 0,
+      alternate_phone: null,
+    },
+    option_3: {
+      label: 'Mobile',
+      value: '7622132802',
+      is_dialing: 1,
+      is_visible: 1,
+      is_editable: 0,
+      alternate_phone: null,
+    },
+  },
+}
 </script>
 
 <template>
@@ -287,6 +287,12 @@ onMounted(() => {
         </div>
         <TabsContent value="lead-details" class="bg-[#FAFAFA] rounded-r-lg">
           <StartDialingLeadDetails :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
+        </TabsContent>
+        <TabsContent value="send-sms" class="bg-[#FAFAFA] rounded-r-lg">
+          <StartDialingSendSms :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
+        </TabsContent>
+        <TabsContent value="send-email" class="bg-[#FAFAFA] rounded-r-lg">
+          <StartDialingSendEmail :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
         </TabsContent>
       </Tabs>
     </div>

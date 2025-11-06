@@ -15,6 +15,7 @@ const emits = defineEmits([
 ])
 
 const { formState, enableEditSection } = useCreateCampaign()
+const { isRegistered } = useSIPml5()
 
 interface Props {
   dataLoading: boolean
@@ -278,6 +279,14 @@ const onSubmit = handleSubmit(async (values) => {
 })
 
 function startDialing() {
+  if (!isRegistered.value) {
+    showToast({
+      message: 'Webphone is not registered. Please register it first.',
+      type: 'warning',
+    })
+    return
+  }
+
   navigateTo({ path: '/app/start-dialing/lead-details', query: { campaign_id: id } })
 }
 
