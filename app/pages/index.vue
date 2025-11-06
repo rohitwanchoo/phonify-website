@@ -20,8 +20,8 @@ definePageMeta({
             </h1>
           </div> -->
 
-          <!-- Auth State Component for safe rendering -->
-          <!-- <AuthState>
+    <!-- Auth State Component for safe rendering -->
+    <!-- <AuthState>
             <template #default="{ loggedIn, user, clear }">
               <div v-if="loggedIn" class="flex items-center space-x-4">
                 <span class="text-sm text-gray-700">
@@ -70,8 +70,8 @@ definePageMeta({
           integrated with external API backend.
         </p> -->
 
-        <!-- Auth State for main content -->
-        <!-- <AuthState>
+    <!-- Auth State for main content -->
+    <!-- <AuthState>
           <template #default="{ loggedIn, user }">
             <div class="mt-10">
               <div v-if="loggedIn" class="space-y-4">
@@ -119,8 +119,8 @@ definePageMeta({
           </template>
         </AuthState> -->
 
-        <!-- Features Section -->
-        <!-- <div class="mt-16">
+    <!-- Features Section -->
+    <!-- <div class="mt-16">
           <h2 class="text-2xl font-bold text-gray-900 mb-8">
             Authentication Features
           </h2>
@@ -160,7 +160,7 @@ definePageMeta({
             </div>
           </div>
         </div> -->
-      <!-- </div>
+    <!-- </div>
     </main> -->
     <PublicSectionsHomeHero />
     <!-- <PublicSectionsHomeAboutUs /> -->
