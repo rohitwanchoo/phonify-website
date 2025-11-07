@@ -1,4 +1,6 @@
 <script setup>
+import { Button } from '~/components/ui/button'
+
 defineProps({
   title: String,
   image: String,
@@ -19,10 +21,8 @@ defineProps({
         class="w-full h-auto object-cover transition-all duration-700 ease-out group-hover:blur-[1.5px] group-hover:scale-105"
       >
 
-
       <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent " />
 
-   
       <div
         class="absolute bottom-0 left-0 w-full flex justify-between items-end p-4 text-white text-xs sm:text-sm font-normal"
       >
@@ -33,11 +33,11 @@ defineProps({
       <div
         class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500"
       >
-        <button
-          class="bg-[#D11E28] text-white font-medium px-5 py-2  shadow-md transform translate-y-10 group-hover:translate-y-0 transition-all duration-500"
+        <Button
+          class="bg-[#D11E28] rounded-sm text-white font-medium px-5 py-2 shadow-md transform translate-y-10 group-hover:translate-y-0 transition-all duration-500"
         >
           Read More
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -50,11 +50,12 @@ defineProps({
       v-html="description"
     />
 
- 
-    <p class="text-sm text-gray-500 mt-2 flex items-center gap-2">
+    <div class="text-sm text-gray-500 mt-2 flex items-center gap-2">
       <span>{{ date }}</span>
-      <span class="inline-block w-2 h-2 bg-[#000000] [clip-path:polygon(0%_0%,100%_0%,100%_100%,0%_100%)]" />
-      <span class="font-semibold text-gray-900 underline">by {{ author }}</span>
-    </p>
+      <span class="inline-block size-1 bg-[#000000] [clip-path:polygon(0%_0%,100%_0%,100%_100%,0%_100%)]" />
+      <p>
+        by <span class="font-semibold text-gray-900 underline">{{ author }}</span>
+      </p>
+    </div>
   </div>
 </template>
