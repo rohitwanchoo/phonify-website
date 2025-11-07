@@ -28,7 +28,7 @@ const cards = [
 
 <template>
     <div class="bg-[#F8F3F0]">
-        <div class="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-16 p-6">
+        <div class="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-16  px-4 md:px-28 py-8 md:py-24 ">
             <div class="flex flex-col gap-4 md:gap-5 text-start">
                 <h1 class="font-light text-base">
                     <span

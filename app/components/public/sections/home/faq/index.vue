@@ -24,7 +24,7 @@ function toggleItem(value) {
 </script>
 
 <template>
-  <div class="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-20 py-8 px-6">
+  <div class="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-20  px-4 md:px-28 py-8 md:py-24">
     <!-- Left Section -->
     <div class="flex flex-col gap-5">
       <h1 class="font-light text-base">
