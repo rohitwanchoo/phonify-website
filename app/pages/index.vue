@@ -168,7 +168,7 @@ definePageMeta({
     <PublicSectionsHomeFeatures />
     <!-- <PublicSectionsHomeAppIntro /> -->
      <PublicSectionsHomeReviews />
-    <!-- <PublicSectionsHomeBlogs /> -->
+    <PublicSectionsHomeBlogs />
     <PublicSectionsHomeFaq />
   </div>
 </template>

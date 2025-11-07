@@ -25,12 +25,11 @@ const cards = [
 
 <template>
   <section class="bg-[#F8F3F0] overflow-x-hidden">
-    <div class="max-w-[1440px] mx-auto flex flex-col gap-12 md:gap-16 py-8 px-6">
+    <div class="max-w-[1440px] mx-auto flex flex-col gap-12 md:gap-16  px-4 md:px-28 py-8 md:py-24">
       <div class="flex flex-col gap-4 md:text-center text-start">
         <h1 class="font-light text-base ">
           <span
-            class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]"
-          />
+            class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]" />
           Solutions
         </h1>
 
@@ -42,10 +41,8 @@ const cards = [
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6">
-        <SolutionsCard
-          v-for="(card, index) in cards" :key="index" :title="card.title" :image="card.image"
-          :description="card.description"
-        />
+        <SolutionsCard v-for="(card, index) in cards" :key="index" :title="card.title" :image="card.image"
+          :description="card.description" />
       </div>
     </div>
   </section>
