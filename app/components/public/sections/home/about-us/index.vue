@@ -4,7 +4,7 @@ import AboutUsCard from './Card.vue'
 
 <template>
     <section class="bg-white overflow-x-hidden ">
-        <div class="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-16 p-6">
+        <div class="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-16   px-4 md:px-28 py-8 md:pb-24  ">
             <!-- Heading Section -->
             <div class="flex flex-col gap-4 md:gap-5 text-start">
                 <h1 class="font-light text-base">
@@ -12,7 +12,6 @@ import AboutUsCard from './Card.vue'
                         class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]" />
                     About us
                 </h1>
-
                 <div class="flex flex-col lg:flex-row gap-6  lg:gap-24">
                     <h2 class="font-medium text-2xl sm:text-4xl md:text-5xl leading-tight">
                         Built for teams who <br class="hidden lg:block">
@@ -26,19 +25,13 @@ import AboutUsCard from './Card.vue'
                     </p>
                 </div>
             </div>
-
-            <!-- Cards Section -->
             <div
                 class="flex flex-col sm:flex-row sm:flex-wrap md:flex-nowrap justify-center md:justify-start items-center md:items-stretch gap-6">
                 <AboutUsCard icon="material-symbols:bolt" value="43%" description="faster follow- <br/>ups" />
                 <AboutUsCard icon="material-symbols:phone-in-talk" value="60%"
                     description="more completed <br /> calls" />
                 <AboutUsCard icon="mdi:account-check" value="2.5x" description="higher lead <br /> conversions" />
-               <AboutUsCard 
-  icon="mdi:sparkles" 
-  value="45%" 
-  description="of calls handled <br /> by AI" 
-/>
+                <AboutUsCard icon="mdi:sparkles" value="45%" description="of calls handled <br /> by AI" />
             </div>
         </div>
     </section>
