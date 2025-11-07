@@ -28,11 +28,11 @@ import { Button } from '~/components/ui/button'
             For call centers where every second counts.<br>Phonify’s AI cuts the clutter, automates the routine, and keeps your team moving efficiently from call to call.
           </p>
           <div class="flex justify-end items-center gap-3 flex-col md:flex-row">
-            <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white rounded-sm">
+            <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white rounded-xs">
               Start free trail
               <img :src="dotArrow" class="size-4">
             </Button>
-            <Button variant="outline" class="w-full md:w-fit h-12 px-6 py-3 bg-[#E7E5E4] border-0 text-black rounded-sm font-medium">
+            <Button variant="outline" class="w-full md:w-fit h-12 px-6 py-3 bg-[#E7E5E4] border-0 text-black rounded-xs font-medium">
               Book a demo
             </Button>
           </div>

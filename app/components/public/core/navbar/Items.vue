@@ -38,11 +38,11 @@ const items = [
       </li>
     </ul>
     <div class="w-full md:w-fit flex flex-col md:flex-row-reverse justify-end items-center gap-3">
-      <Button class="h-12 w-full md:w-fit px-10 py-3 bg-[#1F1E1C] md:bg-[#D11E28] rounded-sm flex justify-center items-center gap-2 text-white font-medium">
+      <Button class="h-12 w-full md:w-fit px-10 py-3 bg-[#1F1E1C] md:bg-[#D11E28] rounded-xs flex justify-center items-center gap-2 text-white font-medium">
         Start free trail
         <img :src="dotArrow" class="size-4">
       </Button>
-      <Button variant="link" class="h-12 w-full md:w-fit px-10 py-3 bg-[#E7E5E4] rounded-sm text-black font-normal">
+      <Button variant="link" class="h-12 w-full md:w-fit px-10 py-3 bg-[#E7E5E4] rounded-xs text-black font-normal">
         Sign in
       </Button>
     </div>

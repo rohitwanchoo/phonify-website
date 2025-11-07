@@ -59,7 +59,7 @@ const cards = [
       </div>
 
       <div class="flex justify-center">
-        <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white hover:bg-[#33312F] rounded-b-sm">
+        <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white hover:bg-[#33312F] rounded-xs">
           View more
           <img :src="dotArrow" alt="icon" class="size-4">
         </Button>

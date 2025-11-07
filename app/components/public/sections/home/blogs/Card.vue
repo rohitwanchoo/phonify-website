@@ -1,4 +1,5 @@
 <script setup>
+import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
 
 defineProps({
@@ -34,9 +35,10 @@ defineProps({
         class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500"
       >
         <Button
-          class="bg-[#D11E28] rounded-sm text-white font-medium px-5 py-2 shadow-md transform translate-y-10 group-hover:translate-y-0 transition-all duration-500"
+          class="bg-[#D11E28] rounded-xs text-white font-medium px-5 py-2 shadow-md transform translate-y-10 group-hover:translate-y-0 transition-all duration-500"
         >
-          Read More
+          Read Article
+          <img :src="dotArrow" alt="icon" class="size-4">
         </Button>
       </div>
     </div>
