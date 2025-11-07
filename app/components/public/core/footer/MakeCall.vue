@@ -1,4 +1,5 @@
 <script setup>
+import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
 </script>
 
@@ -16,7 +17,7 @@ import { Button } from '~/components/ui/button'
       <div class="flex flex-col md:flex-row justify-center items-center gap-3 mt-4 md:mt-8">
         <Button class="h-12 w-full md:w-fit bg-[#D11E28] text-white rounded-sm">
           Start free trial
-          <Icon name="material-symbols:arrow-right" size="16" />
+          <img :src="dotArrow" class="size-4">
         </Button>
         <Button variant="outline" class="h-12 w-full md:w-fit bg-white/5 border border-white/40 text-white rounded-sm font-medium px-8">
           Book a demo
