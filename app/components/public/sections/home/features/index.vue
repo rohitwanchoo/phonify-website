@@ -106,7 +106,7 @@ watch(selectedItem, (_newVal) => {
   }
 })
 
-// onMounted(startTimer)
+onMounted(startTimer)
 
 onBeforeUnmount(() => {
   observer?.disconnect()
