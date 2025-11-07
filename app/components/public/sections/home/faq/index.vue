@@ -29,7 +29,8 @@ function toggleItem(value) {
     <div class="flex flex-col gap-5">
       <h1 class="font-light text-base">
         <span
-          class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]" />
+          class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]"
+        />
         FAQ’s
       </h1>
       <h2 class="font-medium text-2xl sm:text-4xl md:text-5xl leading-tight">
@@ -41,11 +42,14 @@ function toggleItem(value) {
    
     <div class="flex-1 ml-0 lg:ml-10">
       <Accordion type="single" collapsible class="space-y-3">
-        <AccordionItem v-for="(faq, index) in faqs" :key="index" :value="`item-${index}`"
-          class="border-dashed border-b-2 p-3">
+        <AccordionItem
+          v-for="(faq, index) in faqs" :key="index" :value="`item-${index}`"
+          class="border-dashed border-b-2 p-3"
+        >
           <AccordionTrigger
             class="text-base sm:text-lg md:text-xl font-medium cursor-pointer hover:no-underline flex justify-between items-center w-full"
-            @click="toggleItem(`item-${index}`)">
+            @click="toggleItem(`item-${index}`)"
+          >
             {{ faq.question }}
             <!-- <template #icon>
               <div class="border bg-[#F8F3F0] rounded-xs p-2 h-[42px] w-[42px] flex items-center justify-center">
@@ -56,8 +60,10 @@ function toggleItem(value) {
             </template> -->
           </AccordionTrigger>
 
-          <AccordionContent v-show="openItem === `item-${index}`"
-            class="text-[#44403C] text-sm md:text-base font-normal leading-relaxed">
+          <AccordionContent
+            v-show="openItem === `item-${index}`"
+            class="text-[#44403C] text-sm md:text-base font-normal leading-relaxed"
+          >
             {{ faq.answer }}
           </AccordionContent>
         </AccordionItem>

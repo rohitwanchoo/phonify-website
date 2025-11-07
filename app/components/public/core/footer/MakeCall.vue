@@ -15,11 +15,11 @@ import { Button } from '~/components/ui/button'
         Try Phonify and see how simple call management can be.
       </p>
       <div class="flex flex-col md:flex-row justify-center items-center gap-3 mt-4 md:mt-8">
-        <Button class="h-12 w-full md:w-fit bg-[#D11E28] text-white rounded-sm">
+        <Button class="h-12 w-full md:w-fit bg-[#D11E28] text-white rounded-xs">
           Start free trial
           <img :src="dotArrow" class="size-4">
         </Button>
-        <Button variant="outline" class="h-12 w-full md:w-fit bg-white/5 border border-white/40 text-white rounded-sm font-medium px-8">
+        <Button variant="outline" class="h-12 w-full md:w-fit bg-white/5 border border-white/40 text-white rounded-xs font-medium px-8">
           Book a demo
         </Button>
       </div>
