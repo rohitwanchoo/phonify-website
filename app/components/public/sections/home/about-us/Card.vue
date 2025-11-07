@@ -2,9 +2,12 @@
 import { ref } from 'vue'
 
 defineProps({
-    icon: String, // base icon name without "-outline"
-    value: String,
-    description: String,
+  icon: String, // base icon name without "-outline"
+  value: String,
+  description: String,
+  icon: String, // base icon name without "-outline"
+  value: String,
+  description: String,
 })
 
 const isHovered = ref(false)
@@ -21,22 +24,27 @@ const isHovered = ref(false)
         <div
             class="absolute inset-0 bg-black origin-top-left scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out z-0" />
 
-        <!-- Icon -->
-        <div
-            class="relative z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-[2px] border border-[#0000001A] bg-[#F5F5F4] transition-all duration-300 group-hover:bg-white">
-            <Icon :name="isHovered ? icon : `${icon}-outline`" size="25"
-                :class="isHovered ? 'text-[#D11E28] transition-colors duration-300' : 'text-black transition-colors duration-300'" />
-        </div>
-
-        <!-- Text Content -->
-        <div
-            class="relative z-10 flex flex-col md:gap-2 justify-center sm:justify-between sm:items-start flex-1 overflow-hidden transition-colors duration-500">
-            <h3 class="text-2xl sm:text-3xl md:text-5xl font-semibold transition-colors duration-500"
-                :class="isHovered ? 'text-white' : 'text-[#D11E28]'">
-                {{ value }}
-            </h3>
-            <p class="italic font-normal text-sm sm:text-xl leading-tight break-words transition-colors duration-500"
-                :class="isHovered ? 'text-white' : 'text-[#44403C]'" v-html="description" />
-        </div>
+    <!-- Icon -->
+    <div
+      class="relative z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-[2px] border border-[#0000001A] bg-[#F5F5F4] transition-all duration-300 group-hover:bg-white"
+    >
+      <Icon
+        :name="isHovered ? icon : `${icon}-outline`" size="25"
+        :class="isHovered ? 'text-[#D11E28] transition-colors duration-300' : 'text-black transition-colors duration-300'"
+      />
     </div>
+
+    <!-- Text Content -->
+    <div
+      class="relative z-10 flex flex-col md:gap-2 justify-center sm:justify-between sm:items-start flex-1 overflow-hidden transition-colors duration-500"
+    >
+      <h3
+        class="text-2xl sm:text-3xl md:text-5xl font-semibold transition-colors duration-500"
+        :class="isHovered ? 'text-white' : 'text-[#D11E28]'"
+      >
+        {{ value }}
+      </h3>
+      <p class="italic font-normal text-sm sm:text-xl leading-tight break-words transition-colors duration-500" :class="isHovered ? 'text-white' : 'text-[#44403C]'" v-html="description" />
+    </div>
+  </div>
 </template>

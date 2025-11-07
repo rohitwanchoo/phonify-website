@@ -1,4 +1,5 @@
 <script setup>
+import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
 </script>
 
@@ -29,7 +30,7 @@ import { Button } from '~/components/ui/button'
           <div class="flex justify-end items-center gap-3 flex-col md:flex-row">
             <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white rounded-sm">
               Start free trail
-              <Icon name="material-symbols:arrow-right" size="16" />
+              <img :src="dotArrow" class="size-4">
             </Button>
             <Button variant="outline" class="w-full md:w-fit h-12 px-6 py-3 bg-[#E7E5E4] border-0 text-black rounded-sm font-medium">
               Book a demo
@@ -38,8 +39,8 @@ import { Button } from '~/components/ui/button'
         </div>
       </div>
       <div class="w-full rounded-md">
-      <img src="/images/website/sections/home/hero-img.png" alt="image" class="w-full hidden md:block">
-      <img src="/images/website/sections/home/hero-mob.png" alt="image" class="w-full md:hidden">
+        <img src="/images/website/sections/home/hero-img.png" alt="image" class="w-full hidden md:block">
+        <img src="/images/website/sections/home/hero-mob.png" alt="image" class="w-full md:hidden">
       </div>
     </div>
   </div>
