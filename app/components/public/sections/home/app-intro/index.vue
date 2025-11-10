@@ -27,7 +27,7 @@
       <!-- App Mockup Section -->
       <div class="relative w-full flex flex-col items-center text-center h-auto">
         <!-- Mobile Cards Section (Flex Column Layout) -->
-        <div class="relative  flex flex-col items-center   w-full block sm:hidden">
+        <div class="relative flex flex-col items-center w-full sm:hidden">
           <img
             src="/images/phonify-web/app-intro/mockup-holding.png" alt="Analytics Overview"
             class="w-[188px] h-[280px]"

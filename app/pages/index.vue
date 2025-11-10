@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Set page title
 useHead({
-  title: 'Phonify - Secure Authentication System',
+  title: 'Phonify',
 })
 definePageMeta({
-  layout: 'empty',
+  layout: 'website',
 })
 </script>
 

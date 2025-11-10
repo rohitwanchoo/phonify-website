@@ -1,93 +1,169 @@
 <script setup>
-import { PublicSectionsHomeBlogsCard } from '#components'
-import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
 
-const categories = [
+const route = useRoute()
+const router = useRouter()
+
+const currentPage = ref(1)
+const pageCount = ref(1)
+const blogsPerPage = 9
+
+const currentPageBlogs = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+async function fetchBlogs() {
+  loading.value = true
+  error.value = null
+
+  try {
+    const { data, total_items } = await $fetch('https://api.iocod.com/api/list-blogs', {
+      method: 'post',
+      body: {
+        page: currentPage.value,
+        per_page: blogsPerPage,
+        category: route?.query?.tab || undefined,
+      },
+    })
+    currentPageBlogs.value = data || []
+    pageCount.value = Math.ceil(total_items / blogsPerPage)
+  }
+  catch (err) {
+    showToast({
+      message: err.message,
+      type: 'error',
+    })
+    currentPageBlogs.value = []
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+function handlePageUpdate(newPage) {
+  currentPage.value = newPage
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  fetchBlogs()
+}
+
+const tabList = [
   {
-    name: 'All Blogs',
-    active: true,
+    label: 'All Category',
+    value: null,
   },
   {
-    name: 'New Features',
-    active: false,
+    label: 'Blogs',
+    value: 'blogs',
   },
   {
-    name: 'Marketing',
-    active: false,
+    label: 'Events',
+    value: 'events',
   },
   {
-    name: 'Technology',
-    active: false,
-  },
-  {
-    name: 'New Updates',
-    active: false,
-  },
-  {
-    name: 'Tips & Tricks',
-    active: false,
-  },
-  {
-    name: 'About Us',
-    active: false,
+    label: 'News',
+    value: 'news',
   },
 ]
 
-const cards = [
-  {
-    title: '5 Ways to Boost Agent Productivity with Smart Automation',
-    image: '/images/phonify-web/blogs/productivity.png',
-    description: 'Explore practical strategies to help your agents perform better ',
-    date: '20 October 2025',
-    author: 'John Doe',
-  },
-  {
-    title: 'Building a Multi-Channel Customer Engagement Strategy',
-    image: '/images/phonify-web/blogs/customer.png',
-    description: 'Today’s customers expect more than calls — they want ',
-    date: '20 October 2025',
-    author: 'John Doe',
-  },
-  {
-    title: 'From Calls to Conversions: How Phonify Simplifies Lead Management',
-    image: '/images/phonify-web/blogs/lead-management.png',
-    description: 'Learn how Phonify’s built-in lead management tools streamline ',
-    date: '20 October 2025',
-    author: 'John Doe',
-  },
-]
+function handleTabClick(tabValue) {
+  currentPage.value = 1
+  if (tabValue) {
+    router.replace({ query: { tab: tabValue } })
+  }
+  else {
+    router.replace({ query: {} })
+  }
+}
+
+function isActiveTab(tabValue) {
+  if (tabValue === null) {
+    return !route?.query?.tab
+  }
+  return route?.query?.tab === tabValue
+}
+
+// Watch for route changes and fetch blogs
+watch(() => route.query.tab, () => {
+  fetchBlogs()
+}, { immediate: true })
+
+// SEO Meta tags
+useHead({
+  title: computed(() => {
+    const category = route?.query?.tab
+    return category
+      ? `${category.charAt(0).toUpperCase() + category.slice(1)} - Blog`
+      : 'All Blogs'
+  }),
+  meta: [
+    {
+      name: 'description',
+      content: 'Boost agent productivity and efficiency with our advanced dialer that automates and streamlines outbound calls.',
+    },
+  ],
+})
 </script>
 
 <template>
   <div class="max-w-[1440px] mx-auto w-full px-4 lg:px-28 py-8 lg:py-16 space-y-6 lg:space-y-10">
+    <!-- Header Section -->
     <div class="flex gap-3 flex-col lg:flex-row lg:justify-between lg:items-center">
-      <h2 class="text-stone-900 text-xl lg:text-5xl font-medium capitalize">
-        Lorem ipsum dolor.
-      </h2>
-      <p class="text-stone-700 text-base lg:text-xl font-extralight leading-8">
-        Lorem ipsum dolor sit amet consectetur. Non eget in viverra orci.
+      <h1 class="text-stone-900 text-xl lg:text-5xl font-medium capitalize">
+        Blogs
+      </h1>
+      <p class="max-w-xl text-stone-700 text-base lg:text-xl font-extralight leading-8">
+        Boost agent productivity and efficiency with our advanced dialer that automates and streamlines outbound calls.
       </p>
     </div>
-    <div class="flex items-center lg:justify-center gap-5 overflow-x-auto">
-      <Button v-for="category in categories" :key="category.name" :variant="category.active ? 'default' : 'outline'" :class="category.active ? 'bg-stone-900' : 'border-stone-300 text-stone-700'" class="h-12 rounded-xs">
-        {{ category.name }}
+
+    <!-- Category Tabs -->
+    <div
+      class="flex items-center lg:justify-center gap-5 overflow-x-auto pb-2 lg:pb-0"
+      role="tablist"
+      aria-label="Blog categories"
+    >
+      <Button
+        v-for="category in tabList"
+        :key="category.label"
+        :variant="isActiveTab(category.value) ? 'default' : 'outline'"
+        :class="isActiveTab(category.value) ? 'bg-stone-900' : 'border-stone-300 text-stone-700'"
+        :aria-selected="isActiveTab(category.value)"
+        role="tab"
+        class="h-12 rounded-xs whitespace-nowrap"
+        @click="handleTabClick(category.value)"
+      >
+        {{ category.label }}
       </Button>
     </div>
+
     <hr class="w-full h-[0.50px] border-[0.50px] border-zinc-300 border-dashed">
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Loading state -->
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-for="n in blogsPerPage" :key="n" class="bg-white border border-[#E7E5E4] p-4">
+        <BaseSkelton class="w-full aspect-video mb-4" rounded="rounded-sm" />
+        <BaseSkelton class="h-6 w-3/4 mb-2" />
+        <BaseSkelton class="h-4 w-full mb-2" />
+        <BaseSkelton class="h-4 w-2/3" />
+      </div>
+    </div>
+
+    <!-- Blog Grid -->
+    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <PublicSectionsHomeBlogsCard
-        v-for="(card, index) in cards" :key="index" :title="card.title" :image="card.image"
-        :description="card.description" :date="card.date" :author="card.author"
+        v-for="card in currentPageBlogs"
+        :key="card?.id"
+        :data="card"
       />
     </div>
 
-    <div class="flex justify-center">
-      <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white hover:bg-[#33312F] rounded-xs">
-        View more
-        <img :src="dotArrow" alt="icon" class="size-4 rotate-90">
-      </Button>
+    <!-- Pagination -->
+    <div v-if="!loading && !error && pageCount > 1" class="flex justify-center">
+      <PublicBasePagination
+        :current-page="currentPage"
+        :page-count="pageCount"
+        @change="handlePageUpdate"
+      />
     </div>
   </div>
 </template>

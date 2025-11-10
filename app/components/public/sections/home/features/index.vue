@@ -28,7 +28,7 @@ const options = [
     image: '/images/website/sections/home/feature4.png',
     duration: 5000,
   },
-    {
+  {
     label: 'Security made effortless',
     title: 'Stay protected. Stay in charge',
     content: 'User roles, IP limits, and activity logs — all managed with ease. Simple, solid security and full visibility.',
