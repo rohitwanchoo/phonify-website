@@ -10,11 +10,9 @@ const blogsPerPage = 9
 
 const currentPageBlogs = ref([])
 const loading = ref(false)
-const error = ref(null)
 
 async function fetchBlogs() {
   loading.value = true
-  error.value = null
 
   try {
     const { data, total_items } = await $fetch('https://api.iocod.com/api/list-blogs', {
@@ -158,7 +156,7 @@ useHead({
     </div>
 
     <!-- Pagination -->
-    <div v-if="!loading && !error && pageCount > 1" class="flex justify-center">
+    <div v-if="!loading && pageCount > 1" class="flex justify-center">
       <PublicBasePagination
         :current-page="currentPage"
         :page-count="pageCount"

@@ -115,7 +115,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full bg-white px-4 md:px-28 py-8 md:py-24">
+  <div id="features" class="w-full bg-white px-4 md:px-28 py-8 md:py-24">
     <div class="max-w-[1440px] mx-auto w-full space-y-6 md:space-y-16">
       <div class="space-y-4 md:space-y-5">
         <p class="text-stone-800 text-base font-light">

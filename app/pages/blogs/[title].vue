@@ -181,13 +181,13 @@ watch(data, async () => {
                 >
                   <Icon name="lucide:move-right" size="10" :class="activeSection === item?.id ? 'text-white' : 'text-red-600'" />
                 </div>
-                <button
+                <NuxtLink
                   class="text-black/80 text-base font-normal hover:underline cursor-pointer text-left"
                   :class="{ 'underline text-red-600 font-medium': activeSection === item?.id }"
                   @click="scrollToSection(item?.id)"
                 >
                   {{ item?.text }}
-                </button>
+                </NuxtLink>
               </div>
               <div
                 v-for="(subItem, subIndex) in item?.subHeadings"
@@ -200,13 +200,13 @@ watch(data, async () => {
                 >
                   <Icon name="lucide:move-right" size="10" :class="activeSection === subItem?.id ? 'text-white' : 'text-red-600'" />
                 </div>
-                <button
+                <NuxtLink
                   class="grow shrink basis-0 text-black/70 text-base font-normal hover:underline cursor-pointer text-left"
                   :class="{ 'underline text-red-600 font-medium': activeSection === subItem?.id }"
                   @click="scrollToSection(subItem?.id)"
                 >
                   {{ subItem?.text }}
-                </button>
+                </NuxtLink>
               </div>
             </div>
           </div>

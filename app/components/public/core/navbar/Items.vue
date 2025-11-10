@@ -11,7 +11,7 @@ const items = [
   },
   {
     name: 'Features',
-    link: '/features',
+    link: '#features',
   },
   {
     name: 'Pricing',
