@@ -38,31 +38,31 @@ const company = [
     name: 'Features',
     link: '/features',
   },
-  {
-    name: 'Pricing',
-    link: '/pricing',
-  },
+  // {
+  //   name: 'Pricing',
+  //   link: '/pricing',
+  // },
   {
     name: 'Blogs',
     link: '/blogs',
   },
-  {
-    name: 'Contact us',
-    link: '/contact-us',
-  },
+  // {
+  //   name: 'Contact us',
+  //   link: '/contact-us',
+  // },
 ]
 
 const address = [
+  // {
+  //   value: '+1 (341) 882-7279',
+  //   icon: phone,
+  // },
   {
-    value: '+1 (341) 882-7279',
-    icon: phone,
-  },
-  {
-    value: 'Phonify@gmail.com',
+    value: 'info@phonify.app',
     icon: email,
   },
   {
-    value: '75467 Poplar Avenue, Spring Hill 62595',
+    value: 'PHONIFY INC <br> 501 Saddle Ridge Rd <br> Woodmere, NY, 11598',
     icon: location,
   },
 ]
@@ -80,14 +80,14 @@ const address = [
               Smarter calls. Faster growth. Phonify’s AI phone system scales productivity and efficiency like never before.
             </p>
             <ul class="flex gap-6 items-center mt-2">
-              <li v-for="item in social" :key="item.link">
+              <!-- <li v-for="item in social" :key="item.link">
                 <NuxtLink :to="item.link">
                   <img :src="item.icon" alt="facebook logo">
                 </NuxtLink>
-              </li>
+              </li> -->
             </ul>
           </div>
-          <div class="w-full flex flex-col lg:flex-row justify-between items-start gap-6 lg:gap-20">
+          <div class="w-full flex flex-col lg:flex-row justify-start items-start gap-6 lg:gap-20">
             <div class="flex flex-col justify-center items-start gap-4">
               <div class="justify-start text-black font-medium leading-6">
                 Company
@@ -107,13 +107,12 @@ const address = [
                   <div class="w-6 h-6 flex justify-center items-center bg-stone-200 rounded-full">
                     <img :src="item.icon" alt="phone logo" class="w-3.5 h-3.5">
                   </div>
-                  <div class="justify-start text-stone-900 font-light leading-6">
-                    {{ item.value }}
+                  <div v-html="item.value" class="justify-start text-stone-900 font-light leading-6">
                   </div>
                 </div>
               </div>
             </div>
-            <div class="w-full lg:w-fit px-3 py-4 lg:py-6 lg:px-6 bg-stone-100 rounded-lg outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-center items-center gap-3 lg:gap-4">
+            <!-- <div class="w-full lg:w-fit px-3 py-4 lg:py-6 lg:px-6 bg-stone-100 rounded-lg outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-center items-center gap-3 lg:gap-4">
               <div class="justify-start text-black font-medium leading-6">
                 Download App
               </div>
@@ -125,7 +124,7 @@ const address = [
                   <img :src="appStore" alt="download app">
                 </NuxtLink>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="w-full px-4 lg:px-14 py-5 lg:py-8 border-t border-gray-800/5 text-center text-zinc-800 text-xs font-extralight leading-6">

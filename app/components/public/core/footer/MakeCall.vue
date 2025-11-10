@@ -15,13 +15,16 @@ import { Button } from '~/components/ui/button'
         Try Phonify and see how simple call management can be.
       </p>
       <div class="flex flex-col lg:flex-row justify-center items-center gap-3 mt-4 lg:mt-8">
-        <Button class="h-12 w-full lg:w-fit bg-[#D11E28] text-white rounded-xs">
+        <!-- <Button class="h-12 w-full lg:w-fit bg-[#D11E28] text-white rounded-xs">
           Start free trial
           <img :src="dotArrow" class="size-4">
-        </Button>
-        <Button variant="outline" class="h-12 w-full lg:w-fit bg-white/5 border border-white/40 text-white rounded-xs font-medium px-8">
-          Book a demo
-        </Button>
+        </Button> -->
+        <NuxtLink to="/" class="h-12 w-full lg:w-fit bg-[#D11E28] text-white rounded-xs">
+          <Button variant="outline" class="h-12 w-full lg:w-fit bg-white/5 border border-white/40 text-white rounded-xs font-medium px-8">
+            Book a Demo
+          </Button>
+        </NuxtLink>
+        
       </div>
     </div>
   </div>

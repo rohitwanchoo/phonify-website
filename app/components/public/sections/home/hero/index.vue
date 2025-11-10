@@ -18,7 +18,7 @@ import { Button } from '~/components/ui/button'
           </div>
           <div class="max-w-[600px] justify-start leading md:leading-[76px] text-3xl md:text-6xl">
             <span class="text-neutral-800 font-medium">
-              Built to Power Every Call Center, With <br>
+              Built to Power Every Phone System, With <br>
             </span>
             <span class="text-[#D11E28] font-semibold italic">AI at the Core.</span>
           </div>
@@ -28,13 +28,15 @@ import { Button } from '~/components/ui/button'
             For call centers where every second counts.<br>Phonify’s AI cuts the clutter, automates the routine, and keeps your team moving efficiently from call to call.
           </p>
           <div class="flex justify-end items-center gap-3 flex-col md:flex-row">
-            <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white rounded-xs">
+            <!-- <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white rounded-xs">
               Start free trail
               <img :src="dotArrow" class="size-4">
-            </Button>
-            <Button variant="outline" class="w-full md:w-fit h-12 px-6 py-3 bg-[#E7E5E4] border-0 text-black rounded-xs font-medium">
-              Book a demo
-            </Button>
+            </Button> -->
+            <NuxtLink to="/" class="w-full md:w-fit">
+              <Button variant="outline" class="w-full md:w-fit h-12 px-6 py-3 bg-[#E7E5E4] border-0 text-black rounded-xs font-medium">
+                Book a demo
+              </Button>
+            </NuxtLink>
           </div>
         </div>
       </div>
