@@ -39,8 +39,7 @@ function toggleItem(value) {
       </h2>
     </div>
 
-    <!-- Right Section -->
-    <!-- 👇 Key fix here -->
+   
     <div class="flex-1 ml-0 lg:ml-10">
       <Accordion type="single" collapsible class="space-y-3">
         <AccordionItem
