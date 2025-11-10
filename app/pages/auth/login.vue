@@ -11,9 +11,14 @@ const router = useRouter()
 
 // Form state
 // TODO: Remove this after testing
+// const form = ref({
+//   email: 'demo_crm@iocod.com',
+//   password: 'demo@1990',
+// })
+
 const form = ref({
-  email: 'demo_crm@iocod.com',
-  password: 'demo@1990',
+  email: '',
+  password: '',
 })
 
 const isLoading = ref(false)
@@ -70,7 +75,7 @@ function handleKeyPress(event) {
         v-model="form.email"
         type="email"
         class="w-full h-[52px] border border-[#E0E8E7] p-[16px] rounded-[8px] bg-[#F8F8F8]"
-        placeholder="Enter your email..."
+        placeholder="Enter your Email"
         :disabled="isLoading"
         @keypress="handleKeyPress"
       >
@@ -82,7 +87,7 @@ function handleKeyPress(event) {
         v-model="form.password"
         type="password"
         class="w-full h-[52px] border border-[#E0E8E7] p-[16px] rounded-[8px] bg-[#F8F8F8]"
-        placeholder="Enter Password..."
+        placeholder="Enter Password"
         :disabled="isLoading"
         @keypress="handleKeyPress"
       >
