@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
           Your complete call center solution
         </h1>
       </div>
-      <div class="flex items-start md:items-center flex-col md:flex-row gap-6 md:gap-[100px]">
+      <div class="flex items-start justify-between md:items-center flex-col md:flex-row gap-6 md:gap-[100px]">
         <div class="w-full md:max-w-96 flex flex-row md:flex-col gap-4 md:gap-0 overflow-x-auto">
           <div
             v-for="(item, index) in options"
@@ -154,16 +154,16 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
-        <div class="w-full py-4 md:py-8 bg-[#F8F3F0] rounded-sm outline outline-offset-[-1px] outline-stone-100 flex flex-col justify-start items-start overflow-hidden">
+        <div class="max-w-[745px] h-fit w-full py-4 md:py-8 bg-[#F8F3F0] rounded-sm outline outline-offset-[-1px] outline-stone-100 flex flex-col justify-start items-start">
           <div class="w-full pt-1.5 md:pt-3 px-3 md:px-6 space-y-5 md:space-y-10">
             <h2 class="text-base md:text-3xl font-medium text-zinc-900">
               {{ options[selectedItem].title }}
             </h2>
-            <div class="w-full h-96">
-              <img :src="options[selectedItem].image" alt="" class="w-full h-full">
+            <div class="w-full md:h-96">
+              <img :src="options[selectedItem].image" alt="" class="w-full h-full object-contain">
             </div>
           </div>
-          <p class="text-stone-700 text-sm md:text-base leading-6 line-clamp-3 p-3 md:p-6">
+          <p class="text-stone-700 text-sm md:text-base leading-6 p-3 md:p-6">
             {{ options[selectedItem].content }}
           </p>
         </div>
