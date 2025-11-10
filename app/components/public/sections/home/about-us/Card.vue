@@ -14,15 +14,18 @@ const isHovered = ref(false)
 </script>
 
 <template>
-    <div class="relative group flex flex-row sm:flex-col justify-between border border-[#F2F3F0] bg-[#FDFDFD] rounded-[2px]
+  <div
+    class="relative group flex flex-row sm:flex-col justify-between border border-[#F2F3F0] bg-[#FDFDFD] rounded-[2px]
            w-full max-w-[361px] min-h-[94px] md:w-[300px] md:h-[350px]
            px-4 py-5 md:p-8 md:pl-4
            gap-[19px] md:gap-32
            mx-auto box-border overflow-hidden cursor-pointer transition-all duration-500 ease-in-out"
-        @mouseover="isHovered = true" @mouseleave="isHovered = false">
-        <!-- Background hover effect -->
-        <div
-            class="absolute inset-0 bg-black origin-top-left scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out z-0" />
+    @mouseover="isHovered = true" @mouseleave="isHovered = false"
+  >
+    <!-- Background hover effect -->
+    <div
+      class="absolute inset-0 bg-black origin-top-left scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out z-0"
+    />
 
     <!-- Icon -->
     <div

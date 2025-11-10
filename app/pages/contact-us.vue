@@ -1,12 +1,13 @@
 <script setup lang="ts">
 // Set page title
 useHead({
-    title: 'Phonify - Secure Authentication System',
+  title: 'Phonify - Secure Authentication System',
 })
 definePageMeta({
-    layout: 'empty',
+  layout: 'website',
 })
 </script>
+
 <template>
-    <PublicSectionsContactUsForm/>
+  <PublicSectionsContactUsForm />
 </template>

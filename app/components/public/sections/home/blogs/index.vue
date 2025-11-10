@@ -1,31 +1,40 @@
 <script setup>
-import blogsCard from '@/components/public/sections/home/blogs/Card.vue'
 import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
 
-const cards = [
-  {
-    title: '5 Ways to Boost Agent Productivity with Smart Automation',
-    image: '/images/phonify-web/blogs/productivity.png',
-    description: 'Explore practical strategies to help your agents perform better ',
-    date: '20 October 2025',
-    author: 'John Doe',
-  },
-  {
-    title: 'Building a Multi-Channel Customer Engagement Strategy',
-    image: '/images/phonify-web/blogs/customer.png',
-    description: 'Today’s customers expect more than calls — they want ',
-    date: '20 October 2025',
-    author: 'John Doe',
-  },
-  {
-    title: 'From Calls to Conversions: How Phonify Simplifies Lead Management',
-    image: '/images/phonify-web/blogs/lead-management.png',
-    description: 'Learn how Phonify’s built-in lead management tools streamline ',
-    date: '20 October 2025',
-    author: 'John Doe',
-  },
-]
+const currentPage = ref(1)
+
+const blogsPerPage = 6
+
+const currentPageBlogs = ref([])
+const loading = ref(false)
+
+async function fetchBlogs() {
+  loading.value = true
+  try {
+    const { data } = await $fetch('https://api.iocod.com/api/list-blogs', {
+      method: 'post',
+      body: {
+        page: currentPage.value,
+        per_page: blogsPerPage,
+      },
+    })
+    currentPageBlogs.value = data
+  }
+  catch (error) {
+    showToast({
+      message: error.message,
+      type: 'error',
+    })
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchBlogs()
+})
 </script>
 
 <template>
@@ -51,18 +60,33 @@ const cards = [
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6">
-        <blogsCard
-          v-for="(card, index) in cards" :key="index" :title="card.title" :image="card.image"
-          :description="card.description" :date="card.date" :author="card.author"
-        />
+      <!-- Loading state -->
+      <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="n in blogsPerPage" :key="n" class="bg-white border border-[#E7E5E4] p-4">
+          <BaseSkelton class="w-full aspect-video mb-4" rounded="rounded-sm" />
+          <BaseSkelton class="h-6 w-3/4 mb-2" />
+          <BaseSkelton class="h-4 w-full mb-2" />
+          <BaseSkelton class="h-4 w-2/3" />
+        </div>
+      </div>
+
+      <!-- Blog cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="card in currentPageBlogs" :key="card?.id">
+          <PublicSectionsHomeBlogsCard
+            :data="card"
+            class="h-full"
+          />
+        </div>
       </div>
 
       <div class="flex justify-center">
-        <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white hover:bg-[#33312F] rounded-xs">
-          View more
-          <img :src="dotArrow" alt="icon" class="size-4">
-        </Button>
+        <NuxtLink to="/blogs">
+          <Button class="w-full md:w-fit h-12 px-6 py-3 bg-[#1F1E1C] text-white hover:bg-[#33312F] rounded-xs">
+            View more
+            <img :src="dotArrow" alt="icon" class="size-4">
+          </Button>
+        </NuxtLink>
       </div>
     </div>
   </div>

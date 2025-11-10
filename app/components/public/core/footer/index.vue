@@ -71,9 +71,9 @@ const address = [
 <template>
   <PublicCoreFooterMakeCall />
   <div class="w-full bg-gradient-to-b from-white/0 to-white">
-    <footer class="max-w-[1440px] mx-auto w-full pt-8 md:pt-[100px] px-4">
-      <div class="w-full pt-6 md:pt-20 bg-white rounded-3xl shadow-[0px_30px_50px_0px_rgba(0,0,0,0.05)] outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-start items-center gap-6 md:gap-20 overflow-hidden">
-        <div class="w-full px-4 md:px-20 flex flex-col md:flex-row justify-start items-center gap-6 md:gap-20">
+    <footer class="max-w-[1440px] mx-auto w-full pt-8 lg:pt-[100px] px-4">
+      <div class="w-full pt-6 lg:pt-20 bg-white rounded-3xl shadow-[0px_30px_50px_0px_rgba(0,0,0,0.05)] outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-start items-center gap-6 lg:gap-20 overflow-hidden">
+        <div class="w-full px-4 lg:px-20 flex flex-col lg:flex-row justify-start items-center gap-6 lg:gap-20">
           <div class="max-w-[420px] w-full flex flex-col justify-start items-start gap-6">
             <img :src="logo" alt="phonify logo">
             <p class="justify-start text-stone-700 leading-6">
@@ -87,7 +87,7 @@ const address = [
               </li>
             </ul>
           </div>
-          <div class="w-full flex flex-col md:flex-row justify-between items-start gap-6 md:gap-20">
+          <div class="w-full flex flex-col lg:flex-row justify-between items-start gap-6 lg:gap-20">
             <div class="flex flex-col justify-center items-start gap-4">
               <div class="justify-start text-black font-medium leading-6">
                 Company
@@ -113,11 +113,11 @@ const address = [
                 </div>
               </div>
             </div>
-            <div class="w-full md:w-fit px-3 py-4 md:py-6 md:px-6 bg-stone-100 rounded-lg outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-center items-center gap-3 md:gap-4">
+            <div class="w-full lg:w-fit px-3 py-4 lg:py-6 lg:px-6 bg-stone-100 rounded-lg outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-center items-center gap-3 lg:gap-4">
               <div class="justify-start text-black font-medium leading-6">
                 Download App
               </div>
-              <div class="flex flex-row md:flex-col justify-center items-center gap-3 md:gap-4">
+              <div class="flex flex-row lg:flex-col justify-center items-center gap-3 lg:gap-4">
                 <NuxtLink to="#">
                   <img :src="playStore" alt="download app">
                 </NuxtLink>
@@ -128,12 +128,12 @@ const address = [
             </div>
           </div>
         </div>
-        <div class="w-full px-4 md:px-14 py-5 md:py-8 border-t border-gray-800/5 text-center text-zinc-800 text-xs md font-extralight leading-6">
+        <div class="w-full px-4 lg:px-14 py-5 lg:py-8 border-t border-gray-800/5 text-center text-zinc-800 text-xs font-extralight leading-6">
           © 2025 Phonify. All rights reserved
         </div>
       </div>
     </footer>
-    <div class="mt-6 md:mt-12">
+    <div class="mt-6 lg:mt-12">
       <div class="max-w-[1440px] mx-auto w-full px-4 relative">
         <img src="/images/website/footer/phonify-name.png" alt="phonify logo">
         <div class="h-full w-full bg-gradient-to-b from-white/0 to-white absolute bottom-0 left-0" />
