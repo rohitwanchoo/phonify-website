@@ -21,10 +21,10 @@ const items = [
     name: 'Blogs',
     link: '/blogs',
   },
-  // {
-  //   name: 'Contact Us',
-  //   link: '/contact-us',
-  // },
+  {
+    name: 'Contact Us',
+    link: '/contact-us',
+  },
 ]
 </script>
 
