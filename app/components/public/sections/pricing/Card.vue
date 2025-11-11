@@ -51,7 +51,7 @@ const _props = defineProps({
             </span>
           </p>
         </li>
-        <li v-if="plan.unlimitedCalls !== 'hidden'" class="flex items-center gap-2.5" :class="{ 'opacity-10': plan.unlimitedCalls === 'false' }">
+        <li v-if="plan.unlimitedCalls !== 'hidden'" class="flex items-center gap-2.5 relative" :class="{ 'opacity-10': plan.unlimitedCalls === 'false' }">
           <img :src="callIcon" alt="icon" class="size-[18px]">
           <p class="text-black text-sm lg:text-base">
             Unlimited
@@ -60,7 +60,7 @@ const _props = defineProps({
             </span>
           </p>
         </li>
-        <li v-if="plan.dialerCalls !== 'hidden'" class="flex items-center gap-2.5" :class="{ 'opacity-10': plan.dialerCalls === 'false' }">
+        <li v-if="plan.dialerCalls !== 'hidden'" class="flex items-center gap-2.5 relative" :class="{ 'opacity-10': plan.dialerCalls === 'false' }">
           <img :src="phoneKeypadIcon" alt="icon" class="size-[18px]">
           <p class="text-black text-sm lg:text-base">
             Dialer
@@ -68,8 +68,9 @@ const _props = defineProps({
               Calls
             </span>
           </p>
+          <hr class="w-52 h-0 border-[0.5px] border-black absolute top-[50%]" :class="plan.dialerCalls === 'false' ? 'block' : 'hidden'">
         </li>
-        <li v-if="plan.aiIntegratedCalls !== 'hidden'" class="flex items-center gap-2.5" :class="{ 'opacity-10': plan.aiIntegratedCalls === 'false' }">
+        <li v-if="plan.aiIntegratedCalls !== 'hidden'" class="flex items-center gap-2.5 relative" :class="{ 'opacity-10': plan.aiIntegratedCalls === 'false' }">
           <img :src="aiIcon" alt="icon" class="size-[18px]">
           <p class="text-black text-sm lg:text-base">
             AI Integrated
@@ -77,6 +78,7 @@ const _props = defineProps({
               Calls
             </span>
           </p>
+          <hr class="w-52 h-0 border-[0.5px] border-black absolute top-[50%]" :class="plan.aiIntegratedCalls === 'false' ? 'block' : 'hidden'">
         </li>
         <li>
           <hr class="w-full h-[0.50px] border-[0.50px] border-zinc-300 border-dashed">
