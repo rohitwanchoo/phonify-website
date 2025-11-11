@@ -15,18 +15,18 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
 
-const route = useRoute()
+// const route = useRoute()
 
-watch(() => route.path, (path) => {
-  if (path === '/app/start-dialing') {
-    navigateTo('/app/start-dialing/lead-details')
-  }
-})
+// watch(() => route.path, (path) => {
+//   if (path === '/app/start-dialing') {
+//     navigateTo('/app/start-dialing/lead-details')
+//   }
+// })
 
 const data = {
   'Main Menu': [{ title: 'Dashboard', url: '/app/dashboard', icon: 'material-symbols:dashboard', disabled: false }],
   'Communication & Lead Management': [
-    { title: 'Start Dialing', url: '/app/start-dialing', icon: 'icons:start-dialing', disabled: false },
+    { title: 'Start Dialing', url: '/app/start-dialing?tab=lead-details', icon: 'icons:start-dialing', disabled: false },
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', disabled: false, items: [
       { title: 'Campaign', url: '/app/campaign', disabled: false },
       { title: 'Agent Status', url: '/app/campaign/agent-status', disabled: false },
@@ -191,11 +191,11 @@ const data = {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px transparent; 
+  box-shadow: inset 0 0 5px transparent;
 }
- 
+
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: transparent; 
+  background: transparent;
 }
 </style>

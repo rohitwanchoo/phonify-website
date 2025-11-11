@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { Button } from '~/components/ui/button'
+
+// get list of sms template
+const { data: smsTemplates, refresh: refreshSmsTemplates, status: smsTemplatesStatus } = await useLazyAsyncData('sms-templates', () =>
+ useApi().get('/sms-templete'),{
+  transform: (res) => res.data,
+ }
+)
 </script>
 
 <template>
@@ -19,7 +26,7 @@ import { Button } from '~/components/ui/button'
 
     <!-- TABLE -->
     <div>
-      <SmsTextTemplateTable />
+      <SmsTextTemplateTable  :list="smsTemplates" />
     </div>
   </div>
 </template>

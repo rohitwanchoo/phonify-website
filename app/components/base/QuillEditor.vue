@@ -8,7 +8,9 @@ const props = defineProps<{
   contentType?: 'html' | 'text' | 'delta'
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'focus'])
+
+const editorRef = ref<typeof QuillEditor | null>(null)
 
 // Internal ref to keep sync
 const localContent = ref(props.modelValue)
@@ -100,14 +102,40 @@ onMounted(() => {
     }
   }
 })
+
+
+defineExpose({ insertMergeField })
+
+function insertMergeField(mergeField: string) {
+  const quill = editorRef.value?.getQuill()
+  if (!quill)
+    return
+
+  const selection = quill.getSelection()
+
+  if (selection) {
+    const index = selection.index
+
+    quill.insertText(index, mergeField)
+  }
+  else {
+    // Handle cases where no selection is active (e.g., insert at end)
+    quill.insertText(quill.getLength(), mergeField)
+  }
+}
+onMounted(() => {
+  // console.log(editorRef.value.hasFocus)
+})
 </script>
 
 <template>
   <div>
     <!-- Quill Editor -->
     <QuillEditor
+      ref="editorRef"
       v-model:content="localContent"
       :content-type="props.contentType || 'html'"
+      @focus="emit('focus')"
       theme="snow"
       toolbar="full"
       @update:content="updateContent"

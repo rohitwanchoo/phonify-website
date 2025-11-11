@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from '@tanstack/vue-table'
 import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
+  getPaginationRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
@@ -29,73 +36,47 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const sorting = ref([])
-const columnHelper = createColumnHelper<any>()
+interface SmsTemplate {
+  templete_id: number
+  templete_name: string
+  templete_desc: string
+  is_deleted: string // '0' for active, '1' for deleted
+}
 
-const meta = ref({
-  current_page: 1,
-  per_page: 10,
-  last_page: 5,
-  total: 50,
+
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: SmsTemplate[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
 })
 
-const data = ref([
-  {
-    id: 1,
-    template: 'Engaging Email Outreach',
-    message: 'Lorem ipsum dolor sit amet consectetur. Nibh in lobortis mauris velit.',
-    status: true,
-  },
-  {
-    id: 2,
-    template: 'New Year – Sparkling Promotions',
-    message: 'Lorem ipsum dolor sit amet consectetur. Sodales et libero.',
-    status: false,
-  },
-  {
-    id: 3,
-    template: 'Billing Boost Campaign',
-    message: 'Lorem ipsum dolor sit amet consectetur. Nulla tellus et morbi.',
-    status: true,
-  },
-  {
-    id: 4,
-    template: 'Spring Awakening Offers',
-    message: 'Lorem ipsum dolor sit amet consectetur. Id integer.',
-    status: false,
-  },
-  {
-    id: 5,
-    template: 'Summer Vibes Sale',
-    message: 'Lorem ipsum dolor sit amet consectetur. Eu.',
-    status: false,
-  },
-  {
-    id: 6,
-    template: 'Autumn Abundance Specials',
-    message: 'Lorem ipsum dolor sit amet consectetur. Sapien eget.',
-    status: true,
-  },
-  {
-    id: 7,
-    template: 'Winter Festivity Deals',
-    message: 'Lorem ipsum dolor sit amet consectetur. At eget arcu accumsan ut.',
-    status: true,
-  },
-  {
-    id: 8,
-    template: 'Joyful Holiday Campaign',
-    message: 'Lorem ipsum dolor sit amet consectetur. Nisl et dolor diam.',
-    status: true,
-  },
-  {
-    id: 9,
-    template: 'Season of Giving Promotions',
-    message: 'Lorem ipsum dolor sit amet consectetur. Iaculis nunc.',
-    status: false,
-  },
 
-])
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'limitChange'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
+
+const columnHelper = createColumnHelper<SmsTemplate>()
+
+
+// Pagination handlers
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('limitChange', val)
+  }
+}
+
+
 
 const columns = [
   columnHelper.display({
@@ -103,7 +84,7 @@ const columns = [
     header: () => h('div', { class: 'text-sm font-normal text-center' }, '#'),
     cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.index + 1),
   }),
-  columnHelper.accessor('template', {
+  columnHelper.accessor('templete_name', {
     header: ({ column }) => h('div', { class: 'flex justify-center' }, [
       h(Button, {
         variant: 'ghost',
@@ -111,17 +92,12 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Template Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
     ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.template || '-'),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.templete_name || '-'),
   }),
-  columnHelper.accessor('message', {
-    header: ({ column }) => h('div', { class: 'flex justify-center' }, [
-      h(Button, {
-        variant: 'ghost',
-        class: 'text-sm font-normal',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Message', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    ]),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, row.original.message || '-'),
+  columnHelper.accessor('templete_desc', {
+    header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Message'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm max-w-[200px] overflow-hidden whitespace-nowrap text-ellipsis' }, row.original.templete_desc || '-'),
+    enableSorting: false,
   }),
   columnHelper.accessor('status', {
     header: ({ column }) => h('div', { class: 'flex justify-center' }, [
@@ -159,14 +135,35 @@ const columns = [
   }),
 ]
 
+const sorting = ref<SortingState>([])
+const columnFilters = ref<ColumnFiltersState>([])
+const columnVisibility = ref<VisibilityState>({})
+const rowSelection = ref({})
+
 const table = useVueTable({
-  data: data.value,
+  get data() { return props.list || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
-  onSortingChange: updater => valueUpdater(updater, sorting),
+  getFilteredRowModel: getFilteredRowModel(),
+  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
+  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
+  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  initialState: { pagination: { pageSize: props.limit } },
+  manualPagination: true,
+  pageCount: last_page.value,
+  rowCount: total.value,
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
   },
 })
 </script>
@@ -214,32 +211,30 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
           </Select>
         </span>
-
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

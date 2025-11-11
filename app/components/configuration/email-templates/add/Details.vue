@@ -42,7 +42,7 @@ const { data: leadPlaceholders } = await useLazyAsyncData('lead-placeholder-emai
 
 const { data: customPlaceholders } = await useLazyAsyncData('custom-field-labels-email-template', () =>
   useApi().get('/custom-field-labels'), {
-  transform: res => res.data,
+  transform: res => res.data.data,
 })
 
 // Sender placeholders options

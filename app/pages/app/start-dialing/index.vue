@@ -21,7 +21,7 @@ const route = useRoute()
 const { callStatus, callerDetails, endCall, isRegistered } = useSIPml5()
 const { closeDialer } = useDialer()
 
-const selectedTab = ref()
+const selectedTab = ref(route.query.tab as string || 'lead-details')
 
 const selectedCampaign = ref()
 
@@ -70,11 +70,11 @@ const sidePanel = computed(() => [
   },
 ])
 
-onMounted(() => {
-  if (route.path === '/app/start-dialing') {
-    navigateTo('/app/start-dialing/lead-details')
-  }
-})
+// onMounted(() => {
+//   if (route.path === '/app/start-dialing') {
+//     navigateTo('/app/start-dialing/lead-details')
+//   }
+// })
 
 const { data: campaignList, status: campaignListStatus } = await useLazyAsyncData('campaign-list', () =>
   useApi().post('/agent-campaign'), {
@@ -92,7 +92,7 @@ watch(leadData, (val) => {
   if (!val.lead_id) {
     endCall()
     closeDialer()
-    navigateTo('/app/start-dialing/lead-details')
+    navigateTo('/app/start-dialing?tab=lead-details')
   }
 })
 
@@ -124,6 +124,7 @@ async function setRouteForInitCampaign() {
   if (selectedCampaign.value) {
     await navigateTo({
       query: {
+        ...route.query,
         campaign_id: selectedCampaign.value,
       },
     })
@@ -138,61 +139,43 @@ onMounted(() => {
   }
 })
 
-// function initiateCampaign() {
-//   if (selectedCampaign.value) {
-//     initiateLoading.value = true
-//     $fetch('https://api.voiptella.com/extension-login', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json',
-//         'Authorization': `Bearer ${session.value?.token}`,
-//       },
-//       body: JSON.stringify({
-//         campaign_id: selectedCampaign.value,
-//       }),
-//     }).then((res: any) => {
-//       showToast({ type: 'success', message: res.message })
-//     }).catch((err) => {
-//       handleError(err)
-//     }).finally(() => {
-//       initiateLoading.value = false
-//     })
-//   }
+// const leadDataTemp = {
+//   success: true,
+//   message: 'lead detail.',
+//   number: '7622132802',
+//   lead_id: 735448,
+//   list_id: 202,
+//   data: {
+//     option_1: {
+//       label: 'First Name',
+//       value: 'Easify',
+//       is_dialing: 0,
+//       is_visible: 1,
+//       is_editable: 0,
+//       alternate_phone: null,
+//     },
+//     option_2: {
+//       label: 'Last Name',
+//       value: 'Two',
+//       is_dialing: 0,
+//       is_visible: 1,
+//       is_editable: 0,
+//       alternate_phone: null,
+//     },
+//     option_3: {
+//       label: 'Mobile',
+//       value: '7622132802',
+//       is_dialing: 1,
+//       is_visible: 1,
+//       is_editable: 0,
+//       alternate_phone: null,
+//     },
+//   },
 // }
-
-const leadDataTemp = {
-  success: true,
-  message: 'lead detail.',
-  number: '7622132802',
-  lead_id: 735448,
-  list_id: 202,
-  data: {
-    option_1: {
-      label: 'First Name',
-      value: 'Easify',
-      is_dialing: 0,
-      is_visible: 1,
-      is_editable: 0,
-      alternate_phone: null,
-    },
-    option_2: {
-      label: 'Last Name',
-      value: 'Two',
-      is_dialing: 0,
-      is_visible: 1,
-      is_editable: 0,
-      alternate_phone: null,
-    },
-    option_3: {
-      label: 'Mobile',
-      value: '7622132802',
-      is_dialing: 1,
-      is_visible: 1,
-      is_editable: 0,
-      alternate_phone: null,
-    },
-  },
+function setRouteForTabChange(val: string) {
+  if (!val)
+    return
+  navigateTo({ name: route.name as string, params: route.params, query: { ...route.query, tab: val } })
 }
 </script>
 
@@ -246,32 +229,8 @@ const leadDataTemp = {
       </template>
     </BaseHeader>
 
-    <!-- <div class="flex max-h-[calc(100vh-166px)] h-full overflow-y-auto mt-6">
-      <div v-if="show" class="lg:min-w-[300px] p-2 bg-primary flex flex-col gap-5 rounded-l-[20px] overflow-y-auto">
-        <NuxtLink
-          v-for="(item, index) in sidePanel"
-          :key="index"
-          :data-cy="`${item.title}-navigate`"
-          :to="!item.disabled ? item.link : null"
-          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:text-primary"
-          :class="[
-            isActive(item.link) ? 'bg-white text-primary' : 'bg-primary text-white',
-            item.disabled && 'opacity-50 cursor-not-allowed',
-          ]"
-        >
-          <Icon :name="item.icon" size="24" />
-          <span class="text-sm">
-            {{ item.title }}
-          </span>
-        </NuxtLink>
-      </div>
-
-      <div class="h-full w-full overflow-y-auto">
-        <NuxtPage />
-      </div>
-    </div> -->
     <div class="h-full max-h-[calc(100vh-166px)]">
-      <Tabs v-model="selectedTab" default-value="lead-details" class="gap-0 w-full flex flex-row h-full overflow-y-auto mt-6 " orientation="vertical">
+      <Tabs v-model="selectedTab" class="gap-0 w-full flex flex-row h-full overflow-y-auto mt-6 " orientation="vertical" @update:model-value="setRouteForTabChange">
         <div class=" bg-primary rounded-l-lg p-1">
           <TabsList class="flex flex-col justify-start w-[300px] bg-primary h-max !gap-y-[20px]">
             <TabsTrigger

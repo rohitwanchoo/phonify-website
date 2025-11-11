@@ -44,34 +44,50 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 import { cn } from '@/lib/utils'
 
-const loading = ref(false)
 const optionsOpen = ref(false)
 const editTitle = ref('')
 const editCampaign = ref('')
-const router = useRouter()
 
-const dummyData = ref([
-  { id: 1, contact_name: 'Vanessa Bogan', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 2, contact_name: '–', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 3, contact_name: 'Tina Jakubowski', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 4, contact_name: 'Billy Kihn', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 5, contact_name: 'Louise Labadie', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 6, contact_name: 'Luke Goodwin', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 7, contact_name: 'Lindsey Osinski', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 8, contact_name: 'Alberto Rau–Gusikowski', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 9, contact_name: 'Terri Koelpin', receiver: '(569) 912-3502', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
-  { id: 10, contact_name: 'Dennis Feest', receiver: '(557) 233-8742', sender: '(569) 912-3502', message: 'Lorem ipsum dolor', date: '2025-04-28 14:45:00' },
+export interface SmsLog {
+  charge: string;            
+  client_package_id: number | null;
+  currency_code: string;        
+  date: string;                
+  did: number;                 
+  extension: number;           
+  id: number;                  
+  isFree: number;              
+  message: string;             
+  mms_url: string | null;
+  number: number;               
+  operator: string;            
+  sms_type: string;            
+  status: string;              
+  type: string;                
+  user_id: number;       
+}
 
-])
 
-const meta = ref({
-  current_page: 1,
-  per_page: 12,
-  last_page: 3,
-  total: 26,
+
+const props = withDefaults(defineProps<{
+  loading: boolean
+  totalRows: number
+  list: SmsLog[]
+  start: number // pagination start
+  limit?: number // pagination limit
+}>(), {
+  limit: 10, // Set default limit to 10
 })
 
-const columnHelper = createColumnHelper<any>()
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'limitChange'])
+const total = computed(() => props.totalRows)
+const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
+const per_page = computed(() => props.limit)
+const last_page = computed(() => Math.ceil(total.value / per_page.value))
+
+
+const columnHelper = createColumnHelper<SmsLog>()
 const columns = [
   columnHelper.display({
     id: 'siNo',
@@ -79,7 +95,7 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
     enableSorting: true,
   }),
-  columnHelper.accessor('contact_name', {
+  columnHelper.accessor('extension', {
     header: ({ column }) => {
       return h(Button, {
         variant: 'ghost',
@@ -90,10 +106,10 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.contact_name || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' },'-'),
     enableSorting: true,
   }),
-  columnHelper.accessor('receiver', {
+  columnHelper.accessor('number', {
     header: ({ column }) => {
       return h(Button, {
         variant: 'ghost',
@@ -104,10 +120,10 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.receiver || '-')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(String(row.original.number || ''))),
     enableSorting: true,
   }),
-  columnHelper.accessor('sender', {
+  columnHelper.accessor('did', {
     header: ({ column }) => {
       return h(Button, {
         variant: 'ghost',
@@ -118,7 +134,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.sender || '-')),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(String(row.original.did || ''))),
     enableSorting: true,
   }),
   columnHelper.accessor('message', {
@@ -132,7 +148,7 @@ const columns = [
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ])
     },
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.message || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm max-w-[200px] overflow-hidden whitespace-nowrap text-ellipsis' }, row.original.message || '-'),
     enableSorting: true,
   }),
   columnHelper.accessor('date', {
@@ -200,7 +216,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return dummyData.value },
+  get data() { return props.list },
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -212,16 +228,25 @@ const table = useVueTable({
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
   onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
   state: {
+    pagination: {
+      pageIndex: current_page.value,
+      pageSize: per_page.value,
+    },
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
-    get expanded() { return expanded.value },
   },
 })
 
 function handlePageChange(page: number) {
-  meta.value.current_page = page
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('limitChange', val)
+  }
 }
 </script>
 
@@ -281,32 +306,30 @@ function handlePageChange(page: number) {
       </TableBody>
     </Table>
   </div>
-  <div v-if="meta?.current_page && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ meta?.current_page }} to
-
+        Showing {{ current_page }} to
         <span>
-          <Select :default-value="10">
+          <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
           </Select>
         </span>
-
-        of {{ meta?.total }} entries
+        of {{ totalRows }} entries
       </div>
     </div>
     <div class="space-x-2">
       <!-- Pagination Controls -->
       <TableServerPagination
-        :total-items="Number(meta?.total)" :current-page="Number(meta?.current_page)"
-        :items-per-page="Number(meta?.per_page)" :last-page="Number(meta?.last_page)" @page-change="handlePageChange"
+        :total-items="Number(total)" :current-page="Number(current_page)"
+        :items-per-page="Number(per_page)" :last-page="Number(last_page)" @page-change="handlePageChange"
       />
     </div>
   </div>

@@ -23,7 +23,7 @@ function getLeadEmail() {
 
   // Find the email entry in leadData (looking for title "Email")
   const emailEntry = Object.values(props.leadData).find((item: any) =>
-    item.title?.toLowerCase() === 'email',
+    item?.title?.toLowerCase() === 'email',
   )
 
   return emailEntry?.value?.trim() || ''
