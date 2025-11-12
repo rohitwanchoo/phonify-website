@@ -13,7 +13,7 @@ import { Button } from '~/components/ui/button'
               New
             </div>
             <div class="justify-start text-[#1F1E1C] font-extralight leading-6">
-              All-in-one call centre management
+              All-in-One AI-powered VoIP Phone System
             </div>
           </div>
           <div class="max-w-[600px] justify-start leading md:leading-[76px] text-3xl md:text-6xl">

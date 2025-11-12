@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 
 const data = ref(null)
 const loading = ref(false)
@@ -15,7 +16,10 @@ const activeSection = ref(null)
 
 // Extract table of contents from HTML content
 async function extractTableOfContents() {
+  // Wait for DOM to update
   await nextTick()
+  // Add a small delay to ensure v-html has rendered
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   const container = document.querySelector('.blog-content')
   if (container) {
@@ -36,7 +40,7 @@ async function extractTableOfContents() {
       else if (level === 'h3' && currentH2) {
         currentH2.subHeadings.push({ text, id })
       }
-      else {
+      else if (level === 'h3') {
         toc.push({ text, id, subHeadings: [] })
       }
     })
@@ -49,7 +53,7 @@ async function extractTableOfContents() {
 function scrollToSection(id) {
   const target = document.getElementById(id)
   if (target) {
-    const navbarHeight = 105
+    const navbarHeight = 113
     const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight
     window.scrollTo({ top: y, behavior: 'smooth' })
   }
@@ -103,9 +107,6 @@ onMounted(async () => {
       method: 'post',
     })
     data.value = blog
-
-    await extractTableOfContents()
-    observeSections()
   }
   catch (error) {
     console.error('Error fetching blog:', error)
@@ -115,9 +116,12 @@ onMounted(async () => {
   }
 })
 
-watch(data, async () => {
-  await extractTableOfContents()
-  observeSections()
+// Watch for data changes and extract TOC after render
+watch(data, async (newData) => {
+  if (newData) {
+    await extractTableOfContents()
+    observeSections()
+  }
 })
 </script>
 
@@ -131,7 +135,7 @@ watch(data, async () => {
       <div class="max-w-[1440px] mx-auto px-4 lg:px-28 pt-8 lg:pt-16">
         <div class="flex flex-col justify-center items-center gap-4 lg:gap-5 mb-4 lg:mb-10">
           <div class="w-full justify-start">
-            <NuxtLink class="flex justify-start items-center gap-1 text-stone-900 text-sm lg:text-base" to="/blogs">
+            <NuxtLink class="flex justify-start items-center gap-1 text-stone-900 text-sm lg:text-base cursor-pointer" @click.prevent="router.back()">
               <Icon name="material-symbols:arrow-back-ios-new" class="text-stone-900 text-sm lg:text-base" />
               Back
             </NuxtLink>
@@ -164,59 +168,33 @@ watch(data, async () => {
 
       <div class="max-w-[1440px] mx-auto px-6 lg:px-28 py-8 lg:py-24 flex items-start gap-10">
         <!-- Table of Contents Sidebar -->
-        <div class="min-w-[280px] sticky top-[120px] h-fit hidden lg:flex px-5 py-6 bg-red-600/5 rounded flex-col justify-start items-start gap-8">
-          <div class="flex-col justify-start items-start gap-4 flex pb-8 border-b border-black/20">
-            <p class="text-black/40 text-sm font-normal">
-              Table of contents:
-            </p>
-            <div
-              v-for="(item, index) in tableOfContents"
-              :key="index"
-              class="flex-col justify-start items-start gap-4 flex"
-            >
-              <div class="justify-start items-start gap-2 flex">
-                <div
-                  class="p-[5px] rounded-[60px] justify-center items-center gap-2.5 flex"
-                  :class="activeSection === item?.id ? 'bg-red-600' : 'bg-transparent'"
-                >
-                  <Icon name="lucide:move-right" size="10" :class="activeSection === item?.id ? 'text-white' : 'text-red-600'" />
-                </div>
-                <NuxtLink
-                  class="text-black/80 text-base font-normal hover:underline cursor-pointer text-left"
-                  :class="{ 'underline text-red-600 font-medium': activeSection === item?.id }"
-                  @click="scrollToSection(item?.id)"
-                >
-                  {{ item?.text }}
-                </NuxtLink>
-              </div>
-              <div
-                v-for="(subItem, subIndex) in item?.subHeadings"
-                :key="subIndex"
-                class="self-stretch justify-start items-start gap-2.5 inline-flex"
+        <div class="min-w-[280px] max-w-md sticky top-[120px] h-fit hidden lg:flex flex-col justify-start items-start gap-8">
+          <div
+            v-for="(item, index) in tableOfContents"
+            :key="index"
+            class="flex-col justify-start items-start flex"
+          >
+            <div class="justify-start items-start gap-2 flex">
+              <NuxtLink
+                class="text-stone-600 text-base font-normal hover:underline cursor-pointer text-left px-4 py-2.5 border-l border-zinc-200"
+                :class="{ 'text-stone-800 font-medium border-l-2 !border-red-600': activeSection === item?.id }"
+                @click="scrollToSection(item?.id)"
               >
-                <div
-                  class="p-[5px] rounded-[60px] justify-center items-center gap-2.5 flex"
-                  :class="activeSection === subItem?.id ? 'bg-red-600' : 'bg-transparent'"
-                >
-                  <Icon name="lucide:move-right" size="10" :class="activeSection === subItem?.id ? 'text-white' : 'text-red-600'" />
-                </div>
-                <NuxtLink
-                  class="grow shrink basis-0 text-black/70 text-base font-normal hover:underline cursor-pointer text-left"
-                  :class="{ 'underline text-red-600 font-medium': activeSection === subItem?.id }"
-                  @click="scrollToSection(subItem?.id)"
-                >
-                  {{ subItem?.text }}
-                </NuxtLink>
-              </div>
+                {{ item?.text }}
+              </NuxtLink>
             </div>
-          </div>
-          <div class="self-stretch flex-col justify-start items-start gap-4 flex">
-            <p class="text-black/40 text-sm font-normal mb-0">
-              Author:
-            </p>
-            <div class="justify-start items-center gap-2 inline-flex">
-              <Icon name="lucide:circle-user-round" size="20" class="text-[#787878]" />
-              <span class="text-black/80 text-base font-medium">{{ data?.author_name }}</span>
+            <div
+              v-for="(subItem, subIndex) in item?.subHeadings"
+              :key="subIndex"
+              class="self-stretch justify-start items-start gap-2.5 inline-flex"
+            >
+              <NuxtLink
+                class="grow shrink basis-0 text-stone-600 text-base font-normal hover:underline cursor-pointer text-left px-4 py-2.5 border-l border-zinc-200"
+                :class="{ 'underline text-stone-800 font-medium border-l-2 !border-red-600': activeSection === subItem?.id }"
+                @click="scrollToSection(subItem?.id)"
+              >
+                {{ subItem?.text }}
+              </NuxtLink>
             </div>
           </div>
         </div>
