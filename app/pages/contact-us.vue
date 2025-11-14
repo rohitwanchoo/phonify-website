@@ -57,14 +57,14 @@ const onSubmit = handleSubmit(async (values) => {
 
     if (data.success) {
       showToast({
-        message: data.message,
+        message: 'Message sent successfully! We will get back to you soon.',
         type: 'success',
       })
       resetForm()
     }
     else {
       showToast({
-        message: data.message,
+        message: 'Failed to send message. Please try again.',
         type: 'error',
       })
     }

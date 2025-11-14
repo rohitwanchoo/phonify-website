@@ -91,8 +91,10 @@ const _props = defineProps({
         </li>
       </ul>
     </div>
-    <Button class="w-full h-11 mt-auto rounded-xs bg-[#D1222C] text-white hover:bg-[#D1222C]/90" :class="btnClass">
-      Choose Plan
-    </Button>
+    <NuxtLink to="/contact-us" class="w-full">
+      <Button class="w-full h-11 mt-auto rounded-xs bg-[#D1222C] text-white hover:bg-[#D1222C]/90" :class="btnClass">
+        Choose Plan
+      </Button>
+    </NuxtLink>
   </div>
 </template>

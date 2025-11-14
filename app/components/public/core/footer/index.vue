@@ -10,24 +10,24 @@ import playStore from '~/assets/svg/public/footer/play-store.svg'
 import twitter from '~/assets/svg/public/footer/twitter-x.svg'
 import logo from '~/assets/svg/public/phonify.svg'
 
-const social = [
-  {
-    link: '#',
-    icon: fb,
-  },
-  {
-    link: '#',
-    icon: twitter,
-  },
-  {
-    link: '#',
-    icon: instagram,
-  },
-  {
-    link: '#',
-    icon: linkedin,
-  },
-]
+// const social = [
+//   {
+//     link: '#',
+//     icon: fb,
+//   },
+//   {
+//     link: '#',
+//     icon: twitter,
+//   },
+//   {
+//     link: '#',
+//     icon: instagram,
+//   },
+//   {
+//     link: '#',
+//     icon: linkedin,
+//   },
+// ]
 
 const company = [
   {
@@ -36,20 +36,20 @@ const company = [
   },
   {
     name: 'Features',
-    link: '/features',
+    link: '/#features',
+  },
+  {
+    name: 'Pricing',
+    link: '/pricing',
   },
   // {
-  //   name: 'Pricing',
-  //   link: '/pricing',
+  //   name: 'Blogs',
+  //   link: '/blogs',
   // },
   {
-    name: 'Blogs',
-    link: '/blogs',
+    name: 'Contact us',
+    link: '/contact-us',
   },
-  // {
-  //   name: 'Contact us',
-  //   link: '/contact-us',
-  // },
 ]
 
 const address = [
