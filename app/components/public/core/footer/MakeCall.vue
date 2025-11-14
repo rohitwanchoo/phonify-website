@@ -19,12 +19,11 @@ import { Button } from '~/components/ui/button'
           Start free trial
           <img :src="dotArrow" class="size-4">
         </Button> -->
-        <NuxtLink to="https://bookings.easify.appteam/phonify/learn-all-about-phonify" class="h-12 w-full lg:w-fit bg-[#D11E28] text-white rounded-xs">
+        <NuxtLink to="https://bookings.easify.app/team/phonify/learn-all-about-phonify" class="h-12 w-full lg:w-fit bg-[#D11E28] text-white rounded-xs">
           <Button variant="outline" class="h-12 w-full lg:w-fit bg-white/5 border border-white/40 text-white rounded-xs font-medium px-8">
-            Book a Demo
+            Book a demo
           </Button>
         </NuxtLink>
-        
       </div>
     </div>
   </div>

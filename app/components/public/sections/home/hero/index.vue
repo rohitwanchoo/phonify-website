@@ -32,7 +32,7 @@ import { Button } from '~/components/ui/button'
               Start free trail
               <img :src="dotArrow" class="size-4">
             </Button> -->
-            <NuxtLink to="https://bookings.easify.appteam/phonify/learn-all-about-phonify" target="_blank" class="w-full lg:w-fit">
+            <NuxtLink to="https://bookings.easify.app/team/phonify/learn-all-about-phonify" target="_blank" class="w-full lg:w-fit">
               <Button variant="outline" class="w-full lg:w-fit h-12 px-6 py-3 bg-[#E7E5E4] border-0 text-black rounded-xs font-medium">
                 Book a demo
               </Button>

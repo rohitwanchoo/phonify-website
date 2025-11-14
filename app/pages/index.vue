@@ -6,6 +6,17 @@ useHead({
 definePageMeta({
   layout: 'website',
 })
+
+onMounted(() => {
+  if (location.hash) {
+    setTimeout(() => {
+      const element = document.querySelector(location.hash)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 0)
+  }
+})
 </script>
 
 <template>

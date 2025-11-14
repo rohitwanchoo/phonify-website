@@ -62,7 +62,7 @@ const address = [
     icon: email,
   },
   {
-    value: 'PHONIFY INC <br> 501 Saddle Ridge Rd <br> Woodmere, NY, 11598',
+    value: 'Phonify inc <br> 501 Saddle Ridge Rd <br> Woodmere, NY, 11598',
     icon: location,
   },
 ]
@@ -107,14 +107,13 @@ const address = [
                   <div class="w-6 h-6 flex justify-center items-center bg-stone-200 rounded-full">
                     <img :src="item.icon" alt="phone logo" class="w-3.5 h-3.5">
                   </div>
-                  <div v-html="item.value" class="justify-start text-stone-900 font-light leading-6">
-                  </div>
+                  <div class="justify-start text-stone-900 font-light leading-6" v-html="item.value" />
                 </div>
               </div>
             </div>
-            <!-- <div class="w-full lg:w-fit px-3 py-4 lg:py-6 lg:px-6 bg-stone-100 rounded-lg outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-center items-center gap-3 lg:gap-4">
+            <div class="w-full lg:w-fit px-3 py-4 lg:py-6 lg:px-6 bg-stone-100 rounded-lg outline outline-offset-[-1px] outline-stone-200 flex flex-col justify-center items-center gap-3 lg:gap-4">
               <div class="justify-start text-black font-medium leading-6">
-                Download App
+                Coming Soon on
               </div>
               <div class="flex flex-row lg:flex-col justify-center items-center gap-3 lg:gap-4">
                 <NuxtLink to="#">
@@ -124,7 +123,7 @@ const address = [
                   <img :src="appStore" alt="download app">
                 </NuxtLink>
               </div>
-            </div> -->
+            </div>
           </div>
         </div>
         <div class="w-full px-4 lg:px-14 py-5 lg:py-8 border-t border-gray-800/5 text-center text-zinc-800 text-xs font-extralight leading-6">
