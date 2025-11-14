@@ -77,9 +77,11 @@ const customPlan = {
         <div class="p-6 flex flex-col lg:flex-row lg:justify-between gap-6 items-center border border-zinc-200 rounded-xs overflow-hidden">
           <PublicSectionsPricingCard :plan="customPlan" custom-class="border-none !px-0 !pt-0 !pb-0 w-full lg:min-w-96" btn-class="hidden lg:flex" />
           <img src="/images/website/sections/pricing/custom-plan.png" alt="image" class="h-auto">
-          <Button class="w-full h-11 mt-auto rounded-xs bg-[#D1222C] text-white hover:bg-[#D1222C]/90 lg:hidden">
-            Choose Plan
-          </Button>
+          <NuxtLink to="/contact-us" class="lg:hidden w-full">
+            <Button class="w-full h-11 mt-auto rounded-xs bg-[#D1222C] text-white hover:bg-[#D1222C]/90">
+              Choose Plan
+            </Button>
+          </NuxtLink>
         </div>
         <div class="mt-6 lg:mt-10 p-3 bg-amber-50 rounded-xs border border-orange-200 flex lg:items-center flex-col lg:flex-row lg:justify-between gap-2">
           <div class="flex items-start gap-1">

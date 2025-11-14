@@ -11,16 +11,16 @@ const items = [
   },
   {
     name: 'Features',
-    link: '#features',
+    link: '/#features',
   },
   {
     name: 'Pricing',
     link: '/pricing',
   },
-  {
-    name: 'Blogs',
-    link: '/blogs',
-  },
+  // {
+  //   name: 'Blogs',
+  //   link: '/blogs',
+  // },
   {
     name: 'Contact Us',
     link: '/contact-us',
