@@ -176,7 +176,7 @@ const formSchema = toTypedSchema(
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['dest_type_ooh'],
-        message: 'Destination type is required when call time is holiday',
+        message: 'Destination type is required',
       })
     }
 
@@ -353,6 +353,7 @@ watch(didData, (newData) => {
     setFieldValue('dest_type', Number(newData?.dest_type))
     setFieldValue('destination', newData?.destination)
     setFieldValue('country_code', newData?.country_code)
+    // Out of hours settings
     setFieldValue('dest_type_ooh', Number(newData?.dest_type_ooh))
     setFieldValue('ingroup_ooh', Number(newData?.ingroup_ooh))
     setFieldValue('conf_id_ooh', Number(newData?.conf_id_ooh))
@@ -362,12 +363,18 @@ watch(didData, (newData) => {
     setFieldValue('voice_ai_ooh', Number(newData?.voice_ai_ooh))
     setFieldValue('country_code_ooh', newData?.country_code_ooh)
     setFieldValue('forward_number_ooh', newData?.forward_number_ooh)
+
+    // SMS settings
     setFieldValue('sms', newData?.sms === '1')
     setFieldValue('enable_sms_ai', newData?.enable_sms_ai === '1')
     setFieldValue('assigned_user_id', Number(newData?.assigned_user_id) || 0)
     setFieldValue('set_exclusive_for_user', newData?.set_exclusive_for_user === '1')
+
+    // Call time settings
     setFieldValue('call_time_department_id', Number(newData?.call_time_department_id))
     setFieldValue('call_time_holiday', newData?.call_time_holiday === 1)
+
+    // Call screening
     setFieldValue('call_screening_status', newData?.call_screening_status === '1')
     setFieldValue('voip_provider', newData?.voip_provider)
     setFieldValue('ivr_audio_option', newData?.ivr_audio_option)
@@ -447,9 +454,9 @@ watch(() => values.language, async (newLanguage) => {
       voiceListStatus.value = 'pending'
       try {
         const response = await useApi().post('/get-voice-name-on-google-languages', {
-          language_code: languageItem.language_code,
+          language: languageItem.language,
         })
-        voiceList.value = response.data
+        voiceList.value = response
         voiceListStatus.value = 'success'
       }
       catch {
@@ -467,9 +474,9 @@ watch(didData, async (newData) => {
       voiceListStatus.value = 'pending'
       try {
         const response = await useApi().post('/get-voice-name-on-google-languages', {
-          language_code: languageItem.language_code,
+          language: languageItem.language,
         })
-        voiceList.value = response.data
+        voiceList.value = response
         voiceListStatus.value = 'success'
       }
       catch {
@@ -1224,8 +1231,8 @@ function speakText() {
                                       <SelectItem v-if="voiceListStatus === 'pending'" :value="null" disabled>
                                         <Icon name="eos-icons:loading" />
                                       </SelectItem>
-                                      <SelectItem v-for="item in voiceList" v-else :key="item.dest_id" :value="item.dest_id">
-                                        {{ item.dest_type }}
+                                      <SelectItem v-for="item in voiceList" v-else :key="item.id" :value="item.voice_name">
+                                        {{ item.voice_name }}
                                       </SelectItem>
                                     </SelectContent>
                                   </Select>
