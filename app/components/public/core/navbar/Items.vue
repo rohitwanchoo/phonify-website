@@ -11,16 +11,16 @@ const items = [
   },
   {
     name: 'Features',
-    link: '#features',
+    link: '/#features',
   },
   {
     name: 'Pricing',
     link: '/pricing',
   },
-  {
-    name: 'Blogs',
-    link: '/blogs',
-  },
+  // {
+  //   name: 'Blogs',
+  //   link: '/blogs',
+  // },
   {
     name: 'Contact Us',
     link: '/contact-us',
@@ -38,9 +38,9 @@ const items = [
       </li>
     </ul>
     <div class="w-full lg:w-fit flex flex-col lg:flex-row-reverse justify-end items-center gap-3">
-      <NuxtLink to="/" class="w-full lg:w-fit">
+      <NuxtLink to="https://bookings.easify.app/team/phonify/learn-all-about-phonify" class="w-full lg:w-fit">
         <Button class="h-12 w-full lg:w-fit px-10 py-3 bg-[#1F1E1C] lg:bg-[#D11E28] rounded-xs flex justify-center items-center gap-2 text-white font-medium">
-          Book a Demo
+          Book a demo
           <img :src="dotArrow" class="size-4">
         </Button>
       </NuxtLink>

@@ -15,11 +15,11 @@ const features = [
   },
   {
     feature: 'AI Call',
-    credit: '4',
+    credit: '4/min',
   },
   {
     feature: 'SMS',
-    credit: '4',
+    credit: '4/(160 Characters)',
   },
   {
     feature: 'Ringless Voicemail',
