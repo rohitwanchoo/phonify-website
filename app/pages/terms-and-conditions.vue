@@ -226,12 +226,6 @@ const termsAndConditions = [
     `,
   },
   {
-    title: 'Arbitration',
-    content: `
-      <p>(Optional arbitration clause — add your text if required.)</p>
-    `,
-  },
-  {
     title: 'Changes to These Terms',
     content: `
       <p class="mb-2">Phonify may update these Terms from time to time.</p>
@@ -268,7 +262,7 @@ function observeSections() {
   const offset = 20
   const observerOptions = {
     root: null,
-    rootMargin: `-${navbarHeight + offset}px 0px -50% 0px`,
+    rootMargin: `-${navbarHeight + offset}px 0px -80% 0px`,
     threshold: 0,
   }
 
