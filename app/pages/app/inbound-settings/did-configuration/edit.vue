@@ -245,10 +245,17 @@ const formSchema = toTypedSchema(
           message: 'Destination is required',
         })
       }
-      else if ([1, 2, 6].includes(data.dest_type_ooh) && (!data.extension_ooh || !data.voicemail_id_ooh)) {
+      else if ([1, 6].includes(data.dest_type_ooh) && !data.extension_ooh) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['extension_ooh'],
+          message: 'Destination is required',
+        })
+      }
+      else if (data.dest_type_ooh === 2 && !data.voicemail_id_ooh) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['voicemail_id_ooh'],
           message: 'Destination is required',
         })
       }
