@@ -129,6 +129,15 @@ const callScreeningOptions = [
   },
 ]
 
+const file = ref<File | null>(null)
+
+const { setValue: setFile } = useField('file')
+
+function handleFileUpdate(files: File[]) {
+  file.value = files[0] ?? null
+  setFile(files)
+}
+
 // Form validation schema
 const formSchema = toTypedSchema(
   z.object({
@@ -145,7 +154,7 @@ const formSchema = toTypedSchema(
     extension_ooh: z.number().optional(),
     ivr_id_ooh: z.number().optional(),
     voicemail_id_ooh: z.number().optional(),
-    voice_ai_ooh: z.number().optional(),
+    voice_ai_ooh: z.number().nullable().optional(),
     country_code_ooh: z.number().optional(),
     forward_number_ooh: z.string().optional(),
     sms: z.boolean().default(false),
@@ -160,7 +169,7 @@ const formSchema = toTypedSchema(
     language: z.string().optional().nullable(),
     voice_name: z.string().optional().nullable(),
     speech_text: z.string().optional().nullable(),
-    file: z.any().optional().nullable(),
+    file: z.any().optional(),
   }).superRefine((data, ctx) => {
     // Validate dest_type when redirect_last_agent is false
     if (!data.redirect_last_agent && (data.dest_type === undefined || data.dest_type === null)) {
@@ -296,7 +305,7 @@ const formSchema = toTypedSchema(
         }
       }
 
-      if (data.ivr_audio_option === 'upload' && !data.file) {
+      if (data.ivr_audio_option === 'upload' && !file.value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['file'],
@@ -335,11 +344,11 @@ const { handleSubmit, values, isSubmitting, setFieldValue } = useForm({
     call_time_holiday: didData.value?.call_time_holiday,
     call_screening_status: didData.value?.call_screening_status,
     voip_provider: didData.value?.voip_provider,
-    ivr_audio_option: didData.value?.ivr_audio_option,
+    ivr_audio_option: didData.value?.ivr_audio_option || 'upload',
     language: didData.value?.language,
     voice_name: didData.value?.voice_name,
     speech_text: didData.value?.speech_text,
-    file: null,
+    file: didData.value?.file,
   },
 })
 
@@ -360,7 +369,14 @@ watch(didData, (newData) => {
     setFieldValue('extension_ooh', Number(newData?.extension_ooh))
     setFieldValue('ivr_id_ooh', Number(newData?.ivr_id_ooh))
     setFieldValue('voicemail_id_ooh', Number(newData?.voicemail_id_ooh))
-    setFieldValue('voice_ai_ooh', Number(newData?.voice_ai_ooh))
+    const voiceAiValue = newData?.voice_ai_ooh
+    if (voiceAiValue && voiceAiValue !== 'Select Prompt' && !Number.isNaN(Number(voiceAiValue))) {
+      setFieldValue('voice_ai_ooh', Number(voiceAiValue))
+    }
+    else {
+      setFieldValue('voice_ai_ooh', null)
+    }
+
     setFieldValue('country_code_ooh', newData?.country_code_ooh)
     setFieldValue('forward_number_ooh', newData?.forward_number_ooh)
 
@@ -377,21 +393,18 @@ watch(didData, (newData) => {
     // Call screening
     setFieldValue('call_screening_status', newData?.call_screening_status === '1')
     setFieldValue('voip_provider', newData?.voip_provider)
-    setFieldValue('ivr_audio_option', newData?.ivr_audio_option)
+    if (newData?.call_screening_status === '1' && !newData?.ivr_audio_option) {
+      setFieldValue('ivr_audio_option', 'upload')
+    }
+    else {
+      setFieldValue('ivr_audio_option', newData?.ivr_audio_option)
+    }
     setFieldValue('language', newData?.language)
     setFieldValue('voice_name', newData?.voice_name)
     setFieldValue('speech_text', newData?.speech_text)
     setFieldValue('file', newData?.file)
   }
 })
-
-const { setValue: setFile } = useField('file')
-const file = ref<File | null>(null)
-
-function handleFileUpdate(files: File[]) {
-  file.value = files[0] ?? null
-  setFile(files[0])
-}
 
 // Watch destination when dest_type is 4 — keep only last 10 digits
 watch(didData, (newData) => {
@@ -442,49 +455,21 @@ watch(() => values.ivr_audio_option, async (newVal) => {
   }
 })
 
-// Watch language selection and refresh voice list
-watch(() => values.language, async (newLanguage) => {
-  if (newLanguage && newLanguage !== null) {
-    // Clear current voice selection when language changes
-    setFieldValue('voice_name', null)
+async function updateVoiceName() {
+  const lang = values.language
+  if (!lang)
+    return
 
-    // Refresh voice list with new language code
-    const languageItem = languageList.value?.find((item: { language: string }) => item.language === newLanguage)
-    if (languageItem) {
-      voiceListStatus.value = 'pending'
-      try {
-        const response = await useApi().post('/get-voice-name-on-google-languages', {
-          language: languageItem.language,
-        })
-        voiceList.value = response
-        voiceListStatus.value = 'success'
-      }
-      catch {
-        voiceListStatus.value = 'error'
-      }
-    }
+  voiceListStatus.value = 'pending'
+  try {
+    const res = await useApi().post('/get-voice-name-on-google-languages', { language: lang })
+    voiceList.value = res
+    voiceListStatus.value = 'success'
   }
-})
-
-// Load voice list on mount if language exists
-watch(didData, async (newData) => {
-  if (newData?.language && languageList.value) {
-    const languageItem = languageList.value?.find((item: { language: any }) => item.language === newData.language)
-    if (languageItem) {
-      voiceListStatus.value = 'pending'
-      try {
-        const response = await useApi().post('/get-voice-name-on-google-languages', {
-          language: languageItem.language,
-        })
-        voiceList.value = response
-        voiceListStatus.value = 'success'
-      }
-      catch {
-        voiceListStatus.value = 'error'
-      }
-    }
+  catch {
+    voiceListStatus.value = 'error'
   }
-}, { immediate: true })
+}
 
 // Watch both destination types with a single consolidated watcher
 watch([() => values.dest_type, () => values.dest_type_ooh], async ([destType, destTypeOoh]) => {
@@ -557,7 +542,7 @@ const onSubmit = handleSubmit(async (values) => {
       formData.append('voicemail_id', values.destination || '')
     if (values.dest_type === 4) {
       formData.append('country_code', values.country_code?.toString() || '')
-      formData.append('forward_number', values.destination || '')
+      formData.append('forward_number', `${values.country_code}${values.destination}` || '')
     }
     if (values.dest_type === 5)
       formData.append('conf_id', values.destination || '')
@@ -587,29 +572,19 @@ const onSubmit = handleSubmit(async (values) => {
     // Add call screening fields
     if (values.call_screening_status) {
       if (values.ivr_audio_option === 'upload' && file.value) {
-        formData.append('upload_type', 'file')
-        formData.append('file', file.value)
+        formData.append('ivr_audio_option', 'upload')
+        formData.append('file', file.value as File)
         formData.append('call_screening_audio', 'Yes')
       }
       else if (values.ivr_audio_option === 'text_to_speech') {
-        formData.append('upload_type', 'text')
-
-        // Get language_code from selected language
-        const languageItem = languageList.value?.find((item: { language: string | null | undefined }) => item.language === values.language)
-        if (languageItem) {
-          formData.append('language_code', languageItem.language_code)
-        }
-
+        formData.append('ivr_audio_option', 'text_to_speech')
+        formData.append('language', values.language || '')
         formData.append('voice_name', values.voice_name || '')
-        formData.append('text', values.speech_text || '')
+        formData.append('speech_text', values.speech_text || '')
       }
     }
 
-    const response = await useApi().post('/save-edit-did', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    const response = await useApi().post('/save-edit-did', formData)
 
     if (response?.success === 'true') {
       showToast({
@@ -1139,7 +1114,7 @@ function speakText() {
                                 </SelectItem>
                               </template>
                               <template v-else-if="values.dest_type_ooh === 12">
-                                <SelectItem v-for="item in voiceAiData" :key="item.id" :value="String(item.id)">
+                                <SelectItem v-for="item in voiceAiData" :key="item.id" :value="Number(item.id)">
                                   {{ item.title }}
                                 </SelectItem>
                               </template>
@@ -1199,7 +1174,7 @@ function speakText() {
                                   Language
                                 </FormLabel>
                                 <FormControl>
-                                  <Select v-bind="componentField">
+                                  <Select v-bind="componentField" @update:model-value="updateVoiceName">
                                     <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
                                       <SelectValue placeholder="Select a Language" />
                                     </SelectTrigger>
@@ -1232,7 +1207,7 @@ function speakText() {
                                         <Icon name="eos-icons:loading" />
                                       </SelectItem>
                                       <SelectItem v-for="item in voiceList" v-else :key="item.id" :value="item.voice_name">
-                                        {{ item.voice_name }}
+                                        {{ item.language_code }} ## {{ item.voice_name }} ({{ item.ssml_gender }})
                                       </SelectItem>
                                     </SelectContent>
                                   </Select>
