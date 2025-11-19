@@ -322,7 +322,7 @@ onMounted(() => {
           If you do not agree, you may not access or use Phonify.
         </p>
       </div>
-      <hr class="hidden lg:blocck w-full h-[0.50px] border-[0.50px] border-zinc-300 border-dashed">
+      <hr class="hidden lg:block w-full h-[0.50px] border-[0.50px] border-zinc-300 border-dashed">
       <div class="flex items-start justify-between">
         <div class="min-w-[280px] max-w-md px-6 pt-8 sticky top-[120px] h-fit hidden lg:block">
           <h6 class="pt-4 pb-3 text-zinc-800">
