@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import appStore from '~/assets/svg/public/footer/app-store.svg'
 import email from '~/assets/svg/public/footer/email.svg'
-import fb from '~/assets/svg/public/footer/fb.svg'
-import instagram from '~/assets/svg/public/footer/instagram.svg'
-import linkedin from '~/assets/svg/public/footer/linkedin.svg'
+// import fb from '~/assets/svg/public/footer/fb.svg'
+// import instagram from '~/assets/svg/public/footer/instagram.svg'
+// import linkedin from '~/assets/svg/public/footer/linkedin.svg'
 import location from '~/assets/svg/public/footer/location.svg'
-import phone from '~/assets/svg/public/footer/phone.svg'
+// import phone from '~/assets/svg/public/footer/phone.svg'
 import playStore from '~/assets/svg/public/footer/play-store.svg'
-import twitter from '~/assets/svg/public/footer/twitter-x.svg'
+// import twitter from '~/assets/svg/public/footer/twitter-x.svg'
 import logo from '~/assets/svg/public/phonify.svg'
 
 // const social = [
@@ -49,6 +49,10 @@ const company = [
   {
     name: 'Contact us',
     link: '/contact-us',
+  },
+  {
+    name: 'Terms and Conditions',
+    link: '/terms-and-conditions',
   },
 ]
 
