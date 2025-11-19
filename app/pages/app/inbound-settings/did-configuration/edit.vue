@@ -401,6 +401,10 @@ watch(didData, (newData) => {
     }
     setFieldValue('language', newData?.language)
     setFieldValue('voice_name', newData?.voice_name)
+    // Load voice list if voice name exists
+    if (newData?.voice_name) {
+      updateVoiceName()
+    }
     setFieldValue('speech_text', newData?.speech_text)
     setFieldValue('file', newData?.file)
   }
