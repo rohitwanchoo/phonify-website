@@ -130,12 +130,15 @@ const callScreeningOptions = [
 ]
 
 const file = ref<File | null>(null)
+const existingFile = ref<string | null>(null)
 
 const { setValue: setFile } = useField('file')
 
 function handleFileUpdate(files: File[]) {
   file.value = files[0] ?? null
   setFile(files)
+  // Clear existing file reference when new file is uploaded
+  existingFile.value = null
 }
 
 // Form validation schema
@@ -305,7 +308,7 @@ const formSchema = toTypedSchema(
         }
       }
 
-      if (data.ivr_audio_option === 'upload' && !file.value) {
+      if (data.ivr_audio_option === 'upload' && !file.value && (!didData.value.call_screening_ivr_id || !existingFile.value)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['file'],
@@ -348,7 +351,7 @@ const { handleSubmit, values, isSubmitting, setFieldValue } = useForm({
     language: didData.value?.language,
     voice_name: didData.value?.voice_name,
     speech_text: didData.value?.speech_text,
-    file: didData.value?.file,
+    file: didData.value?.call_screening_ivr_id,
   },
 })
 
@@ -370,7 +373,7 @@ watch(didData, (newData) => {
     setFieldValue('ivr_id_ooh', Number(newData?.ivr_id_ooh))
     setFieldValue('voicemail_id_ooh', Number(newData?.voicemail_id_ooh))
     const voiceAiValue = newData?.voice_ai_ooh
-    if (voiceAiValue && voiceAiValue !== 'Select Prompt' && !Number.isNaN(Number(voiceAiValue))) {
+    if (voiceAiValue && !Number.isNaN(Number(voiceAiValue))) {
       setFieldValue('voice_ai_ooh', Number(voiceAiValue))
     }
     else {
@@ -408,6 +411,7 @@ watch(didData, (newData) => {
     setFieldValue('speech_text', newData?.speech_text)
     setFieldValue('file', newData?.file)
   }
+  existingFile.value = didData.value?.call_screening_ivr_id
 })
 
 // Watch destination when dest_type is 4 — keep only last 10 digits
@@ -575,10 +579,28 @@ const onSubmit = handleSubmit(async (values) => {
 
     // Add call screening fields
     if (values.call_screening_status) {
-      if (values.ivr_audio_option === 'upload' && file.value) {
+      if (values.ivr_audio_option === 'upload') {
         formData.append('ivr_audio_option', 'upload')
-        formData.append('file', file.value as File)
-        formData.append('call_screening_audio', 'Yes')
+
+        // Handle new file upload
+        if (file.value) {
+          formData.append('audio_file', file.value as File)
+          formData.append('call_screening_audio', 'Yes')
+        }
+        // Handle existing file - convert string path to File
+        else if (existingFile.value) {
+          try {
+            const fileName = existingFile.value.split('/').pop() || 'audio.mp3'
+            const response = await fetch(`/${existingFile.value}`)
+            const blob = await response.blob()
+            const existingAudioFile = new File([blob], fileName, { type: blob.type || 'audio/mpeg' })
+            formData.append('audio_file', existingAudioFile)
+            formData.append('call_screening_audio', 'Yes')
+          }
+          catch {
+            return
+          }
+        }
       }
       else if (values.ivr_audio_option === 'text_to_speech') {
         formData.append('ivr_audio_option', 'text_to_speech')
@@ -1164,7 +1186,31 @@ function speakText() {
                           <FormField name="file">
                             <FormItem>
                               <FormControl>
-                                <BaseFileUploader accept=".mp3,.wav " max-size="5MB" @update:files="handleFileUpdate" />
+                                <div
+                                  v-if="existingFile && !file"
+                                  class="flex items-center justify-between px-3 py-2 bg-muted text-sm rounded-md"
+                                >
+                                  <div class="flex gap-3 items-center">
+                                    <Icon name="icons:mp3" size="26" />
+
+                                    <div>
+                                      <div class="truncate max-w-[300px] mr-3">
+                                        <span class="text-primary font-semibold">{{ existingFile.split('/').pop() }}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Button variant="ghost" class="text-primary hover:text-primary/80" @click="existingFile = null">
+                                    <Icon name="material-symbols:delete" size="24" />
+                                  </Button>
+                                </div>
+
+                                <!-- File uploader -->
+                                <BaseFileUploader
+                                  v-if="!existingFile || file"
+                                  accept=".mp3,.wav"
+                                  max-size="5MB"
+                                  @update:files="handleFileUpdate"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
