@@ -1,27 +1,38 @@
 <script setup lang="ts">
 // Set page title
 useHead({
-  title: 'Phonify - Secure Authentication System',
+  title: 'Phonify',
 })
 definePageMeta({
-  layout: 'empty',
+  layout: 'website',
+})
+
+onMounted(() => {
+  if (location.hash) {
+    setTimeout(() => {
+      const element = document.querySelector(location.hash)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 0)
+  }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div>
     <!-- Navigation -->
-    <nav class="bg-white shadow">
+    <!-- <nav class="bg-white shadow">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <h1 class="text-xl font-semibold text-gray-900">
               Phonify
             </h1>
-          </div>
+          </div> -->
 
-          <!-- Auth State Component for safe rendering -->
-          <AuthState>
+    <!-- Auth State Component for safe rendering -->
+    <!-- <AuthState>
             <template #default="{ loggedIn, user, clear }">
               <div v-if="loggedIn" class="flex items-center space-x-4">
                 <span class="text-sm text-gray-700">
@@ -57,10 +68,10 @@ definePageMeta({
           </AuthState>
         </div>
       </div>
-    </nav>
+    </nav> -->
 
     <!-- Hero Section -->
-    <main class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+    <!-- <main class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
       <div class="text-center">
         <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
           Welcome to <span class="text-blue-600">Phonify</span>
@@ -68,10 +79,10 @@ definePageMeta({
         <p class="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
           A comprehensive authentication system built with Nuxt 4 and nuxt-auth-utils,
           integrated with external API backend.
-        </p>
+        </p> -->
 
-        <!-- Auth State for main content -->
-        <AuthState>
+    <!-- Auth State for main content -->
+    <!-- <AuthState>
           <template #default="{ loggedIn, user }">
             <div class="mt-10">
               <div v-if="loggedIn" class="space-y-4">
@@ -117,10 +128,10 @@ definePageMeta({
               <div class="bg-gray-100 animate-pulse h-20 w-80 mx-auto rounded-lg" />
             </div>
           </template>
-        </AuthState>
+        </AuthState> -->
 
-        <!-- Features Section -->
-        <div class="mt-16">
+    <!-- Features Section -->
+    <!-- <div class="mt-16">
           <h2 class="text-2xl font-bold text-gray-900 mb-8">
             Authentication Features
           </h2>
@@ -159,8 +170,15 @@ definePageMeta({
               </p>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
+        </div> -->
+    <!-- </div>
+    </main> -->
+    <PublicSectionsHomeHero />
+    <PublicSectionsHomeAboutUs />
+    <PublicSectionsHomeSolutions />
+    <PublicSectionsHomeFeatures />
+    <PublicSectionsHomeAppIntro />
+    <!-- <PublicSectionsHomeBlogs /> -->
+    <PublicSectionsHomeFaq />
   </div>
 </template>

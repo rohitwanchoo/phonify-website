@@ -183,3 +183,20 @@ const data = {
     <SidebarRail />
   </Sidebar>
 </template>
+
+<style scoped>
+/* width */
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px transparent; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: transparent; 
+}
+</style>
