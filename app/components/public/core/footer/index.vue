@@ -54,6 +54,10 @@ const company = [
     name: 'Terms and Conditions',
     link: '/terms-and-conditions',
   },
+    {
+    name: 'Privacy Policy',
+    link: '/privacy-policy',
+  },
 ]
 
 const address = [
