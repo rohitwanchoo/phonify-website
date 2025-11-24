@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDate } from '@vueuse/core'
 import { Label } from '@/components/ui/label'
 import {
   Sheet,
@@ -7,9 +8,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 
-// const _props = defineProps<{
-//   data: any
-// }>()
+const _props = defineProps<{
+  data: any
+}>()
 const open = defineModel<boolean>()
 </script>
 
@@ -33,7 +34,7 @@ const open = defineModel<boolean>()
               </span>
             </Label>
             <p class="text-stone-900 font-medium">
-              Logistics Inbound
+              {{ data?.title }}
             </p>
           </div>
           <div class="space-y-2">
@@ -44,19 +45,19 @@ const open = defineModel<boolean>()
               </span>
             </Label>
             <p class="text-stone-900 font-medium">
-              Coral
+              {{ data?.voice_name }}
             </p>
           </div>
         </div>
-        <div class="space-y-2 pb-6">
+        <div class="space-y-2 pb-6 border-b border-zinc-100">
           <Label class="felx items-center gap-2">
             <Icon name="material-symbols:description-outline" class="text-lg" />
             <span class="text-zinc-700 text-sm">
               Description
             </span>
           </Label>
-          <p class="text-stone-900 font-medium">
-            Lorem ipsum dolor sit amet consectetur. In neque odio scelerisque consequat nulla donec orci in neque. Interdum nibh nec gravida viverra cursus leo auctor in mi. Pharetra interdum posuere tellus vulputate mi. Eget pellentesque massa vitae egestas etiam. Nibh vitae nunc mattis augue commodo vel.<br>Imperdiet lobortis tellus aliquam faucibus ut nec. Enim facilisis hendrerit felis donec tempor odio dignissim pellentesque iaculis. Consectetur quam hendrerit turpis pretium tempor. Sit egestas ligula dictum elementum scelerisque nisi quam. Sit nunc orci feugiat sapien risus pulvinar tempus.<br>Ultricies eget pretium sit aliquam quisque suscipit vivamus. Sit sed rhoncus etiam dui nullam. Vel bibendum praesent dictumst aliquam et. Ullamcorper diam nullam.
+          <p class="text-stone-900 font-medium max-h-[450px] overflow-y-auto">
+            {{ data?.description }}
           </p>
         </div>
         <div class="space-y-2">
@@ -65,62 +66,60 @@ const open = defineModel<boolean>()
             <span class="justify-center text-zinc-800 text-sm">Functions</span>
           </Label>
 
-          <div class="p-4 bg-zinc-100 rounded-lg border border-zinc-100 flex justify-between items-center">
-            <div class="flex justify-start items-start gap-4">
-              <div class="w-3.5 pt-1 flex flex-col justify-center items-center gap-2.5">
-                <div class="justify-center text-stone-900 text-xs font-medium font-['DM_Sans']">
-                  01.
+          <div v-if="data?.functions.length" class="space-y-2">
+            <div v-for="(item, index) in data?.functions" :key="index" class="p-4 bg-zinc-100 rounded-lg border border-zinc-100 flex justify-between items-center">
+              <div class="flex justify-start items-start gap-4">
+                <div class="w-3.5 pt-1 flex flex-col justify-center items-center gap-2.5">
+                  <div class="justify-center text-stone-900 text-xs font-medium font-['DM_Sans']">
+                    {{ index + 1 }}.
+                  </div>
+                </div>
+                <div class="flex flex-col justify-center items-start gap-2">
+                  <div class="justify-center text-stone-900 text-base font-medium font-['DM_Sans']">
+                    {{ item?.name }}
+                  </div>
+                  <div v-if="item?.type === 'sms'" class="flex justify-center items-center gap-1 text-zinc-800 text-sm">
+                    Message:
+                    <span>
+                      {{ item?.message }}
+                    </span>
+                  </div>
+                  <div v-else-if="item?.type === 'call'" class="flex justify-center items-center gap-1 text-zinc-800 text-sm">
+                    Phone:
+                    <span>
+                      {{ formatNumber(item?.phone) }}
+                    </span>
+                  </div>
+                  <div v-else-if="item?.type === 'api'" class="flex justify-center items-start gap-1 text-zinc-800 text-sm">
+                    {{ item?.api_method }}:
+                    <span>
+                      {{ item?.api_url }}
+                    </span>
+                  </div>
+                  <div class="flex justify-center items-center gap-1 text-zinc-500 text-sm">
+                    Created at :
+                    <span>
+                      {{ formatDate(new Date(item?.created_at), 'DD/MM/YYYY hh:mm A') }}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div class="flex flex-col justify-center items-start gap-2">
-                <div class="justify-center text-stone-900 text-base font-medium font-['DM_Sans']">
-                  Tracking Shipment
-                </div>
-                <div class="flex justify-center items-center gap-1 text-zinc-800 text-sm">
-                  Message:
-                  <span>
-                    10
-                  </span>
-                </div>
-                <div class="flex justify-center items-center gap-1 text-zinc-500 text-sm">
-                  Created at :
-                  <span>
-                    28/04/2025 02:45 PM
-                  </span>
-                </div>
+              <div
+                class="px-[5px] py-[3px] rounded-md border flex justify-center items-center gap-1 text-stone-900 text-xs capitalize"
+                :class="{
+                  'bg-blue-600/10 border-blue-600 uppercase': item.type === 'sms',
+                  'bg-green-600/10 border-green-600': item.type === 'call',
+                  'bg-violet-600/10 border-violet-600 uppercase': item.type === 'api',
+                }"
+              >
+                {{ item.type }}
               </div>
-            </div>
-            <div class="px-[5px] py-[3px] bg-blue-600/10 rounded-md border border-blue-600 flex justify-center items-center gap-1 text-stone-900 text-xs">
-              SMS
             </div>
           </div>
-
-          <div class="p-4 bg-zinc-100 rounded-lg border border-zinc-100 flex justify-between items-center">
-            <div class="flex justify-start items-start gap-4">
-              <div class="w-3.5 pt-1 flex flex-col justify-center items-start gap-2.5 text-stone-900 text-xs font-medium">
-                02.
-              </div>
-              <div class="flex flex-col justify-center items-start gap-2">
-                <div class="justify-center text-stone-900 text-base font-medium font-['DM_Sans']">
-                  Tracking Shipment
-                </div>
-                <div class="flex justify-center items-center gap-1 text-zinc-800 text-sm">
-                  Phone:
-                  <span>
-                    +1 912 (345) 6789
-                  </span>
-                </div>
-                <div class="flex justify-center items-center gap-1 text-zinc-500 text-sm">
-                  Created at :
-                  <span>
-                    28/04/2025 02:45 PM
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="px-[5px] py-[3px] bg-green-600/10 rounded-md border border-green-600 flex justify-center items-center gap-1 text-stone-900 text-xs">
-              Call
-            </div>
+          <div v-else>
+            <p class="text-base font-medium">
+              No functions added to this prompt.
+            </p>
           </div>
         </div>
       </div>

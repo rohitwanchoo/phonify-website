@@ -69,23 +69,22 @@ watch(() => open.value, (newVal) => {
 
 const onSubmit = handleSubmit(async (values) => {
   const _api = props.isEdit ? '/edit-function' : '/add-function'
-  let payload = {}
+  let _payload = {}
 
   if (props.isEdit) {
-    payload = {
+    _payload = {
       function_id: props.initialData?.id,
       ...values,
     }
   }
   else {
-    payload = { ...values }
+    _payload = { ...values }
   }
 
   try {
     loading.value = true
 
     // Simulating API call
-    console.log('Function payload:', payload)
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Replace with actual API call
@@ -111,12 +110,11 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-const onSaveAndNew = handleSubmit(async (values) => {
+const onSaveAndNew = handleSubmit(async (_values) => {
   try {
     loading.value = true
 
     // Simulating API call
-    console.log('Function payload (Save and New):', values)
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     showToast({

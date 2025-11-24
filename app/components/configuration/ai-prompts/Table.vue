@@ -16,8 +16,8 @@ import {
 } from '@tanstack/vue-table'
 
 import { useConfirmDialog } from '@vueuse/core'
-import { ChevronsUpDown } from 'lucide-vue-next'
 
+import { ChevronsUpDown } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -55,12 +55,15 @@ const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const sheet = ref(false)
+const router = useRouter()
+
+const openSheet = ref(false)
+const selectedPromptData = ref()
 
 // Interface for each row in the list
-export interface leadList {
+export interface promptList {
   title: string
-  voice: string
+  voice_name: string
   description: string
   id: number
 }
@@ -73,49 +76,49 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedListForDelete = ref<leadList | null>(null)
+const selectedListForDelete = ref<any | null>(null)
 
 // Function to handle deleting a list
 async function handleDelete() {
-  // if (!selectedListForDelete.value?.id)
-  //   return
+  if (!selectedListForDelete.value?.id)
+    return
 
-  // try {
-  //   const res = await useApi().post('/edit-list', {
-  //     list_id: selectedListForDelete.value.id,
-  //     is_deleted: '1',
-  //   })
+  try {
+    const res = await useApi().post(`/prompts/delete/${selectedListForDelete.value?.id}`, {
+      title: selectedListForDelete.value?.title,
+      description: selectedListForDelete.value?.description,
+      initial_greeting: selectedListForDelete.value?.initial_greeting,
+      voice_name: selectedListForDelete.value?.voice_name,
+    })
 
-  //   if (res?.success === 'true') {
-  //     showToast({
-  //       message: res.message,
-  //       type: 'success',
-  //     })
-  //     emits('refresh') // properly emit refresh
-  //   }
-  //   else {
-  //     showToast({
-  //       message: res.message,
-  //       type: 'error',
-  //     })
-  //   }
-  // }
-  // catch (err: any) {
-  //   showToast({
-  //     message: `${err.message}`,
-  //     type: 'error',
-  //   })
-  // }
-  // finally {
-  //   selectedListForDelete.value = null
-  // }
+    if (res?.success === true) {
+      showToast({
+        message: res.message,
+        type: 'success',
+      })
+      emits('refresh')
+    }
+    else {
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
+  finally {
+    selectedListForDelete.value = null
+  }
 }
 
-// Opens edit dialog
-function onEdit(row: leadList) {
-  emits('onEdit', row)
-  // selectedRowData.value = row
-  // isEditDialogOpen.value = true
+function viewPromptDetails(sheet: boolean, data: any) {
+  openSheet.value = sheet
+  selectedPromptData.value = data
 }
 
 // Pagination handlers
@@ -136,7 +139,7 @@ function deleteConfirmHandler() {
 }
 
 // Define table columns using Tanstack's column helper
-const columnHelper = createColumnHelper<leadList>()
+const columnHelper = createColumnHelper<promptList>()
 const columns = [
   // Serial number column
   columnHelper.display({
@@ -155,14 +158,14 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.title || '-'),
   }),
   // Voice name
-  columnHelper.accessor('voice', {
+  columnHelper.accessor('voice_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center w-full' }, h(Button, {
         class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Voice', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.voice || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.voice_name || '-'),
   }),
   // Description
   columnHelper.accessor('description', {
@@ -172,7 +175,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Description', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.description || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full max-w-[580px] truncate' }, row.original.description || '-'),
   }),
   // Actions: View, Edit, Download, Delete
   columnHelper.display({
@@ -185,16 +188,18 @@ const columns = [
         color: 'primary',
         class: 'cursor-pointer flex items-center gap-x-1 border border-primary',
         onClick: () => {
-          sheet.value = true
+          viewPromptDetails(true, row.original)
         },
       }, [
         h(Icon, { name: 'material-symbols:visibility', color: 'primary' }),
         'View',
       ]),
       h(ConfigurationAiPromptsActions, {
-        // Pass the row context if needed for actions
         onEdit: () => {
-          onEdit(row.original)
+          router.push({
+            path: `/app/configuration/ai-prompts/edit`,
+            query: { id: row.original.id },
+          })
         },
         onDelete: () => {
           selectedListForDelete.value = row.original
@@ -232,7 +237,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-x-auto">
+  <div class="border rounded-lg my-6 overflow-x-auto max-h-[calc(100vh-270px)] overflow-y-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -315,7 +320,7 @@ const table = useVueTable({
   </div>
 
   <!-- Details Sheet -->
-  <ConfigurationAiPromptsDetails v-model:open="sheet" />
+  <ConfigurationAiPromptsDetails v-model:open="openSheet" :data="selectedPromptData" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction
