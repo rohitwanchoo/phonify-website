@@ -47,9 +47,13 @@ const { data: did, status: didStatus, refresh: didRefresh } = await useLazyAsync
 })
 
 const { data: stateList, status: stateListStatus, refresh: stateListRefresh } = await useLazyAsyncData('state-list', () =>
-  useApi().post('/state-list', {
-    country_id: 1,
-  }), {
+  useApi().get('/area-code-list'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: timezoneList, status: timezoneListStatus, refresh: timezoneListRefresh } = await useLazyAsyncData('timezone-list', () =>
+  useApi().get('/get-timezone-list'), {
   transform: res => res.data,
   immediate: false,
 })
@@ -63,6 +67,7 @@ watch(open, (val) => {
       !campaignType.value?.length && campaignTypeRefresh(),
       !did.value?.length && didRefresh(),
       !stateList.value?.length && stateListRefresh(),
+      !timezoneList.value?.length && timezoneListRefresh(),
     ])
   }
 })
@@ -76,7 +81,8 @@ const filters = ref({
   route: '',
   type: '',
   did: '',
-  state_list: '',
+  area_code: '',
+  timezone: '',
   start_date: '',
   end_date: '',
 })
@@ -118,8 +124,11 @@ function onSubmit() {
   if (filters.value.did) {
     filterParams.did = filters.value.did
   }
-  if (filters.value.state_list) {
-    filterParams.state_list = filters.value.state_list
+  if (filters.value.area_code) {
+    filterParams.area_code = [filters.value.area_code]
+  }
+  if (filters.value.timezone) {
+    filterParams.timezone = filters.value.timezone
   }
   if (filters.value.start_date) {
     filterParams.start_date = filters.value.start_date
@@ -145,7 +154,8 @@ function clearFilters() {
     route: '',
     type: '',
     did: '',
-    state_list: '',
+    area_code: '',
+    timezone: '',
     start_date: '',
     end_date: '',
   }
@@ -281,7 +291,7 @@ function clearFilters() {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in campaignType" :key="option.id" :value="option.id">
+                        <SelectItem v-for="option in campaignType" :key="option.id" :value="option.title_url">
                           {{ option.title }}
                         </SelectItem>
                       </template>
@@ -310,14 +320,19 @@ function clearFilters() {
                 </div>
                 <div>
                   <label class="text-sm font-medium text-primary">Time Zone</label>
-                  <Select>
+                  <Select v-model="filters.timezone">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Select a Time Zone" />
+                      <SelectValue placeholder="Select Timezone" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem :value="null">
-                        All
+                      <SelectItem v-if="timezoneListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                        <Icon name="eos-icons:loading" />
                       </SelectItem>
+                      <template v-else>
+                        <SelectItem v-for="option in timezoneList" :key="option.areacode" :value="option.areacode">
+                          {{ option.timezone_name }} ({{ option.timezone }})
+                        </SelectItem>
+                      </template>
                     </SelectContent>
                   </Select>
                 </div>
@@ -381,7 +396,7 @@ function clearFilters() {
                 </div>
                 <div>
                   <label class="text-sm font-medium text-primary">State / City / Area Codes</label>
-                  <Select v-model="filters.state_list">
+                  <Select v-model="filters.area_code">
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="Select State / City / Area Code" />
                     </SelectTrigger>
@@ -389,19 +404,17 @@ function clearFilters() {
                       <SelectItem v-if="stateListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
-                      <SelectItem v-else-if="stateListStatus !== 'pending' && stateList.length === 0" class="text-center justify-center" :value="null" disabled>
-                        No State / City / Area Code Found
-                      </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in stateList" :key="option.id" :value="option.id">
-                          {{ option.name }}
+                        <SelectItem v-for="option in stateList" :key="option.id" :value="option.areacode">
+                          {{ option.state_name }}/ {{ option.city_name }}/ {{ option.areacode }}
                         </SelectItem>
                       </template>
                     </SelectContent>
                   </Select>
                 </div>
+                <!-- TO DO: api need for downloading to pdf and excel
                 <div class="flex items-center justify-between gap-2">
-                  <!-- <Button variant="outline" class=" h-11 border border-primary rounded-sm flex justify-between items-center gap-2 px-3 w-[49%]">
+                  <Button variant="outline" class=" h-11 border border-primary rounded-sm flex justify-between items-center gap-2 px-3 w-[49%]">
                     <div class="flex gap-2 items-center justify-center text-sm text-primary">
                       <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
                       Download PDF
@@ -414,8 +427,8 @@ function clearFilters() {
                       Download Excel
                     </div>
                     <Icon name="material-symbols:download" class="text-xl text-primary" />
-                  </Button> -->
-                </div>
+                  </Button>
+                </div> -->
               </div>
             </div>
           </div>

@@ -52,18 +52,15 @@ const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
-const loading = ref(false)
-
 interface CallRecord {
   id: number
-  agent: string
-  extension: string
-  number: string
+  extension: number
+  number: number
   route: string
-  campaign: string
-  callType: 'Inbound' | 'Outbound' | 'Missed' | 'Voicemail'
-  startTime: string
-  duration: number
+  campaign_id: number
+  type: string
+  start_time: string
+  duration: string
 }
 
 // Pagination handlers
@@ -77,8 +74,8 @@ function changeLimit(val: number | null) {
   }
 }
 
-function formatDuration(seconds: number) {
-  return moment.utc(seconds * 1000).format('HH:mm:ss')
+function normalizeDuration(duration: string): string {
+  return duration.replace('-', '').trim()
 }
 
 const columnHelper = createColumnHelper<CallRecord>()
@@ -86,17 +83,16 @@ const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
-  columnHelper.accessor(row => `${row.agent} (${row.extension})`, {
-    id: 'agent',
+  columnHelper.accessor('extension', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Agent Name (Extension)', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, `${row.original.agent} (${row.original.extension})` || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, row.original.extension || '-'),
   }),
   columnHelper.accessor('number', {
     header: ({ column }) =>
@@ -105,7 +101,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, formatNumber(row.original.number) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, formatNumber(String(row.original.number)) || '-'),
   }),
   columnHelper.accessor('route', {
     header: ({ column }) =>
@@ -116,32 +112,32 @@ const columns = [
       }, () => ['Route', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
     cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, row.original.route || '-'),
   }),
-  columnHelper.accessor('campaign', {
+  columnHelper.accessor('campaign_id', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, row.original.campaign || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, row.original.campaign_id || '-'),
   }),
-  columnHelper.accessor('callType', {
+  columnHelper.accessor('type', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Call Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, row.original.callType || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal capitalize' }, row.original.type || '-'),
   }),
-  columnHelper.accessor('startTime', {
+  columnHelper.accessor('start_time', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Start Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, moment(row.original.startTime).format('MMM D, YYYY h:mm A') || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm font-normal' }, moment(row.original.start_time).format('MMM D, YYYY h:mm A') || '-'),
   }),
   columnHelper.accessor('duration', {
     header: ({ column }) =>
@@ -150,19 +146,20 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Duration', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.duration > 0 ? formatDuration(row.original.duration) : '--:--:--',
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, normalizeDuration(row.original.duration) || '--:--:--',
     ),
   }),
-  columnHelper.display({
-    id: 'action',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-    cell: () =>
-      h('div', { class: 'flex justify-center' }, h(Button, {
-        variant: 'ghost',
-        size: 'sm',
-        class: 'h-8 w-8 p-0',
-      }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
-  }),
+  // TO DO: Barge and Listen in the action
+  // columnHelper.display({
+  //   id: 'action',
+  //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+  //   cell: () =>
+  //     h('div', { class: 'flex justify-center' }, h(Button, {
+  //       variant: 'ghost',
+  //       size: 'sm',
+  //       class: 'h-8 w-8 p-0',
+  //     }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
+  // }),
 ]
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
@@ -198,7 +195,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-x-auto">
+  <div class="border rounded-lg mt-4 max-h-[calc(100vh-222px)] overflow-y-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -250,17 +247,18 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 pt-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>

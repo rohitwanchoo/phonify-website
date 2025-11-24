@@ -3,6 +3,7 @@ import type { DateValue } from '@internationalized/date'
 import {
   DateFormatter,
   getLocalTimeZone,
+  today,
 } from '@internationalized/date'
 import { CalendarIcon } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
@@ -17,8 +18,10 @@ const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
 
-const startDate = ref<DateValue>()
-const endDate = ref<DateValue>()
+// Set default dates: end date is today, start date is 7 days before
+const currentDate = today(getLocalTimeZone())
+const startDate = ref<DateValue>(currentDate.subtract({ days: 7 }))
+const endDate = ref<DateValue>(currentDate)
 
 // Helper function to format DateValue to required API format
 function formatDateForAPI(dateValue: DateValue | undefined): string {
@@ -38,30 +41,11 @@ function formatDateForAPI(dateValue: DateValue | undefined): string {
   return `${year}-${month}-${day} 00:00:00`
 }
 
-const { data: agentWiseDialerCallStatistics, status: agentWiseDialerCallStatisticsStatus, refresh: agentWiseDialerCallStatisticsRefresh } = await useLazyAsyncData('dialer-all-count-crm', () =>
-  useApi().post('/dialer-all-count-crm', {
-    start_date: formatDateForAPI(startDate.value),
-    end_date: formatDateForAPI(endDate.value),
-  }), {
-  transform: res => res,
-  immediate: true,
-})
-
-const { data: callSummaryData, status: callSummaryStatus, refresh: callSummaryRefresh } = await useLazyAsyncData('call-summary', () =>
-  useApi().post('/cdr-dashboard-summary', {
-    startTime: formatDateForAPI(startDate.value),
-    endTime: formatDateForAPI(endDate.value),
-    userId: [user.value?.id],
-  }), {
-  transform: res => res,
-  immediate: true,
-})
-
-const { data: smsCountData, status: smsCountStatus, refresh: smsCountRefresh } = await useLazyAsyncData('sms-count', () =>
-  useApi().post('/sms-count', {
-    userId: [user.value?.id],
-    startTime: formatDateForAPI(startDate.value),
-    endTime: formatDateForAPI(endDate.value),
+const { data: dialerAllCountData, status: dialerAllCountStatus, refresh: dialerAllCountRefresh } = await useLazyAsyncData('dialer-all-count-crm', () =>
+  useApi().post('/dialer-all-count', {
+    start_date: formatDateForAPI(startDate.value as DateValue),
+    end_date: formatDateForAPI(endDate.value as DateValue),
+    extensions: [user.value?.extension],
   }), {
   transform: res => res,
   immediate: true,
@@ -69,17 +53,13 @@ const { data: smsCountData, status: smsCountStatus, refresh: smsCountRefresh } =
 
 function filterData() {
   // Validate that both dates are selected
-  if (!startDate.value || !endDate.value) {
-    agentWiseDialerCallStatisticsRefresh()
-    callSummaryRefresh()
-    smsCountRefresh()
-  }
+  dialerAllCountRefresh()
 }
 
 // Make callsData reactive to API response changes, only compute after API call completes
 const callsData = computed(() => {
   // Return default/loading state while API is pending
-  if (callSummaryStatus.value === 'pending') {
+  if (dialerAllCountStatus.value === 'pending') {
     return [
       {
         text: 'Total Number Of Outbound Calls Made Manually',
@@ -114,38 +94,34 @@ const callsData = computed(() => {
     {
       text: 'Total Number Of Outbound Calls Made Manually',
       icon: 'material-symbols:touch-app',
-      number: callSummaryData.value?.data?.outBoundManual?.calls,
+      number: dialerAllCountData.value?.data?.data?.totalManualCalls || 0,
     },
     {
       text: 'Total Number Of Outbound Calls via Dialer',
       icon: 'material-symbols:dialpad',
-      number: callSummaryData.value?.data?.outBoundDialer?.calls,
+      number: dialerAllCountData.value?.data?.data?.totalDialerCalls || 0,
     },
     {
       text: 'Total Number Of Outbound Calls via C2C',
       icon: 'material-symbols:group',
-      number: callSummaryData.value?.data?.outBoundDialerC2C?.calls,
+      number: dialerAllCountData.value?.data?.data?.totalDialerC2CCalls || 0,
     },
     {
       text: 'Total Number Of Outbound Calls',
       icon: 'material-symbols:phone-forwarded',
-      number: (callSummaryData.value?.data?.outBoundManual?.calls)
-        + (callSummaryData.value?.data?.outBoundDialer?.calls)
-        + (callSummaryData.value?.data?.outBoundDialerC2C?.calls)
-        + (callSummaryData.value?.data?.outBoundPredictive?.calls),
+      number: dialerAllCountData.value?.data?.data?.totalOutBoundCalls || 0,
     },
     {
       text: 'Inbound Calls',
       icon: 'material-symbols:phone-callback',
-      number: (callSummaryData.value?.data?.inBoundManual?.calls)
-        + (callSummaryData.value?.data?.inBoundDialer?.calls),
+      number: dialerAllCountData.value?.data?.data?.totalInBoundCalls || 0,
     },
   ]
 })
 
 // todo need to integrate fax count
 const reportData = computed(() => {
-  if (smsCountStatus.value === 'pending') {
+  if (dialerAllCountStatus.value === 'pending') {
     return [
       {
         text: 'Total Number Of SMS Received',
@@ -173,12 +149,12 @@ const reportData = computed(() => {
     {
       text: 'Total Number Of SMS Received',
       icon: 'mdi:message-arrow-left',
-      number: smsCountData.value?.data?.incoming,
+      number: dialerAllCountData.value?.data?.data?.total_sms_send || 0,
     },
     {
       text: 'Total Number Of SMS Sent',
       icon: 'mdi:message-arrow-right',
-      number: smsCountData.value?.data?.outgoing,
+      number: dialerAllCountData.value?.data?.data?.total_sms_receive || 0,
     },
     {
       text: 'FAX Received',
@@ -213,7 +189,7 @@ const reportData = computed(() => {
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto p-0">
-            <Calendar v-model="startDate" initial-focus />
+            <Calendar v-model="startDate as DateValue" initial-focus />
           </PopoverContent>
         </Popover>
 
@@ -231,32 +207,32 @@ const reportData = computed(() => {
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto  p-0">
-            <Calendar v-model="endDate" initial-focus />
+            <Calendar v-model="endDate as DateValue" initial-focus />
           </PopoverContent>
         </Popover>
         <!-- Trigger Button -->
-        <Button class="h-11" :disabled="agentWiseDialerCallStatisticsStatus === 'pending' || callSummaryStatus === 'pending'" :loading="agentWiseDialerCallStatisticsStatus === 'pending' || callSummaryStatus === 'pending' || smsCountStatus === 'pending'" @click="filterData">
+        <Button class="h-11" :disabled="dialerAllCountStatus === 'pending'" :loading="dialerAllCountStatus === 'pending'" @click="filterData">
           <Icon name="material-symbols:search" size="20" class="text-white" />
           Search
         </Button>
+        <!-- TO DO: Api needed for export to pdf
         <Button class="h-11" variant="outline">
           <Icon name="lsicon:file-pdf-filled" class="text-xl text-red-600 border-primary" />
           Export PDF
-        </Button>
+        </Button> -->
       </template>
     </BaseHeader>
-
     <!-- tags here -->
     <div>
-      <ReportCountTagsList heading="Total Inbound/OutBound Calls" :data="callsData" />
-      <ReportCountTagsList heading="Total SMS/FAX Report Details" :data="reportData" />
+      <ReportCountTagsList heading="Total Inbound/OutBound Calls" :data="callsData" :loading="dialerAllCountStatus === 'pending'" />
+      <ReportCountTagsList heading="Total SMS/FAX Report Details" :data="reportData" :loading="dialerAllCountStatus === 'pending'" />
     </div>
 
     <!-- tables here -->
     <div>
-      <ReportCountTableAgeWise :agent-wise-dialer-call-data="agentWiseDialerCallStatistics?.data.agent" />
-      <ReportCountTableDidWise />
-      <ReportCountTableAreaWise />
+      <ReportCountTableAgentWise :data="dialerAllCountData?.data?.data?.agent" :loading="dialerAllCountStatus === 'pending'" />
+      <ReportCountTableDidWise :data="dialerAllCountData?.data?.data?.did" :loading="dialerAllCountStatus === 'pending'" />
+      <ReportCountTableAreaWise :data="dialerAllCountData?.data?.data?.city_wise" :loading="dialerAllCountStatus === 'pending'" />
     </div>
   </div>
 </template>

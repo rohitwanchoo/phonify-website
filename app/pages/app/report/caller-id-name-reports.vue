@@ -53,7 +53,15 @@ function searchText() {
 
     <!-- TABLE -->
     <div>
-      <ReportCallerIdNameTable :limit="limit" :total-rows="cliReportData?.record_count" :start="start" :list="cliReportData?.data" :loading="cliReportStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" />
+      <ReportCallerIdNameTable
+        :limit="limit"
+        :total-rows="cliReportData?.record_count"
+        :start="start"
+        :list="cliReportData?.data"
+        :loading="cliReportStatus === 'pending'"
+        @page-navigation="changePage"
+        @limit-change="changeLimit"
+      />
     </div>
   </div>
 </template>
