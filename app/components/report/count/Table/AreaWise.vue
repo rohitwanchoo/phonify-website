@@ -22,35 +22,23 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 
-// New dummy data from the screenshot
-const data = ref([
-  {
-    state: 'New York',
-    city: 'Hempstead',
-    did: '15168686507',
-    cnam: 'LOREM',
-    areacode: '999',
-    totalCalls: 5,
-  },
-  {
-    state: 'New York',
-    city: 'Hempstead',
-    did: '15168686507',
-    cnam: 'UNAVAILABLE',
-    areacode: '999',
-    totalCalls: 5,
-  },
-  {
-    state: 'New York',
-    city: 'Hempstead',
-    did: '15168686507',
-    cnam: 'LOREM',
-    areacode: '999',
-    totalCalls: 5,
-  },
-])
+const props = defineProps<{
+  data: any[]
+  loading: boolean
+}>()
 
-const columnHelper = createColumnHelper<any>()
+export interface stateWiseSummary {
+  state: string
+  city: string
+  did: string
+  cnam: string
+  total: number
+  area_code: string
+  state_code: string
+  country_code: string
+}
+
+const columnHelper = createColumnHelper<stateWiseSummary>()
 
 const columns = [
   columnHelper.accessor('state', {
@@ -69,25 +57,25 @@ const columns = [
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatNumber(row.original.did) || '-'),
+      h('div', { class: 'text-sm text-center' }, row.original.did || '-'),
   }),
   columnHelper.accessor('cnam', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'CNAM'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.cnam),
+      h('div', { class: 'text-sm text-center' }, row.original.cnam || '-'),
   }),
-  columnHelper.accessor('areacode', {
+  columnHelper.accessor('area_code', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Areacode'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, row.original.areacode || '-'),
+      h('div', { class: 'text-sm text-center' }, row.original.area_code || '-'),
   }),
-  columnHelper.accessor('totalCalls', {
+  columnHelper.accessor('total', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalCalls) || '-'),
+      h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.total) || '-'),
   }),
 ]
 
@@ -98,7 +86,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return data.value },
+  get data() { return props.data || [] },
   columns,
   getCoreRowModel: getCoreRowModel(),
   state: {
@@ -115,12 +103,10 @@ const table = useVueTable({
   onExpandedChange: updater => valueUpdater(updater, expanded),
 })
 
-// Totals calculation (based on screenshot, only totalCalls matters)
-const total = computed(() => {
-  return {
-    totalCalls: data.value.reduce((sum, r) => sum + r.totalCalls, 0),
-  }
-})
+// Totals calculation
+const total = computed(() => ({
+  totalCalls: (props.data ?? []).reduce((sum, r) => sum + (r.total || 0), 0),
+}))
 </script>
 
 <template>
@@ -149,29 +135,41 @@ const total = computed(() => {
       </TableHeader>
 
       <TableBody>
-        <TableRow
-          v-for="row in table.getRowModel().rows"
-          :key="row.id"
-        >
-          <TableCell
-            v-for="cell in row.getVisibleCells()"
-            :key="cell.id"
-            class="text-center p-3 text-sm"
-          >
-            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 5" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
         </TableRow>
-
-        <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">
-            Total
-          </TableCell>
-          <TableCell class="text-center" />
-          <TableCell class="text-center" />
-          <TableCell class="text-center" />
-          <TableCell class="text-center" />
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.totalCalls) }}
+        <template v-else-if="table.getRowModel().rows?.length">
+          <template v-for="row in table.getRowModel().rows" :key="row.id">
+            <TableRow
+              :data-state="row.getIsSelected() && 'selected'"
+            >
+              <TableCell
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                class="text-center p-3 text-sm"
+              >
+                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              </TableCell>
+            </TableRow>
+          </template>
+          <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
+            <TableCell class="text-center">
+              Total
+            </TableCell>
+            <TableCell class="text-center" />
+            <TableCell class="text-center" />
+            <TableCell class="text-center" />
+            <TableCell class="text-center" />
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.totalCalls) }}
+            </TableCell>
+          </TableRow>
+        </template>
+        <TableRow v-else>
+          <TableCell :colspan="columns.length" class="text-center py-8 text-gray-500">
+            No data available
           </TableCell>
         </TableRow>
       </TableBody>

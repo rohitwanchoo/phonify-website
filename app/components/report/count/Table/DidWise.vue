@@ -22,39 +22,36 @@ import {
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
 
-// Dummy data with time in seconds
-const data = ref([
-  {
-    didNumber: '15168686507',
-    inboundCalls: 5,
-    totalCallTime: 1525, // in seconds (25 minutes 25 seconds)
-    avgHandleTime: 61, // in seconds (1 minute 1 second)
-    smsSent: 100,
-    smsReceived: 100,
+const props = defineProps({
+  data: {
+    type: Array as PropType<inboundDidWiseData[]>,
+    default: () => [],
   },
-  {
-    didNumber: '15168686507',
-    inboundCalls: 5,
-    totalCallTime: 1525,
-    avgHandleTime: 61,
-    smsSent: 100,
-    smsReceived: 100,
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  {
-    didNumber: '15168686507',
-    inboundCalls: 5,
-    totalCallTime: 1525,
-    avgHandleTime: 61,
-    smsSent: 100,
-    smsReceived: 100,
-  },
-])
+})
+
+export interface inboundDidWiseData {
+  cli: string
+  inbound: number
+  duration: number
+  aht: number
+  outgoing: string
+  incoming: string
+}
 
 // Format seconds to HH:MM:SS
-function formatTime(seconds: number) {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+function formatTime(seconds: number): string {
+  if (!seconds || seconds < 0 || Number.isNaN(seconds))
+    return '00:00:00'
+
+  const roundedSeconds = Math.round(seconds) // Round to nearest whole number
+  const hours = Math.floor(roundedSeconds / 3600)
+  const minutes = Math.floor((roundedSeconds % 3600) / 60)
+  const secs = roundedSeconds % 60
+
   return [
     hours.toString().padStart(2, '0'),
     minutes.toString().padStart(2, '0'),
@@ -66,41 +63,46 @@ function formatTime(seconds: number) {
 const columnHelper = createColumnHelper<any>()
 
 const columns = [
-  columnHelper.accessor('didNumber', {
+  columnHelper.accessor('cli', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'DID Number'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.didNumber) || '-'),
+      h('div', { class: 'text-sm font-normal text-center' }, formatNumber(row.original.cli) || '-'),
   }),
-  columnHelper.accessor('inboundCalls', {
+
+  columnHelper.accessor('inbound', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.inboundCalls) || '-'),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.inbound) || '-'),
   }),
-  columnHelper.accessor('totalCallTime', {
+
+  columnHelper.accessor('duration', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Total Call Time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatTime(row.original.totalCallTime) || '-'),
+      h('div', { class: 'text-center text-sm' }, formatTime(row.original.duration) || '-'),
   }),
-  columnHelper.accessor('avgHandleTime', {
+
+  columnHelper.accessor('aht', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'Average Handle time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatTime(row.original.avgHandleTime) || '-'),
+      h('div', { class: 'text-center text-sm' }, formatTime(row.original.aht) || '-'),
   }),
-  columnHelper.accessor('smsSent', {
+
+  columnHelper.accessor('outgoing', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.smsSent) || '-'),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.outgoing) || '-'),
   }),
-  columnHelper.accessor('smsReceived', {
+
+  columnHelper.accessor('incoming', {
     header: () =>
       h('div', { class: 'text-sm font-normal text-center' }, 'SMS Received'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.smsReceived)),
+      h('div', { class: 'text-center text-sm' }, formatWithCommas(row.original.incoming) || '-'),
   }),
 ]
 
@@ -111,7 +113,7 @@ const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
 const table = useVueTable({
-  get data() { return data.value },
+  get data() { return props.data },
   columns,
   getCoreRowModel: getCoreRowModel(),
   state: {
@@ -130,15 +132,14 @@ const table = useVueTable({
 
 // Totals calculation
 const total = computed(() => {
-  const totalSeconds = data.value.reduce((sum, r) => sum + r.totalCallTime, 0)
-  const avgSeconds = data.value.reduce((sum, r) => sum + r.avgHandleTime, 0) / data.value.length
-
   return {
-    calls: data.value.reduce((sum, r) => sum + r.inboundCalls, 0),
-    smsSent: data.value.reduce((sum, r) => sum + r.smsSent, 0),
-    smsReceived: data.value.reduce((sum, r) => sum + r.smsReceived, 0),
-    totalCallTime: formatTime(totalSeconds),
-    avgHandleTime: formatTime(Math.round(avgSeconds)),
+    calls: props.data.reduce((sum, r) => sum + Number(r.inbound), 0),
+    smsSent: props.data.reduce((sum, r) => sum + Number(r.outgoing), 0),
+    smsReceived: props.data.reduce((sum, r) => sum + Number(r.incoming), 0),
+    totalCallTime: formatTime(props.data.reduce((sum, r) => sum + (Number(r.duration) ?? 0), 0)),
+    avgHandleTime: formatTime(
+      Math.floor(props.data.reduce((sum, r) => sum + (Number(r.aht) ?? 0), 0) / props.data.length),
+    ),
   }
 })
 </script>
@@ -169,37 +170,49 @@ const total = computed(() => {
       </TableHeader>
 
       <TableBody>
-        <TableRow
-          v-for="row in table.getRowModel().rows"
-          :key="row.id"
-        >
-          <TableCell
-            v-for="cell in row.getVisibleCells()"
-            :key="cell.id"
-            class="text-center p-3 text-sm"
-          >
-            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 5" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
         </TableRow>
+        <template v-else-if="table.getRowModel().rows.length">
+          <TableRow
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+          >
+            <TableCell
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="text-center p-3 text-sm"
+            >
+              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+            </TableCell>
+          </TableRow>
 
-        <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
-          <TableCell class="text-center">
-            Total
-          </TableCell>
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.calls) }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ total.totalCallTime }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ total.avgHandleTime }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.smsSent) }}
-          </TableCell>
-          <TableCell class="text-center">
-            {{ formatWithCommas(total.smsReceived) }}
+          <TableRow class="bg-slate-900 hover:bg-slate-900 text-white font-medium text-sm">
+            <TableCell class="text-center">
+              Total
+            </TableCell>
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.calls) }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ total.totalCallTime }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ total.avgHandleTime }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.smsSent) }}
+            </TableCell>
+            <TableCell class="text-center">
+              {{ formatWithCommas(total.smsReceived) }}
+            </TableCell>
+          </TableRow>
+        </template>
+        <TableRow v-else>
+          <TableCell :colspan="columns.length" class="text-center py-8 text-gray-500">
+            No data available
           </TableCell>
         </TableRow>
       </TableBody>

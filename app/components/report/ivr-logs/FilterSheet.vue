@@ -16,27 +16,6 @@ const emit = defineEmits<{
 // Sheet open state
 const open = defineModel<boolean>('open', { default: false })
 
-const { data: dtmfData, status: dtmfStatus, refresh: dtmfRefresh } = await useLazyAsyncData('dtmf', () =>
-  useApi().post('/dtmf'), {
-  transform: res => res.data,
-  immediate: false,
-})
-
-const { data: campaign, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign', () =>
-  useApi().post('/campaign'), {
-  transform: res => res.data,
-  immediate: false,
-})
-
-watch(open, (val) => {
-  if (val) {
-    Promise.all([
-      !dtmfData.value?.length && dtmfRefresh(),
-      !campaign.value?.length && campaignRefresh(),
-    ])
-  }
-})
-
 // Simple reactive filter values
 const filters = ref({
   number: '',
@@ -45,6 +24,34 @@ const filters = ref({
   start_date: '',
   end_date: '',
 })
+
+const { data: campaignData, status: campaignStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign', () =>
+  useApi().post('/campaign'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: dtmfData, status: dtmfStatus, refresh: dtmfRefresh } = await useLazyAsyncData('dtmf', () =>
+  useApi().post('/all-dtmf', {campaign_id: filters.value.campaign}), {
+  transform: res => res,
+  immediate: false,
+})
+
+watch(open, (val) => {
+  if (val) {
+    Promise.all([
+      !campaignData.value?.length && campaignRefresh(),
+    ])
+  }
+})
+
+watch(() => filters.value.campaign, (newCampaign) => {
+  if (newCampaign) {
+    filters.value.dtmf = ''
+    dtmfRefresh()
+  }
+})
+
 
 // Function to strip formatting from phone number
 function stripPhoneFormatting(phoneNumber: string): string {
@@ -147,7 +154,7 @@ function clearFilters() {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in campaign" :key="option.id" :value="option.id">
+                        <SelectItem v-for="option in campaignData" :key="option.id" :value="option.id">
                           {{ option.title }}
                         </SelectItem>
                       </template>
@@ -155,7 +162,7 @@ function clearFilters() {
                   </Select>
                 </div>
 
-                <div>
+                <div v-if="dtmfData?.success">
                   <label class="text-sm font-medium text-primary">DTMF</label>
                   <Select v-model="filters.dtmf">
                     <SelectTrigger class="w-full !h-11">
@@ -166,8 +173,8 @@ function clearFilters() {
                         <Icon name="eos-icons:loading" />
                       </SelectItem>
                       <template v-else>
-                        <SelectItem v-for="option in dtmfData" :key="option.id" :value="option.id">
-                          {{ option.title }}
+                        <SelectItem v-for="option in dtmfData.data" :key="option.id" :value="option.dtmf">
+                          {{ option.dtmf_title }}
                         </SelectItem>
                       </template>
                     </SelectContent>
@@ -230,13 +237,14 @@ function clearFilters() {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" class=" w-full h-11 border border-red-600 rounded-sm flex justify-between items-center gap-2 px-3">
+                <!-- TODO: Add download PDF button, API needed -->
+                <!-- <Button variant="outline" class=" w-full h-11 border border-red-600 rounded-sm flex justify-between items-center gap-2 px-3">
                   <div class="flex gap-2 items-center justify-center text-sm text-primary">
                     <Icon name="lsicon:file-pdf-filled" class="text-red-600 text-xl" />
                     Download PDF
                   </div>
                   <Icon name="material-symbols:download" class="text-xl text-primary" />
-                </Button>
+                </Button> -->
               </div>
             </div>
           </div>

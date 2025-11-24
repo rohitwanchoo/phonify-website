@@ -10,8 +10,6 @@ import {
   createColumnHelper,
   FlexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
 import { computed, h, ref } from 'vue'
@@ -26,9 +24,13 @@ import {
 import { valueUpdater } from '@/components/ui/table/utils'
 
 const props = defineProps({
-  agentWiseDialerCallData: {
+  data: {
     type: Array as PropType<agentWiseDialerCallList[]>,
     default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -36,34 +38,30 @@ export interface agentWiseDialerCallList {
   agentName: string
   extension: string
   totalcalls: number
-  dialer_call: number
-  c2c_call: number
-  desktop_call: number
-  dialer_call_time_spent_in_second: number
-  c2c_call_time_spent_in_second: number
-  desktop_call_time_spent_in_second: number
-  avgHandleTime?: number // Make optional since it's not in API response
-  sms_sent?: number // Make optional since it's not in API response
-  sms_received?: number // Make optional since it's not in API response
+  outbound: number
+  c2c: number
+  inbound: number
+  duration: number
+  aht: number
+  outgoing_sms: string
+  incoming_sms: string
 }
 
+// Format seconds to HH:MM:SS
 function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+  if (!seconds || seconds < 0 || Number.isNaN(seconds))
+    return '00:00:00'
+
+  const roundedSeconds = Math.round(seconds) // Round to nearest whole number
+  const hours = Math.floor(roundedSeconds / 3600)
+  const minutes = Math.floor((roundedSeconds % 3600) / 60)
+  const secs = roundedSeconds % 60
+
   return [
     hours.toString().padStart(2, '0'),
     minutes.toString().padStart(2, '0'),
     secs.toString().padStart(2, '0'),
   ].join(':')
-}
-
-// Calculate average handle time from total call time and total calls
-function calculateAvgHandleTime(row: agentWiseDialerCallList): number {
-  const totalTime = row.dialer_call_time_spent_in_second
-    + row.c2c_call_time_spent_in_second
-    + row.desktop_call_time_spent_in_second
-  return row.totalcalls > 0 ? Math.round(totalTime / row.totalcalls) : 0
 }
 
 const columnHelper = createColumnHelper<agentWiseDialerCallList>()
@@ -80,43 +78,35 @@ const columns = [
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Total Calls'),
     cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.totalcalls) || '-'),
   }),
-  columnHelper.accessor('dialer_call', {
+  columnHelper.accessor('outbound', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Outbound Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.dialer_call) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.outbound) || '-'),
   }),
-  columnHelper.accessor('c2c_call', {
+  columnHelper.accessor('c2c', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'C2C Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.c2c_call) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.c2c) || '-'),
   }),
-  columnHelper.accessor('desktop_call', {
+  columnHelper.accessor('inbound', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Inbound Calls'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.desktop_call) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.inbound) || '-'),
   }),
-  columnHelper.display({
-    id: 'totalCallTime',
+  columnHelper.accessor('duration', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Total Call Time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatTime(
-        row.original.dialer_call_time_spent_in_second
-        + row.original.c2c_call_time_spent_in_second
-        + row.original.desktop_call_time_spent_in_second,
-      ) || '-'),
+      h('div', { class: 'text-sm text-center' }, formatTime(row.original.duration) || '-'),
   }),
-  columnHelper.display({
-    id: 'avgHandleTime',
+  columnHelper.accessor('aht', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'Average Handle Time'),
     cell: ({ row }) =>
-      h('div', { class: 'text-sm text-center' }, formatTime(row.original.avgHandleTime ?? calculateAvgHandleTime(row.original)) || '-'),
+      h('div', { class: 'text-sm text-center' }, formatTime(row.original.aht) || '-'),
   }),
-  columnHelper.display({
-    id: 'sms_sent',
+  columnHelper.accessor('outgoing_sms', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'SMS Sent'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.sms_sent ?? 0)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.outgoing_sms) || '-'),
   }),
-  columnHelper.display({
-    id: 'sms_received',
+  columnHelper.accessor('incoming_sms', {
     header: () => h('div', { class: 'text-sm font-normal text-center' }, 'SMS Received'),
-    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.sms_received ?? 0)),
+    cell: ({ row }) => h('div', { class: 'text-sm text-center' }, formatWithCommas(row.original.incoming_sms) || '-'),
   }),
 ]
 
@@ -126,70 +116,49 @@ const columnVisibility = ref<VisibilityState>({})
 const rowSelection = ref({})
 const expanded = ref<ExpandedState>({})
 
-// Use computed for reactive data
-const data = computed(() => Array.isArray(props.agentWiseDialerCallData) ? props.agentWiseDialerCallData : [])
-
 const table = useVueTable({
-  get data() {
-    return data.value
-  },
+  get data() { return props.data },
   columns,
   getCoreRowModel: getCoreRowModel(),
   state: {
-    get sorting() {
-      return sorting.value
-    },
-    get columnFilters() {
-      return columnFilters.value
-    },
-    get columnVisibility() {
-      return columnVisibility.value
-    },
-    get rowSelection() {
-      return rowSelection.value
-    },
-    get expanded() {
-      return expanded.value
-    },
+    get sorting() { return sorting.value },
+    get columnFilters() { return columnFilters.value },
+    get columnVisibility() { return columnVisibility.value },
+    get rowSelection() { return rowSelection.value },
+    get expanded() { return expanded.value },
   },
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
-  onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
-  onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
-  onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  onSortingChange: updater => valueUpdater(updater, sorting),
+  onColumnFiltersChange: updater => valueUpdater(updater, columnFilters),
+  onColumnVisibilityChange: updater => valueUpdater(updater, columnVisibility),
+  onRowSelectionChange: updater => valueUpdater(updater, rowSelection),
+  onExpandedChange: updater => valueUpdater(updater, expanded),
 })
 
 // Calculate totals with proper handling of missing fields
 const total = computed(() => {
-  if (!data.value.length) {
+  if (!props.data.length) {
     return {
-      totalCalls: 0,
-      outbound: 0,
-      c2c: 0,
-      inbound: 0,
-      totalCallTime: formatTime(0),
-      avgHandleTime: formatTime(0),
-      smsSent: 0,
-      smsReceived: 0,
+      grandTotalCalls: 0,
+      grandOutbound: 0,
+      grandC2C: 0,
+      grandInbound: 0,
+      grandTotalCallTime: formatTime(0),
+      grandAvgHandleTime: formatTime(0),
+      grandSmsSent: 0,
+      grandSmsReceived: 0,
     }
   }
-
-  const totalSeconds = data.value.reduce((sum, r) =>
-    sum + r.dialer_call_time_spent_in_second + r.c2c_call_time_spent_in_second + r.desktop_call_time_spent_in_second, 0)
-
-  const totalCalls = data.value.reduce((sum, r) => sum + r.totalcalls, 0)
-  const avgSeconds = totalCalls > 0 ? Math.round(totalSeconds / totalCalls) : 0
-
   return {
-    totalCalls,
-    outbound: data.value.reduce((sum, r) => sum + r.dialer_call, 0),
-    c2c: data.value.reduce((sum, r) => sum + r.c2c_call, 0),
-    inbound: data.value.reduce((sum, r) => sum + r.desktop_call, 0),
-    totalCallTime: formatTime(totalSeconds),
-    avgHandleTime: formatTime(avgSeconds),
-    smsSent: data.value.reduce((sum, r) => sum + (r.sms_sent ?? 0), 0),
-    smsReceived: data.value.reduce((sum, r) => sum + (r.sms_received ?? 0), 0),
+    grandTotalCalls: props.data.reduce((sum, r) => sum + (r.totalcalls ?? 0), 0),
+    grandOutbound: props.data.reduce((sum, r) => sum + (r.outbound ?? 0), 0),
+    grandC2C: props.data.reduce((sum, r) => sum + (r.c2c ?? 0), 0),
+    grandInbound: props.data.reduce((sum, r) => sum + (r.inbound ?? 0), 0),
+    grandTotalCallTime: formatTime(props.data.reduce((sum, r) => sum + (r.duration ?? 0), 0)),
+    grandAvgHandleTime: formatTime(
+      Math.floor(props.data.reduce((sum, r) => sum + (r.aht ?? 0), 0) / props.data.length),
+    ),
+    grandSmsSent: props.data.reduce((sum, r) => sum + (Number(r.outgoing_sms) ?? 0), 0),
+    grandSmsReceived: props.data.reduce((sum, r) => sum + (Number(r.incoming_sms) ?? 0), 0),
   }
 })
 </script>
@@ -220,7 +189,12 @@ const total = computed(() => {
       </TableHeader>
 
       <TableBody>
-        <template v-if="table.getRowModel().rows.length">
+        <TableRow v-if="loading">
+          <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
+            <BaseSkelton v-for="i in 5" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
+          </TableCell>
+        </TableRow>
+        <template v-else-if="table.getRowModel().rows.length">
           <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
             <TableCell
               v-for="cell in row.getVisibleCells()"
@@ -237,28 +211,28 @@ const total = computed(() => {
             </TableCell>
             <TableCell />
             <TableCell class="text-center">
-              {{ formatWithCommas(total.totalCalls) }}
+              {{ formatWithCommas(total.grandTotalCalls) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ formatWithCommas(total.outbound) }}
+              {{ formatWithCommas(total.grandOutbound) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ formatWithCommas(total.c2c) }}
+              {{ formatWithCommas(total.grandC2C) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ formatWithCommas(total.inbound) }}
+              {{ formatWithCommas(total.grandInbound) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.totalCallTime }}
+              {{ total.grandTotalCallTime }}
             </TableCell>
             <TableCell class="text-center">
-              {{ total.avgHandleTime }}
+              {{ total.grandAvgHandleTime }}
             </TableCell>
             <TableCell class="text-center">
-              {{ formatWithCommas(total.smsSent) }}
+              {{ formatWithCommas(total.grandSmsSent) }}
             </TableCell>
             <TableCell class="text-center">
-              {{ formatWithCommas(total.smsReceived) }}
+              {{ formatWithCommas(total.grandSmsReceived) }}
             </TableCell>
           </TableRow>
         </template>

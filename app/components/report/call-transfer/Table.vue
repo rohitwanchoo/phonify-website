@@ -51,6 +51,18 @@ const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
+function formatDate(iso: string) {
+  const date = new Date(iso)
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).replace(',', '')
+}
+
 // Pagination handlers
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
@@ -67,56 +79,111 @@ const columns = [
   columnHelper.display({
     id: 'siNo',
     header: () => h('div', { class: 'text-center text-sm font-normal' }, '#'),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.index + 1),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, props.start + row.index + 1),
   }),
 
-  columnHelper.accessor('field1', {
+  columnHelper.accessor('extension', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-center text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Field 1', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field1 || '-'),
+      }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.extension || '-'),
   }),
 
-  columnHelper.accessor('field2', {
+  columnHelper.accessor('number', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Field 2', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field2 || '-'),
+      }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(String(row.original.number)) || '-'),
   }),
 
-  columnHelper.accessor('field3', {
+  columnHelper.accessor('campaign', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Field 3', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field3 || '-'),
+      }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign || '-'),
   }),
 
-  columnHelper.accessor('field4', {
+  columnHelper.accessor('status', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Field 4', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field4 || '-'),
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.status || '-'),
   }),
-  columnHelper.accessor('field5', {
+  columnHelper.accessor('transfer_extension', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Field 5', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.field5 || '-'),
+      }, () => ['Transfer Extension', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.transfer_extension || '-'),
+  }),
+  columnHelper.accessor('start_time', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Start Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatDate(row.original.start_time) || '-'),
+  }),
+  columnHelper.accessor('call_recording', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Recordings', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, [
+      h('audio', {
+        controls: true,
+        class: 'w-full min-w-[240px] h-9',
+        preload: 'metadata',
+      }, [
+        h('source', {
+          src: row.original.call_recording,
+          type: 'audio/mpeg',
+        }),
+        'Browser not supported',
+      ]),
+    ]),
+    sortingFn: 'alphanumeric',
+    meta: { className: 'w-full text-center' },
+  }),
+  columnHelper.accessor('call_recording_transfer', {
+    header: ({ column }) =>
+      h('div', { class: 'text-center' }, h(Button, {
+        class: 'text-sm font-normal',
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Transfer Recording', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, [
+      h('audio', {
+        controls: true,
+        class: 'w-full min-w-[240px] h-9',
+        preload: 'metadata',
+      }, [
+        h('source', {
+          src: row.original.call_recording_transfer,
+          type: 'audio/mpeg',
+        }),
+        'Browser not supported',
+      ]),
+    ]),
+    sortingFn: 'alphanumeric',
+    meta: { className: 'w-full text-center' },
   }),
 ]
 
@@ -154,7 +221,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
+  <div class="border rounded-lg mt-4 max-h-[calc(100vh-222px)] overflow-y-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -208,7 +275,7 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 pt-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing {{ current_page }} to
@@ -218,7 +285,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
