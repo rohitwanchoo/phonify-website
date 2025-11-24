@@ -123,16 +123,22 @@ const { data: extensionData, status: extensionStatus } = await useLazyAsyncData(
 
 const dialerMode = ref()
 const dialerModeLoading = ref(false)
+const isInitialDialerModeLoad = ref(true) // Add this flag
 
 // Set dialerMode from extensionData when available
 watch(extensionData, (data) => {
   if (data?.dialer_mode) {
     dialerMode.value = Number(data.dialer_mode)
+    // Reset the flag after initial load
+    nextTick(() => {
+      isInitialDialerModeLoad.value = false
+    })
   }
 }, { immediate: true })
 
 watch(dialerMode, (newVal) => {
-  if (newVal) {
+  // Only call API if it's not the initial load and there's a value
+  if (newVal && !isInitialDialerModeLoad.value) {
     handleDialerModeChange(newVal)
   }
 })
