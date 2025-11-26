@@ -110,6 +110,7 @@ const open = defineModel<boolean>()
                   'bg-blue-600/10 border-blue-600 uppercase': item.type === 'sms',
                   'bg-green-600/10 border-green-600': item.type === 'call',
                   'bg-violet-600/10 border-violet-600 uppercase': item.type === 'api',
+                  'bg-orange-500/10 border-orange-600': item.type === 'email'
                 }"
               >
                 {{ item.type }}

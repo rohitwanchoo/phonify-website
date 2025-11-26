@@ -8,9 +8,11 @@ const search = ref('')
 
 const { data: promptData, status: promptStatus, refresh: refreshPrompt } = await useLazyAsyncData('prompts-data', () =>
   useApi().get('/prompts', {
-    start: start.value,
-    limit: limit.value,
-    search: search.value,
+    query: {
+      start: start.value,
+      limit: limit.value,
+      search: search.value,
+    },
   }), {
   transform: res => res,
 })
@@ -53,7 +55,7 @@ function searchText() {
       :loading="promptStatus === 'pending'"
       :list="promptData?.data || []"
       :limit="limit"
-      :total-rows="promptData?.count"
+      :total-rows="promptData?.total_rows"
       :start="start"
       @page-navigation="changePage"
       @change-limit="changeLimit"

@@ -25,6 +25,8 @@ import { Textarea } from '~/components/ui/textarea'
 
 // Dialog state for Add Function
 const addFunctionDialogOpen = ref(false)
+const functionActionMode = ref<'add' | 'edit' | 'delete'>()
+const functionData = ref()
 
 // Show HTML toggle
 const showHtml = ref(false)
@@ -32,14 +34,31 @@ const showHtml = ref(false)
 const route = useRoute()
 const router = useRouter()
 
+const speechEngine = ref(null)
+
+function onListen() {
+  (speechEngine.value as any)?.play()
+}
+
 // Fetch prompt data if in edit mode
 const promptId = computed(() => route.query.id as string)
 const isEditMode = computed(() => promptId.value && route.params.edit === 'edit')
 
-const { data: promptData } = await useLazyAsyncData('prompt', () =>
+const { data: promptData, status: promptDataStatus } = await useLazyAsyncData('prompt-data', () =>
   useApi().get(`/prompts/${promptId.value}`), {
   transform: res => res.data,
   immediate: !!isEditMode.value,
+})
+
+const { data: voiceData, status: voiceStatus } = await useLazyAsyncData('voice-data', () =>
+  useApi().get('/prompt-voices'), {
+  transform: res => res.data,
+})
+
+const { data: leadPlaceholderOptions, status: leadPlaceholderStatus } = await useLazyAsyncData('lead-placeholder', () =>
+  useApi().post('/label'), {
+  transform: res => res.data,
+  immediate: true,
 })
 
 const breadcrumbs = [
@@ -52,20 +71,6 @@ const breadcrumbs = [
     active: true,
   },
 ]
-
-// Dummy data for voice options
-const voiceOptions = [
-  { id: 1, name: 'Voice 1 - Female', value: 'voice_1_female' },
-  { id: 2, name: 'Voice 2 - Male', value: 'voice_2_male' },
-  { id: 3, name: 'Voice 3 - Neutral', value: 'voice_3_neutral' },
-  { id: 4, name: 'Voice 4 - Professional', value: 'voice_4_professional' },
-]
-
-const { data: leadPlaceholderOptions, status: leadPlaceholderStatus } = await useLazyAsyncData('lead-placeholder', () =>
-  useApi().post('/label'), {
-  transform: res => res.data,
-  immediate: true,
-})
 
 // Form validation schema
 const formSchema = toTypedSchema(
@@ -137,6 +142,24 @@ function updatePlaceholder(newVal: any) {
   setFieldValue('lead_placeholder', '')
 }
 
+function addFunction() {
+  functionActionMode.value = 'add'
+  addFunctionDialogOpen.value = true
+  functionData.value = promptData.value?.functions
+}
+
+function editFuction(data: any) {
+  functionActionMode.value = 'edit'
+  addFunctionDialogOpen.value = true
+  functionData.value = data
+}
+
+function deleteFuction(data: any) {
+  functionActionMode.value = 'delete'
+  addFunctionDialogOpen.value = true
+  functionData.value = data
+}
+
 const onSubmit = handleSubmit(async (values) => {
   try {
     const payload = {
@@ -176,14 +199,6 @@ const onSubmit = handleSubmit(async (values) => {
     })
   }
 })
-
-// Listen function (placeholder)
-function onListen() {
-  showToast({
-    message: 'Text-to-speech feature coming soon',
-    type: 'info',
-  })
-}
 </script>
 
 <template>
@@ -191,7 +206,7 @@ function onListen() {
     <template v-if="isEditMode" #actions>
       <Button
         class="h-11 bg-red-600 hover:bg-red-500"
-        @click="addFunctionDialogOpen = true"
+        @click="addFunction"
       >
         <Icon class="!text-white text-xl" name="material-symbols:add" />
         Add Function
@@ -205,18 +220,24 @@ function onListen() {
         <div class="space-y-4 p-3 bg-gray-50 rounded-xl">
           <div class="bg-white rounded-xl border border-zinc-100">
             <div class="w-full bg-white border-b border-zinc-100 rounded-t-xl px-5 py-5 flex items-center justify-between">
-              <div class="text-lg font-medium text-primary/100">
+              <h5 class="text-lg font-medium text-primary/100">
                 Prompt Details
-              </div>
-              <Button
-                type="button"
-                class="h-9 bg-primary hover:bg-primary/90"
-                :disabled="!values.voice_name || !values.initial_greeting"
-                @click="onListen"
+              </h5>
+              <BaseSpeechEngine
+                ref="speechEngine"
+                :text="values.initial_greeting ?? ''"
+                :voice="values.voice_name ?? ''"
               >
-                <Icon name="material-symbols:volume-up" class="text-base" />
-                Listen
-              </Button>
+                <Button
+                  type="button"
+                  class="h-9 bg-primary hover:bg-primary/90"
+                  :disabled="!values.voice_name || !values.initial_greeting"
+                  @click="onListen"
+                >
+                  <Icon name="material-symbols:volume-up" class="text-base" />
+                  Listen
+                </Button>
+              </BaseSpeechEngine>
             </div>
 
             <div class="p-5 w-full space-y-5">
@@ -228,7 +249,11 @@ function onListen() {
                       Title
                     </FormLabel>
                     <FormControl>
+                      <div v-if="promptDataStatus === 'pending'">
+                        <BaseSkelton class="w-full !h-11" rounded="rounded-sm" />
+                      </div>
                       <Input
+                        v-else
                         v-bind="componentField"
                         placeholder="Enter Title Name"
                         :class="errorMessage && 'border-red-600'"
@@ -246,14 +271,22 @@ function onListen() {
                       Voice
                     </FormLabel>
                     <FormControl>
-                      <Select v-bind="componentField">
+                      <div v-if="promptDataStatus === 'pending'">
+                        <BaseSkelton class="w-full !h-11" rounded="rounded-sm" />
+                      </div>
+                      <Select v-else v-bind="componentField">
                         <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
                           <SelectValue placeholder="Select Voice" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem v-for="item in voiceOptions" :key="item.id" :value="item.value">
-                            {{ item.name }}
+                          <SelectItem v-if="voiceStatus === 'pending'" :value="null">
+                            <Icon name="eos-icons:loading" />
                           </SelectItem>
+                          <template v-else>
+                            <SelectItem v-for="(item, index) in voiceData" :key="index" :value="item.value">
+                              {{ item.label }}
+                            </SelectItem>
+                          </template>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -269,11 +302,15 @@ function onListen() {
                     Initial Greeting
                   </FormLabel>
                   <FormControl>
+                    <div v-if="promptDataStatus === 'pending'">
+                      <BaseSkelton class="w-full h-25" rounded="rounded-sm" />
+                    </div>
                     <Textarea
+                      v-else
                       v-bind="componentField"
                       placeholder="Enter Greeting"
                       :class="errorMessage && 'border-red-600'"
-                      class="w-full min-h-[100px] resize-none"
+                      class="w-full min-h-25 resize-none"
                       rows="4"
                     />
                   </FormControl>
@@ -288,7 +325,10 @@ function onListen() {
                     Lead Placeholders
                   </FormLabel>
                   <FormControl>
-                    <Select v-bind="componentField" @update:model-value="updatePlaceholder">
+                    <div v-if="promptDataStatus === 'pending'">
+                      <BaseSkelton class="w-full h-11" rounded="rounded-sm" />
+                    </div>
+                    <Select v-else v-bind="componentField" @update:model-value="updatePlaceholder">
                       <SelectTrigger class="w-full !h-11">
                         <SelectValue placeholder="Select to Insert" />
                       </SelectTrigger>
@@ -314,7 +354,11 @@ function onListen() {
                     Description
                   </FormLabel>
                   <FormControl>
+                    <div v-if="promptDataStatus === 'pending'">
+                      <BaseSkelton class="w-full h-25" rounded="rounded-sm" />
+                    </div>
                     <BaseQuillEditor
+                      v-else
                       v-model="description"
                       content-type="html"
                       @toggle-view="() => showHtml = !showHtml"
@@ -345,48 +389,53 @@ function onListen() {
                 Add or update functions for this prompt. Each function must have a type and a name.
               </p>
             </div>
-            <div class="p-5 space-y-5">
-              <div v-for="(item, index) in promptData?.functions" :key="index" class="pb-3 bg-neutral-50 rounded-lg space-y-3 overflow-hidden">
-                <div class="w-full px-5 py-3 bg-zinc-100 border-b flex justify-between items-center">
-                  <h6 class="text-stone-900 text-sm">
-                    Functions No. {{ index + 1 }}
-                  </h6>
-                  <div class="flex justify-start items-center gap-3">
-                    <Button variant="ghost" size="icon" class="h-fit w-fit">
-                      <Icon name="material-symbols:edit" size="16" class="text-black" />
-                    </Button>
-                    <Button variant="ghost" size="icon" class="h-fit w-fit">
-                      <Icon name="material-symbols:delete" size="16" class="text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-                <div class="h-10 px-5 flex justify-start items-center gap-10">
-                  <div class="flex flex-col justify-start items-start gap-2">
-                    <Label class="justify-start text-zinc-500 text-xs font-normal">
-                      Type:
-                    </Label>
-                    <p class="justify-center text-stone-900 text-sm font-normal uppercase">
-                      {{ item?.type }}
-                    </p>
-                  </div>
-                  <div class="w-px bg-zinc-200" />
-                  <div class="flex flex-col justify-start items-start gap-2">
-                    <Label class="justify-start text-zinc-500 text-xs font-normal">
-                      Name:
-                    </Label>
-                    <p class="justify-center text-stone-900 text-sm font-normal">
-                      {{ item?.name }}
-                    </p>
-                  </div>
-                  <div class="bg-zinc-200" />
-                  <!-- <div class="flex flex-col justify-start items-start gap-2">
-                    <div class="justify-start text-zinc-500 text-xs font-normal">
-                      Template:
+            <div class="p-5">
+              <div v-if="promptDataStatus === 'pending'" class="space-y-3">
+                <BaseSkelton v-for="i in 3" :key="i" class="h-20 w-full pb-3 bg-neutral-50 rounded-lg overflow-hidden" rounded="rounded-sm" />
+              </div>
+              <div v-else>
+                <div v-for="(item, index) in promptData?.functions" :key="index" class="pb-3 bg-neutral-50 rounded-lg space-y-3 overflow-hidden">
+                  <div class="w-full px-5 py-3 bg-zinc-100 flex justify-between items-center">
+                    <h6 class="text-stone-900 text-sm">
+                      Functions No. {{ String(index + 1).padStart(2, '0') }}
+                    </h6>
+                    <div class="flex justify-start items-center gap-3">
+                      <Button variant="ghost" size="icon" type="button" class="h-fit w-fit" @click="editFuction(item)">
+                        <Icon name="material-symbols:edit" size="16" class="text-black" />
+                      </Button>
+                      <Button variant="ghost" size="icon" type="button" class="h-fit w-fit" @click="deleteFuction(item)">
+                        <Icon name="material-symbols:delete" size="16" class="text-red-600" />
+                      </Button>
                     </div>
-                    <div class="justify-center text-stone-900 text-sm font-normal">
-                      Atlantic Shipment Tracking
+                  </div>
+                  <div class="h-10 px-5 flex justify-start items-center gap-10">
+                    <div class="min-w-20 flex flex-col justify-start items-start gap-2">
+                      <Label class="justify-start text-zinc-500 text-xs font-normal">
+                        Type:
+                      </Label>
+                      <p class="justify-center text-stone-900 text-sm font-normal uppercase">
+                        {{ item?.type }}
+                      </p>
                     </div>
-                  </div> -->
+                    <div class="w-px bg-zinc-200 h-full" />
+                    <div class="flex flex-col justify-start items-start gap-2">
+                      <Label class="justify-start text-zinc-500 text-xs font-normal">
+                        Name:
+                      </Label>
+                      <p class="justify-center text-stone-900 text-sm font-normal">
+                        {{ item?.name }}
+                      </p>
+                    </div>
+                    <div class="w-px h-full bg-zinc-200" />
+                    <div class="flex flex-col justify-start items-start gap-2">
+                      <div class="justify-start text-zinc-500 text-xs font-normal">
+                        {{ item?.type === 'call' ? 'Number:' : 'Template:' }}
+                      </div>
+                      <div class="justify-center text-stone-900 text-sm font-normal">
+                        {{ item?.type === 'call' ? formatNumber(item?.phone) : item?.description }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -410,5 +459,5 @@ function onListen() {
   </div>
 
   <!-- Add Function Dialog -->
-  <ConfigurationAiPromptsAddOrEditFunction v-model:open="addFunctionDialogOpen" />
+  <ConfigurationAiPromptsAddOrEditFunction v-model:open="addFunctionDialogOpen" :function-action-mode="functionActionMode" :function-data="functionData" :prompt-data="promptData" />
 </template>
