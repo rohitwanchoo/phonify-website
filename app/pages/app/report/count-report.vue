@@ -94,27 +94,27 @@ const callsData = computed(() => {
     {
       text: 'Total Number Of Outbound Calls Made Manually',
       icon: 'material-symbols:touch-app',
-      number: dialerAllCountData.value?.data?.data?.totalManualCalls || 0,
+      number: dialerAllCountData.value?.totalManualCalls || 0,
     },
     {
       text: 'Total Number Of Outbound Calls via Dialer',
       icon: 'material-symbols:dialpad',
-      number: dialerAllCountData.value?.data?.data?.totalDialerCalls || 0,
+      number: dialerAllCountData.value?.totalDialerCalls || 0,
     },
     {
       text: 'Total Number Of Outbound Calls via C2C',
       icon: 'material-symbols:group',
-      number: dialerAllCountData.value?.data?.data?.totalDialerC2CCalls || 0,
+      number: dialerAllCountData.value?.data?.totalDialerC2CCalls || 0,
     },
     {
       text: 'Total Number Of Outbound Calls',
       icon: 'material-symbols:phone-forwarded',
-      number: dialerAllCountData.value?.data?.data?.totalOutBoundCalls || 0,
+      number: dialerAllCountData.value?.data?.totalOutBoundCalls || 0,
     },
     {
       text: 'Inbound Calls',
       icon: 'material-symbols:phone-callback',
-      number: dialerAllCountData.value?.data?.data?.totalInBoundCalls || 0,
+      number: dialerAllCountData.value?.data?.totalInBoundCalls || 0,
     },
   ]
 })
@@ -149,12 +149,12 @@ const reportData = computed(() => {
     {
       text: 'Total Number Of SMS Received',
       icon: 'mdi:message-arrow-left',
-      number: dialerAllCountData.value?.data?.data?.total_sms_send || 0,
+      number: dialerAllCountData.value?.data?.total_sms_send || 0,
     },
     {
       text: 'Total Number Of SMS Sent',
       icon: 'mdi:message-arrow-right',
-      number: dialerAllCountData.value?.data?.data?.total_sms_receive || 0,
+      number: dialerAllCountData.value?.data?.total_sms_receive || 0,
     },
     {
       text: 'FAX Received',
@@ -189,7 +189,7 @@ const reportData = computed(() => {
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto p-0">
-            <Calendar v-model="startDate as DateValue" initial-focus />
+            <Calendar v-model="startDate" initial-focus />
           </PopoverContent>
         </Popover>
 
@@ -207,7 +207,7 @@ const reportData = computed(() => {
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto  p-0">
-            <Calendar v-model="endDate as DateValue" initial-focus />
+            <Calendar v-model="endDate" initial-focus />
           </PopoverContent>
         </Popover>
         <!-- Trigger Button -->
@@ -230,9 +230,9 @@ const reportData = computed(() => {
 
     <!-- tables here -->
     <div>
-      <ReportCountTableAgentWise :data="dialerAllCountData?.data?.data?.agent" :loading="dialerAllCountStatus === 'pending'" />
-      <ReportCountTableDidWise :data="dialerAllCountData?.data?.data?.did" :loading="dialerAllCountStatus === 'pending'" />
-      <ReportCountTableAreaWise :data="dialerAllCountData?.data?.data?.city_wise" :loading="dialerAllCountStatus === 'pending'" />
+      <ReportCountTableAgentWise :data="dialerAllCountData?.data?.agent" :loading="dialerAllCountStatus === 'pending'" />
+      <ReportCountTableDidWise :data="dialerAllCountData?.data?.did" :loading="dialerAllCountStatus === 'pending'" />
+      <ReportCountTableAreaWise :data="dialerAllCountData?.data?.city_wise" :loading="dialerAllCountStatus === 'pending'" />
     </div>
   </div>
 </template>
