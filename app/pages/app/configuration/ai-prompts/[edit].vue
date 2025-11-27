@@ -205,7 +205,8 @@ const onSubmit = handleSubmit(async (values) => {
   <BaseHeader :title="!isEditMode ? 'Add New Prompt' : 'Edit Prompt Details'" :breadcrumbs="breadcrumbs">
     <template v-if="isEditMode" #actions>
       <Button
-        class="h-11 bg-red-600 hover:bg-red-500"
+        variant="destructive"
+        class="h-11"
         @click="addFunction"
       >
         <Icon class="!text-white text-xl" name="material-symbols:add" />
@@ -230,7 +231,7 @@ const onSubmit = handleSubmit(async (values) => {
               >
                 <Button
                   type="button"
-                  class="h-9 bg-primary hover:bg-primary/90"
+                  class="h-9"
                   :disabled="!values.voice_name || !values.initial_greeting"
                   @click="onListen"
                 >
@@ -393,7 +394,7 @@ const onSubmit = handleSubmit(async (values) => {
               <div v-if="promptDataStatus === 'pending'" class="space-y-3">
                 <BaseSkelton v-for="i in 3" :key="i" class="h-20 w-full pb-3 bg-neutral-50 rounded-lg overflow-hidden" rounded="rounded-sm" />
               </div>
-              <div v-else>
+              <div v-else class="space-y-5">
                 <div v-for="(item, index) in promptData?.functions" :key="index" class="pb-3 bg-neutral-50 rounded-lg space-y-3 overflow-hidden">
                   <div class="w-full px-5 py-3 bg-zinc-100 flex justify-between items-center">
                     <h6 class="text-stone-900 text-sm">

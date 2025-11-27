@@ -182,7 +182,7 @@ const formSchema = toTypedSchema(
   }),
 )
 
-const { handleSubmit, values, isSubmitting, errors, resetForm, setValues, setFieldValue } = useForm({
+const { handleSubmit, values, isSubmitting, resetForm, setValues, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
     type: props.functionData?.type ?? '',
@@ -427,7 +427,6 @@ const onSubmit = handleSubmit(async (values) => {
         </DialogTitle>
       </DialogHeader>
       <Separator />
-      {{ errors }}
       <form id="function-form" class="space-y-4" @submit.prevent="onSubmit">
         <!-- Type Select -->
         <FormField v-slot="{ componentField, errorMessage }" name="type">
