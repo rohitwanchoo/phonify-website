@@ -40,7 +40,7 @@ const formSchema = toTypedSchema(z.object({
     }
   }),
   dial_mode: z.string().min(1, 'Dialing mode is required'),
-  group_id: z.number().min(1, 'Caller group is required').max(50),
+  group_id: z.number().min(1, 'Caller group is required'),
   time_based_calling: z.boolean(),
   // call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
   //   if (values.time_based_calling && !val) {
