@@ -191,7 +191,7 @@ function insertPlaceholder(value: any) {
 <template>
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
     <!-- Details Section -->
-    <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
+    <div class="relative max-h-[calc(100vh-190px)] bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <!-- Header -->
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
         <div class="justify-center text-slate-800 mt-1 text-[16px] font-medium">
@@ -201,7 +201,7 @@ function insertPlaceholder(value: any) {
 
       <!-- Form Content -->
       <form class="relative w-full overflow-x-auto flex-1" @submit="onSubmit">
-        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5 pb-28">
+        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5">
           <!-- Template Name and Lead Placeholders Row -->
           <div class="w-full flex flex-col md:flex-row justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_name" class="flex-1 w-full">
@@ -339,7 +339,7 @@ function insertPlaceholder(value: any) {
       </form>
 
       <!-- Fixed Save/Update Button -->
-      <div class="bottom-0 left-0 w-full p-5 bg-white flex justify-between border-t border-zinc-100 z-10">
+      <div class="bottom-0 left-0 w-full p-5 bg-white flex justify-between border-t border-zinc-100 z-10 shadow-2xl">
         <Button
           type="submit"
           variant="destructive"
