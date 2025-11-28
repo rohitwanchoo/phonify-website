@@ -276,7 +276,7 @@ function insertPlaceholder(value: any) {
                       <SelectValue placeholder="Select Custom Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in customPlaceholders" :key="option.title" :value="option.title">
+                      <SelectItem v-for="option in customPlaceholders?.data" :key="option.title" :value="option.title">
                         {{ option.title }}
                       </SelectItem>
                     </SelectContent>
