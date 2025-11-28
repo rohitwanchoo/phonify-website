@@ -72,6 +72,27 @@ const data = {
       { title: 'Count Report', url: '/app/report/count-report', disabled: false },
       { title: 'Login History', url: '/app/report/login-history', disabled: false },
     ] },
+    { title: 'Configuration', url: '/app/configuration', icon: 'icons:configuration', disabled: false, items: [
+      { title: 'API', url: '/app/configuration/api', disabled: false },
+      { title: 'VoIP Configuration', url: '/app/configuration/voip-configuration', disabled: false },
+      { title: 'Email Templates', url: '/app/configuration/email-templates', disabled: false },
+      { title: 'Voice Templates', url: '/app/configuration/voice-templates', disabled: false },
+      { title: 'IP Settings', url: '/app/configuration/ip-settings', disabled: false },
+      { title: 'Company Settings', url: '/app/configuration/company-settings', disabled: false },
+      { title: 'SMTP Settings', url: '/app/configuration/smtp-settings', disabled: false },
+      { title: 'Custom Field Values', url: '/app/configuration/custom-field-values', disabled: false },
+      { title: 'Allowed IPs', url: '/app/configuration/allowed-ips', disabled: false },
+    ] },
+    // { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: true },
+
+    // { title: 'Notifications', url: '/app/notifications', icon: 'icons:report', disabled: true },
+  ],
+
+  'More Feature Coming Soon': [
+    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', disabled: true, items: [
+      { title: 'DNC', url: '/app/do-not-call/dnc', disabled: false },
+      { title: 'Exclude From List', url: '/app/do-not-call/exclude-from-list', disabled: false },
+    ] },
     // { title: 'Configuration', url: '/app/configuration', icon: 'icons:configuration', disabled: true, items: [
     //   { title: 'API', url: '/app/configuration/api', disabled: false },
     //   { title: 'VoIP Configuration', url: '/app/configuration/voip-configuration', disabled: false },
@@ -83,27 +104,6 @@ const data = {
     //   { title: 'Custom Field Values', url: '/app/configuration/custom-field-values', disabled: false },
     //   { title: 'Allowed IPs', url: '/app/configuration/allowed-ips', disabled: false },
     // ] },
-    // { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: true },
-
-    // { title: 'Notifications', url: '/app/notifications', icon: 'icons:report', disabled: true },
-  ],
-
-  'More Feature Coming Soon': [
-    { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', disabled: true, items: [
-      { title: 'DNC', url: '/app/do-not-call/dnc', disabled: false },
-      { title: 'Exclude From List', url: '/app/do-not-call/exclude-from-list', disabled: false },
-    ] },
-    { title: 'Configuration', url: '/app/configuration', icon: 'icons:configuration', disabled: true, items: [
-      { title: 'API', url: '/app/configuration/api', disabled: false },
-      { title: 'VoIP Configuration', url: '/app/configuration/voip-configuration', disabled: false },
-      { title: 'Email Templates', url: '/app/configuration/email-templates', disabled: false },
-      { title: 'Voice Templates', url: '/app/configuration/voice-templates', disabled: false },
-      { title: 'IP Settings', url: '/app/configuration/ip-settings', disabled: false },
-      { title: 'Company Settings', url: '/app/configuration/company-settings', disabled: false },
-      { title: 'SMTP Settings', url: '/app/configuration/smtp-settings', disabled: false },
-      { title: 'Custom Field Values', url: '/app/configuration/custom-field-values', disabled: false },
-      { title: 'Allowed IPs', url: '/app/configuration/allowed-ips', disabled: false },
-    ] },
     { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: true },
     { title: 'Notifications', url: '/app/notifications', icon: 'icons:report', disabled: true },
     { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai', disabled: true },
