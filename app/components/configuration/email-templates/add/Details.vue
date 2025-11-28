@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { QuillEditor } from '@vueup/vue-quill'
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
+import { useFocus } from '@vueuse/core'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -82,6 +84,51 @@ const templateContentLength = computed(() => {
   return textContent.length
 })
 
+const subjectRef = useTemplateRef<HTMLInputElement | null>('subjectRef')
+const textareaRef = useTemplateRef<typeof QuillEditor | null>('textareaRef')
+const textareaFocused = ref(false)
+const { focused: subjectFocused } = useFocus(subjectRef)
+
+// Cache last focused field and cursor positions
+const lastFocusedField = ref<'subject' | 'template_html' | null>(null)
+const cursorPos = ref({ start: 0, end: 0 })
+
+function cacheSubjectCursor() {
+  const el = subjectRef.value
+  if (!el)
+    return
+  const start = (el.selectionStart ?? (values.subject?.length || 0))
+  const end = (el.selectionEnd ?? start)
+  cursorPos.value = { start, end }
+}
+
+function updateSubjectCursorFromEvent(e: Event) {
+  const target = e.target as HTMLInputElement | null
+  if (!target)
+    return
+  const start = target.selectionStart ?? (values.subject?.length || 0)
+  const end = target.selectionEnd ?? start
+  cursorPos.value = { start, end }
+  lastFocusedField.value = 'subject'
+}
+
+function cacheTemplateCursor() {
+  // For Quill editor, fallback to insert at end of content
+  const len = (values.template_html || '').length
+  cursorPos.value = { start: len, end: len }
+}
+
+watch([subjectFocused, textareaFocused], ([s, t]) => {
+  if (s) {
+    lastFocusedField.value = 'subject'
+    cacheSubjectCursor()
+  }
+  else if (t) {
+    lastFocusedField.value = 'template_html'
+    cacheTemplateCursor()
+  }
+})
+
 // Sync templateContent ref with form
 watch(templateContent, (newContent) => {
   setFieldValue('template_html', newContent)
@@ -89,8 +136,9 @@ watch(templateContent, (newContent) => {
 
 // Sync form values with ref
 watch(() => values.template_html, (newContent) => {
-  if (newContent !== templateContent.value) {
-    templateContent.value = newContent ?? ''
+  const safeContent = newContent ?? ''
+  if (safeContent !== templateContent.value) {
+    templateContent.value = safeContent
   }
 })
 
@@ -157,34 +205,60 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-const subjectRef = ref<HTMLInputElement | null>(null)
-
-// Insert placeholder function
+// Insert placeholder function - matching first code's logic
 function insertPlaceholder(value: any) {
-  setValues({ customPlaceholder: '', leadPlaceholder: '', senderPlaceholder: '' })
+  let el: HTMLInputElement | HTMLTextAreaElement | null = null
+  let currentValue = ''
+  let modelKey: 'subject' | 'template_html' | null = null
 
-  // For subject field
-  if (subjectRef.value && document.activeElement === subjectRef.value) {
-    const el = subjectRef.value
-    const start = el.selectionStart ?? 0
-    const end = el.selectionEnd ?? 0
-    const newText = `[[${value}]]`
-    const updatedValue = (values.subject ?? '').slice(0, start) + newText + (values.subject ?? '').slice(end)
+  if (subjectFocused.value || lastFocusedField.value === 'subject') {
+    el = subjectRef.value as HTMLInputElement | null
+    currentValue = values.subject || ''
+    modelKey = 'subject'
+  }
+  else if (textareaFocused.value || lastFocusedField.value === 'template_html') {
+    // For Quill editor, use the insertMergeField method
+    textareaRef.value?.insertMergeField(`{{${value}}}`)
+    return
+  }
 
-    setFieldValue('subject', updatedValue)
+  if (!el || !modelKey)
+    return
 
-    nextTick(() => {
-      const newCursorPos = start + newText.length
+  const start = (modelKey === 'subject' && el && typeof (el as HTMLInputElement).selectionStart === 'number')
+    ? (el as HTMLInputElement).selectionStart!
+    : cursorPos.value.start
+  const end = (modelKey === 'subject' && el && typeof (el as HTMLInputElement).selectionEnd === 'number')
+    ? (el as HTMLInputElement).selectionEnd!
+    : cursorPos.value.end
+  const newText = `[[${value}]]`
+
+  const updatedValue = currentValue.slice(0, start) + newText + currentValue.slice(end)
+
+  setValues({
+    ...values,
+    [modelKey]: updatedValue,
+  })
+
+  // Update cursor AFTER DOM updates
+  nextTick(() => {
+    const newCursorPos = start + newText.length
+    if (modelKey === 'subject' && el) {
       el.focus()
       el.setSelectionRange(newCursorPos, newCursorPos)
-    })
-  }
-  else {
-    // For template content - insert at the end or current cursor position
-    const newText = `[[${value}]]`
-    const updatedValue = templateContent.value + newText
-    templateContent.value = updatedValue
-  }
+    }
+
+    // Also update cursor cache in case user adds multiple placeholders
+    cursorPos.value = {
+      start: newCursorPos,
+      end: newCursorPos,
+    }
+  })
+}
+
+function onTextareaFocus() {
+  textareaFocused.value = true
+  lastFocusedField.value = 'template_html'
 }
 </script>
 
@@ -300,6 +374,11 @@ function insertPlaceholder(value: any) {
                     v-bind="componentField"
                     placeholder="Enter Email Subject"
                     class="px-3 py-2 h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-sm font-normal placeholder:text-sm placeholder:text-slate-800/50"
+                    @focus="updateSubjectCursorFromEvent"
+                    @input="updateSubjectCursorFromEvent"
+                    @keyup="updateSubjectCursorFromEvent"
+                    @mouseup="updateSubjectCursorFromEvent"
+                    @select="updateSubjectCursorFromEvent"
                   />
                 </FormControl>
                 <FormMessage />
@@ -316,9 +395,11 @@ function insertPlaceholder(value: any) {
                 </FormLabel>
                 <FormControl>
                   <BaseQuillEditor
+                    ref="textareaRef"
                     v-model="templateContent"
                     content-type="html"
                     @toggle-view="() => showHtml = !showHtml"
+                    @focus="onTextareaFocus"
                   />
                 </FormControl>
                 <div class="flex justify-between w-full">

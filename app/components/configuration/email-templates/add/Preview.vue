@@ -37,30 +37,28 @@ const props = defineProps<{
 
       <!-- Content -->
       <div class="overflow-y-auto p-5 h-[calc(100vh-250px)]">
-        <div v-if="props?.templateHtml" class="h-full">
-          <TabsContent value="desktop" class="h-full">
-            <div class="w-full h-full overflow-auto">
-              <div class="h-full bg-[#B8B8B8] min-w-[480px] w-full">
-                <iframe
-                  :srcdoc="props?.templateHtml"
-                  sandbox="allow-same-origin"
-                  class="w-full h-full"
-                />
-              </div>
+        <TabsContent value="desktop" class="h-full">
+          <div class="w-full h-full overflow-auto">
+            <div class="h-full bg-[#B8B8B8] min-w-[480px] w-full">
+              <iframe
+                :srcdoc="props?.templateHtml"
+                sandbox="allow-same-origin"
+                class="w-full h-full"
+              />
             </div>
-          </TabsContent>
-          <TabsContent value="mobile" class="h-full">
-            <div class="w-full h-full flex justify-center overflow-auto">
-              <div class="h-full max-w-80 bg-[#B8B8B8]">
-                <iframe
-                  :srcdoc="props?.templateHtml"
-                  sandbox="allow-same-origin"
-                  class="h-full w-full"
-                />
-              </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="mobile" class="h-full">
+          <div class="w-full h-full flex justify-center overflow-auto">
+            <div class="h-full max-w-80 bg-[#B8B8B8]">
+              <iframe
+                :srcdoc="props?.templateHtml"
+                sandbox="allow-same-origin"
+                class="h-full w-full"
+              />
             </div>
-          </TabsContent>
-        </div>
+          </div>
+        </TabsContent>
       </div>
     </Tabs>
   </div>

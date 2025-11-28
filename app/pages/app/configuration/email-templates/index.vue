@@ -64,7 +64,7 @@ function searchText() {
         <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
       </div>
       <NuxtLink to="/app/configuration/email-templates/add">
-        <Button class="h-11">
+        <Button variant="destructive" class="h-11">
           <Icon name="material-symbols:add" size="20" />
           Add Email Template
         </Button>
