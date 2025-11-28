@@ -25,6 +25,7 @@ watch(() => route.path, (path) => {
 
 const data = {
   'Main Menu': [{ title: 'Dashboard', url: '/app/dashboard', icon: 'material-symbols:dashboard', disabled: false }],
+
   'Communication & Lead Management': [
     { title: 'Start Dialing', url: '/app/start-dialing', icon: 'icons:start-dialing', disabled: false },
     { title: 'Campaign', url: '/app/campaign', icon: 'icons:campaign', disabled: false, items: [
@@ -75,23 +76,7 @@ const data = {
     ] },
   ],
 
-  'More Feature': [
-    { title: 'Report', url: '/app/report', icon: 'icons:report', disabled: false, items: [
-      { title: 'Call Transfer ', url: '/app/report/call-transfer', disabled: false },
-      { title: 'Live Call', url: '/app/report/live-call', disabled: false },
-      { title: 'IVR Logs', url: '/app/report/ivr-logs', disabled: false },
-      { title: 'Call Data Reports', url: '/app/report/call-data-reports', disabled: false },
-      // TODO: Callback api integration
-      { title: 'Callback', url: '/app/report/callback', disabled: false },
-      { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports', disabled: false },
-      { title: 'Count Report', url: '/app/report/count-report', disabled: false },
-      { title: 'Login History', url: '/app/report/login-history', disabled: false },
-    ] },
-    { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: false },
-
-    { title: 'Notifications', url: '/app/notifications', icon: 'icons:report', disabled: false },
-    { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai', disabled: false },
-    { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai', disabled: false },
+  'Communication Channels': [
     { title: 'Ringless Voicemail', url: '/app/ringless-voicemail', icon: 'material-symbols:voicemail-2', disabled: false, items: [
       { title: 'Campaign', url: '/app/ringless-voicemail/campaign', disabled: false },
       { title: 'Lists', url: '/app/ringless-voicemail/lists', disabled: false },
@@ -103,24 +88,46 @@ const data = {
       { title: 'Voice Template', url: '/app/ringless-voicemail/voice-template', disabled: false },
       { title: 'SIP Gateways', url: '/app/ringless-voicemail/sip-gateways', disabled: false },
     ] },
-    { title: 'Mailbox', url: '/app/mailbox', icon: 'icons:mailbox', disabled: false },
+    { title: 'Email', url: '/app/email', icon: 'icons:mailbox', disabled: false },
     { title: 'SMS', url: '/sms', icon: 'icons:sms', disabled: false, items: [
       { title: 'Chat SMS', url: '/app/sms/chat-sms', disabled: false },
       { title: 'SMS History', url: '/app/sms/sms-history', disabled: false },
       { title: 'Text Template', url: '/app/sms/text-template', disabled: false },
     ] },
     { title: 'Fax', url: '/app/fax', icon: 'icons:fax', disabled: false },
-    { title: 'Email', url: '/app/email', icon: 'icons:mailbox', disabled: false },
+    { title: 'Mailbox', url: '/app/mailbox', icon: 'icons:mailbox', disabled: false },
   ],
-  'Payment & Subscriptions': [
-    { title: 'Billing', url: '/app/billing', icon: 'icons:billing', disabled: false, items: [
-      { title: 'Invoice', url: '/app/billing/invoice', disabled: false },
-      { title: 'Recharge', url: '/app/billing/recharge', disabled: false },
-      { title: 'Wallet Transactions', url: '/app/billing/wallet-transactions', disabled: false },
-      { title: 'Payment Methods', url: '/app/billing/payment-methods', disabled: false },
+
+  'AI Messaging': [
+    { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai', disabled: false },
+    { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai', disabled: false },
+  ],
+
+  'Events and Reports': [
+    { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: false },
+    { title: 'Report', url: '/app/report', icon: 'icons:report', disabled: false, items: [
+      { title: 'Call Transfer ', url: '/app/report/call-transfer', disabled: false },
+      { title: 'Live Call', url: '/app/report/live-call', disabled: false },
+      { title: 'IVR Logs', url: '/app/report/ivr-logs', disabled: false },
+      { title: 'Call Data Reports', url: '/app/report/call-data-reports', disabled: false },
+      // TODO: Callback api integration
+      { title: 'Callback', url: '/app/report/callback', disabled: false },
+      { title: 'Caller ID Name Reports', url: '/app/report/caller-id-name-reports', disabled: false },
+      { title: 'Count Report', url: '/app/report/count-report', disabled: false },
+      { title: 'Login History', url: '/app/report/login-history', disabled: false },
     ] },
-    { title: 'Subscriptions', url: '/app/subscriptions', icon: 'icons:subscriptions', disabled: false },
+    { title: 'Notifications', url: '/app/notifications', icon: 'icons:report', disabled: false },
+
   ],
+  // 'Payment & Subscriptions': [
+  //   { title: 'Billing', url: '/app/billing', icon: 'icons:billing', disabled: false, items: [
+  //     { title: 'Invoice', url: '/app/billing/invoice', disabled: false },
+  //     { title: 'Recharge', url: '/app/billing/recharge', disabled: false },
+  //     { title: 'Wallet Transactions', url: '/app/billing/wallet-transactions', disabled: false },
+  //     { title: 'Payment Methods', url: '/app/billing/payment-methods', disabled: false },
+  //   ] },
+  //   { title: 'Subscriptions', url: '/app/subscriptions', icon: 'icons:subscriptions', disabled: false },
+  // ],
 
   // projects: [
   //   { name: 'Report', url: '/projects/report', icon: Frame, disabled: false },
