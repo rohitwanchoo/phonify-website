@@ -39,7 +39,7 @@ const props = defineProps<{
       <div class="overflow-y-auto p-5 h-[calc(100vh-250px)]">
         <TabsContent value="desktop" class="h-full">
           <div class="w-full h-full overflow-auto">
-            <div class="h-full bg-[#B8B8B8] min-w-[480px] w-full">
+            <div class="h-full min-w-[480px] w-full" :class="props?.templateHtml ? 'bg-white' : 'bg-[#B8B8B8]'">
               <iframe
                 :srcdoc="props?.templateHtml"
                 sandbox="allow-same-origin"
@@ -50,7 +50,7 @@ const props = defineProps<{
         </TabsContent>
         <TabsContent value="mobile" class="h-full">
           <div class="w-full h-full flex justify-center overflow-auto">
-            <div class="h-full max-w-80 bg-[#B8B8B8]">
+            <div class="h-full max-w-80" :class="props?.templateHtml ? 'bg-white' : 'bg-[#B8B8B8]'">
               <iframe
                 :srcdoc="props?.templateHtml"
                 sandbox="allow-same-origin"
