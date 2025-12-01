@@ -12,8 +12,8 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="w-full bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 inline-flex flex-col justify-start items-start overflow-hidden">
-    <Tabs default-value="desktop" class="w-full gap-0">
+  <div class="w-full h-full bg-white rounded-xl outline outline-offset-[-1px] outline-zinc-100 inline-flex flex-col justify-start items-start overflow-hidden">
+    <Tabs default-value="desktop" class="w-full h-full gap-0">
       <!-- Header with triggers -->
       <div class="flex items-center justify-between px-5 py-3 bg-white border-b border-zinc-100">
         <div class="text-slate-800 text-base font-medium">
@@ -37,22 +37,28 @@ const props = defineProps<{
 
       <!-- Content -->
       <div class="overflow-y-auto p-5 h-[calc(100vh-250px)]">
-        <div v-if="props?.templateHtml">
-          <TabsContent value="desktop">
-            <div class="flex justify-center">
-              <div class="w-[480px] overflow-hidden border rounded-lg border-zinc-100 p-1">
-                <div v-html="props?.templateHtml" />
-              </div>
+        <TabsContent value="desktop" class="h-full">
+          <div class="w-full h-full overflow-auto">
+            <div class="h-full min-w-[480px] w-full" :class="props?.templateHtml ? 'bg-white' : 'bg-[#B8B8B8]'">
+              <iframe
+                :srcdoc="props?.templateHtml"
+                sandbox="allow-same-origin"
+                class="w-full h-full"
+              />
             </div>
-          </TabsContent>
-          <TabsContent value="mobile">
-            <div class="flex justify-center">
-              <div class="w-80 overflow-hidden border rounded-lg border-zinc-100 p-1">
-                <div v-html="props?.templateHtml" />
-              </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="mobile" class="h-full">
+          <div class="w-full h-full flex justify-center overflow-auto">
+            <div class="h-full max-w-80" :class="props?.templateHtml ? 'bg-white' : 'bg-[#B8B8B8]'">
+              <iframe
+                :srcdoc="props?.templateHtml"
+                sandbox="allow-same-origin"
+                class="h-full w-full"
+              />
             </div>
-          </TabsContent>
-        </div>
+          </div>
+        </TabsContent>
       </div>
     </Tabs>
   </div>

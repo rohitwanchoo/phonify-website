@@ -24,7 +24,7 @@ const open = defineModel<boolean>()
     v-model:open="open"
   >
     <SheetContent class="min-w-[320px] scroll-auto md:min-w-[600px] gap-0">
-      <Tabs default-value="desktop" class="w-full gap-0">
+      <Tabs default-value="desktop" class="w-full h-full gap-0">
         <!-- Header with triggers -->
         <div class="flex items-center justify-between px-5 py-6 bg-slate-800 shadow-md">
           <SheetTitle class="text-white text-xl font-medium">
@@ -48,18 +48,26 @@ const open = defineModel<boolean>()
         </div>
 
         <!-- Content -->
-        <div class="overflow-y-auto max-h-[calc(100vh-66px)] p-4">
-          <TabsContent value="desktop">
-            <div class="flex justify-center">
-              <div class="w-[480px]">
-                <div v-html="props?.templateHtml" />
+        <div class="overflow-y-auto h-full max-h-[calc(100vh-66px)] p-4">
+          <TabsContent value="desktop" class="h-full">
+            <div class="flex justify-center h-full">
+              <div class="max-w-140 w-full h-full">
+                <iframe
+                  :srcdoc="props?.templateHtml"
+                  sandbox="allow-same-origin"
+                  class="w-full h-full"
+                />
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="mobile">
-            <div class="flex justify-center">
-              <div class="w-80">
-                <div v-html="props?.templateHtml" />
+          <TabsContent value="mobile" class="h-full">
+            <div class="flex justify-center h-full">
+              <div class="max-w-80 h-full">
+                <iframe
+                  :srcdoc="props?.templateHtml"
+                  sandbox="allow-same-origin"
+                  class="w-full h-full"
+                />
               </div>
             </div>
           </TabsContent>
