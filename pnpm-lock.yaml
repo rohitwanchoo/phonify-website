@@ -119,6 +119,9 @@ importers:
       vue-sonner:
         specifier: ^2.0.0
         version: 2.0.0
+      vue-tel-input:
+        specifier: ^9.5.0
+        version: 9.5.0(libphonenumber-js@1.12.8)(vue@3.5.14(typescript@5.8.3))
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -6026,6 +6029,12 @@ packages:
 
   vue-sonner@2.0.0:
     resolution: {integrity: sha512-nvlqGGWvxEv9UnKcZxsGdKpHrODEdv3CXAJF3er+1pLC03caJt2+v9HuWtRqlBQwUr1SFttsYuwVbpbEl05n4A==}
+
+  vue-tel-input@9.5.0:
+    resolution: {integrity: sha512-f3PHxRIcGzc8HgjSh5sBZLqOfO83GPypZYxwNcJRLh9XOBS9pjTilNWPQUzvpOiE+mrRQRoXc8s8hEyj9tWKYQ==}
+    peerDependencies:
+      libphonenumber-js: ^1.12.12
+      vue: ^3.5.4
 
   vue@3.5.14:
     resolution: {integrity: sha512-LbOm50/vZFG6Mhy6KscQYXZMQ0LMCC/y40HDJPPvGFQ+i/lUH+PJHR6C3assgOQiXdl6tAfsXHbXYVBZZu65ew==}
@@ -13099,6 +13108,11 @@ snapshots:
       vue: 3.5.14(typescript@5.8.3)
 
   vue-sonner@2.0.0: {}
+
+  vue-tel-input@9.5.0(libphonenumber-js@1.12.8)(vue@3.5.14(typescript@5.8.3)):
+    dependencies:
+      libphonenumber-js: 1.12.8
+      vue: 3.5.14(typescript@5.8.3)
 
   vue@3.5.14(typescript@5.8.3):
     dependencies:

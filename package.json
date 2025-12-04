@@ -48,6 +48,7 @@
     "vue-cal": "5.0.1-rc.25",
     "vue-router": "^4.5.1",
     "vue-sonner": "^2.0.0",
+    "vue-tel-input": "^9.5.0",
     "xlsx": "^0.18.5",
     "zod": "^3.25.20"
   },
