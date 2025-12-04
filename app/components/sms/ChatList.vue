@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDate } from '@vueuse/core'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,37 +12,57 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
-import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
 
 const props = defineProps({
-  currentContactId: {
+  smsChatList: {
+    type: Array,
+    default: () => [],
+  },
+  limit: {
     type: Number,
-    default: 1,
+    default: 10,
+  },
+  start: {
+    type: Number,
+    default: 0,
+  },
+  totalRows: {
+    type: Number,
+    default: 0,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  refresh: {
+    type: Function,
+    default: () => {},
+  },
+  search: {
+    type: String,
+    default: '',
+  },
+  selectedContact: {
+    type: Object,
+    default: null,
   },
 })
-const emit = defineEmits(['select-contact'])
+
+const emit = defineEmits(['selectContact', 'searchText', 'update:search', 'changePage', 'changeLimit'])
+
+const searchModel = computed({
+  get: () => props.search,
+  set: value => emit('update:search', value),
+})
 
 const isFilterOpen = ref(false)
+const selectedTab = ref('')
 
-function toggleFilter() {
-  isFilterOpen.value = !isFilterOpen.value
-}
-const extensionGroup = [
-  { id: 1, title: 'Vanessa Bogan', number: '+1 (569) 912-3502', time: '10.00 am' },
-  { id: 42, title: 'Kristin Cormier', number: '+1 (802) 345-2289', time: '10.00 am' },
-  { id: 43, title: 'Jeffrey Hintz', number: '+1 (213) 678-4432', time: '10.00 am' },
-  { id: 44, title: 'Unknown User', number: '+1 (900) 123-9911', time: '10.00 am' },
-  { id: 45, title: 'Alexis Carroll', number: '+1 (324) 556-7821', time: '10.00 am' },
-  { id: 46, title: 'Leonard Carter', number: '+1 (418) 210-4456', time: '10.00 am' },
-
-]
-
-const selected = ref('last7')
+const filterSelected = ref('last7')
 
 const options = [
   { label: 'Last 7 Days', value: 'last7' },
@@ -50,21 +71,35 @@ const options = [
   { label: 'All Chats', value: 'all' },
 ]
 
-function handleTabSelect(groupId: number) {
-  const group = extensionGroup.find(g => g.id === groupId)
+// Generate unique tab ID from number and did
+function getTabId(number: number, did: number) {
+  return `${number}-${did}`
+}
+
+function handleTabSelect(groupNumber: number, groupDid: number) {
+  selectedTab.value = getTabId(groupNumber, groupDid)
+  const group = (props.smsChatList as Array<{ number: number, did: number, message?: string }>).find(
+    g => (g as { number: number }).number === groupNumber && (g as { did: number }).did === groupDid,
+  )
   if (group) {
-    emit('select-contact', group)
+    emit('selectContact', group)
   }
 }
+
+// Sync selected tab when parent sets selected contact
+watch(() => props.selectedContact, (contact) => {
+  if (contact && typeof (contact as any).number !== 'undefined' && typeof (contact as any).did !== 'undefined') {
+    selectedTab.value = getTabId((contact as { number: number }).number, (contact as { did: number }).did)
+  }
+}, { immediate: true })
+
+// Pagination handlers were unused; removing to satisfy lint rules
 </script>
 
 <template>
-  <div class="bg-primary p-[18px] h-[calc(100vh-150px)] flex flex-col">
+  <div class="bg-primary p-[18px] h-[calc(100vh-160px)] flex flex-col">
     <div class="flex items-center gap-3 mb-4">
-      <div class="relative flex-1">
-        <Input class="bg-white h-11 pr-10" placeholder="Search here..." />
-        <Icon name="lucide:search" class="absolute text-gray-900 top-1/2 right-3 -translate-y-1/2" />
-      </div>
+      <BaseInputSearch v-model="searchModel" class="w-full" classes="bg-white rounded-lg" placeholder="Search" @update:model-value="emit('searchText')" />
 
       <DropdownMenu v-model:open="isFilterOpen">
         <DropdownMenuTrigger as-child>
@@ -79,15 +114,10 @@ function handleTabSelect(groupId: number) {
             <Icon
               :name="isFilterOpen ? 'material-symbols:menu' : 'material-symbols:sort'"
               size="23"
-            />  
+            />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent class="w-56 p-2 bg-white rounded-lg shadow-md">
-          <!-- Arrow Pointer -->
-          <!-- <div class="absolute -top-2 right-3 z-0">
-                <div class="w-4 h-4 bg-white rotate-45 border border-gray-200" />
-              </div> -->
-
           <div class="space-y-3">
             <p class="text-sm font-medium text-gray-500 px-2 pt-1">
               Filter Options
@@ -103,7 +133,7 @@ function handleTabSelect(groupId: number) {
                 <div class="flex items-center space-x-2 w-full">
                   <input
                     :id="option.value"
-                    v-model="selected"
+                    v-model="filterSelected"
                     type="radio"
                     :value="option.value"
                     class="appearance-none w-3 h-3 border border-[#1C2B36] rounded-full checked:bg-[#00A086] checked:border-[#00A086] focus:ring-1 transition-colors duration-200"
@@ -121,31 +151,34 @@ function handleTabSelect(groupId: number) {
 
     <Separator class="my-2 bg-[#FFFFFF1A]" />
 
-    <ScrollArea class="h-[calc(100vh-210px)] overflow-y-auto overflow-x-hidden flex-1">
-      <Tabs orientation="vertical" class="space-y-2 h-full" :model-value="currentContactId">
-        <TabsList class="flex flex-col h-full gap-y-2 bg-transparent w-full mt-1 overflow-y-auto overflow-x-hidden">
+    <div v-if="loading">
+      <BaseSkelton v-for="i in 8" :key="i" class="h-[84px] p-4 w-full border border-[#FFFFFF1A] bg-[#ffffff92] mb-2" rounded="rounded-sm" />
+    </div>
+    <ScrollArea v-else class="h-[calc(100vh-210px)] overflow-y-auto overflow-x-hidden flex-1">
+      <Tabs v-model="selectedTab" orientation="vertical" class="space-y-2 h-full">
+        <TabsList class="flex flex-col h-full gap-y-2 bg-transparent w-full pl-1 mt-1 overflow-y-auto overflow-x-hidden">
           <TabsTrigger
-            v-for="group in extensionGroup"
-            :key="group.id"
-            :value="group.id"
+            v-for="(group, index) in smsChatList"
+            :key="index"
+            :value="getTabId((group as { number: number }).number, (group as { did: number }).did)"
             class="h-[84px] p-4 flex-shrink-0 w-full border border-[#FFFFFF1A] bg-[#FFFFFF0D] text-white data-[state=active]:bg-[#00A086] mr-2 rounded-[8px] flex items-center justify-between px-[16px] !text-sm !font-normal cursor-pointer hover:bg-[#FFFFFF0D]/80 relative data-[state=inactive]:after:hidden after:absolute after:-right-[16px] after:border-8 after:border-transparent after:border-l-[#00A086]"
-            @click="handleTabSelect(group.id)"
+            @click="handleTabSelect((group as { number: number }).number, (group as { did: number }).did)"
           >
             <div class="flex items-center gap-x-3 truncate">
-              <div class="w-10 h-10 rounded-full bg-[#FFFFFF66] text-white flex items-center justify-center text-sm font-semibold uppercase">
-                {{ group.title.split(' ').map(w => w[0]).join('').slice(0, 2) }}
+              <div class="w-10 h-10 min-h-10 min-w-10 rounded-full bg-[#FFFFFF66] text-white flex items-center justify-center text-sm font-semibold uppercase">
+                <Icon name="material-symbols:account-circle" size="24" />
               </div>
-              <div class="truncate leading-tight text-left">
+              <div class="leading-tight text-left truncate">
                 <div class="truncate">
-                  {{ group.title }}
+                  {{ formatNumber(String((group as { number: number }).number) || '') }}
                 </div>
-                <div class="text-xs text-white opacity-70">
-                  {{ group.number }}
+                <div class="text-xs text-white opacity-70 truncate">
+                  {{ (group as { message?: string }).message || 'Unknown user' }}
                 </div>
               </div>
             </div>
             <div class="text-xs text-white opacity-70 whitespace-nowrap">
-              {{ group.time }}
+              {{ formatDate(new Date((group as { date: string }).date), 'h:mm A') }}
             </div>
           </TabsTrigger>
         </TabsList>

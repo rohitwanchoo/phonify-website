@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
+import { ref, watch } from 'vue'
 import Dialer from '@/components/dialer/index.vue'
 import SmsChatList from '@/components/sms/ChatList.vue'
 import SmsChatSection from '@/components/sms/ChatSection.vue'
@@ -9,20 +10,58 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 
-const currentContact = ref({
-  id: 1,
-  title: 'Vanessa Bogan',
-  number: '+1 (569) 912-3502',
-  time: '10.00 am',
-})
+const currentContact = ref()
+const start = ref(0)
+const limit = ref(10)
+const search = ref('')
 
-const isUnknownContact = ref(false)
 const showDialer = ref(false)
 const showShortDialer = ref(false)
 
+const { data: smsList, status: smsListStatus, refresh: refreshSmsList } = await useLazyAsyncData('sms-list', () =>
+  useApi().get('sms', {
+    query: {
+      start: start.value,
+      limit: limit.value,
+      search: search.value,
+    },
+  }), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const { data: smsChats, status: smsChatsStatus, refresh: refreshSmsChats } = await useLazyAsyncData('sms-chats', () =>
+  useApi().get('sms-by-did', {
+    query: {
+      start: start.value,
+      limit: limit.value,
+      number: currentContact.value?.number,
+      did: currentContact.value?.did,
+    },
+  }), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+// Watch for contact changes and refresh chats
+watch(currentContact, (newContact) => {
+  if (newContact) {
+    refreshSmsChats()
+  }
+})
+
+// Auto-select the first contact once the SMS list loads
+const stopAutoSelect = watch(smsList, (list) => {
+  const first = list?.data?.[0]
+  if (!currentContact.value && first) {
+    currentContact.value = first
+    // Stop watching after initial selection to avoid overriding user choice
+    stopAutoSelect()
+  }
+}, { immediate: true })
+
 function handleContactSelect(contact: any) {
   currentContact.value = contact
-  isUnknownContact.value = contact.title === 'Unknown User' || contact.title.startsWith('+1')
 }
 
 function openDialer() {
@@ -30,19 +69,36 @@ function openDialer() {
   showShortDialer.value = false
 }
 
-function handleCall(phoneNumber: string, countryCode: string) {
-  console.log('Calling:', countryCode, phoneNumber)
+function handleCall(_phoneNumber: string, _countryCode: string) {
   showShortDialer.value = true
 }
 
 function handleHangup() {
-  console.log('Call ended')
   showShortDialer.value = false
 }
 
 function handleClose() {
   showDialer.value = false
   showShortDialer.value = false
+}
+
+function changePage(page: number) {
+  start.value = Number((page - 1) * limit.value)
+  return refreshSmsList()
+}
+
+function changeLimit(val: number) {
+  limit.value = Number(val)
+  return refreshSmsList()
+}
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshSmsList()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
 }
 </script>
 
@@ -54,32 +110,38 @@ function handleClose() {
       </template>
     </BaseHeader>
 
-    <div>
-      <ResizablePanelGroup direction="horizontal" class="h-[calc(100vh-150px)] rounded-lg border mt-4">
-        <!-- Chat List -->
-        <ResizablePanel :default-size="25" :min-size="16">
-          <SmsChatList
-            :current-contact-id="currentContact.id"
-            @select-contact="handleContactSelect"
-          />
-        </ResizablePanel>
+    <ResizablePanelGroup direction="horizontal" class="h-full max-h-[calc(100vh-160px)] rounded-lg border mt-4">
+      <!-- Chat List -->
+      <ResizablePanel :default-size="45" :min-size="20">
+        <SmsChatList
+          :limit="limit"
+          :start="start"
+          :total-rows="smsList?.total || 0"
+          :sms-chat-list="smsList?.data || []"
+          :loading="smsListStatus === 'pending'"
+          :search="search"
+          :refresh="refreshSmsList"
+          :selected-contact="currentContact"
+          @select-contact="handleContactSelect"
+          @search-text="searchText"
+          @update:search="search = $event"
+          @change-page="changePage"
+          @change-limit="changeLimit"
+        />
+      </ResizablePanel>
 
-        <ResizableHandle with-handle />
+      <ResizableHandle with-handle />
 
-        <!-- Chat Section -->
-        <ResizablePanel :default-size="75" :max-size="78" :min-size="30">
-          <SmsChatSection
-            :contact="currentContact || {
-              title: 'Unknown',
-              number: '+0000000000',
-              time: '00:00 am',
-            }"
-            :is-unknown-contact="isUnknownContact"
-            @open-dialer="openDialer"
-          />
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
+      <!-- Chat Section -->
+      <ResizablePanel :default-size="75" :max-size="78" :min-size="30">
+        <SmsChatSection
+          :contact="currentContact || {}"
+          :messages="smsChats"
+          :loading="smsChatsStatus === 'pending'"
+          @open-dialer="openDialer"
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
 
     <Dialer
       v-if="showDialer"
