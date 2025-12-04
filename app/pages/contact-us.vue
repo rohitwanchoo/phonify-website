@@ -26,6 +26,7 @@ const formSchema = toTypedSchema(z.object({
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Enter a valid email'),
   message: z.string().min(1, 'Message is required'),
+  phoneNumber: z.string().min(1, 'Phone number is required'),
 }),
 )
 
@@ -36,6 +37,7 @@ const { handleSubmit, resetForm, isSubmitting } = useForm({
     lastName: '',
     email: '',
     message: '',
+    phoneNumber: '',
   },
 })
 
@@ -152,6 +154,26 @@ const onSubmit = handleSubmit(async (values) => {
                 <FormMessage class="text-[11px]" />
               </FormItem>
             </FormField>
+            <!-- Phone Number -->
+             <FormField v-slot="{ componentField }" name="phoneNumber">
+              <FormItem>
+                <FormLabel class="text-stone-900 text-sm font-normal">
+                  Phone Number
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    v-bind="componentField"
+                    class="border border-stone-300 rounded-xs bg-zinc-100 p-3 text-sm h-12 placeholder:text-stone-400"
+                    :disabled="isSubmitting"
+                     @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                  />
+                </FormControl>
+                <FormMessage class="text-[11px]" />
+              </FormItem>
+            </FormField>
+
 
             <FormField v-slot="{ componentField }" name="message">
               <FormItem>
