@@ -3,6 +3,17 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
   ssr: false,
+  routeRules: {
+    '/': {
+      ssr: true,
+    },
+    '/pricing': {
+      ssr: true,
+    },
+    '/contact-us': {
+      ssr: true,
+    },
+  },
   future: {
     compatibilityVersion: 4,
   },
@@ -17,7 +28,6 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
     '@nuxt/image',
     '@formkit/auto-animate/nuxt',
-
   ],
   icon: {
     customCollections: [
@@ -45,10 +55,10 @@ export default defineNuxtConfig({
       script: [
         {
           src: 'https://www.doubango.org/sipml5/SIPml-api.js',
-          defer: true
-        }
-      ]
-    }
+          defer: true,
+        },
+      ],
+    },
   },
   shadcn: {
     /**

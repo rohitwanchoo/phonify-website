@@ -55,15 +55,11 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 const loading = ref(false)
 
 export interface callRecord {
-  id: number
-  agent: string
-  extension: string
-  number: string
-  route: string
-  campaign: string
-  callType: string
-  startTime: string
-  duration: number
+  extension: number,
+  campaign_id: number,
+  lead_id: number,
+  option_4: string,
+  callback_time: string,
 }
 
 // Pagination handlers
@@ -102,52 +98,53 @@ const columns = [
       }, () => ['Extension', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
     cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.extension || '-'),
   }),
-  columnHelper.accessor('campaign', {
+  columnHelper.accessor('campaign_id', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Campaign Name', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.campaign_id || '-'),
   }),
-  columnHelper.accessor('id', {
+  columnHelper.accessor('lead_id', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Lead ID', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.id || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, row.original.lead_id || '-'),
   }),
-  columnHelper.accessor('number', {
+  columnHelper.accessor('option_4', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Phone Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.number) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, formatNumber(row.original.option_4 )|| '-'),
   }),
-  columnHelper.accessor('startTime', {
+  columnHelper.accessor('callback_time', {
     header: ({ column }) =>
       h(Button, {
         class: 'text-sm font-normal justify-center w-full',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Callback Time', h(ChevronsUpDown, { class: 'ml-0 h-4 w-4' })]),
-    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, moment(row.original.startTime).format('MMM D, YYYY h:mm A') || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center text-sm' }, moment(row.original.callback_time).format('MMM D, YYYY h:mm A') || '-'),
   }),
-  columnHelper.display({
-    id: 'action',
-    header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
-    cell: () =>
-      h('div', { class: 'flex justify-center' }, h(Button, {
-        variant: 'ghost',
-        size: 'sm',
-        class: 'h-8 w-8 p-0',
-      }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
-  }),
+  // TODO: Action column
+  // columnHelper.display({
+  //   id: 'action',
+  //   header: () => h('div', { class: 'text-center text-sm font-normal' }, 'Action'),
+  //   cell: () =>
+  //     h('div', { class: 'flex justify-center' }, h(Button, {
+  //       variant: 'ghost',
+  //       size: 'sm',
+  //       class: 'h-8 w-8 p-0',
+  //     }, () => h(MoreVertical, { class: 'h-4 w-4' }))),
+  // }),
 ]
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])

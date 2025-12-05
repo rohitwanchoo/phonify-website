@@ -52,7 +52,7 @@ const props = withDefaults(defineProps<{
 })
 
 // Computed pagination variables
-const emits = defineEmits(['pageNavigation', 'changeLimit'])
+const emits = defineEmits(['pageNavigation', 'changeLimit', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -62,10 +62,9 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 export interface recycleRulesList {
   id: number
   campaign_id: number
-  campaign_name: string
   list_id: number
   disposition_id: number
-  day: string
+  days: string[]
   time: string
   call_time: number
   is_deleted: 0
@@ -83,23 +82,18 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-const selectedRecycleRuleForDelete = ref()
-const isEditDialogOpen = ref(false)
-const selectedRowData = ref<recycleRulesList | null>(null)
-
-function onEdit(row: recycleRulesList) {
-  selectedRowData.value = row
-  isEditDialogOpen.value = true
-}
-
-async function handleDelete() {
-  if (!selectedRecycleRuleForDelete.value)
-    return
+async function handleDelete(val: any) {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
 
   try {
     const res = await useApi().post('/edit-recycle-rule', {
-      recycle_rule_id: selectedRecycleRuleForDelete.value,
+      recycle_rule_id: val?.id,
       is_deleted: 1,
+      campaign_id: val?.campaign_id,
+      list_id: val?.list_id,
     })
 
     if (res.success === 'true') {
@@ -122,9 +116,6 @@ async function handleDelete() {
       type: 'error',
     })
   }
-  finally {
-    selectedRecycleRuleForDelete.value = null
-  }
 }
 
 // Pagination handlers
@@ -136,11 +127,6 @@ function changeLimit(val: number | null) {
   if (val !== null) {
     emits('changeLimit', val)
   }
-}
-
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
 }
 
 const columnHelper = createColumnHelper<recycleRulesList>()
@@ -171,16 +157,16 @@ const columns = [
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-    }, () => ['Disposition', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    }, () => ['Dispositions', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.disposition || '—'),
   }),
-  columnHelper.accessor('day', {
+  columnHelper.accessor('days', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
       class: 'text-center text-sm font-normal w-full',
       variant: 'ghost',
       onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-    }, () => ['Day', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full' }, row.original.day || '-'),
+    }, () => ['Days', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm w-full capitalize' }, row.original.days.map((day: string) => day) || '-'),
   }),
   columnHelper.accessor('time', {
     header: ({ column }) => h('div', { class: 'text-center w-full' }, h(Button, {
@@ -219,7 +205,7 @@ const columns = [
               size: 'icon',
               variant: 'outline',
               class: 'text-primary h-7 w-7 min-w-0',
-              onClick: () => onEdit(row.original),
+              onClick: () => emits('edit', row.original),
             }, h(Icon, { name: 'material-symbols:edit-square', size: 14 }))),
             h(TooltipContent, { side: 'top' }, () => 'Edit'),
           ],
@@ -248,8 +234,7 @@ const columns = [
               variant: 'outline',
               class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80',
               onClick: () => {
-                selectedRecycleRuleForDelete.value = row.original.id
-                revealDeleteConfirm()
+                handleDelete(row.original)
               },
             }, h(Icon, { name: 'material-symbols:delete', size: 14 }))),
             h(TooltipContent, { side: 'top' }, () => 'Delete'),
@@ -355,7 +340,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
@@ -373,12 +358,10 @@ const table = useVueTable({
     </div>
   </div>
 
-  <!-- EDIT RECYCLE RULE -->
-  <LeadManagementRecycleRuleEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
-    :confirm="deleteConfirmHandler"
+    :confirm="deleteConfirm"
     :cancel="deleteCancel"
     title="Delete Recycle Rule"
     description="You are about to delete this recycle rule. Do you wish to proceed?"

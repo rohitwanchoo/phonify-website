@@ -69,6 +69,7 @@ function isActive(url: string) {
                 <SidebarMenuButton
                   :disabled="item.disabled"
                   :tooltip="item.title"
+                  :class="item.disabled && '!text-primary/20 pointer-events-none'"
                   :data-active="item.items.some((sub: MenuItem) => isActive(sub.url))"
                   class="lg:h-10"
                 >

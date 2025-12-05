@@ -128,10 +128,12 @@ function removeFile(index: number) {
 
       <!-- File Info -->
       <div class="text-xs font-light text-muted-foreground flex justify-between mt-1">
-        <p>Supported formats: {{ formattedAccept }}</p>
-        <p>
+        <p v-if="!errorMessage">
+          Supported formats: {{ formattedAccept }}
+        </p>
+        <p :class="errorMessage ? 'w-full flex justify-between' : ''">
           Maximum size: {{ props?.maxSize }}
-          <span v-if="errorMessage" class="text-red-500 font-medium"> — {{ errorMessage }}</span>
+          <span v-if="errorMessage" class="text-red-500">{{ errorMessage }}</span>
         </p>
       </div>
     </div>

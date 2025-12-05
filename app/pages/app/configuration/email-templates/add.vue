@@ -3,7 +3,7 @@ const route = useRoute()
 const editId = computed(() => route.query.id ? Number(route.query.id) : null)
 
 // Fetch the email template data if in edit mode
-const { data: emailTemplate, status } = await useLazyAsyncData('email-template', () =>
+const { data: emailTemplate, status: emailTemplateStatus } = await useLazyAsyncData('email-template', () =>
   useApi().get(`/email-template/${editId.value}`, {
     id: editId.value,
     include: 'template_variables',
@@ -31,7 +31,7 @@ const breadcrumbs = [
   <div class="pt-4">
     <ConfigurationEmailTemplatesAddDetails
       :email-template="emailTemplate"
-      :email-template-status="status"
+      :email-template-status="emailTemplateStatus"
     />
   </div>
 </template>

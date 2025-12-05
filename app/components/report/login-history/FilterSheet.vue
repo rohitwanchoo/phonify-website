@@ -97,7 +97,7 @@ function clearFilters() {
 </script>
 
 <template>
-  <Button variant="outline" class="!text-white bg-black hover:bg-black" @click="open = true">
+  <Button variant="outline" class="!text-white bg-black hover:bg-black h-11" @click="open = true">
     <Icon name="material-symbols:sort" size="20" class="!text-white" />
     Filter
   </Button>
@@ -139,7 +139,7 @@ function clearFilters() {
                 <!-- IP Address Field -->
                 <div>
                   <label class="text-sm font-medium text-primary">IP</label>
-                  <Input ref="firstInputRef" v-model="filters.ip" placeholder="IP Address" />
+                  <Input ref="firstInputRef" v-model="filters.ip" placeholder="IP Address" class="h-11" />
                 </div>
 
                 <!-- Date Range Fields -->
@@ -152,7 +152,7 @@ function clearFilters() {
                         <PopoverTrigger as-child>
                           <Button
                             variant="outline"
-                            class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
+                            class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5 h-11"
                             :class="!filters.start_date ? 'text-muted-foreground' : ''"
                           >
                             <span>{{ filters.start_date ? parseDateString(filters.start_date)?.toLocaleDateString('en-GB') : 'From:' }}</span>
@@ -178,7 +178,7 @@ function clearFilters() {
                         <PopoverTrigger as-child>
                           <Button
                             variant="outline"
-                            class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5"
+                            class="w-full justify-start text-left font-normal hover:bg-transparent border border-gray-200 py-5 h-11"
                             :class="!filters.end_date ? 'text-muted-foreground' : ''"
                           >
                             <span>{{ filters.end_date ? parseDateString(filters.end_date)?.toLocaleDateString('en-GB') : 'To:' }}</span>

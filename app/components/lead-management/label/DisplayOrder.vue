@@ -82,56 +82,58 @@ async function refreshOrder() {
   }
 }
 
-// Bind useSortable to the reactive reference
-useSortable(el, sortableList, {
-  animation: 150,
-  ghostClass: 'ghost',
-  chosenClass: 'chosen',
-  dragClass: 'drag',
-  onStart: (evt: any) => {
+watch(el, () => {
+  // Bind useSortable to the reactive reference
+  useSortable(el, sortableList, {
+    animation: 150,
+    ghostClass: 'ghost',
+    chosenClass: 'chosen',
+    dragClass: 'drag',
+    onStart: (evt: any) => {
     // Store the current order before any drag modifications
-    evt.from.setAttribute('data-before-drag', JSON.stringify(sortableList.value))
-  },
-  onEnd: async (evt: any) => {
+      evt.from.setAttribute('data-before-drag', JSON.stringify(sortableList.value))
+    },
+    onEnd: async (evt: any) => {
     // Only if the order actually changed and we're not already processing a drag
-    if (evt.oldIndex !== evt.newIndex && !isProcessingDrag.value) {
-      isProcessingDrag.value = true
-      isUpdating.value = true
+      if (evt.oldIndex !== evt.newIndex && !isProcessingDrag.value) {
+        isProcessingDrag.value = true
+        isUpdating.value = true
 
-      // Get the order before the drag from the stored data
-      const beforeDragOrder = JSON.parse(evt.from.getAttribute('data-before-drag') || '[]')
+        // Get the order before the drag from the stored data
+        const beforeDragOrder = JSON.parse(evt.from.getAttribute('data-before-drag') || '[]')
 
-      // Manually reorder the array based on the drag indices
-      const item = beforeDragOrder[evt.oldIndex]
-      const newOrder = [...beforeDragOrder]
-      newOrder.splice(evt.oldIndex, 1)
-      newOrder.splice(evt.newIndex, 0, item)
+        // Manually reorder the array based on the drag indices
+        const item = beforeDragOrder[evt.oldIndex]
+        const newOrder = [...beforeDragOrder]
+        newOrder.splice(evt.oldIndex, 1)
+        newOrder.splice(evt.newIndex, 0, item)
 
-      // Create the updated items array with new display_order values based on the manual reorder
-      const updatedItems = newOrder.map((item, index) => ({
-        id: item.id,
-        display_order: index + 1,
-      }))
+        // Create the updated items array with new display_order values based on the manual reorder
+        const updatedItems = newOrder.map((item, index) => ({
+          id: item.id,
+          display_order: index + 1,
+        }))
 
-      // Update the sortableList to match our manual reorder and update display_order
-      sortableList.value = newOrder.map((item, index) => ({
-        ...item,
-        display_order: index + 1,
-      }))
+        // Update the sortableList to match our manual reorder and update display_order
+        sortableList.value = newOrder.map((item, index) => ({
+          ...item,
+          display_order: index + 1,
+        }))
 
-      // Send the updated order to the server and wait for completion
-      await handleOrderChange(updatedItems)
+        // Send the updated order to the server and wait for completion
+        await handleOrderChange(updatedItems)
 
-      // Clean up the stored data
-      evt.from.removeAttribute('data-before-drag')
+        // Clean up the stored data
+        evt.from.removeAttribute('data-before-drag')
 
-      // Reset flags after processing is complete
-      setTimeout(() => {
-        isUpdating.value = false
-        isProcessingDrag.value = false
-      }, 100)
-    }
-  },
+        // Reset flags after processing is complete
+        setTimeout(() => {
+          isUpdating.value = false
+          isProcessingDrag.value = false
+        }, 100)
+      }
+    },
+  })
 })
 </script>
 

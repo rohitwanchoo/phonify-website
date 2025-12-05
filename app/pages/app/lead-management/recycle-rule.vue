@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
 
-const showDialog = ref(false)
 const showSheet = ref(false)
 
 const start = ref(0)
 const limit = ref(10)
 const search = ref('')
+
+const isEdit = ref(false)
+const open = ref(false)
+const editRowData = ref({})
 
 // Store active filter parameters
 const activeFilters = ref<Record<string, any>>({})
@@ -40,24 +43,16 @@ function searchText() {
   debouncedSearch()
 }
 
-const selectedRecycleRule = ref<null | {
-  id: number
-  campaign_id: number
-  list_id: number
-  disposition_id: number
-  day: string
-  time: string
-  call_time: number
-  is_deleted: number
-  updated_at: string
-  campaign: string
-  list: string
-  disposition: string
-}>(null)
-
-function openEditDialog(recycleRule: any) {
-  selectedRecycleRule.value = recycleRule
-  showDialog.value = true
+// Function to open the edit model
+function onEdit(original: any) {
+  editRowData.value = original
+  open.value = true
+  isEdit.value = true
+}
+function onModelUpdate(val: boolean) {
+  if (!val) {
+    isEdit.value = false
+  }
 }
 
 // Handle filter application
@@ -86,7 +81,7 @@ async function handleClearFilter() {
         @apply-filter="handleApplyFilter"
         @clear-filter="handleClearFilter"
       />
-      <LeadManagementRecycleRuleAdd v-model:open="showDialog" :initial-data="selectedRecycleRule" />
+      <LeadManagementRecycleRuleAdd v-model:open="open" :initial-data="editRowData" :is-edit="isEdit" @update:open="onModelUpdate" />
     </template>
   </BaseHeader>
   <!-- TABLE -->
@@ -99,7 +94,7 @@ async function handleClearFilter() {
       :loading="recycleRuleStatus === 'pending'"
       @page-navigation="changePage"
       @change-limit="changeLimit"
-      @edit="openEditDialog"
+      @edit="onEdit"
     />
   </div>
 </template>

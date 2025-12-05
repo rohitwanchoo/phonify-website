@@ -32,9 +32,40 @@ const { data: campaigns, refresh: refreshCampaigns, status: campaignsStatus } = 
   immediate: false,
 })
 
+// Allowed file types
+const ALLOWED_FILE_TYPES = ['.xlc', '.xlsx', '.csv', '.xls']
+const ALLOWED_MIME_TYPES = [
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/csv',
+]
+
+// File validation function
+function validateFileType(files: File[]) {
+  if (files.length === 0)
+    return false
+
+  const file = files[0]
+  const fileName = file?.name.toLowerCase() ?? ''
+  const fileExtension = fileName.substring(fileName.lastIndexOf('.'))
+
+  // Check file extension
+  const hasValidExtension = ALLOWED_FILE_TYPES.includes(fileExtension)
+
+  // Check MIME type
+  const hasValidMimeType = file?.type ? ALLOWED_MIME_TYPES.includes(file.type) : true
+
+  return hasValidExtension && hasValidMimeType
+}
+
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  file: z.array(z.instanceof(File)).min(1, 'File is required'),
+  file: z.array(z.instanceof(File))
+    .min(1, 'File is required')
+    .refine(
+      files => validateFileType(files),
+      'Invalid file type. Please upload .xlc, .xlsx, .csv, or .xls files only',
+    ),
   campaign: z.number().optional(),
   duplicate_check: z.boolean().optional(),
 })
@@ -74,9 +105,18 @@ const onSubmit = handleSubmit((values) => {
   // closeDialog()
   // return
   useApi().post('/add-list-api', formData).then((response) => {
-    showToast({
-      message: response.message,
-    })
+    if (response.success === 'true') {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
     emits('complete', { campaign_id: values.campaign?.toString() ?? '', list_id: response?.list_id.toString(), list: values.title })
     closeDialog()
   }).catch((error) => {

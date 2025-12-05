@@ -133,7 +133,7 @@ const initialValues = ref({
   ],
 })
 
-const { handleSubmit, validate, resetForm, setFieldValue } = useForm({
+const { handleSubmit, validate, resetForm, setFieldValue, values } = useForm({
   validationSchema: formSchema,
   initialValues: initialValues.value,
 })
@@ -274,6 +274,33 @@ function onModelOpen(val: boolean) {
     resetSelectedDays()
   }
 }
+
+function onTimeChange(index: number) {
+  // Update all weeks with the new end time and ensure they have a start time
+  if (index !== 0)
+    return
+
+  const endTime = values.weeks?.[0]?.end || ''
+  const startTime = values.weeks?.[0]?.start || ''
+
+  if (endTime && startTime) {
+    setFieldValue('weeks', values.weeks?.map(week => ({
+      ...week,
+      start: startTime, // Use existing start time or default
+      end: endTime,
+    })))
+    selectedDays.value = {
+      default: true,
+      sunday: true,
+      monday: true,
+      tuesday: true,
+      wednesday: true,
+      thursday: true,
+      friday: true,
+      saturday: true,
+    }
+  }
+}
 </script>
 
 <template>
@@ -361,6 +388,7 @@ function onModelOpen(val: boolean) {
                             type="time"
                             class="h-11"
                             :disabled="!selectedDays[(field.value as { day: string }).day as keyof typeof selectedDays]"
+                            @update:model-value="onTimeChange(index)"
                           />
                         </FormControl>
                         <FormMessage />
@@ -376,6 +404,7 @@ function onModelOpen(val: boolean) {
                             class="h-11"
                             v-bind="componentField"
                             :disabled="!selectedDays[(field.value as { day: string }).day as keyof typeof selectedDays]"
+                            @update:model-value="onTimeChange(index)"
                           />
                         </FormControl>
                         <FormMessage />

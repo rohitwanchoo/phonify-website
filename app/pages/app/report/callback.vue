@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { Switch } from '@/components/ui/switch'
 
+const { user } = useAuth()
+
 const enableCallbackReminder = ref<boolean>()
 const showSheet = ref(false)
 const activeFilters = ref<Record<string, any>>({})
@@ -11,10 +13,18 @@ const limit = ref(10)
 
 const { data: callbackData, status: callbackStatus, refresh: callbackRefresh } = await useLazyAsyncData('callback', () =>
   useApi().post('/callback', {
-    ...activeFilters.value,
-    lower_limit: start.value,
-    upper_limit: limit.value,
-    reminder: enableCallbackReminder.value,
+    // ...activeFilters.value,
+    // lower_limit: start.value,
+    // upper_limit: limit.value,
+    // id: user.value?.id,
+    // reminder: enableCallbackReminder.value,
+    // For demo data:
+    id: user.value?.id,
+    extension: '34870',
+    campaign: 45,
+    start_date: '2022-04-03 00:00:00',
+    end_date: '2026-04-03 23:59:59',
+    reminder: true,
   }), {
   transform: res => res,
 })
@@ -86,7 +96,15 @@ async function handleClearFilter() {
     </BaseHeader>
     <!-- TABLE -->
     <div>
-      <ReportCallBackTable :limit="limit" :total-rows="callbackData?.total" :start="start" :list="callbackData?.data || []" :loading="callbackStatus === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" />
+      <ReportCallBackTable
+        :limit="limit"
+        :total-rows="callbackData?.record_count"
+        :start="start"
+        :list="callbackData?.data || []"
+        :loading="callbackStatus === 'pending'"
+        @page-navigation="changePage"
+        @change-limit="changeLimit"
+      />
     </div>
   </div>
 </template>

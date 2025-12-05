@@ -12,18 +12,21 @@ interface Campaign {
   description?: string
   dial_mode?: string
   status?: number
+  time_based_calling?: number
   call_time_start?: string
   call_time_end?: string
   caller_id?: string
-  custom_caller_id?: string
+  custom_caller_id?: number
   country_code?: string
   rowList?: string
-  send_crm?: number
-  email?: number
-  sms?: number
+  send_crm?: string
+  email?: string
+  sms?: string
+  hopper_count?: number
   send_report?: number
-  max_lead_temp: number
-  min_lead_temp: number
+  total_leads: number
+  dialed_leads: number
+  created_date?: string
 }
 
 defineProps<{
@@ -102,10 +105,10 @@ const open = defineModel<boolean>()
               </div>
               <p
                 class="font-medium text-[16px]" :class="[
-                  campaign?.status === 1 ? 'text-green-600' : 'text-red-600',
+                  campaign?.time_based_calling === 1 ? 'text-green-600' : 'text-red-600',
                 ]"
               >
-                {{ campaign?.status === 1 ? 'Yes' : 'No' }}
+                {{ campaign?.time_based_calling === 1 ? 'Yes' : 'No' }}
               </p>
             </div>
 
@@ -172,10 +175,10 @@ const open = defineModel<boolean>()
               </div>
               <p
                 class="font-medium text-[16px]" :class="[
-                  campaign?.send_crm === 1 ? 'text-green-600' : 'text-red-600',
+                  campaign?.send_crm === '1' ? 'text-green-600' : 'text-red-600',
                 ]"
               >
-                {{ campaign?.send_crm === 1 ? 'Yes' : 'No' }}
+                {{ campaign?.send_crm === '1' ? 'Yes' : 'No' }}
               </p>
             </div>
 
@@ -186,7 +189,7 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">Dialed Leads/Total Leads</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.min_lead_temp }}/{{ campaign?.max_lead_temp }}
+                {{ campaign?.dialed_leads }}/{{ campaign?.total_leads }}
               </p>
             </div>
 
@@ -198,10 +201,10 @@ const open = defineModel<boolean>()
               </div>
               <p
                 class="font-medium text-[16px]" :class="[
-                  campaign?.email === 1 ? 'text-green-600' : 'text-red-600',
+                  campaign?.email === '1' ? 'text-green-600' : 'text-red-600',
                 ]"
               >
-                {{ campaign?.email === 1 ? 'With user email' : 'No' }}
+                {{ campaign?.email === '1' ? 'With user email' : 'No' }}
               </p>
             </div>
 
@@ -214,10 +217,10 @@ const open = defineModel<boolean>()
               </div>
               <p
                 class="font-medium text-[16px]" :class="[
-                  campaign?.sms === 1 ? 'text-green-600' : 'text-red-600',
+                  campaign?.sms === '1' ? 'text-green-600' : 'text-red-600',
                 ]"
               >
-                {{ campaign?.sms === 1 ? 'With user phone number' : 'No' }}
+                {{ campaign?.sms === '1' ? 'With user phone number' : 'No' }}
               </p>
             </div>
 
@@ -229,7 +232,7 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">Hopper Count</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                0
+                {{ campaign?.hopper_count }}
               </p>
             </div>
 
@@ -240,7 +243,7 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">Created Date</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                01/05/2025 12:00 PM
+                {{ campaign?.created_date }}
               </p>
             </div>
 

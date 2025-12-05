@@ -15,7 +15,9 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 
+import { useConfirmDialog } from '@vueuse/core'
 import { ChevronsUpDown } from 'lucide-vue-next'
+
 import { h, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,7 +35,11 @@ import Actions from './Actions.vue'
 const props = withDefaults(defineProps<Props>(), {
 
 })
-const emits = defineEmits(['pageNavigation', 'toggleChange', 'deleteUser', 'goToProfile'])
+
+const emits = defineEmits(['pageNavigation', 'toggleChange', 'goToProfile', 'refresh'])
+
+const route = useRoute()
+
 interface Meta {
   current_page: number
   per_page: number
@@ -59,7 +65,6 @@ export interface Extension {
 }
 const sheet = ref(false)
 
-
 const columnHelper = createColumnHelper<Extension>()
 
 const extensionLoadingId = ref(0)
@@ -80,6 +85,35 @@ function getExtensionByID(id: number) {
     })
   }).finally(() => {
     extensionLoadingId.value = 0
+  })
+}
+
+const {
+  isRevealed: showDeleteConfirm,
+  reveal: revealDeleteConfirm,
+  confirm: deleteConfirm,
+  cancel: deleteCancel,
+} = useConfirmDialog()
+
+async function deleteExtension(id: string) {
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
+  useApi().post('extension/deleteFromGroup', {
+    group_id: route.query.id,
+    extension_id: id,
+  }).then((res: any) => {
+    showToast({
+      type: 'success',
+      message: res.message,
+    })
+    emits('refresh')
+  }).catch(({ data }) => {
+    showToast({
+      type: 'error',
+      message: data.message,
+    })
   })
 }
 
@@ -119,8 +153,8 @@ const columns = [
     },
     cell: ({ row }) => {
       return h('div', { class: 'text-center font-normal text-sm flex gap-x-1 justify-end pr-3' }, [
-         h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => getExtensionByID(row.original?.user_id) }, h(Icon, { name: extensionLoadingId.value === row.original?.user_id ? 'eos-icons:bubble-loading' : 'lucide:eye' })),
-        h(Actions),
+        h(Button, { size: 'icon', class: 'cursor-pointer', onClick: () => getExtensionByID(row.original?.user_id) }, h(Icon, { name: extensionLoadingId.value === row.original?.user_id ? 'eos-icons:bubble-loading' : 'lucide:eye' })),
+        h(Actions, { onDelete: () => deleteExtension(row.original?.extension) }),
         // h(Button, { size: 'icon', variant: 'ghost', class: 'cursor-pointer' }, h(Icon, { name: 'lucide:ellipsis-vertical', size: '20' })),
       ])
     },
@@ -159,10 +193,6 @@ const table = useVueTable({
     get rowSelection() { return rowSelection.value },
   },
 })
-
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
 </script>
 
 <template>
@@ -218,6 +248,13 @@ function handlePageChange(page: number) {
     </Table>
   </div>
 
- <!-- DETAILS -->
-  <UserManagementDetails v-model:open="sheet" :data="extensionById as Extension"  />
+  <!-- DETAILS -->
+  <UserManagementDetails v-model:open="sheet" :data="extensionById as Extension" />
+  <ConfirmAction
+    v-model="showDeleteConfirm"
+    :confirm="deleteConfirm"
+    :cancel="deleteCancel"
+    title="Delete Extension"
+    description="You are about to delete extension. Do you wish to proceed?"
+  />
 </template>

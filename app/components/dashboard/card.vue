@@ -7,15 +7,13 @@ defineProps<{
 </script>
 
 <template>
-  <div class="card-main p-[12px] rounded-xl bg-white shadow-md">
-    <div class="flex lg:flex-col lg:items-left xl:flex-col xl:items-left 2xl:flex-row  2xl:items-center gap-2">
+  <div class="card-main p-[12px] rounded-[8px] bg-white shadow-md">
+    <div class="flex gap-2">
       <div class="min-w-[26px] min-h-[26px] w-[26px] h-[26px]">
         <img :src="image" alt="" class="w-full h-full object-contain">
       </div>
-      <div>
-        <h2 class="text-bases font-normal">
-          {{ title }}
-        </h2>
+      <div class="text-bases font-normal">
+        {{ title }}
       </div>
     </div>
     <div class="mt-2">

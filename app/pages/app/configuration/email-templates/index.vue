@@ -1,37 +1,22 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
 
 const showDialog = ref(false)
 
-const pageStart = ref(0)
+const start = ref(0)
 const limit = ref(10)
-const searchQuery = ref('')
+const search = ref('')
 
-const { data: emailTemplates, status, refresh } = await useLazyAsyncData('email-templates', () =>
-  useApi().get('/email-templates'), {
-  transform: res => res,
-})
-
-const searchFilteredEmailTemplate = computed(() => {
-  if (!emailTemplates.value)
-    return []
-  const query = searchQuery.value.toLowerCase()
-  return emailTemplates.value.data.filter((item: any) => {
-    return (
-      item?.template_name?.toLowerCase().includes(query)
-    )
-  })
-})
-
-const paginatedList = computed(() => {
-  const start = pageStart.value
-  const end = start + limit.value
-  return searchFilteredEmailTemplate.value.slice(start, end)
-})
-
-// Watch search query and reset pagination
-watch(searchQuery, () => {
-  pageStart.value = 0
+const { data: emailTemplateList, status: emailTemplateStatus, refresh: refreshEmailTemplate } = await useLazyAsyncData('email-templates', () =>
+  useApi().get('/email-templates', {
+    query: {
+      start: start.value,
+      limit: limit.value,
+      search: search.value,
+    },
+  }), {
+  transform: res => res.data,
 })
 
 const selectedEmailTemplate = ref<null | {
@@ -52,12 +37,22 @@ function openEditDialog(emailTemplate: any) {
 }
 
 function changePage(page: number) {
-  pageStart.value = Number((page - 1) * limit.value)
+  start.value = Number((page - 1) * limit.value)
+  return refreshEmailTemplate()
 }
 
 function changeLimit(val: number) {
   limit.value = Number(val)
-  pageStart.value = 0
+  return refreshEmailTemplate()
+}
+
+const debouncedSearch = useDebounceFn(() => {
+  start.value = 0
+  refreshEmailTemplate()
+}, 1000, { maxWait: 5000 })
+
+function searchText() {
+  debouncedSearch()
 }
 </script>
 
@@ -66,10 +61,10 @@ function changeLimit(val: number) {
   <BaseHeader title="Email Template List">
     <template #actions>
       <div class="relative">
-        <BaseInputSearch class="w-[300px]" placeholder="Search" />
+        <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
       </div>
       <NuxtLink to="/app/configuration/email-templates/add">
-        <Button class="h-11">
+        <Button variant="destructive" class="h-11">
           <Icon name="material-symbols:add" size="20" />
           Add Email Template
         </Button>
@@ -78,6 +73,15 @@ function changeLimit(val: number) {
   </BaseHeader>
   <!-- TABLE -->
   <div>
-    <ConfigurationEmailTemplatesTable :limit="limit" :total-rows="searchFilteredEmailTemplate.length" :start="pageStart" :list="paginatedList || []" :loading="status === 'pending'" @page-navigation="changePage" @change-limit="changeLimit" @refresh="refresh" @edit="openEditDialog" />
+    <ConfigurationEmailTemplatesTable
+      :limit="limit"
+      :total-rows="emailTemplateList?.total"
+      :start="start"
+      :list="emailTemplateList?.data || []"
+      :loading="emailTemplateStatus === 'pending'"
+      @page-navigation="changePage"
+      @change-limit="changeLimit"
+      @edit="openEditDialog"
+    />
   </div>
 </template>

@@ -41,7 +41,7 @@ interface RingGroup {
   id: number
   title: string
   emails: string
-  ring_type: number
+  ring_type: string
   description: string
   receive_on: string
   extension_name: string
@@ -83,7 +83,7 @@ const formSchema = toTypedSchema(z.object({
     }),
   ).min(1, 'at least one extension is required'),
   emails: z.string().email().min(1, 'email is required').max(50),
-  ring_type: z.number().min(1, ' ring mode is required'),
+  ring_type: z.string().min(1, ' ring mode is required'),
   receive_on: z.string().min(1, 'receive is required'),
 
 }))
@@ -132,7 +132,7 @@ watch(open, async (newValue) => {
         title: '',
         description: '',
         emails: '',
-        ring_type: 1,
+        ring_type: '1',
         receive_on: '',
         extension: [],
       },
@@ -180,15 +180,15 @@ const onSubmit = handleSubmit((values) => {
 
 const ringModes = [
   {
-    id: 1,
+    id: '1',
     name: 'Ring All',
   },
   {
-    id: 2,
+    id: '2',
     name: 'Sequence',
   },
   {
-    id: 3,
+    id: '3',
     name: 'Round Robin',
   },
 ]

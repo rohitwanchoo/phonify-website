@@ -139,7 +139,7 @@ const open = ref(false)
   <DropdownMenu v-model:open="open">
     <DropdownMenuTrigger as-child>
       <Button
-        class="border-gray-200"
+        class="border-gray-200 h-11 "
         variant="ghost"
         :class="cn(
           'justify-start text-left font-normal hover:bg-transparent',

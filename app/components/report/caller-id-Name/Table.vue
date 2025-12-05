@@ -55,7 +55,6 @@ export interface cliReportList {
   cli: string
   cnam: string
   created_at: string
-  callback_time: string
 }
 
 function formatDate(dateString: string): string {
@@ -126,19 +125,6 @@ const columns = [
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
         h('div', formatDate(row.original.created_at) || '-'),
-      ]),
-  }),
-
-  columnHelper.accessor('callback_time', {
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        class: 'text-sm font-normal',
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Callback Time', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center font-normal text-sm leading-tight' }, [
-        h('div', row.original.callback_time || '-'),
       ]),
   }),
 ]
@@ -242,7 +228,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>

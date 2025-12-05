@@ -19,10 +19,34 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-const props = defineProps({
-  leadActivityData: Object,
-  activityLoading: Boolean,
-})
+interface LeadActivityData {
+  data: {
+    updateData: Array<{
+      id: number
+      start_time: string
+      extension?: string
+      cli?: string
+      number?: string
+      message?: string
+      call_recording?: string
+      disposition_id?: number
+      status?: string
+    }>
+    userData: Array<{
+      extension: string
+      first_name: string
+      last_name: string
+      email: string
+      id: number
+      mobile?: string
+    }>
+  }
+}
+
+const props = defineProps<{
+  leadActivityData: LeadActivityData
+  activityLoading: boolean
+}>()
 
 const countryCode = [
   { id: 1, name: 'United States' },
@@ -70,11 +94,21 @@ function toggleAudio(id: number) {
 function toggleMessage(id: number) {
   visibleItem.value = visibleItem.value === id ? null : id
 }
+
+function getUserWithExtension(extension: string): string {
+  const user = props.leadActivityData?.data?.userData?.find((item: { extension: string }) => item.extension === String(extension))
+  return user ? `${user?.first_name} ${user?.last_name}` : ''
+}
 </script>
 
 <template>
   <div v-if="activityLoading">
     <BaseSkelton v-for="i in 9" :key="i" class="h-14 w-full mb-2" rounded="rounded-sm" />
+  </div>
+  <div v-else-if="!leadActivityData?.data.updateData.length" class="h-[calc(100vh-260px)] overflow-hidden flex items-center justify-center">
+    <div class="text-center text-gray-500 py-8">
+      No activity logs available
+    </div>
   </div>
 
   <div v-else class="mx-auto bg-[#FAFAFA] space-y-2">
@@ -98,10 +132,12 @@ function toggleMessage(id: number) {
               {{ formatDate(log.start_time) }}
             </p>
             <p class="text-xs md:text-sm text-gray-800">
-              <span class="font-sm">{{ log?.extension || 'Unknown' }}</span>
-              <span> ({{ log?.cli || 'N/A' }})</span>
-              <span class="text-gray-500">  to </span>
-              <span class="font-sm">{{ log?.number || 'N/A' }}</span>
+              <span v-if="log.call_recording" class="font-sm">{{ getUserWithExtension(log?.extension || 'Unknown') }}</span>
+              <span class="font-sm">({{ log?.extension || 'Unknown' }})</span>
+
+              <span v-if="log?.message" class="text-gray-500"> send a text to </span>
+              <span v-else class="text-gray-500"> made call to </span>
+              <span class="font-sm">{{ formatNumber(String(log?.number || '')) }}</span>
             </p>
           </div>
         </div>

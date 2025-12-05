@@ -50,6 +50,9 @@ importers:
       echarts:
         specifier: ^5.5.1
         version: 5.6.0
+      embla-carousel-autoplay:
+        specifier: ^8.6.0
+        version: 8.6.0(embla-carousel@8.6.0)
       embla-carousel-vue:
         specifier: ^8.6.0
         version: 8.6.0(vue@3.5.14(typescript@5.8.3))
@@ -116,6 +119,9 @@ importers:
       vue-sonner:
         specifier: ^2.0.0
         version: 2.0.0
+      vue-tel-input:
+        specifier: ^9.5.0
+        version: 9.5.0(libphonenumber-js@1.12.8)(vue@3.5.14(typescript@5.8.3))
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -2936,6 +2942,11 @@ packages:
 
   elkjs@0.8.2:
     resolution: {integrity: sha512-L6uRgvZTH+4OF5NE/MBbzQx/WYpru1xCBE9respNj6qznEewGUIfhzmm7horWWxbNO2M0WckQypGctR8lH79xQ==}
+
+  embla-carousel-autoplay@8.6.0:
+    resolution: {integrity: sha512-OBu5G3nwaSXkZCo1A6LTaFMZ8EpkYbwIaH+bPqdBnDGQ2fh4+NbzjXjs2SktoPNKCtflfVMc75njaDHOYXcrsA==}
+    peerDependencies:
+      embla-carousel: 8.6.0
 
   embla-carousel-reactive-utils@8.6.0:
     resolution: {integrity: sha512-fMVUDUEx0/uIEDM0Mz3dHznDhfX+znCCDCeIophYb1QGVM7YThSWX+wz11zlYwWFOr74b4QLGg0hrGPJeG2s4A==}
@@ -6018,6 +6029,12 @@ packages:
 
   vue-sonner@2.0.0:
     resolution: {integrity: sha512-nvlqGGWvxEv9UnKcZxsGdKpHrODEdv3CXAJF3er+1pLC03caJt2+v9HuWtRqlBQwUr1SFttsYuwVbpbEl05n4A==}
+
+  vue-tel-input@9.5.0:
+    resolution: {integrity: sha512-f3PHxRIcGzc8HgjSh5sBZLqOfO83GPypZYxwNcJRLh9XOBS9pjTilNWPQUzvpOiE+mrRQRoXc8s8hEyj9tWKYQ==}
+    peerDependencies:
+      libphonenumber-js: ^1.12.12
+      vue: ^3.5.4
 
   vue@3.5.14:
     resolution: {integrity: sha512-LbOm50/vZFG6Mhy6KscQYXZMQ0LMCC/y40HDJPPvGFQ+i/lUH+PJHR6C3assgOQiXdl6tAfsXHbXYVBZZu65ew==}
@@ -9431,6 +9448,10 @@ snapshots:
   electron-to-chromium@1.5.154: {}
 
   elkjs@0.8.2: {}
+
+  embla-carousel-autoplay@8.6.0(embla-carousel@8.6.0):
+    dependencies:
+      embla-carousel: 8.6.0
 
   embla-carousel-reactive-utils@8.6.0(embla-carousel@8.6.0):
     dependencies:
@@ -13087,6 +13108,11 @@ snapshots:
       vue: 3.5.14(typescript@5.8.3)
 
   vue-sonner@2.0.0: {}
+
+  vue-tel-input@9.5.0(libphonenumber-js@1.12.8)(vue@3.5.14(typescript@5.8.3)):
+    dependencies:
+      libphonenumber-js: 1.12.8
+      vue: 3.5.14(typescript@5.8.3)
 
   vue@3.5.14(typescript@5.8.3):
     dependencies:

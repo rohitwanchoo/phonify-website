@@ -15,6 +15,7 @@ import {
 } from '@tanstack/vue-table'
 import { ChevronsUpDown } from 'lucide-vue-next'
 import TableServerPagination from '@/components/table/ServerPagination.vue'
+import { AudioPlayer } from '@/components/ui/audio-player'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -32,7 +33,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { valueUpdater } from '@/components/ui/table/utils'
-import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
   loading: boolean
@@ -53,52 +53,18 @@ const last_page = computed(() => Math.ceil(total.value / per_page.value))
 
 export interface callReportsList {
   extension: number
-  campaign_id: number
+  campaign_name: string
   cli: number
   route: string
   type: string
   number: number
-  disposition_id: number
+  dispostion_name: string
   duration: string
-  area_code: string
+  state: string
+  city: string
   start_time: string
   end_time: string
   call_recording: string
-}
-
-const { data: campaignData, status: campaignDataStataus } = await useLazyAsyncData('campaign', () =>
-  useApi().post('/campaign'), {
-  transform: res => res.data,
-})
-
-const { data: dispositionData, status: dispositionDataStatus } = await useLazyAsyncData('disposition', () =>
-  useApi().post('/disposition'), {
-  transform: res => res.data,
-})
-
-const { data: extensionData, status: extensionDataStatus } = await useLazyAsyncData('extension', () =>
-  useApi().get('/extension'), {
-  transform: res => res.data,
-})
-
-// Filter campaign title based on campaign_id
-function campaignTitle(camapignId: number) {
-  if (!camapignId)
-    return 'N/A'
-  const foundCampaign = campaignData.value.find(
-    (c: any) => c.id === camapignId,
-  )
-  return foundCampaign?.title || 'N/A'
-}
-
-// Filter disposition title based on disposition_id
-function dispositionTitle(dispositionId: number) {
-  if (!dispositionId)
-    return 'N/A'
-  const foundDisposition = dispositionData.value.find(
-    (c: any) => c.id === dispositionId,
-  )
-  return foundDisposition?.title || 'N/A'
 }
 
 // Pagination handlers
@@ -130,14 +96,14 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.extension || '-'),
   }),
 
-  columnHelper.accessor('campaign_id', {
+  columnHelper.accessor('campaign_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Camapign', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, campaignTitle(row.original.campaign_id) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.campaign_name || '-'),
   }),
 
   columnHelper.accessor('cli', {
@@ -147,7 +113,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['CLI', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.cli.toString()) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(String(row.original.cli)) || '-'),
   }),
 
   columnHelper.accessor('route', {
@@ -166,7 +132,7 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Type', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.type || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm capitalize' }, row.original.type || '-'),
   }),
   columnHelper.accessor('number', {
     header: ({ column }) =>
@@ -177,14 +143,14 @@ const columns = [
       }, () => ['Number', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, formatNumber(row.original.number.toString()) || '-'),
   }),
-  columnHelper.accessor('disposition_id', {
+  columnHelper.accessor('dispostion_name', {
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Disposition', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, dispositionTitle(row.original.disposition_id) || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.dispostion_name || '-'),
   }),
   columnHelper.accessor('duration', {
     header: ({ column }) =>
@@ -195,14 +161,15 @@ const columns = [
       }, () => ['Duration', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.duration || '-'),
   }),
-  columnHelper.accessor('area_code', {
+  columnHelper.display({
+    id: 'stateCity',
     header: ({ column }) =>
       h('div', { class: 'text-center' }, h(Button, {
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['State/City', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, row.original.area_code || '-'),
+    cell: ({ row }) => h('div', { class: 'text-center font-normal text-sm' }, `${row.original.state || '-'} / ${row.original.city || '-'} `),
   }),
   columnHelper.accessor('start_time', {
     header: ({ column }) =>
@@ -229,21 +196,11 @@ const columns = [
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Recordings', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
-    cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, [
-      h('audio', {
-        controls: true,
-        class: 'w-full min-w-[240px] h-9',
-        preload: 'metadata',
-      }, [
-        h('source', {
-          src: row.original.call_recording,
-          type: 'audio/mpeg',
-        }),
-        'Browser not supported',
-      ]),
-    ]),
-    sortingFn: 'alphanumeric',
-    meta: { className: 'w-full text-center' },
+    cell: ({ row }) => h('div', { class: 'flex justify-center w-full' }, h(AudioPlayer, {
+      variant: 'default',
+      containerClass: 'h-10',
+      src: row.original.call_recording,
+    })),
   }),
 ]
 const sorting = ref<SortingState>([])
@@ -280,25 +237,25 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-hidden">
-    {{ extensionData?.id }}
+  <div class="border rounded-lg mt-4 max-h-[calc(100vh-222px)] overflow-y-auto">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
           <TableHead
-            v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
+            v-for="header in headerGroup.headers"
+            :key="header.id"
             class="bg-gray-50"
-            :class="cn(
-              { 'sticky bg-background/95': header.column.getIsPinned() },
-              header.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-            )"
           >
-            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
+            <FlexRender
+              v-if="!header.isPlaceholder"
+              :render="header.column.columnDef.header"
+              :props="header.getContext()"
+            />
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-if="loading || campaignDataStataus === 'pending' || dispositionDataStatus === 'pending' || extensionDataStatus === 'pending'">
+        <TableRow v-if="loading">
           <TableCell :colspan="columns?.length" class="h-12 text-center px-2 bg-white">
             <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
           </TableCell>
@@ -312,18 +269,15 @@ const table = useVueTable({
             <TableCell
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              :data-pinned="cell.column.getIsPinned()"
               class="p-[12px]"
-              :class="cn(
-                { 'sticky bg-background/95': cell.column.getIsPinned() },
-                cell.column.getIsPinned() === 'left' ? 'left-0' : 'right-0',
-              )"
             >
-              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              <FlexRender
+                :render="cell.column.columnDef.cell"
+                :props="cell.getContext()"
+              />
             </TableCell>
           </TableRow>
         </template>
-
         <TableRow v-else>
           <TableCell
             :colspan="columns.length"
@@ -335,10 +289,11 @@ const table = useVueTable({
       </TableBody>
     </Table>
   </div>
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 pt-4 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
-        Showing {{ current_page }} to
+        Showing
         <span>
           <Select :default-value="10" :model-value="limit" @update:model-value="(val) => changeLimit(Number(val))">
             <SelectTrigger class="w-fit gap-x-1 px-2">

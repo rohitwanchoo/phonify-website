@@ -150,7 +150,7 @@ function saveCampaign() {
               Description
             </FormLabel>
             <FormControl>
-              <Textarea v-if="enableEdit" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Name" v-bind="componentField" />
+              <Textarea v-if="enableEdit" type="text" class="text-sm font-normal placeholder:text-sm h-11 " placeholder="Enter Campaign Description" v-bind="componentField" />
               <div v-else class="text-[16px] font-normal text-primary">
                 {{ values.description }}
               </div>
