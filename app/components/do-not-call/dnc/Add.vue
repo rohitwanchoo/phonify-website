@@ -54,6 +54,12 @@ function splitPhone(fullNumber: string | number) {
   return { country_code, number }
 }
 
+function onDialogOpen(val: boolean) {
+  if (val) {
+    extensionRefresh()
+    countryRefresh()
+  }
+}
 
 const formSchema = toTypedSchema(z.object({
   country_code: z.string().min(1, 'Country code is required'),
@@ -73,36 +79,36 @@ const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
 })
 
 watch(open, async (newVal) => {
-  if (newVal && props.isEdit && props.initialData) {
+  if (newVal) {
     extensionRefresh()
     countryRefresh()
-    const phoneParts = splitPhone(props.initialData.number)
+    if (props.isEdit && props.initialData) {
+      const phoneParts = splitPhone(props.initialData.number)
 
-    setValues({
-      country_code: phoneParts.country_code,
-      number: phoneParts.number,
-      extension: props.initialData.extension,
-      comment: props.initialData.comment,
-    })
-  }
-  else {
-    extensionRefresh()
-    countryRefresh()
-    resetForm({
-      values: {
-        country_code: '1',
-        number: '',
-        extension: 0,
-        comment: '',
-      },
-      errors: {},
-    })
+      setValues({
+        country_code: phoneParts.country_code,
+        number: phoneParts.number,
+        extension: props.initialData.extension,
+        comment: props.initialData.comment,
+      })
+    }
+    else {
+      resetForm({
+        values: {
+          country_code: '1',
+          number: '',
+          extension: 0,
+          comment: '',
+        },
+        errors: {},
+      })
+    }
   }
 })
 
 const onSubmit = handleSubmit(async (values) => {
-  // Clean the phone number - remove formatting before sending to API
-  const cleanNumber = props.isEdit ? props.initialData.number : values.number.replace(/\D/g, '')
+  // Clean the phone number - remove formatting
+  const cleanNumber = values.number.replace(/\D/g, '')
 
   const api = props.isEdit ? '/edit-dnc' : '/add-dnc'
 
@@ -140,7 +146,7 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <Dialog v-model:open="open">
+  <Dialog v-model:open="open" @update:open="onDialogOpen">
     <DialogTrigger as-child>
       <slot>
         <Button class="h-11">
@@ -255,7 +261,7 @@ const onSubmit = handleSubmit(async (values) => {
 
           <DialogFooter>
             <DialogClose class="sm:w-1/2">
-              <Button variant="outline" class="h-11  w-full">
+              <Button variant="outline" class="h-11 w-full" type="button">
                 <Icon name="material-symbols:close" size="20" />
                 Close
               </Button>
