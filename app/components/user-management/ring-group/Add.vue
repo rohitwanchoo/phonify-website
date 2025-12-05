@@ -56,13 +56,13 @@ const props = defineProps<{
 
 const emits = defineEmits(['complete'])
 
-const focusInput = shallowRef()
-useFocus(focusInput, { initialValue: true })
-
 const open = defineModel('open', {
   type: Boolean,
   default: false,
 })
+
+const focusInput = shallowRef()
+useFocus(focusInput, { initialValue: true })
 
 const addExtensionSheet = ref(false)
 
