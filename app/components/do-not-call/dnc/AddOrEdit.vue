@@ -54,13 +54,6 @@ function splitPhone(fullNumber: string | number) {
   return { country_code, number }
 }
 
-function onDialogOpen(val: boolean) {
-  if (val) {
-    extensionRefresh()
-    countryRefresh()
-  }
-}
-
 const formSchema = toTypedSchema(z.object({
   country_code: z.string().min(1, 'Country code is required'),
   number: z.string().min(1, 'Phone number is required'),
@@ -146,7 +139,7 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <Dialog v-model:open="open" @update:open="onDialogOpen">
+  <Dialog v-model:open="open">
     <DialogTrigger as-child>
       <slot>
         <Button class="h-11">

@@ -58,7 +58,7 @@ function searchText() {
       <!-- TO DO: Add DNC Upload Dialog -->
       <!-- <DoNotCallDncUpload /> -->
       <!-- Add DNC Dialog -->
-      <DoNotCallDncAdd v-model:open="open" :initial-data="initialData" :is-edit="isEdit" @update:open="onModelUpdate" @complete="refreshDncList" />
+      <DoNotCallDncAddOrEdit v-model:open="open" :initial-data="initialData" :is-edit="isEdit" @update:open="onModelUpdate" @complete="refreshDncList" />
     </template>
   </BaseHeader>
   <div>

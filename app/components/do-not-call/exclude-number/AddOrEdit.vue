@@ -146,16 +146,18 @@ const onSubmit = handleSubmit(async (values) => {
 
 <template>
   <Dialog v-model:open="open">
-    <DialogTrigger v-if="!props.isEdit" as-child>
-      <Button class="h-11">
-        <Icon class="!text-white" size="20" name="material-symbols:add" />
-        Add Exclude Number
-      </Button>
+    <DialogTrigger as-child>
+      <slot>
+        <Button class="h-11">
+          <Icon class="!text-white" size="20" name="material-symbols:add" />
+          {{ props.isEdit ? 'Edit' : 'Add' }} Exclude Number
+        </Button>
+      </slot>
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
-          {{ props.isEdit ? 'Edit Exclude Number' : 'Add Exclude Number' }}
+          {{ props.isEdit ? 'Edit' : 'Add Exclude Number' }}
         </DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
