@@ -42,6 +42,19 @@ function getCountryLabel(code: string) {
   return country ? `${country.country_code} (+${country.phone_code})` : ''
 }
 
+function splitPhone(fullNumber: string | number) {
+  const str = String(fullNumber).trim()
+
+  // last 10 digits → actual phone number
+  const number = str.slice(-10)
+
+  // remaining digits → country code
+  const country_code = str.slice(0, str.length - 10) || '1'
+
+  return { country_code, number }
+}
+
+
 const formSchema = toTypedSchema(z.object({
   country_code: z.string().min(1, 'Country code is required'),
   number: z.string().min(1, 'Phone number is required'),
@@ -51,13 +64,26 @@ const formSchema = toTypedSchema(z.object({
 
 const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    country_code: '1',
+    number: '',
+    extension: 0,
+    comment: '',
+  },
 })
 
 watch(open, async (newVal) => {
   if (newVal && props.isEdit && props.initialData) {
     extensionRefresh()
     countryRefresh()
-    setValues({ ...props.initialData })
+    const phoneParts = splitPhone(props.initialData.number)
+
+    setValues({
+      country_code: phoneParts.country_code,
+      number: phoneParts.number,
+      extension: props.initialData.extension,
+      comment: props.initialData.comment,
+    })
   }
   else {
     extensionRefresh()
@@ -81,7 +107,7 @@ const onSubmit = handleSubmit(async (values) => {
   const api = props.isEdit ? '/edit-dnc' : '/add-dnc'
 
   const payload = {
-    number: cleanNumber,
+    number: values.country_code + cleanNumber,
     extension: values.extension,
     comment: values.comment,
   }

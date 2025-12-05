@@ -121,11 +121,6 @@ function changeLimit(val: number | null) {
   }
 }
 
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
-}
-
 const columnHelper = createColumnHelper<dncList>()
 const columns = [
   columnHelper.accessor('siNo', {
@@ -180,7 +175,7 @@ const columns = [
         selectedDncForDelete.value = {
           number: (row.original.number),
         }
-        revealDeleteConfirm()
+        handleDelete()
       } }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
     ]),
   }),
@@ -306,7 +301,7 @@ const table = useVueTable({
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
-    :confirm="deleteConfirmHandler"
+    :confirm="deleteConfirm"
     :cancel="deleteCancel"
     title="Delete DNC"
     description="You are about to delete DNC. Do you wish to proceed?"
