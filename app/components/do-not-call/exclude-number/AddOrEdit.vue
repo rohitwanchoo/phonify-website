@@ -118,7 +118,8 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     const api = props.isEdit ? '/edit-exclude-number' : '/add-exclude-number'
     const response = await useApi().post(api, payload)
-    if (response.success === 'true') {
+    if(!props.isEdit) {
+      if (response.success === 'true') {
       showToast({
         message: response.message,
         type: 'success',
@@ -135,6 +136,25 @@ const onSubmit = handleSubmit(async (values) => {
       })
     }
   }
+  else {
+    if (response.original.success === true) {
+      showToast({
+        message: response.original.message,
+        type: 'success',
+      })
+
+      resetForm()
+      open.value = false
+      refreshNuxtData('exclude-number-list')
+    }
+    else {
+      showToast({
+        message: response.original.message,
+        type: 'error',
+      })
+    }
+  }
+    }
   catch (error: any) {
     showToast({
       message: `${error.message}`,
