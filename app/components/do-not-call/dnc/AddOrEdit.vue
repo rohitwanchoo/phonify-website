@@ -5,7 +5,7 @@ import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
@@ -30,32 +30,7 @@ const { data: extensionList, status: extensionListStatus, refresh: extensionRefr
   immediate: false,
 })
 
-// County list
-const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
-  useApi().post('/phone-country-list'), {
-  transform: res => res.data,
-  immediate: false,
-})
-
-function getCountryLabel(code: string) {
-  const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
-  return country ? `${country.country_code} (+${country.phone_code})` : ''
-}
-
-function splitPhone(fullNumber: string | number) {
-  const str = String(fullNumber).trim()
-
-  // last 10 digits → actual phone number
-  const number = str.slice(-10)
-
-  // remaining digits → country code
-  const country_code = str.slice(0, str.length - 10) || '1'
-
-  return { country_code, number }
-}
-
 const formSchema = toTypedSchema(z.object({
-  country_code: z.string().min(1, 'Country code is required'),
   number: z.string().min(1, 'Phone number is required'),
   extension: z.number().int().min(1, 'Extension is required'),
   comment: z.string().min(1, 'Comment is required'),
@@ -64,7 +39,6 @@ const formSchema = toTypedSchema(z.object({
 const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    country_code: '1',
     number: '',
     extension: 0,
     comment: '',
@@ -74,13 +48,9 @@ const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
 watch(open, async (newVal) => {
   if (newVal) {
     extensionRefresh()
-    countryRefresh()
     if (props.isEdit && props.initialData) {
-      const phoneParts = splitPhone(props.initialData.number)
-
       setValues({
-        country_code: phoneParts.country_code,
-        number: phoneParts.number,
+        number: props.initialData.number,
         extension: props.initialData.extension,
         comment: props.initialData.comment,
       })
@@ -88,7 +58,6 @@ watch(open, async (newVal) => {
     else {
       resetForm({
         values: {
-          country_code: '1',
           number: '',
           extension: 0,
           comment: '',
@@ -106,7 +75,7 @@ const onSubmit = handleSubmit(async (values) => {
   const api = props.isEdit ? '/edit-dnc' : '/add-dnc'
 
   const payload = {
-    number: values.country_code + cleanNumber,
+    number: cleanNumber,
     extension: values.extension,
     comment: values.comment,
   }
@@ -165,41 +134,6 @@ const onSubmit = handleSubmit(async (values) => {
               <FormControl>
                 <div class="flex">
                   <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
-                    <FormField v-slot="{ componentField: countryCodeComponentField, errorMessage: countryCodeErrorMessage }" name="country_code" class="relative">
-                      <FormItem>
-                        <FormControl>
-                          <Select v-bind="countryCodeComponentField">
-                            <SelectTrigger
-                              class="w-fit rounded-r-none bg-gray-100 !h-11"
-                              :class="countryCodeErrorMessage && errorMessage && 'border-red-600 border'"
-                            >
-                              <SelectValue>
-                                <span class="text-sm text-nowrap">
-                                  {{ getCountryLabel(countryCodeComponentField.modelValue || '1') }}
-                                </span>
-                              </SelectValue>
-                            </SelectTrigger>
-
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectItem v-if="countrylistStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
-                                  <Icon name="eos-icons:loading" />
-                                </SelectItem>
-                                <template v-else>
-                                  <SelectItem
-                                    v-for="item in countrylist"
-                                    :key="item.id"
-                                    :value="String(item.phone_code)"
-                                  >
-                                    {{ item.country_name }} (+{{ item.phone_code }})
-                                  </SelectItem>
-                                </template>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                      </FormItem>
-                    </FormField>
                     <Input
                       v-maska="'(###) ###-####'"
                       type="tel"
