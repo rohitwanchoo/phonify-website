@@ -174,12 +174,6 @@ function handleFileChange(e: Event) {
       </div>
       <!-- Chat Body -->
       <div class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;">
-        <div class="w-full flex justify-center mt-2 mb-4">
-          <div class="text-xs text-muted-foreground bg-[#E4E4E7] rounded-xl px-3 py-1 text-center">
-            <!-- {{ contact.time }} -->
-          </div>
-        </div>
-
         <!-- Loading indicator -->
         <div v-if="loading" class="w-full flex justify-center">
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#162D3A]" />

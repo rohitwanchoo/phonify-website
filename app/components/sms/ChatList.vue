@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDate } from '@vueuse/core'
+import { formatDate, useIntersectionObserver } from '@vueuse/core'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -93,7 +93,17 @@ watch(() => props.selectedContact, (contact) => {
   }
 }, { immediate: true })
 
-// Pagination handlers were unused; removing to satisfy lint rules
+const sentinel = ref<HTMLElement | null>(null)
+
+useIntersectionObserver(
+  sentinel,
+  (entries) => {
+    const entry = entries[0]
+    if (entry && entry.isIntersecting && !props.loading && props.smsChatList.length < props.totalRows) {
+      emit('changePage', props.start + props.limit)
+    }
+  },
+)
 </script>
 
 <template>
@@ -151,7 +161,7 @@ watch(() => props.selectedContact, (contact) => {
 
     <Separator class="my-2 bg-[#FFFFFF1A]" />
 
-    <div v-if="loading">
+    <div v-if="loading && smsChatList.length === 0">
       <BaseSkelton v-for="i in 8" :key="i" class="h-[84px] p-4 w-full border border-[#FFFFFF1A] bg-[#ffffff92] mb-2" rounded="rounded-sm" />
     </div>
     <ScrollArea v-else class="h-[calc(100vh-210px)] overflow-y-auto overflow-x-hidden flex-1">
@@ -181,6 +191,9 @@ watch(() => props.selectedContact, (contact) => {
               {{ formatDate(new Date((group as { date: string }).date), 'h:mm A') }}
             </div>
           </TabsTrigger>
+          <div ref="sentinel" class="h-4 w-full flex justify-center items-center">
+            <span v-if="loading && smsChatList.length > 0" class="loading loading-dots loading-xs text-white/50" />
+          </div>
         </TabsList>
       </Tabs>
     </ScrollArea>

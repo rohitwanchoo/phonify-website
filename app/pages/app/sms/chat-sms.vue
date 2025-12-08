@@ -15,10 +15,13 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
+const chatMessageStart = ref(0)
+const chatMessageLimit = ref(10)
+
 const showDialer = ref(false)
 const showShortDialer = ref(false)
 
-const { data: smsList, status: smsListStatus, refresh: refreshSmsList } = await useLazyAsyncData('sms-list', () =>
+const { data: smsListResponse, status: smsListStatus, refresh: refreshSmsList } = await useLazyAsyncData('sms-list', () =>
   useApi().get('sms', {
     query: {
       start: start.value,
@@ -30,11 +33,25 @@ const { data: smsList, status: smsListStatus, refresh: refreshSmsList } = await 
   immediate: true,
 })
 
+const smsList = ref<{ data: any[], total: number }>({ data: [], total: 0 })
+
+watch(smsListResponse, (newVal) => {
+  if (newVal) {
+    if (start.value === 0) {
+      smsList.value = { data: newVal.data || [], total: newVal.total || 0 }
+    }
+    else {
+      smsList.value.data.push(...(newVal.data || []))
+      smsList.value.total = newVal.total || 0
+    }
+  }
+})
+
 const { data: smsChats, status: smsChatsStatus, refresh: refreshSmsChats } = await useLazyAsyncData('sms-chats', () =>
   useApi().get('sms-by-did', {
     query: {
-      start: start.value,
-      limit: limit.value,
+      start: chatMessageStart.value,
+      limit: chatMessageLimit.value,
       number: currentContact.value?.number,
       did: currentContact.value?.did,
     },
@@ -82,8 +99,8 @@ function handleClose() {
   showShortDialer.value = false
 }
 
-function changePage(page: number) {
-  start.value = Number((page - 1) * limit.value)
+function changePage(newStart: number) {
+  start.value = newStart
   return refreshSmsList()
 }
 
