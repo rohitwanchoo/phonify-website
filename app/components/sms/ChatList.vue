@@ -191,8 +191,10 @@ useIntersectionObserver(
               {{ formatDate(new Date((group as { date: string }).date), 'h:mm A') }}
             </div>
           </TabsTrigger>
-          <div ref="sentinel" class="h-4 w-full flex justify-center items-center">
-            <span v-if="loading && smsChatList.length > 0" class="loading loading-dots loading-xs text-white/50" />
+          <div ref="sentinel" class="w-full mr-2 flex justify-center items-center">
+            <div v-if="loading && smsChatList.length > 0" class="w-full">
+              <BaseSkelton class="h-[54px] p-4 w-full border border-[#FFFFFF1A] bg-[#ffffff92] mb-2" rounded="rounded-sm" />
+            </div>
           </div>
         </TabsList>
       </Tabs>
