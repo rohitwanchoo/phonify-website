@@ -192,12 +192,16 @@ useIntersectionObserver(
             </div>
           </TabsTrigger>
           <div ref="sentinel" class="w-full mr-2 flex justify-center items-center">
-            <div v-if="loading && smsChatList.length > 0" class="w-full">
-              <BaseSkelton class="h-[54px] p-4 w-full border border-[#FFFFFF1A] bg-[#ffffff92] mb-2" rounded="rounded-sm" />
+            <div v-if="loading && smsChatList.length > 0" class="w-full flex justify-center items-center">
+              <Icon name="eos-icons:loading" size="24" />
             </div>
           </div>
         </TabsList>
       </Tabs>
     </ScrollArea>
+    <div v-if="!loading && smsChatList.length === 0" class="flex-1 flex flex-col justify-start text-center text-white opacity-70">
+        <Icon name="material-symbols:sms-outline" size="28" class="mx-auto mb-2" />
+        <p class="text-sm">No chat history</p>
+    </div>
   </div>
 </template>

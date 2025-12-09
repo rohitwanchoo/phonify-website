@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits(['openDialer', 'loadMore'])
-const isUnknownContact = computed(() => !props.contact?.user_id)
+// const isUnknownContact = computed(() => !props.contact?.user_id)
 
 // Draft message and input ref must live inside the script setup
 const currentDraft = ref('')
@@ -261,7 +261,7 @@ onMounted(() => {
       </div>
 
       <!-- Unknown Contact Section -->
-      <div v-if="isUnknownContact" class="px-4 py-3 bg-[#F5EFE9CC] rounded-lg border-muted m-5">
+      <!-- <div v-if="isUnknownContact" class="px-4 py-3 bg-[#F5EFE9CC] rounded-lg border-muted m-5">
         <div class="flex flex-col items-center gap-3">
           <p class="text-md text-[#162D3A]">
             The number is not in your contacts
@@ -281,7 +281,7 @@ onMounted(() => {
             </Button>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Bottom section -->

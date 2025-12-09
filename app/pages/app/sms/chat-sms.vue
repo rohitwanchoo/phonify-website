@@ -10,10 +10,20 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 
-const currentContact = ref()
+const route = useRoute()
+
 const start = ref(0)
 const limit = ref(10)
 const search = ref('')
+
+const currentContact = ref(
+  route.query.number
+    ? {
+        number: Number(route.query.number),
+        did: Number(route.query.did),
+      }
+    : undefined,
+)
 
 const chatMessageStart = ref(0)
 const chatMessageLimit = ref(10)
@@ -57,7 +67,7 @@ const { data: smsChats, status: smsChatsStatus, refresh: refreshSmsChats } = awa
     },
   }), {
   transform: res => res.data,
-  immediate: false,
+  immediate: true,
 })
 
 const allMessages = ref<any[]>([])
@@ -68,7 +78,6 @@ watch(smsChats, (newVal) => {
     if (newVal.length < chatMessageLimit.value) {
       hasMoreMessages.value = false
     }
-    
     // Reverse the chunk to get chronological order (Oldest -> Newest)
     // because API returns Newest -> Oldest
     const newMessages = [...(newVal || [])].reverse()

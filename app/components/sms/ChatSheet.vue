@@ -189,7 +189,7 @@ const onSubmit = handleSubmit(async (vals) => {
                 <FormField v-slot="{ value, handleChange }" name="country_code">
                   <FormItem class="w-[120px] !gap-0">
                     <FormControl>
-                      <Select :model-value="value" @update:model-value="handleChange">
+                      <Select :model-value="value" @update:model-value="handleChange" :default-value="1">
                         <SelectTrigger class="w-full rounded-r-none bg-gray-100 !h-11">
                           <SelectValue />
                         </SelectTrigger>
