@@ -69,13 +69,19 @@ watch(smsChats, (newVal) => {
       hasMoreMessages.value = false
     }
     
+    // Reverse the chunk to get chronological order (Oldest -> Newest)
+    // because API returns Newest -> Oldest
+    const newMessages = [...(newVal || [])].reverse()
+
     if (chatMessageStart.value === 0) {
       // Initial load or refresh (newest messages)
-      allMessages.value = [...(newVal || [])]
+      allMessages.value = newMessages
     }
     else {
       // Pagination (older messages)
-      allMessages.value = [...(newVal || []), ...allMessages.value]
+      // Since we are reversing, the 'older' messages (which are chronologically earlier)
+      // should come BEFORE the current messages.
+      allMessages.value = [...newMessages, ...allMessages.value]
     }
   }
 })
