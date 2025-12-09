@@ -60,12 +60,43 @@ const { data: smsChats, status: smsChatsStatus, refresh: refreshSmsChats } = awa
   immediate: false,
 })
 
+const allMessages = ref<any[]>([])
+const hasMoreMessages = ref(true)
+
+watch(smsChats, (newVal) => {
+  if (newVal) {
+    if (newVal.length < chatMessageLimit.value) {
+      hasMoreMessages.value = false
+    }
+    
+    if (chatMessageStart.value === 0) {
+      // Initial load or refresh (newest messages)
+      allMessages.value = [...(newVal || [])]
+    }
+    else {
+      // Pagination (older messages)
+      allMessages.value = [...(newVal || []), ...allMessages.value]
+    }
+  }
+})
+
 // Watch for contact changes and refresh chats
 watch(currentContact, (newContact) => {
   if (newContact) {
+    chatMessageStart.value = 0
+    allMessages.value = [] // clear previous chat
+    hasMoreMessages.value = true
     refreshSmsChats()
   }
 })
+
+function loadOlderMessages() {
+  if (!hasMoreMessages.value || smsChatsStatus.value === 'pending')
+    return
+
+  chatMessageStart.value += chatMessageLimit.value
+  refreshSmsChats()
+}
 
 // Auto-select the first contact once the SMS list loads
 const stopAutoSelect = watch(smsList, (list) => {
@@ -127,7 +158,7 @@ function searchText() {
       </template>
     </BaseHeader>
 
-    <ResizablePanelGroup direction="horizontal" class="h-full max-h-[calc(100vh-160px)] rounded-lg border mt-4">
+    <ResizablePanelGroup direction="horizontal" class="h-full max-h-[calc(100vh-168px)] rounded-lg border mt-4">
       <!-- Chat List -->
       <ResizablePanel :default-size="45" :min-size="20">
         <SmsChatList
@@ -153,9 +184,11 @@ function searchText() {
       <ResizablePanel :default-size="75" :max-size="78" :min-size="30">
         <SmsChatSection
           :contact="currentContact || {}"
-          :messages="smsChats"
+          :messages="allMessages"
           :loading="smsChatsStatus === 'pending'"
+          :has-more="hasMoreMessages"
           @open-dialer="openDialer"
+          @load-more="loadOlderMessages"
         />
       </ResizablePanel>
     </ResizablePanelGroup>

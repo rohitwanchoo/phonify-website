@@ -25,11 +25,13 @@ const props = withDefaults(defineProps<{
   messages: SmsMessage[]
   contact?: Contact
   loading?: boolean
+  hasMore?: boolean
 }>(), {
   loading: false,
+  hasMore: true,
 })
 
-const emit = defineEmits(['openDialer'])
+const emit = defineEmits(['openDialer', 'loadMore'])
 const isUnknownContact = computed(() => !props.contact?.user_id)
 
 // Draft message and input ref must live inside the script setup
@@ -136,6 +138,55 @@ function handleFileChange(e: Event) {
       input.value = ''
   })
 }
+
+// Scroll Handling
+const chatContainerRef = ref<HTMLDivElement | null>(null)
+
+// We need to keep track of the scroll height to maintain position when loading older messages
+const previousScrollHeight = ref(0)
+const isPaginationLoad = ref(false)
+
+function handleScroll() {
+  const el = chatContainerRef.value
+  if (!el)
+    return
+
+  if (el.scrollTop === 0 && !props.loading && props.hasMore) {
+    // User scrolled to top, load older messages
+    isPaginationLoad.value = true
+    previousScrollHeight.value = el.scrollHeight
+    emit('loadMore')
+  }
+}
+
+// Watch for messages change to adjust scroll position
+watch(normalizedMessages, async (newMsgs, oldMsgs) => {
+  await nextTick()
+  const el = chatContainerRef.value
+  if (!el)
+    return
+
+  if (isPaginationLoad.value) {
+    // If we just loaded older messages, restore scroll position
+    const contentAddedHeight = el.scrollHeight - previousScrollHeight.value
+    el.scrollTop = contentAddedHeight
+    isPaginationLoad.value = false
+  }
+  else if (!oldMsgs || oldMsgs.length === 0 || (newMsgs.length > oldMsgs.length && newMsgs[newMsgs.length - 1]?.at !== oldMsgs[oldMsgs.length - 1]?.at)) {
+    scrollToBottom()
+  }
+})
+
+function scrollToBottom() {
+  if (chatContainerRef.value) {
+    chatContainerRef.value.scrollTop = chatContainerRef.value.scrollHeight
+  }
+}
+
+onMounted(() => {
+  scrollToBottom()
+})
+
 </script>
 
 <template>
@@ -173,7 +224,7 @@ function handleFileChange(e: Event) {
         </div>
       </div>
       <!-- Chat Body -->
-      <div class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;">
+      <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;" @scroll="handleScroll">
         <!-- Loading indicator -->
         <div v-if="loading" class="w-full flex justify-center">
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#162D3A]" />
