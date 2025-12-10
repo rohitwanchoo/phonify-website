@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import preview from '~/assets/svg/sms/template-preview.svg'
-
-const props = defineProps({
+const _props = defineProps({
   content: {
     type: String,
     default: '',
@@ -30,27 +28,35 @@ const props = defineProps({
       <div class="h-[calc(100vh-245px)]">
         <div class="h-full">
           <div class="h-full p-3 flex justify-center items-center">
-       <div class="w-[450px] h-full relative bg-contain bg-center bg-no-repeat" 
-     :style="{ 'background-image': `url(${preview})` }">
-  <!-- Message bubble container -->
-  <div class="absolute top-[40%] left-[10%] max-w-[80%]"
-       :class="{ hidden: !content }">
-    <!-- Bubble with hidden scrollbar but scrollable content -->
-    <div class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] 
-                max-h-[300px] overflow-y-auto "> <!-- This hides the scrollbar -->
-      <div class="break-words whitespace-pre-wrap">
-        {{ content || '&nbsp;' }}
-      </div>
-    </div>
-  </div>
+            <div
+              class="h-full w-96 relative bg-[url('/images/sms/device.png')] bg-cover bg-top bg-no-repeat"
+            >
+              <!-- Message bubble container -->
+              <div
+                class="absolute top-[200px] left-[10%] w-fit max-w-[80%]"
+                :class="{ hidden: !content }"
+              >
+                <!-- Bubble with hidden scrollbar but scrollable content -->
+                <div
+                  class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px]
+                max-h-[300px] overflow-y-auto "
+                >
+                  <!-- This hides the scrollbar -->
+                  <div class="break-words whitespace-pre-wrap">
+                    {{ content || '&nbsp;' }}
+                  </div>
+                </div>
+              </div>
 
-  <!-- Empty state -->
-  <div v-if="!content"
-       class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px] 
-              absolute top-[40%] left-[10%] max-w-[60%]">
-    Preview will appear here....
-  </div>
-</div>
+              <!-- Empty state -->
+              <div
+                v-if="!content"
+                class="bg-gray-200 p-3 rounded-xl rounded-bl-none text-[13px]
+              absolute top-[200px] left-[10%] max-w-[60%]"
+              >
+                Preview will appear here....
+              </div>
+            </div>
           </div>
         </div>
       </div>
