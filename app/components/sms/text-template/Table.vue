@@ -105,6 +105,28 @@ async function handleDelete() {
   }
 }
 
+// Updates status of a list
+async function updateStatus(id: number, status: string) {
+  try {
+    const res = await useApi().post('/update-sms-templete-status', {
+      templete_id: id,
+      status,
+    })
+
+    showToast({
+      message: res.message,
+      type: 'success',
+    })
+    refreshNuxtData('sms-text-template-list')
+  }
+  catch (err: any) {
+    showToast({
+      message: `${err.message}`,
+      type: 'error',
+    })
+  }
+}
+
 // Deletes list after confirming
 function deleteConfirmHandler() {
   deleteConfirm() // close dialog
@@ -157,20 +179,20 @@ const columns = [
     cell: ({ row }) => h('div', { class: 'text-sm text-center max-w-[360px] truncate' }, row.original.templete_desc || '-'),
   }),
   columnHelper.accessor('status', {
-    header: ({ column }) => h('div', { class: 'flex justify-center' }, [
-      h(Button, {
+    header: ({ column }) =>
+      h('div', { class: 'text-center w-full' }, h(Button, {
+        class: 'text-center text-sm font-normal w-full',
         variant: 'ghost',
-        class: 'text-sm font-normal',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]),
-    ]),
-    cell: ({ row }) => h('div', { class: 'flex justify-center' }, [
-      h(Switch, {
-        modelValue: row.original.status,
-        class: 'data-[state=checked]:bg-green-600',
-      }),
-    ]),
-    sortingFn: (rowA, rowB) => Number(rowB.original.status) - Number(rowA.original.status),
+      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    cell: ({ row }) =>
+      h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
+        'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
+        'modelValue': row.original.status === '1',
+        'onUpdate:modelValue': (val: boolean) => {
+          updateStatus(row.original.templete_id, val ? '1' : '0')
+        },
+      })),
   }),
   columnHelper.accessor('actions', {
     header: () => h('div', { class: 'text-center ml-auto w-fit mr-8' }, 'Actions'),
@@ -187,7 +209,7 @@ const columns = [
                 class: 'cursor-pointer',
                 onClick: () => onEdit(row.original),
               }, h(Icon, { name: 'material-symbols:edit-square' }))),
-              h(TooltipContent, { side: 'top' }, 'Edit Disposition'),
+              h(TooltipContent, { side: 'top' }, 'Edit Template'),
             ],
           })),
 
@@ -204,7 +226,7 @@ const columns = [
                   revealDeleteConfirm()
                 },
               }, h(Icon, { name: 'material-symbols:delete' }))),
-              h(TooltipContent, { side: 'top' }, 'Delete Disposition'),
+              h(TooltipContent, { side: 'top' }, 'Delete Template'),
             ],
           })),
       ]),
