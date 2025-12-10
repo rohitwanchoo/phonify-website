@@ -6,7 +6,7 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
-const { data: smsTextTemplateList, status: smsTextTemplateListStatus, refresh: refreshSmsTextTemplateList } = await useLazyAsyncData('sms-template', () =>
+const { data: smsTextTemplateList, status: smsTextTemplateListStatus, refresh: refreshSmsTextTemplateList } = await useLazyAsyncData('sms-text-template-list', () =>
   useApi().get('/sms-templete', {
     query: {
       start: start.value,
@@ -15,6 +15,7 @@ const { data: smsTextTemplateList, status: smsTextTemplateListStatus, refresh: r
     },
   }), {
   transform: res => res.data,
+  immediate: true,
 })
 
 function changePage(page: number) {

@@ -42,7 +42,7 @@ const { data: countrylist, status: countrylistStatus, refresh: refreshCountrylis
   immediate: false,
 })
 
-const { data: smsTemplateList, status: smsTemplateListStatus, refresh: refreshSmsTemplateList } = await useLazyAsyncData('sms-template', () =>
+const { data: smsTemplateList, status: smsTemplateListStatus, refresh: refreshSmsTemplateList } = await useLazyAsyncData('sms-template-list', () =>
   useApi().post('/sms-templete'), {
   transform: res => res.data,
   immediate: false,
