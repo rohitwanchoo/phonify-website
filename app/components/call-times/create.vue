@@ -95,6 +95,14 @@ const formSchema = toTypedSchema(
               path: [index, 'end'],
             })
           }
+          // Validate end time is after start time
+          if (week.start && week.end && week.start >= week.end) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'end time must be after start time',
+              path: [index, 'end'],
+            })
+          }
         }
 
         // Other days → only required if selected
@@ -110,6 +118,14 @@ const formSchema = toTypedSchema(
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: 'end time required',
+              path: [index, 'end'],
+            })
+          }
+          // Validate end time is after start time
+          if (week.start && week.end && week.start >= week.end) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'end time must be after start time',
               path: [index, 'end'],
             })
           }
@@ -196,26 +212,6 @@ const onSubmit = handleSubmit(async (values) => {
     })
   }
 })
-
-// const { data: departmentList } = await useLazyAsyncData('department-list-call-times', () =>
-//   useApi().post('/get-department-list', {
-
-//   }), {
-//   transform: (res) => {
-//     return res.data
-//   },
-// })
-
-// const emptyWeekPlan = {
-//   default: { start: '', end: '' },
-//   sunday: { start: '', end: '' },
-//   monday: { start: '', end: '' },
-//   tuesday: { start: '', end: '' },
-//   wednesday: { start: '', end: '' },
-//   thursday: { start: '', end: '' },
-//   friday: { start: '', end: '' },
-//   saturday: { start: '', end: '' },
-// }
 
 watch(() => open.value, (val) => {
   if (val && isEdit.value) {
