@@ -4,12 +4,20 @@ import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 
-const open = defineModel<boolean>('open', { default: false })
+const props = defineProps<{
+  initialData?: any
+  isEdit?: boolean
+}>()
+
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
 
 // campaign list options
 const { data: campaignList, status: campaignListStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign-list', () =>
@@ -17,27 +25,6 @@ const { data: campaignList, status: campaignListStatus, refresh: campaignRefresh
   transform: res => res.data,
   immediate: false,
 })
-
-// County list
-const { data: countrylist, status: countrylistStatus, refresh: countryRefresh } = await useLazyAsyncData('phone-country-list', () =>
-  useApi().post('/phone-country-list'), {
-  transform: res => res.data,
-  immediate: false,
-})
-
-const selectedCountryCode = ref('1')
-
-function getCountryLabel(code: string) {
-  const country = countrylist.value?.find((c: { phone_code: number | string }) => String(c.phone_code) === code)
-  return country ? `${country.country_code} (+${country.phone_code})` : ''
-}
-
-function onDialogOpen(val: boolean) {
-  if (val) {
-    campaignRefresh()
-    countryRefresh()
-  }
-}
 
 const formSchema = toTypedSchema(z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -47,7 +34,7 @@ const formSchema = toTypedSchema(z.object({
   campaign_id: z.number().min(1, 'Campaign is requires'),
 }))
 
-const { handleSubmit, isSubmitting, resetForm } = useForm({
+const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
   validationSchema: formSchema,
   initialValues: {
     first_name: '',
@@ -58,27 +45,85 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
   },
 })
 
+watch(open, async (newVal) => {
+  if (newVal) {
+    campaignRefresh()
+
+    if (props.isEdit && props.initialData) {
+      setValues({
+        first_name: props.initialData.first_name,
+        last_name: props.initialData.last_name,
+        company_name: props.initialData.company_name,
+        number: props.initialData.number,
+        campaign_id: Number(props.initialData.campaign_id),
+      })
+    }
+    else {
+      resetForm({
+        values: {
+          first_name: '',
+          last_name: '',
+          number: '',
+          company_name: '',
+          campaign_id: 0,
+        },
+      })
+    }
+  }
+})
+
 const onSubmit = handleSubmit(async (values) => {
+  // Clean the phone number - remove formatting
+  const cleanNumber = values.number.replace(/\D/g, '')
+
   const payload = {
     first_name: values.first_name,
     last_name: values.last_name,
-    number: values.number,
+    number: cleanNumber,
     company_name: values.company_name,
-    campaign_id: values.campaign_id,
+    campaign_id: props.isEdit ? Number(props.initialData?.campaign_id) : values.campaign_id,
   }
 
   try {
-    const response = await useApi().post('/add-exclude-number', {
-      ...payload,
-    })
-    showToast({
-      message: response.message,
-      type: response.success ? 'success' : 'error',
-    })
-    resetForm()
-    open.value = false
-    refreshNuxtData('exclude-number-list')
+    const api = props.isEdit ? '/edit-exclude-number' : '/add-exclude-number'
+    const response = await useApi().post(api, payload)
+    if(!props.isEdit) {
+      if (response.success === 'true') {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+
+      resetForm()
+      open.value = false
+      refreshNuxtData('exclude-number-list')
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
   }
+  else {
+    if (response.original.success === true) {
+      showToast({
+        message: response.original.message,
+        type: 'success',
+      })
+
+      resetForm()
+      open.value = false
+      refreshNuxtData('exclude-number-list')
+    }
+    else {
+      showToast({
+        message: response.original.message,
+        type: 'error',
+      })
+    }
+  }
+    }
   catch (error: any) {
     showToast({
       message: `${error.message}`,
@@ -89,16 +134,20 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <Dialog v-model:open="open" @update:open="onDialogOpen">
+  <Dialog v-model:open="open">
     <DialogTrigger as-child>
-      <Button class="h-11">
-        <Icon class="!text-white" size="20" name="material-symbols:add" />
-        Add Exclude Number
-      </Button>
+      <slot>
+        <Button class="h-11">
+          <Icon class="!text-white" size="20" name="material-symbols:add" />
+          {{ props.isEdit ? 'Edit' : 'Add' }} Exclude Number
+        </Button>
+      </slot>
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Add Exclude Number</DialogTitle>
+        <DialogTitle>
+          {{ props.isEdit ? 'Edit' : 'Add Exclude Number' }}
+        </DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
       <form id="form" @submit="onSubmit">
@@ -165,41 +214,6 @@ const onSubmit = handleSubmit(async (values) => {
               <FormControl>
                 <div class="flex">
                   <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
-                    <FormField v-slot="{ componentField: countryCodeComponentField, errorMessage: countryCodeErrorMessage }" name="country_code" class="relative">
-                      <FormItem>
-                        <FormControl>
-                          <Select v-bind="countryCodeComponentField" v-model="selectedCountryCode">
-                            <SelectTrigger
-                              class="w-fit rounded-r-none bg-gray-100 !h-11"
-                              :class="countryCodeErrorMessage && errorMessage && 'border-red-600 border'"
-                            >
-                              <SelectValue>
-                                <span class="text-sm text-nowrap">
-                                  {{ getCountryLabel(selectedCountryCode) }}
-                                </span>
-                              </SelectValue>
-                            </SelectTrigger>
-
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectItem v-if="countrylistStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
-                                  <Icon name="eos-icons:loading" />
-                                </SelectItem>
-                                <template v-else>
-                                  <SelectItem
-                                    v-for="item in countrylist"
-                                    :key="item.id"
-                                    :value="String(item.phone_code)"
-                                  >
-                                    {{ item.country_name }} (+{{ item.phone_code }})
-                                  </SelectItem>
-                                </template>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                      </FormItem>
-                    </FormField>
                     <Input
                       v-maska="'(###) ###-####'"
                       type="tel"
@@ -241,13 +255,15 @@ const onSubmit = handleSubmit(async (values) => {
           </FormField>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <Button class="flex-1 h-11 text-primary" variant="outline" @click="open = false">
-            <Icon name="material-symbols:close" size="20" />
-            Close
-          </Button>
-          <Button type="submit" class="flex-1 h-11" :loading="isSubmitting" :disabled="isSubmitting">
+          <DialogClose class="w-1/2">
+            <Button class="w-full h-11 text-primary" variant="outline" type="button">
+              <Icon name="material-symbols:close" size="20" />
+              Close
+            </Button>
+          </DialogClose>
+          <Button for="form" type="submit" class="w-1/2 h-11" :loading="isSubmitting" :disabled="isSubmitting">
             <Icon name="material-symbols:save" size="20" />
-            Save
+            {{ props.isEdit ? 'Update' : 'Save' }}
           </Button>
         </div>
       </form>

@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { TelInput } from '@/components/ui/tel-input'
 import { Textarea } from '@/components/ui/textarea'
 import dotArrow from '~/assets/svg/public/dotArrow.svg'
 
@@ -21,21 +22,34 @@ definePageMeta({
   layout: 'website',
 })
 
+const isPhoneValid = ref<boolean>(false)
+
 const formSchema = toTypedSchema(z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Enter a valid email'),
   message: z.string().min(1, 'Message is required'),
+  phoneNumber: z.string().min(1, 'Phone number is required').refine(
+    (val: string | null | undefined) => {
+      // If phone number has value, validate format
+      if (val && val.trim().length > 0)
+        return isPhoneValid.value
+
+      return true
+    },
+    { message: 'Please enter a valid phone number' },
+  ),
 }),
 )
 
-const { handleSubmit, resetForm, isSubmitting } = useForm({
+const { handleSubmit, resetForm, isSubmitting, setFieldError } = useForm({
   validationSchema: formSchema,
   initialValues: {
     firstName: '',
     lastName: '',
     email: '',
     message: '',
+    phoneNumber: '',
   },
 })
 
@@ -47,6 +61,7 @@ const onSubmit = handleSubmit(async (values) => {
     formData.append('name', `${values.firstName} ${values.lastName}`)
     formData.append('email', values.email)
     formData.append('message', values.message)
+    formData.append('phoneNumber', values.phoneNumber)
 
     // Submit to Web3Forms API
     const response = await fetch('https://api.web3forms.com/submit', {
@@ -60,7 +75,18 @@ const onSubmit = handleSubmit(async (values) => {
         message: 'Message sent successfully! We will get back to you soon.',
         type: 'success',
       })
-      resetForm()
+      resetForm({
+        values: {
+          firstName: '',
+          lastName: '',
+          email: '',
+          message: '',
+          phoneNumber: '',
+        },
+      })
+      setTimeout(() => {
+        setFieldError('phoneNumber', '')
+      }, 50)
     }
     else {
       showToast({
@@ -147,6 +173,24 @@ const onSubmit = handleSubmit(async (values) => {
                     type="email" placeholder="Enter your email address" v-bind="componentField"
                     class="border border-stone-300 rounded-xs bg-zinc-100 p-3 text-sm h-12 placeholder:text-stone-400"
                     :disabled="isSubmitting"
+                  />
+                </FormControl>
+                <FormMessage class="text-[11px]" />
+              </FormItem>
+            </FormField>
+            <!-- Phone Number -->
+            <FormField v-slot="{ componentField, errorMessage }" name="phoneNumber">
+              <FormItem>
+                <FormLabel class="text-stone-900 text-sm font-normal">
+                  Phone Number
+                </FormLabel>
+                <FormControl>
+                  <TelInput
+                    :class="errorMessage ? '!border-red-500' : '!border-stone-300'"
+                    class="!rounded-xs !h-12 !bg-zinc-100 !border  !placeholder:text-stone-400"
+                    v-bind="componentField" @validate="(val) => {
+                      isPhoneValid = val
+                    }"
                   />
                 </FormControl>
                 <FormMessage class="text-[11px]" />

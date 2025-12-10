@@ -5,7 +5,9 @@ const start = ref(0)
 const limit = ref(10)
 const search = ref('')
 
-const showAddDialog = ref(false)
+const open = ref(false)
+const initialData = ref<any>()
+const isEdit = ref(false)
 
 const { data: excludeNumber, status: excludeNumberStatus, refresh: refreshExcludeNumber } = await useLazyAsyncData('exclude-number-list', () =>
   useApi().post('/exclude-number', {
@@ -16,13 +18,17 @@ const { data: excludeNumber, status: excludeNumberStatus, refresh: refreshExclud
   transform: res => res,
 })
 
-const selectedExcludeNumber = ref<null | {
-  number: number
-  first_name: string
-  last_name: string
-  company_name: string
-  campaign_id: number
-}>(null)
+function openEditModel(item: any) {
+  initialData.value = item
+  isEdit.value = true
+  open.value = true
+}
+
+function onModelUpdate(val: boolean) {
+  if (!val) {
+    isEdit.value = false
+  }
+}
 
 function changePage(page: number) {
   start.value = Number((page - 1) * limit.value)
@@ -49,12 +55,22 @@ function searchText() {
     <template #actions>
       <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchText" />
       <!-- Upload DNC Dialog -->
-      <DoNotCallDncUpload />
+      <!-- <DoNotCallDncUpload /> -->
       <!-- Add DNC Dialog -->
-      <DoNotCallExcludeNumberAdd v-model:open="showAddDialog" :initial-data="selectedExcludeNumber" />
+      <DoNotCallExcludeNumberAddOrEdit v-model:open="open" :initial-data="initialData" :is-edit="isEdit" @update:open="onModelUpdate" />
     </template>
   </BaseHeader>
   <div>
-    <DoNotCallExcludeNumberTable :limit="limit" :total-rows="excludeNumber?.record_count" :start="start" :list="excludeNumber?.data" :loading="excludeNumberStatus === 'pending'" @page-navigation="changePage" @limit-change="changeLimit" @refresh="refreshExcludeNumber" />
+    <DoNotCallExcludeNumberTable
+      :limit="limit"
+      :total-rows="excludeNumber?.record_count"
+      :start="start"
+      :list="excludeNumber?.data"
+      :loading="excludeNumberStatus === 'pending'"
+      @page-navigation="changePage"
+      @limit-change="changeLimit"
+      @refresh="refreshExcludeNumber"
+      @edit="openEditModel"
+    />
   </div>
 </template>
