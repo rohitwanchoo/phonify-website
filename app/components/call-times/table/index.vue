@@ -156,8 +156,8 @@ const columns = [
       }, () => ['Created Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-      return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
-        h('div', { class: 'text-xs' }, moment(row.original.created_at).format('DD/MM/YYYY hh:mm A') || '-'),
+      return h('div', { class: 'text-center font-normal text-sm' }, [
+        h('div', moment(row.original.created_at).format('DD/MM/YYYY hh:mm A') || '-'),
       ])
     },
   }),
@@ -302,7 +302,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
