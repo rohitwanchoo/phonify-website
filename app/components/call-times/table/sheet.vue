@@ -7,18 +7,16 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 
-const props = defineProps<{
+const _props = defineProps<{
   callTime: {
     id: number
-  title: string
-  description: string
-  week_plan: Partial<Record<string, { start: string, end: string }>>
-  created_at: string // ISO timestamp
-  updated_at: string // ISO timestamp
+    title: string
+    description: string
+    week_plan: Partial<Record<string, { start: string, end: string }>>
+    created_at: string // ISO timestamp
+    updated_at: string // ISO timestamp
   }
 }>()
-
-const allCallTime = computed(()=>{})
 
 const open = defineModel<boolean>()
 // const departments = useNuxtData('department-list-call-times')
@@ -37,7 +35,7 @@ const open = defineModel<boolean>()
           Call Time Details
         </SheetTitle>
       </SheetHeader>
-      
+
       <div>
         <div class=" mx-auto p-6 space-y-6 ">
           <div class="grid grid-cols-2 gap-[50px] items-start">
@@ -50,8 +48,6 @@ const open = defineModel<boolean>()
                 {{ callTime?.title }}
               </div>
             </div>
-
-          
             <!-- <div>
               <span class="text-sm font-normal">Department</span>
               <div class="text-[16px] font-medium">
@@ -72,7 +68,13 @@ const open = defineModel<boolean>()
           </h1>
           <div class="border-t border-[#F4F4F5] my-4" />
 
-          <div v-for="(value, key) in callTime?.week_plan" class="flex justify-between items-center w-full mb-6">
+          <div
+            v-for="(value, key) in Object.fromEntries(
+              ['default', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+                .filter(day => callTime?.week_plan?.[day])
+                .map(day => [day, callTime.week_plan[day]]),
+            )" :key="key" class="flex justify-between items-center w-full mb-6"
+          >
             <div>
               <p class="text-xs">
                 {{ key }}

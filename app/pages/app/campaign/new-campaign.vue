@@ -22,7 +22,7 @@ const { data: campaignById, status: campaignByIdStatus, refresh } = await useLaz
     campaign_id: id,
   }), {
   transform: (res) => {
-    return res[0]
+    return res
   },
   immediate: false,
 })

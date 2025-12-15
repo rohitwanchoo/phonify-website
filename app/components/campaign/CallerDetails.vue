@@ -124,6 +124,16 @@ const { data: inboundIVROptions, status: inboundIVROptionsStatus, refresh: refre
   immediate: false,
 })
 
+// Voice AI option list
+const { data: voiceAIOptions, status: voiceAIOptionsStatus, refresh: refreshVoiceAIOptions } = await useLazyAsyncData('get-voice-ai-options', () =>
+  useApi().get('/prompts', {
+  }), {
+  transform: (res) => {
+    return res.data
+  },
+  immediate: false,
+})
+
 function onSelectDialMode(val: any): void {
   if (val === 'predictive_dial') {
     emit('setFieldValue', 'automated_duration', false)
@@ -149,30 +159,23 @@ function onSelectNoAgentAvailableAction(val: any) {
 }
 
 function onSelectRedirectTo(val: any) {
-  if (val === 1 && !audioMessageAMDList.value?.length) {
-    refreshAudioMessageAMDList()
+  const map: Record<number, () => void> = {
+    1: () => !audioMessageAMDList.value?.length && refreshAudioMessageAMDList(),
+    2: () => !voiceTemplateAMDList.value?.length && refreshVoiceTemplateAMDList(),
+    3: () => !voiceDropOptions.value?.length && refreshVoiceDropOptions(),
+    4: () => !ringGroupList.value?.length && refreshRingGroupList(),
+    5: () => !inboundIVROptions.value?.length && refreshInboundIVROptions(),
+    6: () => !voiceAIOptions.value?.length && refreshVoiceAIOptions(),
   }
-  if (val === 2 && !voiceTemplateAMDList.value?.length) {
-    refreshVoiceTemplateAMDList()
-  }
-  if (val === 3 && !voiceDropOptions.value?.length) {
-    refreshVoiceDropOptions()
-  }
-  if (val === 4 && !ringGroupList.value?.length) {
-    refreshRingGroupList()
-  }
-  if (val === 5 && !inboundIVROptions.value?.length) {
-    refreshInboundIVROptions()
-  }
+  map[val]?.()
 }
 
 function onAmdDropActionChange(val: any) {
-  if (val === 2 && !audioMessageAMDList.value?.length) {
-    refreshAudioMessageAMDList()
+  const map: Record<number, () => void> = {
+    2: () => !audioMessageAMDList.value?.length && refreshAudioMessageAMDList(),
+    3: () => !voiceTemplateAMDList.value?.length && refreshVoiceTemplateAMDList(),
   }
-  if (val === 3 && !voiceTemplateAMDList.value?.length) {
-    refreshVoiceTemplateAMDList()
-  }
+  map[val]?.()
 }
 
 const enableEdit = computed(() => enableEditSection.value === 'caller-details' || !props.isPreview)
@@ -303,7 +306,7 @@ function cancelEdit() {
             </FormItem>
           </FormField>
         </div>
-        <div class="w-1/2">
+        <div v-if="formState.dial_mode !== 'outbound_ai'" class="w-1/2">
           <FormField v-slot="{ componentField, errorMessage }" v-model="formState.group_id" name="group_id">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
@@ -676,75 +679,105 @@ function cancelEdit() {
             </FormItem>
           </FormField>
         </div>
-      </div>
-
-      <!-- No agent available action -->
-      <div class="grid grid-cols-2 gap-4">
-        <!-- if no_agent_available_action is 2(voice drop) -->
-        <div v-if="values.no_agent_available_action === 2">
-          <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
+        <!-- If Redirect to is Voice AI -->
+        <div v-if="values.redirect_to === 6">
+          <FormField v-slot="{ componentField, errorMessage }" v-model="formState.redirect_to_dropdown" name="redirect_to_dropdown">
             <FormItem v-auto-animate>
               <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
-                Voice Drop Option
+                Voice AI
               </FormLabel>
               <FormControl>
                 <Select v-if="enableEdit" v-bind="componentField">
                   <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                    <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select Inbound IVR Option" />
+                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Voice AI" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <div v-if="voiceDropOptionsStatus === 'pending'" class="flex justify-center h-5 bg-accent rounded hover:bg-accent/80 cursor-pointer items-center">
+                      <div v-if="voiceAIOptionsStatus === 'pending'" class="flex justify-center h-5 bg-accent rounded hover:bg-accent/80 cursor-pointer items-center">
                         <Icon name="eos-icons:loading" />
                       </div>
-                      <SelectItem v-for="item in voiceDropOptions" :key="item.id" :value="item.id">
-                        {{ item.first_name }} {{ item.last_name }} - {{ item.extension }}
+                      <SelectItem v-for="item in voiceAIOptions" :key="item.id" :value="item.id">
+                        {{ item.title }}
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.first_name }} {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.last_name }} - {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.extension }}
+                  {{ inboundIVROptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ivr)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ivr)?.ivr_id }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
             </FormItem>
           </FormField>
         </div>
-        <!-- if no_agent_available_action is 3(inbound ivr) -->
-        <div v-if="values.no_agent_available_action === 3">
-          <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
-            <FormItem v-auto-animate>
-              <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
-                Inbound IVR Option
-              </FormLabel>
-              <FormControl>
-                <Select v-if="enableEdit" v-bind="componentField">
-                  <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
-                    <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select Inbound IVR Option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <div v-if="inboundIVROptionsStatus === 'pending'" class="flex justify-center h-5 bg-accent rounded hover:bg-accent/80 cursor-pointer items-center">
-                        <Icon name="eos-icons:loading" />
-                      </div>
-                      <SelectItem v-for="item in inboundIVROptions" :key="item.ivr_id" :value="item.id">
-                        {{ item.ivr_desc }} - {{ item.ivr_id }}
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <div v-else class="text-[16px] font-normal text-primary">
-                  <!-- TODO: need to change this after API fix -->
-                  {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.no_agent_dropdown_action)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.no_agent_dropdown_action)?.ivr_id }}
-                </div>
-              </FormControl>
-              <FormMessage class="text-sm" />
-            </FormItem>
-          </FormField>
+
+        <!-- No agent available action -->
+        <div v-if="values.no_agent_available_action === 2 || values.no_agent_available_action === 3" class="grid grid-cols-2 gap-4">
+          <!-- if no_agent_available_action is 2(voice drop) -->
+          <div v-if="values.no_agent_available_action === 2">
+            <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
+              <FormItem v-auto-animate>
+                <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
+                  Voice Drop Option
+                </FormLabel>
+                <FormControl>
+                  <Select v-if="enableEdit" v-bind="componentField">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                      <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select Inbound IVR Option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <div v-if="voiceDropOptionsStatus === 'pending'" class="flex justify-center h-5 bg-accent rounded hover:bg-accent/80 cursor-pointer items-center">
+                          <Icon name="eos-icons:loading" />
+                        </div>
+                        <SelectItem v-for="item in voiceDropOptions" :key="item.id" :value="item.id">
+                          {{ item.first_name }} {{ item.last_name }} - {{ item.extension }}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <div v-else class="text-[16px] font-normal text-primary">
+                    {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.first_name }} {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.last_name }} - {{ voiceDropOptions?.find((val: any) => val.id === formState?.no_agent_dropdown_action)?.extension }}
+                  </div>
+                </FormControl>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+          </div>
+          <!-- if no_agent_available_action is 3(inbound ivr) -->
+          <div v-if="values.no_agent_available_action === 3">
+            <FormField v-slot="{ componentField, errorMessage, value }" v-model="formState.no_agent_dropdown_action" name="no_agent_dropdown_action">
+              <FormItem v-auto-animate>
+                <FormLabel :class="!enableEdit && 'text-gray-400'" class="font-normal text-sm">
+                  Inbound IVR Option
+                </FormLabel>
+                <FormControl>
+                  <Select v-if="enableEdit" v-bind="componentField">
+                    <SelectTrigger :class="errorMessage && 'border-red-600'" class="w-full !h-11">
+                      <SelectValue class="text-sm" :class="!value && 'text-muted-foreground'" placeholder="Select Inbound IVR Option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <div v-if="inboundIVROptionsStatus === 'pending'" class="flex justify-center h-5 bg-accent rounded hover:bg-accent/80 cursor-pointer items-center">
+                          <Icon name="eos-icons:loading" />
+                        </div>
+                        <SelectItem v-for="item in inboundIVROptions" :key="item.ivr_id" :value="item.id">
+                          {{ item.ivr_desc }} - {{ item.ivr_id }}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <div v-else class="text-[16px] font-normal text-primary">
+                    <!-- TODO: need to change this after API fix -->
+                    {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.no_agent_dropdown_action)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.ivr_id === formState?.no_agent_dropdown_action)?.ivr_id }}
+                  </div>
+                </FormControl>
+                <FormMessage class="text-sm" />
+              </FormItem>
+            </FormField>
+          </div>
         </div>
       </div>
-
       <!-- AMD section -->
       <div class="grid grid-cols-2 pt-2 gap-4">
         <div v-if="values.dial_mode && values.dial_mode !== 'super_power_dial'">

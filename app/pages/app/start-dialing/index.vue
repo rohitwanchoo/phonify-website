@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
 } from '@/components/ui/tabs'
 
 const route = useRoute()
+const { user } = useAuth()
 
 const { callStatus, callerDetails, endCall, isRegistered } = useSIPml5()
 const { closeDialer } = useDialer()
@@ -70,6 +70,26 @@ const sidePanel = computed(() => [
   },
 ])
 
+const phoneType = [
+  {
+    label: 'Desktop Phone',
+    value: 1,
+  },
+  {
+    label: 'Web Phone',
+    value: 2,
+  },
+  {
+    label: 'Mobile App',
+    value: 3,
+  },
+]
+
+function isActive(link: string) {
+  const base = link.split('?')[0]
+  return base ? route.path.startsWith(base) : false
+}
+
 // onMounted(() => {
 //   if (route.path === '/app/start-dialing') {
 //     navigateTo('/app/start-dialing/lead-details')
@@ -87,6 +107,64 @@ const { data: leadData, status: leadDataStatus, refresh: refreshLeadData } = awa
   transform: res => res,
   immediate: false,
 })
+
+const { data: extensionData, status: extensionStatus } = await useLazyAsyncData('extension-data', () =>
+  useApi().get(`/extension/${user.value?.id}`), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+const dialerMode = ref()
+const dialerModeLoading = ref(false)
+const isInitialDialerModeLoad = ref(true) // Add this flag
+
+// Set dialerMode from extensionData when available
+watch(extensionData, (data) => {
+  if (data?.dialer_mode) {
+    dialerMode.value = Number(data.dialer_mode)
+    // Reset the flag after initial load
+    nextTick(() => {
+      isInitialDialerModeLoad.value = false
+    })
+  }
+}, { immediate: true })
+
+watch(dialerMode, (newVal) => {
+  // Only call API if it's not the initial load and there's a value
+  if (newVal && !isInitialDialerModeLoad.value) {
+    handleDialerModeChange(newVal)
+  }
+})
+
+async function handleDialerModeChange(mode: number) {
+  dialerModeLoading.value = true
+  try {
+    const response = await useApi().post('/change-dialer-mode-extension', {
+      dialer_mode: mode,
+    })
+    if (response.success) {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (error: any) {
+    showToast({
+      message: error?.message,
+      type: 'error',
+    })
+  }
+  finally {
+    dialerModeLoading.value = false
+  }
+}
 
 watch(leadData, (val) => {
   if (!val.lead_id) {
@@ -204,21 +282,20 @@ function setRouteForTabChange(val: string) {
               </template>
             </SelectContent>
           </Select>
-          <Select default-value="web-phone">
+          <Select v-model="dialerMode">
             <SelectTrigger class="lg:min-w-[300px] !h-11">
-              <SelectValue placeholder="Web Phone" class="text-xs" />
+              <SelectValue placeholder="Select Dialer Mode" class="text-sm placeholder:text-gray-600" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="web-phone">
-                  Web Phone
+                <SelectItem v-if="extensionStatus === 'pending' || dialerModeLoading" class="text-center justify-center" :value="null" disabled>
+                  <Icon name="eos-icons:loading" />
                 </SelectItem>
-                <!-- <SelectItem value="mobile-app">
-                  Mobile App
-                </SelectItem>
-                <SelectItem value="desk-phone">
-                  Desk Phone
-                </SelectItem> -->
+                <template v-else>
+                  <SelectItem v-for="(item, index) in phoneType" :key="index" :value="item.value">
+                    {{ item.label }}
+                  </SelectItem>
+                </template>
               </SelectGroup>
             </SelectContent>
           </Select>

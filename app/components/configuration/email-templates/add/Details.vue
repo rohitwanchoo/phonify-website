@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { QuillEditor } from '@vueup/vue-quill'
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useFocus } from '@vueuse/core'
@@ -7,8 +8,6 @@ import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-
 import { Button } from '~/components/ui/button'
 
 const props = defineProps({
@@ -33,26 +32,24 @@ const route = useRoute()
 
 const isEdit = computed(() => route.query.id)
 
+const showHtml = ref(false)
+
 const { data: leadPlaceholders } = await useLazyAsyncData('lead-placeholder-email-template', () =>
   useApi().post('/label'), {
   transform: res => res.data,
 })
-
-// Custom placeholders options
 
 const { data: customPlaceholders } = await useLazyAsyncData('custom-field-labels-email-template', () =>
   useApi().get('/custom-field-labels'), {
   transform: res => res.data.data,
 })
 
-// Sender placeholders options
 const senderPlaceholders = [
   'first_name',
   'last_name',
   'email',
   'mobile',
   'company_name',
-
 ]
 
 const formSchema = toTypedSchema(z.object({
@@ -64,7 +61,7 @@ const formSchema = toTypedSchema(z.object({
   template_html: z.string().min(1, 'Template content is required'),
 }))
 
-const { handleSubmit, resetForm, values, setFieldError, setValues } = useForm({
+const { handleSubmit, resetForm, values, setFieldError, setValues, setFieldValue } = useForm({
   validationSchema: formSchema,
   initialValues: {
     template_name: '',
@@ -78,17 +75,86 @@ const { handleSubmit, resetForm, values, setFieldError, setValues } = useForm({
 
 const loading = ref(false)
 
+// Reactive ref for template content
+const templateContent = ref('')
+
+// Character count for template content
+const templateContentLength = computed(() => {
+  const textContent = templateContent.value.replace(/<[^>]*>/g, '').trim()
+  return textContent.length
+})
+
+const subjectRef = useTemplateRef<HTMLInputElement | null>('subjectRef')
+const textareaRef = useTemplateRef<typeof QuillEditor | null>('textareaRef')
+const textareaFocused = ref(false)
+const { focused: subjectFocused } = useFocus(subjectRef)
+
+// Cache last focused field and cursor positions
+const lastFocusedField = ref<'subject' | 'template_html' | null>(null)
+const cursorPos = ref({ start: 0, end: 0 })
+
+function cacheSubjectCursor() {
+  const el = subjectRef.value
+  if (!el)
+    return
+  const start = (el.selectionStart ?? (values.subject?.length || 0))
+  const end = (el.selectionEnd ?? start)
+  cursorPos.value = { start, end }
+}
+
+function updateSubjectCursorFromEvent(e: Event) {
+  const target = e.target as HTMLInputElement | null
+  if (!target)
+    return
+  const start = target.selectionStart ?? (values.subject?.length || 0)
+  const end = target.selectionEnd ?? start
+  cursorPos.value = { start, end }
+  lastFocusedField.value = 'subject'
+}
+
+function cacheTemplateCursor() {
+  // For Quill editor, fallback to insert at end of content
+  const len = (values.template_html || '').length
+  cursorPos.value = { start: len, end: len }
+}
+
+watch([subjectFocused, textareaFocused], ([s, t]) => {
+  if (s) {
+    lastFocusedField.value = 'subject'
+    cacheSubjectCursor()
+  }
+  else if (t) {
+    lastFocusedField.value = 'template_html'
+    cacheTemplateCursor()
+  }
+})
+
+// Sync templateContent ref with form
+watch(templateContent, (newContent) => {
+  setFieldValue('template_html', newContent)
+})
+
+// Sync form values with ref
+watch(() => values.template_html, (newContent) => {
+  const safeContent = newContent ?? ''
+  if (safeContent !== templateContent.value) {
+    templateContent.value = safeContent
+  }
+})
+
 // Watch for changes in emailTemplate prop and update form values
 watch(() => props.emailTemplate, (newTemplate) => {
   if (newTemplate && Object.keys(newTemplate).length > 0) {
+    const htmlContent = newTemplate.template_html || ''
     setValues({
       template_name: newTemplate.template_name || '',
       leadPlaceholder: '',
       senderPlaceholder: '',
       customPlaceholder: '',
       subject: newTemplate.subject || '',
-      template_html: newTemplate.template_html || '',
+      template_html: htmlContent,
     })
+    templateContent.value = htmlContent
   }
 }, { immediate: true, deep: true })
 
@@ -97,13 +163,11 @@ const onSubmit = handleSubmit(async (values) => {
     loading.value = true
     let response
     if (props.emailTemplate.id) {
-      // update email template
       response = await useApi().post(`/email-template/${props.emailTemplate.id}`, {
         ...values,
       })
     }
     else {
-      // create new email template
       response = await useApi().put('/email-template', {
         ...values,
         status: 1,
@@ -128,7 +192,9 @@ const onSubmit = handleSubmit(async (values) => {
     }
   }
   catch (error: any) {
-    handleFieldErrors(error?.data, setFieldError)
+    handleFieldErrors(error?.data, (field: string, message: string | string[] | undefined) => {
+      setFieldError(field as any, message)
+    })
     showToast({
       message: `${error?.message}`,
       type: 'error',
@@ -139,51 +205,32 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-const subject = ref('')
-const subjectRef = ref<HTMLInputElement | null>(null)
-
-const textareaRef = ref<HTMLTextAreaElement | null>(null)
-
-const focusState = ref<'subject' | 'template' | null>(null)
-
-function setFocus(field: 'subject' | 'template') {
-  focusState.value = field
-}
-
-const cursorPos = ref({ start: 0, end: 0 })
-
-function trackCursor(e: Event, field: 'subject' | 'template') {
-  const target = e.target as HTMLInputElement | HTMLTextAreaElement
-  focusState.value = field
-  cursorPos.value = {
-    start: target.selectionStart ?? 0,
-    end: target.selectionEnd ?? 0,
-  }
-}
-
-// Insert placeholder
+// Insert placeholder function - matching first code's logic
 function insertPlaceholder(value: any) {
-  setValues({ customPlaceholder: '', leadPlaceholder: '', senderPlaceholder: '' })
   let el: HTMLInputElement | HTMLTextAreaElement | null = null
   let currentValue = ''
   let modelKey: 'subject' | 'template_html' | null = null
 
-  if (focusState.value === 'subject') {
-    el = subjectRef.value
-    currentValue = values.subject
+  if (subjectFocused.value || lastFocusedField.value === 'subject') {
+    el = subjectRef.value as HTMLInputElement | null
+    currentValue = values.subject || ''
     modelKey = 'subject'
   }
-  else if (focusState.value === 'template') {
-    el = textareaRef.value
-    currentValue = values.template_html
-    modelKey = 'template_html'
+  else if (textareaFocused.value || lastFocusedField.value === 'template_html') {
+    // For Quill editor, use the insertMergeField method
+    textareaRef.value?.insertMergeField(`{{${value}}}`)
+    return
   }
 
   if (!el || !modelKey)
     return
 
-  const start = cursorPos.value.start
-  const end = cursorPos.value.end
+  const start = (modelKey === 'subject' && el && typeof (el as HTMLInputElement).selectionStart === 'number')
+    ? (el as HTMLInputElement).selectionStart!
+    : cursorPos.value.start
+  const end = (modelKey === 'subject' && el && typeof (el as HTMLInputElement).selectionEnd === 'number')
+    ? (el as HTMLInputElement).selectionEnd!
+    : cursorPos.value.end
   const newText = `[[${value}]]`
 
   const updatedValue = currentValue.slice(0, start) + newText + currentValue.slice(end)
@@ -196,8 +243,10 @@ function insertPlaceholder(value: any) {
   // Update cursor AFTER DOM updates
   nextTick(() => {
     const newCursorPos = start + newText.length
-    el!.focus()
-    el!.setSelectionRange(newCursorPos, newCursorPos)
+    if (modelKey === 'subject' && el) {
+      el.focus()
+      el.setSelectionRange(newCursorPos, newCursorPos)
+    }
 
     // Also update cursor cache in case user adds multiple placeholders
     cursorPos.value = {
@@ -206,21 +255,27 @@ function insertPlaceholder(value: any) {
     }
   })
 }
+
+function onTextareaFocus() {
+  textareaFocused.value = true
+  lastFocusedField.value = 'template_html'
+}
 </script>
 
 <template>
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
     <!-- Details Section -->
-    <div class="relative bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
+    <div class="relative max-h-[calc(100vh-190px)] bg-white rounded-xl border border-zinc-100 flex flex-col overflow-hidden min-h-[400px] col-span-1 xl:col-span-8">
       <!-- Header -->
       <div class="w-full px-5 py-4 border-b border-zinc-100 flex justify-start items-center">
         <div class="justify-center text-slate-800 mt-1 text-[16px] font-medium">
           Template Details
         </div>
       </div>
+
       <!-- Form Content -->
       <form class="relative w-full overflow-x-auto flex-1" @submit="onSubmit">
-        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5 pb-28">
+        <div class="min-w-fit w-full flex-1 p-5 flex flex-col justify-start items-start gap-5">
           <!-- Template Name and Lead Placeholders Row -->
           <div class="w-full flex flex-col md:flex-row justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="template_name" class="flex-1 w-full">
@@ -262,7 +317,7 @@ function insertPlaceholder(value: any) {
           </div>
 
           <!-- Sender and Custom Placeholders Row -->
-          <div class="w-full flex flex-col md:flex-row  justify-start items-start gap-4">
+          <div class="w-full flex flex-col md:flex-row justify-start items-start gap-4">
             <FormField v-slot="{ componentField }" name="senderPlaceholder" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-sm font-medium">
@@ -295,7 +350,7 @@ function insertPlaceholder(value: any) {
                       <SelectValue placeholder="Select Custom Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in customPlaceholders" :key="option.title" :value="option.title">
+                      <SelectItem v-for="option in customPlaceholders?.data" :key="option.title" :value="option.title">
                         {{ option.title }}
                       </SelectItem>
                     </SelectContent>
@@ -308,7 +363,7 @@ function insertPlaceholder(value: any) {
 
           <!-- Subject Row -->
           <div class="w-full flex justify-start items-start gap-4">
-            <FormField v-slot="{ componentField }" v-model="subject" name="subject" class="flex-1">
+            <FormField v-slot="{ componentField }" name="subject" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Subject
@@ -319,9 +374,11 @@ function insertPlaceholder(value: any) {
                     v-bind="componentField"
                     placeholder="Enter Email Subject"
                     class="px-3 py-2 h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-sm font-normal placeholder:text-sm placeholder:text-slate-800/50"
-                    @focus="setFocus('subject')"
-                    @click="(e) => trackCursor(e, 'subject')"
-                    @keyup="(e) => trackCursor(e, 'subject')"
+                    @focus="updateSubjectCursorFromEvent"
+                    @input="updateSubjectCursorFromEvent"
+                    @keyup="updateSubjectCursorFromEvent"
+                    @mouseup="updateSubjectCursorFromEvent"
+                    @select="updateSubjectCursorFromEvent"
                   />
                 </FormControl>
                 <FormMessage />
@@ -329,40 +386,44 @@ function insertPlaceholder(value: any) {
             </FormField>
           </div>
 
-          <!-- Template Editor Row -->
+          <!-- Template Editor Row with Quill -->
           <div class="w-full flex justify-start items-start gap-4">
-            <FormField v-slot="{ componentField }" name="template_html" class="flex-1">
+            <FormField name="template_html" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Template
                 </FormLabel>
                 <FormControl>
-                  <div class="w-full rounded-md outline outline-offset-[-1px] outline-zinc-200 flex flex-col justify-start items-start overflow-auto">
-                    <!-- Text Area -->
-                    <div class="w-full h-64 px-4 pt-3 pb-4 relative flex flex-col justify-start items-start overflow-hidden">
-                      <Textarea
-                        ref="textareaRef"
-                        v-bind="componentField"
-                        placeholder="Email Template..."
-                        class="p-0 h-full border-none shadow-none resize-none text-sm rounded-none font-normal leading-tight placeholder:text-slate-800/50 focus-visible:ring-0"
-                        @focus="setFocus('template')"
-                        @click="(e) => trackCursor(e, 'template')"
-                        @keyup="(e) => trackCursor(e, 'template')"
-                      />
-                    </div>
-                  </div>
+                  <BaseQuillEditor
+                    ref="textareaRef"
+                    v-model="templateContent"
+                    content-type="html"
+                    @toggle-view="() => showHtml = !showHtml"
+                    @focus="onTextareaFocus"
+                  />
                 </FormControl>
-                <FormMessage />
+                <div class="flex justify-between w-full">
+                  <FormMessage class="text-red-500 w-fit" />
+                  <span class="w-fit text-right text-xs text-muted-foreground select-none ml-auto">
+                    {{ templateContentLength }}/500 Characters
+                  </span>
+                </div>
               </FormItem>
             </FormField>
           </div>
+
+          <!-- Optional HTML Preview -->
+          <div v-if="showHtml" class="w-full border rounded p-3 bg-gray-50 whitespace-pre-wrap">
+            {{ templateContent }}
+          </div>
         </div>
       </form>
-      <!-- Fixed Save/Update Button at the bottom of details section (outside form) -->
-      <div class=" bottom-0 left-0 w-full p-5 bg-white flex justify-between z-10">
-        <Button
 
+      <!-- Fixed Save/Update Button -->
+      <div class="bottom-0 left-0 w-full p-5 bg-white flex justify-between border-t border-zinc-100 z-10 shadow-2xl">
+        <Button
           type="submit"
+          variant="destructive"
           class="flex-1 h-11"
           :loading="loading"
           :disabled="loading"
@@ -373,8 +434,9 @@ function insertPlaceholder(value: any) {
         </Button>
       </div>
     </div>
+
     <!-- Preview Section -->
-    <div class="w-full max-h-[calc(100vh-190px)]  col-span-1 xl:col-span-4">
+    <div class="w-full max-h-[calc(100vh-190px)] col-span-1 xl:col-span-4">
       <ConfigurationEmailTemplatesAddPreview :template-html="values?.template_html || ''" />
     </div>
   </div>

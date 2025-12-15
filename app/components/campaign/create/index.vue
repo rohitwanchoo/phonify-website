@@ -41,7 +41,15 @@ const formSchema = toTypedSchema(z.object({
     }
   }),
   dial_mode: z.string().min(1, 'Dialing mode is required'),
-  group_id: z.number().min(1, 'Caller group is required').max(50),
+  group_id: z.number().optional().superRefine((val, ctx) => {
+    // group_id is required when dial_mode is NOT 'outbound_ai'
+    if (formState.value.dial_mode !== 'outbound_ai' && (!val || val < 1)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Caller group is required',
+      })
+    }
+  }),
   time_based_calling: z.boolean(),
   // call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
   //   if (values.time_based_calling && !val) {
@@ -113,37 +121,20 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  // voice_message_amd: z.number().optional().superRefine((val, ctx) => {
-  //   // if amd_drop_action is 3 and amd is true then voice_message_amd is required
-  //   if (formState.value.amd_drop_action === 3 && !val) {
-  //     ctx.addIssue({
-  //       code: z.ZodIssueCode.custom,
-  //       message: 'Voice template AMD is required when AMD drop action is Voice template',
-  //     })
-  //   }
-  // }),
+
   // if no_agent_available_action is 2 and amd is true then no_agent_dropdown_action  is required
   no_agent_dropdown_action: z.number().optional().superRefine((val, ctx) => {
-    if ((values.no_agent_available_action === 2 || values.no_agent_available_action === 3) && !val) {
+    if ((formState.value.no_agent_available_action === 2 || formState.value.no_agent_available_action === 3) && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: values.no_agent_available_action === 2 ? 'Voice drop option is required when no agent available action is Voice drop option' : 'Inbound IVR is required when no agent available action is Inbound IVR',
+        message: formState.value.no_agent_available_action === 2 ? 'Voice drop option is required when no agent available action is Voice drop option' : 'Inbound IVR is required when no agent available action is Inbound IVR',
       })
     }
   }),
-  // if no_agent_available_action is 3 and amd is true then inbound_ivr_no_agent_available_action is required
-  // inbound_ivr_no_agent_available_action: z.number().optional().superRefine((val, ctx) => {
-  //   if (values.no_agent_available_action === 3 && !val) {
-  //     ctx.addIssue({
-  //       code: z.ZodIssueCode.custom,
-  //       message: 'Inbound IVR is required when no agent available action is Inbound IVR',
-  //     })
-  //   }
-  // }),
 
   // if dial_mode is outbound_ai
   redirect_to: z.number().optional().superRefine((val, ctx) => {
-    if (values.dial_mode === 'outbound_ai' && !val) {
+    if (formState.value.dial_mode === 'outbound_ai' && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Redirect to is required',
@@ -152,7 +143,7 @@ const formSchema = toTypedSchema(z.object({
   }),
 
   redirect_to_dropdown: z.number().optional().superRefine((val, ctx) => {
-    if ((values.redirect_to === 1 || values.redirect_to === 2 || values.redirect_to === 3 || values.redirect_to === 4 || values.redirect_to === 5) && !val) {
+    if ((formState.value.redirect_to === 1 || formState.value.redirect_to === 2 || formState.value.redirect_to === 3 || formState.value.redirect_to === 4 || formState.value.redirect_to === 5) && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Required',
@@ -216,7 +207,6 @@ const { handleSubmit, values, setFieldValue, resetForm, setFieldError, errors } 
     // inbound_ivr_no_agent_available_action: 0,
     no_agent_dropdown_action: 0,
     no_agent_available_action: 0,
-    outbound_ai_dropdown_ivr: 0,
     sms: false,
     send_report: false,
     call_transfer: false,
@@ -237,6 +227,8 @@ const onSubmit = handleSubmit(async (values) => {
     automated_duration: formState.value?.automated_duration ? '1' : '0',
     time_based_calling: formState.value?.time_based_calling ? 1 : 0,
     status: formState.value.status,
+    call_time_start: undefined as string | undefined,
+    call_time_end: undefined as string | undefined,
   }
   if (!formState.value.time_based_calling) {
     payload.call_time_start = '00:00'

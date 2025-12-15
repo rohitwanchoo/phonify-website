@@ -46,13 +46,13 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'changeLimit'])
 
+// Computed pagination variables
+const emits = defineEmits(['pageNavigation', 'changeLimit', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
 const last_page = computed(() => Math.ceil(total.value / per_page.value))
-const statusUpdatingId = ref<number | null>(null)
 
 const {
   isRevealed: showDeleteConfirm,
@@ -84,6 +84,7 @@ export interface emailTemplateList {
 }
 
 const sheet = ref(false)
+const statusUpdatingId = ref<number | null>(null)
 
 async function updateStatus(id: number, status: string) {
   statusUpdatingId.value = id // Start loading for this row
@@ -94,11 +95,18 @@ async function updateStatus(id: number, status: string) {
     })
 
     if (res.success === 'true') {
-      showToast({ message: res.message, type: 'success' })
+      showToast({
+        message: res.message,
+        type:
+        'success',
+      })
       refreshNuxtData('email-templates')
     }
     else {
-      showToast({ message: res.message, type: 'error' })
+      showToast({
+        message: res.message,
+        type: 'error',
+      })
     }
   }
   catch (err) {
@@ -143,7 +151,6 @@ async function handleDelete() {
         type: 'error',
       })
     }
-    emits('refresh')
   }
   catch (err) {
     showToast({
@@ -158,6 +165,7 @@ async function handleDelete() {
   }
 }
 
+// Pagination handlers
 function handlePageChange(page: number) {
   emits('pageNavigation', page)
 }
@@ -284,7 +292,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-lg my-6 overflow-x-auto">
+  <div class="border rounded-lg my-6 overflow-x-auto max-h-[calc(100dvh-240px)]">
     <Table>
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -337,7 +345,7 @@ const table = useVueTable({
     </Table>
   </div>
 
-  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 py-4 flex-wrap">
+  <div v-if="totalRows && !loading" class=" flex items-center justify-end space-x-2 flex-wrap">
     <div class="flex-1 text-xs text-primary">
       <div class="flex items-center gap-x-2 justify-center sm:justify-start">
         Showing

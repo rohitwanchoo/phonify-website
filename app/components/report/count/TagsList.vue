@@ -1,14 +1,11 @@
-<script setup>
-defineProps({
-  heading: {
-    type: String,
-    default: 'Heading Here',
-  },
-  data: {
-    type: Array,
-    default: () => [],
-  },
-})
+<script setup lang="ts">
+import { Loader2 } from 'lucide-vue-next'
+
+const _props = defineProps<{
+  heading: string
+  data: any[]
+  loading: boolean
+}>()
 </script>
 
 <template>
@@ -33,7 +30,10 @@ defineProps({
             {{ item.text }}
           </p>
         </div>
-        <p class="font-semibold ml-3">
+        <p v-if="loading">
+          <Loader2 class="w-4 h-4 ml-3 animate-spin" />
+        </p>
+        <p v-else class="font-semibold ml-3">
           {{ formatWithCommas(item.number) }}
         </p>
       </div>

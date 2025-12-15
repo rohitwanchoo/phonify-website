@@ -1,0 +1,272 @@
+<script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { useForm } from 'vee-validate'
+import { z } from 'zod'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+
+const props = defineProps<{
+  initialData?: any
+  isEdit?: boolean
+}>()
+
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
+
+// campaign list options
+const { data: campaignList, status: campaignListStatus, refresh: campaignRefresh } = await useLazyAsyncData('campaign-list', () =>
+  useApi().post('/campaign'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const formSchema = toTypedSchema(z.object({
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  company_name: z.string().min(1, 'Company name is required'),
+  number: z.string().min(1, 'Phone number is required'),
+  campaign_id: z.number().min(1, 'Campaign is requires'),
+}))
+
+const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    first_name: '',
+    last_name: '',
+    number: '',
+    company_name: '',
+    campaign_id: 0,
+  },
+})
+
+watch(open, async (newVal) => {
+  if (newVal) {
+    campaignRefresh()
+
+    if (props.isEdit && props.initialData) {
+      setValues({
+        first_name: props.initialData.first_name,
+        last_name: props.initialData.last_name,
+        company_name: props.initialData.company_name,
+        number: props.initialData.number,
+        campaign_id: Number(props.initialData.campaign_id),
+      })
+    }
+    else {
+      resetForm({
+        values: {
+          first_name: '',
+          last_name: '',
+          number: '',
+          company_name: '',
+          campaign_id: 0,
+        },
+      })
+    }
+  }
+})
+
+const onSubmit = handleSubmit(async (values) => {
+  // Clean the phone number - remove formatting
+  const cleanNumber = values.number.replace(/\D/g, '')
+
+  const payload = {
+    first_name: values.first_name,
+    last_name: values.last_name,
+    number: cleanNumber,
+    company_name: values.company_name,
+    campaign_id: props.isEdit ? Number(props.initialData?.campaign_id) : values.campaign_id,
+  }
+
+  try {
+    const api = props.isEdit ? '/edit-exclude-number' : '/add-exclude-number'
+    const response = await useApi().post(api, payload)
+    if(!props.isEdit) {
+      if (response.success === 'true') {
+      showToast({
+        message: response.message,
+        type: 'success',
+      })
+
+      resetForm()
+      open.value = false
+      refreshNuxtData('exclude-number-list')
+    }
+    else {
+      showToast({
+        message: response.message,
+        type: 'error',
+      })
+    }
+  }
+  else {
+    if (response.original.success === true) {
+      showToast({
+        message: response.original.message,
+        type: 'success',
+      })
+
+      resetForm()
+      open.value = false
+      refreshNuxtData('exclude-number-list')
+    }
+    else {
+      showToast({
+        message: response.original.message,
+        type: 'error',
+      })
+    }
+  }
+    }
+  catch (error: any) {
+    showToast({
+      message: `${error.message}`,
+      type: 'error',
+    })
+  }
+})
+</script>
+
+<template>
+  <Dialog v-model:open="open">
+    <DialogTrigger as-child>
+      <slot>
+        <Button class="h-11">
+          <Icon class="!text-white" size="20" name="material-symbols:add" />
+          {{ props.isEdit ? 'Edit' : 'Add' }} Exclude Number
+        </Button>
+      </slot>
+    </DialogTrigger>
+    <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>
+          {{ props.isEdit ? 'Edit' : 'Add Exclude Number' }}
+        </DialogTitle>
+      </DialogHeader>
+      <Separator class="my-1" />
+      <form id="form" @submit="onSubmit">
+        <div class="space-y-4">
+          <div class="flex gap-4 w-full items-start">
+            <!-- First name -->
+            <FormField
+              v-slot="{ componentField }"
+              name="first_name"
+            >
+              <FormItem class="w-full">
+                <FormLabel>First Name</FormLabel>
+                <FormControl>
+                  <Input
+                    v-bind="componentField"
+                    placeholder="Enter First Name"
+                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal  placeholder:text-slate-800/50"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+            <!-- Last name -->
+            <FormField
+              v-slot="{ componentField }"
+              name="last_name"
+            >
+              <FormItem class="w-full">
+                <FormLabel>Last Name</FormLabel>
+                <FormControl>
+                  <Input
+                    v-bind="componentField"
+                    placeholder="Enter Last Name"
+                    class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-slate-800/50"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+          </div>
+          <!-- Company legal name -->
+          <FormField
+            v-slot="{ componentField }"
+            name="company_name"
+          >
+            <FormItem>
+              <FormLabel>Company Legal Name</FormLabel>
+              <FormControl>
+                <Input
+                  v-bind="componentField"
+                  placeholder="Enter Company Name"
+                  class="px-3 py-2 !h-11 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 text-xs font-normal placeholder:text-slate-800/50"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+          <!-- Number -->
+          <FormField v-slot="{ componentField, errorMessage }" name="number" :validate-on-input="true">
+            <FormItem>
+              <FormLabel class="font-normal text-sm">
+                Phone Number
+              </FormLabel>
+              <FormControl>
+                <div class="flex">
+                  <div :class="errorMessage && 'border-red-600'" class="border flex items-center rounded-lg overflow-hidden w-full">
+                    <Input
+                      v-maska="'(###) ###-####'"
+                      type="tel"
+                      placeholder="Enter Phone Number"
+                      class="text-sm focus-visible:ring-0 rounded-l-none focus:ring-0 border-0 font-normal placeholder:text-slate-800/50 h-11"
+                      v-bind="componentField"
+                    />
+                  </div>
+                </div>
+              </FormControl>
+              <FormMessage class="text-sm text-left" />
+            </FormItem>
+          </FormField>
+          <FormField
+            v-slot="{ componentField }"
+            name="campaign_id"
+          >
+            <FormItem>
+              <FormLabel>Campaign</FormLabel>
+              <FormControl>
+                <Select v-bind="componentField">
+                  <SelectTrigger class="w-full !h-11">
+                    <SelectValue placeholder="Select Campaign" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-if="campaignListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
+                    </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <DialogClose class="w-1/2">
+            <Button class="w-full h-11 text-primary" variant="outline" type="button">
+              <Icon name="material-symbols:close" size="20" />
+              Close
+            </Button>
+          </DialogClose>
+          <Button for="form" type="submit" class="w-1/2 h-11" :loading="isSubmitting" :disabled="isSubmitting">
+            <Icon name="material-symbols:save" size="20" />
+            {{ props.isEdit ? 'Update' : 'Save' }}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
+</template>

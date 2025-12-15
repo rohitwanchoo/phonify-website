@@ -98,6 +98,10 @@ export function useCreateCampaign() {
       value: 5,
       title: 'ivr',
     },
+    {
+      value: 6,
+      title: 'Voice AI',
+    },
   ]
 
   // amd drop action list

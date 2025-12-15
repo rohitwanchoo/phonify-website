@@ -8,18 +8,35 @@ export default defineEventHandler(async (event) => {
   delete headers.host
   delete headers.origin
   delete headers.referer
+  // These request headers must be recalculated by the outbound client
+  delete headers['content-length']
+  delete headers['content-encoding']
 
   const contentType = headers['content-type'] || ''
-  let body
+  let body: any
 
   if (['POST', 'PUT', 'PATCH'].includes(method)) {
-    // Handle FormData and JSON differently
+    // Handle body according to content-type
     if (contentType.includes('multipart/form-data')) {
-      // Raw buffer for file uploads
+      // Forward raw buffer for file uploads; keep boundary from original content-type
       body = await readRawBody(event)
     }
+    else if (contentType.includes('application/x-www-form-urlencoded')) {
+      // Reconstruct URL-encoded string from parsed body
+      const parsed = await readBody(event)
+      const params = new URLSearchParams(parsed as Record<string, string>)
+      body = params.toString()
+      headers['content-type'] = 'application/x-www-form-urlencoded'
+    }
+    else if (contentType.includes('application/json')) {
+      // Ensure JSON string payload
+      const parsed = await readBody(event)
+      body = JSON.stringify(parsed)
+      headers['content-type'] = 'application/json'
+    }
     else {
-      body = await readBody(event)
+      // Unknown/other content-type: try raw pass-through
+      body = await readRawBody(event)
     }
   }
 
@@ -29,12 +46,8 @@ export default defineEventHandler(async (event) => {
     const response = await $fetch.raw(targetUrl, {
       method,
       headers: headers as HeadersInit,
-      // Don’t JSON.stringify if it’s form data
-      body: contentType.includes('multipart/form-data')
-        ? body
-        : body
-          ? JSON.stringify(body)
-          : undefined,
+      // Body already prepared according to content-type
+      body,
       query,
     })
 

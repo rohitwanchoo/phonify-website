@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange'])
+const emits = defineEmits(['pageNavigation', 'limitChange', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -66,11 +66,6 @@ const selectedDncForDelete = ref<{
   number: null,
 })
 
-// controls dialog visibility
-const isEditDialogOpen = ref(false)
-// stores the row to edit
-const selectedRowData = ref<dncList | null>(null)
-
 export interface dncList {
   siNo: number
   number: number
@@ -78,14 +73,11 @@ export interface dncList {
   comment: string
 }
 
-function onEdit(row: dncList) {
-  selectedRowData.value = row
-  isEditDialogOpen.value = true
-}
-
 async function handleDelete() {
-  if (!selectedDncForDelete.value.number)
-    return
+  const { isCanceled } = await revealDeleteConfirm()
+  if (isCanceled) {
+    return false
+  }
 
   try {
     const res = await useApi().post('/delete-dnc', {
@@ -97,6 +89,7 @@ async function handleDelete() {
         message: res.message,
         type: 'success',
       })
+      refreshNuxtData('dnc-list')
     }
     else {
       showToast({
@@ -104,7 +97,6 @@ async function handleDelete() {
         type: 'error',
       })
     }
-    emits('refresh')
   }
   catch (err) {
     showToast({
@@ -127,11 +119,6 @@ function changeLimit(val: number | null) {
   if (val !== null) {
     emits('limitChange', val)
   }
-}
-
-function deleteConfirmHandler() {
-  deleteConfirm() // close dialog
-  handleDelete() // now delete safely
 }
 
 const columnHelper = createColumnHelper<dncList>()
@@ -181,14 +168,14 @@ const columns = [
         class: 'text-primary h-7 w-7 min-w-0',
         title: 'Edit',
         onClick: () => {
-          onEdit(row.original)
+          emits('edit', row.original)
         },
       }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
       h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', title: 'Delete', onClick: () => {
         selectedDncForDelete.value = {
           number: (row.original.number),
         }
-        revealDeleteConfirm()
+        handleDelete()
       } }, h(Icon, { name: 'material-symbols:delete', size: 14 })),
     ]),
   }),
@@ -292,7 +279,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
@@ -311,13 +298,10 @@ const table = useVueTable({
     </div>
   </div>
 
-  <!-- Edit DNC Dialog -->
-  <DoNotCallDncEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
-
   <!-- CONFIRM DELETE -->
   <ConfirmAction
     v-model="showDeleteConfirm"
-    :confirm="deleteConfirmHandler"
+    :confirm="deleteConfirm"
     :cancel="deleteCancel"
     title="Delete DNC"
     description="You are about to delete DNC. Do you wish to proceed?"

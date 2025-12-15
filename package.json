@@ -25,6 +25,7 @@
     "clsx": "^2.1.1",
     "consola": "^3.4.2",
     "echarts": "^5.5.1",
+    "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-vue": "^8.6.0",
     "eslint": "^9.0.0",
     "libphonenumber-js": "^1.12.8",
@@ -47,6 +48,7 @@
     "vue-cal": "5.0.1-rc.25",
     "vue-router": "^4.5.1",
     "vue-sonner": "^2.0.0",
+    "vue-tel-input": "^9.5.0",
     "xlsx": "^0.18.5",
     "zod": "^3.25.20"
   },

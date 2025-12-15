@@ -5,7 +5,7 @@ import type {
   VisibilityState,
 } from '@tanstack/vue-table'
 
-import { DoNotCallExcludeNumberEdit, Icon } from '#components'
+import { Icon } from '#components'
 import {
   createColumnHelper,
   FlexRender,
@@ -48,7 +48,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   limit: 10, // Set default limit to 10
 })
-const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange'])
+const emits = defineEmits(['pageNavigation', 'refresh', 'limitChange', 'edit'])
 const total = computed(() => props.totalRows)
 const current_page = computed(() => Math.floor(props.start / props.limit) + 1)
 const per_page = computed(() => props.limit)
@@ -67,10 +67,7 @@ const selectedExcludeNumberForDelete = ref<{
   number: null,
 })
 
-// controls dialog visibility
-const isEditDialogOpen = ref(false)
 // stores the row to edit
-const selectedRowData = ref<excludeNumberList | null>(null)
 const selectedRowDataForDelete = ref<excludeNumberList | null>(null)
 
 export interface excludeNumberList {
@@ -82,23 +79,18 @@ export interface excludeNumberList {
   campaign_id: number
 }
 
-function onEdit(row: excludeNumberList) {
-  selectedRowData.value = row
-  isEditDialogOpen.value = true
-}
-
 function onDelete(row: excludeNumberList) {
-    selectedRowDataForDelete.value = row
+  selectedRowDataForDelete.value = row
 }
 
 async function handleDelete() {
-  if (!selectedRowDataForDelete.value?.number )
+  if (!selectedRowDataForDelete.value?.number)
     return
 
   try {
     const res = await useApi().post('/delete-exclude-number', {
       number: selectedRowDataForDelete.value?.number,
-      campaign_id: selectedRowDataForDelete.value?.campaign_id
+      campaign_id: selectedRowDataForDelete.value?.campaign_id,
     })
 
     if (res.success === 'true') {
@@ -177,12 +169,12 @@ const columns = [
     },
   }),
 
-    columnHelper.accessor('number', {
+  columnHelper.accessor('number', {
     header: ({ column }) => {
       return h('div', { class: 'text-center' }, h(Button, { class: 'text-center text-sm font-normal', variant: 'ghost', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') }, () => ['Mobile', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) => {
-        const number = String(row.getValue('number'))
+      const number = String(row.getValue('number'))
       return h('div', { class: 'text-center font-normal text-sm' }, formatNumber(number) || '-')
     },
   }),
@@ -197,7 +189,7 @@ const columns = [
         class: 'text-primary h-7 w-7 min-w-0',
         title: 'Edit',
         onClick: () => {
-          onEdit(row.original)
+          emits('edit', row.original)
         },
       }, h(Icon, { name: 'material-symbols:edit-square', size: 14 })),
       h(Button, { size: 'icon', variant: 'outline', class: 'h-7 w-7 min-w-0 border-red-600 text-red-600 hover:text-red-600/80', title: 'Delete', onClick: () => {
@@ -309,7 +301,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
@@ -327,9 +319,6 @@ const table = useVueTable({
       />
     </div>
   </div>
-
-  <!-- Edit DNC Dialog -->
-  <DoNotCallExcludeNumberEdit v-model:open="isEditDialogOpen" :initial-data="selectedRowData" />
 
   <!-- CONFIRM DELETE -->
   <ConfirmAction

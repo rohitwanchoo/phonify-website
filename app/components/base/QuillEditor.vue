@@ -103,7 +103,6 @@ onMounted(() => {
   }
 })
 
-
 defineExpose({ insertMergeField })
 
 function insertMergeField(mergeField: string) {
@@ -135,9 +134,9 @@ onMounted(() => {
       ref="editorRef"
       v-model:content="localContent"
       :content-type="props.contentType || 'html'"
-      @focus="emit('focus')"
       theme="snow"
       toolbar="full"
+      @focus="emit('focus')"
       @update:content="updateContent"
     />
 
