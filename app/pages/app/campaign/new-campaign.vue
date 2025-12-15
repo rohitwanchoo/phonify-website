@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const route = useRoute()
 const id = route.query.id
 const isEdit = computed(() => !!id)
@@ -50,6 +49,30 @@ function setData() {
             break
           case 3:
             refreshNuxtData('get-voice-template-amd-list')
+            break
+        }
+      }
+
+      const redirectTo = campaignById.value?.redirect_to
+      if (redirectTo) {
+        switch (redirectTo) {
+          case '1':
+            refreshNuxtData('get-audio-message-amd-list')
+            break
+          case '2':
+            refreshNuxtData('get-voice-template-amd-list')
+            break
+          case '3':
+            refreshNuxtData('get-voice-drop-options')
+            break
+          case '4':
+            refreshNuxtData('get-ring-group-list')
+            break
+          case '5':
+            refreshNuxtData('get-inbound-ivr-options')
+            break
+          case '6':
+            refreshNuxtData('get-voice-ai-options')
             break
         }
       }
