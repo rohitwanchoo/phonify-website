@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { QuillEditor } from '@vueup/vue-quill'
 import { Button } from '~/components/ui/button'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const props = defineProps<{
@@ -38,10 +39,12 @@ function saveModalContent() {
   showModal.value = false
 }
 
-function closeModal() {
-  showModal.value = false
-  modalContent.value = ''
-}
+// Reset modal content when dialog closes
+watch(showModal, (open) => {
+  if (!open) {
+    modalContent.value = ''
+  }
+})
 
 function formatHTML(html: string): string {
   // Simple HTML formatting function
@@ -103,7 +106,17 @@ onMounted(() => {
   }
 })
 
-defineExpose({ insertMergeField })
+defineExpose({ insertMergeField, setHTMLContent })
+
+// Set HTML content into Quill by converting HTML to Delta
+function setHTMLContent(html: string) {
+  const quill = editorRef.value?.getQuill()
+  if (!quill)
+    return
+
+  const delta = quill.clipboard.convert(html)
+  quill.setContents(delta, 'api')
+}
 
 function insertMergeField(mergeField: string) {
   const quill = editorRef.value?.getQuill()
@@ -140,32 +153,18 @@ onMounted(() => {
       @update:content="updateContent"
     />
 
-    <!-- Modal for showing/editing HTML -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      @click.self="closeModal"
-    >
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-4 border-b">
-          <h2 class="text-lg font-semibold">
-            HTML Editor
-          </h2>
-          <button
-            class="p-2 rounded hover:bg-gray-100 transition-colors"
-            @click="closeModal"
-          >
-            ✕
-          </button>
-        </div>
+    <!-- Dialog for showing/editing HTML -->
+    <Dialog v-model:open="showModal">
+      <DialogContent class="sm:max-w-[700px]">
+        <DialogHeader>
+          <DialogTitle>HTML Editor</DialogTitle>
+          <DialogDescription>
+            Edit the HTML content directly.
+          </DialogDescription>
+        </DialogHeader>
 
-        <!-- Modal Content -->
-        <div class="flex-1 p-6 overflow-hidden">
+        <div class="flex-1 overflow-hidden">
           <div class="h-full flex flex-col">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">
-              Edit HTML Content
-            </h3>
             <textarea
               v-model="modalContent"
               class="min-h-[20dvh] flex-1 w-full p-4 border border-gray-300 rounded-md font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -174,23 +173,24 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="flex items-center justify-end gap-3 p-4 border-t bg-gray-50">
-          <Button variant="outline" @click="closeModal">
-            Cancel
-          </Button>
+        <DialogFooter class="flex items-center justify-end gap-3">
+          <DialogClose as-child>
+            <Button variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
           <Button @click="saveModalContent">
             Save Changes
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <style scoped lang="css">
 :deep(.ql-container) {
-  height: fit-content;
+  height: max-content;
 }
 :deep(.ql-editor) {
   min-height: 100px;
