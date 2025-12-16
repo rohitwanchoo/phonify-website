@@ -490,7 +490,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ timeIntervals?.find((val: any) => val.value === formState?.duration)?.title }}
+                  {{ timeIntervals?.find((val: any) => val.value === Number(formState?.duration))?.title }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -579,7 +579,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ voiceTemplateAMDList?.find((val: any) => val.templete_id === formState?.outbound_ai_dropdown_voice_message)?.templete_name }}
+                  {{ voiceTemplateAMDList?.find((val: any) => val.templete_id === formState?.redirect_to_dropdown)?.templete_name }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -610,7 +610,10 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ voiceDropOptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_extension)?.first_name }} {{ voiceDropOptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_extension)?.last_name }} - {{ voiceDropOptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_extension)?.extension }}
+                  {{ (() => {
+                    const opt = voiceDropOptions?.find((v: any) => v.id === formState?.redirect_to_dropdown);
+                    return opt ? `${opt.first_name} ${opt.last_name} - ${opt.extension}` : '';
+                  })() }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -641,7 +644,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ ringGroupList?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ring_group)?.title }}
+                  {{ ringGroupList?.find((val: any) => val.id === formState?.redirect_to_dropdown)?.title }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -672,7 +675,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ inboundIVROptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ivr)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ivr)?.ivr_id }}
+                  {{ inboundIVROptions?.find((val: any) => val.id === formState?.redirect_to_dropdown)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.id === formState?.redirect_to_dropdown)?.ivr_id }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
@@ -703,7 +706,7 @@ function cancelEdit() {
                   </SelectContent>
                 </Select>
                 <div v-else class="text-[16px] font-normal text-primary">
-                  {{ inboundIVROptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ivr)?.ivr_desc }} - {{ inboundIVROptions?.find((val: any) => val.id === formState?.outbound_ai_dropdown_ivr)?.ivr_id }}
+                  {{ voiceAIOptions?.find((val: any) => val.id === formState?.redirect_to_dropdown)?.title }}
                 </div>
               </FormControl>
               <FormMessage class="text-sm" />
