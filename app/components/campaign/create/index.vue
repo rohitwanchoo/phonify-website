@@ -80,7 +80,7 @@ const formSchema = toTypedSchema(z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         // message: 'Call ratio is required when dialing mode is predictive dial',
-        message: formState.value.dial_mode === 'predictive_dial' ? 'Call ratio is required when dialing mode is predictive dial' : 'Simultaneous Calls is required when dialing mode is super power dial',
+        message: formState.value.dial_mode === 'predictive_dial' ? 'Call ratio is required when dialing mode is predictive dial' : 'Simultaneous Calls is required when dialing mode is outbound AI',
       })
     }
   }),
@@ -89,7 +89,7 @@ const formSchema = toTypedSchema(z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         // message: 'Duration is required when dialing mode is predictive dial',
-        message: formState.value.dial_mode === 'predictive_dial' ? 'Duration is required when dialing mode is predictive dial' : 'Time interval is required when dialing mode is super power dial',
+        message: formState.value.dial_mode === 'predictive_dial' ? 'Duration is required when dialing mode is predictive dial' : 'Time interval is required when dialing mode is outbound AI',
       })
     }
   }),
