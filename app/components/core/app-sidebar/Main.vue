@@ -94,14 +94,14 @@ const data = {
       { title: 'SMS History', url: '/app/sms/sms-history', disabled: false },
       { title: 'Text Template', url: '/app/sms/text-template', disabled: false },
     ] },
-    { title: 'Fax', url: '/app/fax', icon: 'icons:fax', disabled: false },
+    // { title: 'Fax', url: '/app/fax', icon: 'icons:fax', disabled: false },
     { title: 'Mailbox', url: '/app/mailbox', icon: 'icons:mailbox', disabled: false },
   ],
 
-  'AI Messaging': [
-    { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai', disabled: false },
-    { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai', disabled: false },
-  ],
+  // 'AI Messaging': [
+  //   { title: 'SMS AI', url: '/app/sms-ai', icon: 'icons:sms-ai', disabled: false },
+  //   { title: 'Chat AI', url: '/app/chat-ai', icon: 'icons:chat-ai', disabled: false },
+  // ],
 
   'Events and Reports': [
     { title: 'Calendar', url: '/app/calendar', icon: 'icons:calendar', disabled: false },
