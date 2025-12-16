@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
-import { ref } from 'vue'
+import { useField, useForm } from 'vee-validate'
+import { ref, watch } from 'vue'
 import * as z from 'zod'
 
 import {
@@ -28,76 +28,120 @@ import {
 } from '~/components/ui/sheet'
 import { Textarea } from '~/components/ui/textarea'
 
-// UI state
 const open = ref(false)
-const uploadedFiles = ref<File[]>([])
 
-
-// Country codes with USA first
-const countryCodes = [
-  { id: 2, name: 'USA', phonecode: '+1' }, // USA first
-  { id: 1, name: 'Ind', phonecode: '+91' },
-  { id: 3, name: 'UK', phonecode: '+44' },
-  { id: 4, name: 'UAE', phonecode: '+971' },
-]
-
-// Form validation schema
-const schema = z.object({
-  from: z.string().min(1, 'From is required'),
-  countryCode: z.string().min(1, 'Country code is required'),
-  phoneNumber: z.string().min(5, 'Phone number must be at least 5 digits').regex(/^\d+$/, 'Only digits allowed'),
-  template: z.string().min(1, 'Template is required'),
-  text: z.string().min(1, 'Message is required'),
-  files: z.array(z.instanceof(File)).optional(),
+const { data: smsDidList, status: smsDidListStatus, refresh: refreshSmsDidList } = await useLazyAsyncData('sms-did-list', () =>
+  useApi().get('sms_did_list'), {
+  transform: res => res.data,
+  immediate: false,
 })
 
-const { handleSubmit, defineField, values } = useForm({
-  validationSchema: toTypedSchema(schema),
+const { data: countrylist, status: countrylistStatus, refresh: refreshCountrylist } = await useLazyAsyncData('phone-country-list', () =>
+  useApi().post('/phone-country-list'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const { data: smsTemplateList, status: smsTemplateListStatus, refresh: refreshSmsTemplateList } = await useLazyAsyncData('sms-template-list', () =>
+  useApi().post('/sms-templete'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const file = ref<File | null>(null)
+const { setValue: setFile } = useField('file')
+
+function handleFileUpdate(files: File[]) {
+  file.value = files[0] ?? null
+  setFile(files)
+}
+
+// Watch for sheet open and refresh APIs only if data doesn't exist
+watch(open, (isOpen) => {
+  if (isOpen) {
+    // Only refresh if data hasn't been loaded yet
+    if (!smsDidList.value) {
+      refreshSmsDidList()
+    }
+    if (!countrylist.value) {
+      refreshCountrylist()
+    }
+    if (!smsTemplateList.value) {
+      refreshSmsTemplateList()
+    }
+  }
+})
+
+const formSchema = toTypedSchema(z.object({
+  from: z.string().min(1, 'From is required'),
+  country_code: z.number().min(1, 'Country code is required'),
+  to: z.string().min(5, 'Phone number required'),
+  template: z.union([z.string(), z.number()]).optional(),
+  message: z.string().min(1, 'Message is required'),
+}))
+
+const { handleSubmit, setValues, values, setFieldValue, isSubmitting } = useForm({
+  validationSchema: formSchema,
   initialValues: {
     from: '',
-    countryCode: '+1', // USA set as default
-    phoneNumber: '',
+    country_code: 1,
+    to: '',
     template: '',
-    text: '',
-    files: [],
+    message: '',
   },
 })
-// Define form fields
-const [from, fromAttrs] = defineField('from')
-const [countryCode, countryCodeAttrs] = defineField('countryCode')
-const [phoneNumber, phoneNumberAttrs] = defineField('phoneNumber')
-const [template, templateAttrs] = defineField('template')
-const [text, textAttrs] = defineField('text')
-const [files, filesAttrs] = defineField('files')
 
-// File handlers
-function handleFileChange(event: Event) {
-  const fileList = (event.target as HTMLInputElement)?.files
-  if (fileList) {
-    const list = Array.from(fileList)
-    uploadedFiles.value = list
-    files.value = list
+watch(() => values.template, (newVal) => {
+  if (!newVal)
+    return
+  const tpl = smsTemplateList.value?.find((t: any) => String(t.templete_desc) === String(newVal))
+  if (tpl?.templete_desc) {
+    setFieldValue('message', tpl.templete_desc)
   }
-}
+})
 
-function handleDrop(event: DragEvent) {
-  event.preventDefault()
-  const fileList = event.dataTransfer?.files
-  if (fileList) {
-    const list = Array.from(fileList)
-    uploadedFiles.value = list
-    files.value = list
+const onSubmit = handleSubmit(async (vals) => {
+  const toNumber = Number(String(vals.country_code) + String(vals.to).replace(/\D/g, ''))
+  try {
+    const formData = new FormData()
+    formData.append('from', String(vals.from))
+    formData.append('to', String(toNumber))
+    formData.append('message', String(vals.message || ''))
+    formData.append('mms_file', file.value as File)
+    formData.append('date', new Date().toISOString())
+
+    const response = await useApi().post('/send-sms', formData)
+    if (response?.success === true) {
+      showToast({ message: response?.message, type: 'success' })
+      setValues({
+        from: '',
+        country_code: 1,
+        to: '',
+        template: '',
+        message: '',
+      })
+      open.value = false
+      refreshNuxtData('sms-chats')
+    }
+    else {
+      showToast({
+        message: response?.message,
+        type: 'error',
+      })
+    }
   }
-}
-
-const onSubmit = handleSubmit((formData) => {
-  console.log('Form submitted:', formData)
+  catch (err: any) {
+    showToast({
+      message: err?.message,
+      type: 'error',
+    })
+  }
 })
 </script>
 
 <template>
-  <Button @click="open = true">
-    <Icon name="lucide:plus" class="!text-white" />
+  <Button class="h-11" @click="open = true">
+    <Icon name="material-symbols:add" class="!text-white text-xl" />
     New Message
   </Button>
 
@@ -112,21 +156,23 @@ const onSubmit = handleSubmit((formData) => {
       <form class="flex-1 flex flex-col justify-between overflow-hidden" @submit.prevent="onSubmit">
         <div class="p-6 space-y-5 overflow-y-auto">
           <!-- From -->
-          <FormField name="from">
+          <FormField v-slot="{ componentField }" name="from">
             <FormItem>
               <FormLabel>From</FormLabel>
               <FormControl>
-                <Select v-bind="fromAttrs" v-model="from">
+                <Select v-bind="componentField">
                   <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select From" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="campaign_1">
-                      Campaign 1
+                    <SelectItem v-if="smsDidListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
-                    <SelectItem value="campaign_2">
-                      Campaign 2
-                    </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="(option, index) in smsDidList" :key="index" :value="option.cli">
+                        {{ formatNumber(option.cli) }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -135,22 +181,27 @@ const onSubmit = handleSubmit((formData) => {
           </FormField>
 
           <!-- To -->
-          <FormField name="phoneNumber">
+          <FormField v-slot="{ componentField }" name="to">
             <FormItem>
               <FormLabel>To</FormLabel>
               <div class="flex">
                 <!-- Country Code -->
-                <FormField name="countryCode">
+                <FormField v-slot="{ value, handleChange }" name="country_code">
                   <FormItem class="w-[120px] !gap-0">
                     <FormControl>
-                      <Select v-bind="countryCodeAttrs" v-model="countryCode">
+                      <Select :model-value="value" @update:model-value="handleChange" :default-value="1">
                         <SelectTrigger class="w-full rounded-r-none bg-gray-100 !h-11">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem v-for="item in countryCodes" :key="item.id" :value="item.phonecode">
-                            {{ item.name }} ({{ item.phonecode }})
+                          <SelectItem v-if="countrylistStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                            <Icon name="eos-icons:loading" />
                           </SelectItem>
+                          <template v-else>
+                            <SelectItem v-for="(option, index) in countrylist" :key="index" :value="option.phone_code">
+                              {{ option.country_code }} ({{ option.phone_code }})
+                            </SelectItem>
+                          </template>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -160,11 +211,11 @@ const onSubmit = handleSubmit((formData) => {
                 <!-- Phone Number -->
                 <FormControl>
                   <Input
-                    v-model="phoneNumber"
+                    v-maska="'(###)-###-####'"
+                    v-bind="componentField"
                     type="tel"
                     placeholder="Enter Phone Number"
                     class="!h-11 rounded-l-none flex-1"
-                    v-bind="phoneNumberAttrs"
                   />
                 </FormControl>
               </div>
@@ -173,21 +224,23 @@ const onSubmit = handleSubmit((formData) => {
           </FormField>
 
           <!-- Template -->
-          <FormField name="template">
+          <FormField v-slot="{ componentField }" name="template">
             <FormItem>
               <FormLabel>Template</FormLabel>
               <FormControl>
-                <Select v-bind="templateAttrs" v-model="template">
+                <Select v-bind="componentField">
                   <SelectTrigger class="w-full !h-11">
                     <SelectValue placeholder="Select Template" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="template_1">
-                      Template 1
+                    <SelectItem v-if="smsTemplateListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
                     </SelectItem>
-                    <SelectItem value="template_2">
-                      Template 2
-                    </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="(option, index) in smsTemplateList" :key="index" :value="option.templete_desc">
+                        {{ option?.templete_name }}
+                      </SelectItem>
+                    </template>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -196,58 +249,35 @@ const onSubmit = handleSubmit((formData) => {
           </FormField>
 
           <!-- Text -->
-          <FormField name="text">
+          <FormField v-slot="{ componentField }" name="message">
             <FormItem>
               <FormLabel>Message</FormLabel>
               <FormControl>
-                <Textarea
-                  v-model="text"
-                  class="w-full min-h-[100px]"
-                  placeholder="Enter your message..."
-                  v-bind="textAttrs"
-                />
+                <Textarea v-bind="componentField" class="w-full min-h-[100px]" placeholder="Enter your message..." />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
 
           <!-- File Upload -->
-          <FormField name="files">
+          <FormField v-slot="{ componentField }" name="file">
             <FormItem>
-              <FormLabel>File</FormLabel>
               <FormControl>
-                <div
-                  class="w-full p-[30px] mt-2 border-2 border-dashed border-[#00A086] text-sm text-muted-foreground rounded-md cursor-pointer bg-[#F0F9F8] hover:bg-muted/80 transition flex flex-col items-center justify-center"
-                  @dragover.prevent
-                  @drop="handleDrop"
-                >
-                  <label for="file-upload" class="text-center cursor-pointer">
-                    <Icon name="icons:upload" class="text-5xl" />
-                    <p>
-                      <span class="text-muted-foreground">Drag & drop or </span>
-                      <span class="text-primary underline">choose file</span>
-                    </p>
-                    <input
-                      id="file-upload"
-                      type="file"
-                      class="hidden"
-                      accept=".mp3,.wav"
-                      @change="handleFileChange"
-                    >
-                  </label>
-                  <div v-if="uploadedFiles.length" class="mt-2">
-                    Selected: {{ uploadedFiles.map(f => f.name).join(', ') }}
-                  </div>
-                </div>
+                <BaseFileUploader
+                  v-bind="componentField"
+                  accept=".png"
+                  max-size="10MB"
+                  @update:files="handleFileUpdate"
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage class="text-xs" />
             </FormItem>
           </FormField>
         </div>
 
         <!-- Footer -->
         <div class="p-6 bg-white">
-          <Button class="w-full h-12 text-md" type="submit">
+          <Button class="w-full h-12 text-md" type="submit" :disabled="isSubmitting" :loading="isSubmitting">
             <Icon name="material-symbols:send-outline" class="text-md" />
             Send
           </Button>

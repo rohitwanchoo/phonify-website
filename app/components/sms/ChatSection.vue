@@ -1,72 +1,192 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed, watch } from 'vue'
+import { formatDate } from '@vueuse/core'
 import Button from '../ui/button/Button.vue'
+import Input from '../ui/input/Input.vue'
 
-const props = defineProps({
-  contact: {
-    type: Object,
-    required: true,
-  },
-  isUnknownContact: {
-    type: Boolean,
-    default: false,
-  },
+interface SmsMessageOutgoing {
+  type: 'outgoing'
+  message?: string
+  date?: string | Date
+}
+interface SmsMessageIncoming {
+  type: 'incoming'
+  text?: string
+  time?: string | Date
+}
+type SmsMessage = SmsMessageOutgoing | SmsMessageIncoming
+
+interface Contact {
+  number?: number
+  did?: number
+  user_id?: number
+}
+
+const props = withDefaults(defineProps<{
+  messages: SmsMessage[]
+  contact?: Contact
+  loading?: boolean
+  hasMore?: boolean
+}>(), {
+  loading: false,
+  hasMore: true,
 })
 
+const emit = defineEmits(['openDialer', 'loadMore'])
+// const isUnknownContact = computed(() => !props.contact?.user_id)
+
+// Draft message and input ref must live inside the script setup
+const currentDraft = ref('')
 const messageInputRef = ref<HTMLInputElement | null>(null)
-// Store drafts for all contacts using contact ID as key
-const messageDrafts = ref<Record<number, string>>({})
+const loadingSms = ref(false)
+const selectedFile = ref<File | null>(null)
 
-// Computed property for current draft that reacts to contact changes
-const currentDraft = computed({
-  get() {
-    return messageDrafts.value[props.contact.id] || ''
-  },
-  set(val: string) {
-    messageDrafts.value[props.contact.id] = val
-  },
+interface NormalizedMessage {
+  type: 'outgoing' | 'incoming'
+  text: string
+  at?: string | Date
+  mediaUrl?: string
+}
+
+const normalizedMessages = computed<NormalizedMessage[]>(() => {
+  if (!Array.isArray(props.messages))
+    return []
+  return props.messages.map((m: SmsMessage) => {
+    if (m?.type === 'outgoing') {
+      return {
+        type: 'outgoing',
+        text: m.message || '',
+        at: m.date,
+        mediaUrl: (m as any)?.mms_url || '',
+      }
+    }
+    return {
+      type: 'incoming',
+      text: (m as SmsMessageIncoming)?.text || (m as unknown as SmsMessageOutgoing)?.message || '',
+      at: (m as SmsMessageIncoming)?.time || (m as unknown as SmsMessageOutgoing)?.date,
+      mediaUrl: (m as any)?.mms_url || '',
+    }
+  })
 })
 
-function focusInput() {
-  nextTick(() => {
-    messageInputRef.value?.focus()
+function openDialer() {
+  emit('openDialer')
+}
+
+async function sendMessage(file?: File) {
+  loadingSms.value = true
+  try {
+    let body: any
+    if (file) {
+      const formData = new FormData()
+      formData.append('from', String(props.contact?.did ?? ''))
+      formData.append('to', String(props.contact?.number ?? ''))
+      formData.append('message', String(currentDraft.value || ''))
+      formData.append('mms_file', file)
+      formData.append('date', new Date().toISOString())
+      body = formData
+    }
+    else {
+      body = {
+        from: props.contact?.did,
+        to: props.contact?.number,
+        message: currentDraft.value,
+        mms_file: null,
+        date: new Date(),
+      }
+    }
+    const response = await useApi().post('/send-sms', body)
+    if (response?.success === true) {
+      showToast({
+        message: response?.message,
+        type: 'success',
+      })
+      currentDraft.value = ''
+      selectedFile.value = null
+      // focus back the input for quick consecutive sends
+      requestAnimationFrame(() => {
+        messageInputRef.value?.focus()
+      })
+      refreshNuxtData('sms-chats')
+    }
+    else {
+      showToast({
+        message: response?.message,
+        type: 'error',
+      })
+    }
+  }
+  catch (error: any) {
+    showToast({
+      message: error?.message,
+      type: 'error',
+    })
+  }
+  finally {
+    loadingSms.value = false
+  }
+}
+
+function handleFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input?.files?.[0] || null
+  if (!file)
+    return
+  selectedFile.value = file
+  sendMessage(file).finally(() => {
+    selectedFile.value = null
+    if (input)
+      input.value = ''
   })
 }
 
-onMounted(() => {
-  focusInput()
+// Scroll Handling
+const chatContainerRef = ref<HTMLDivElement | null>(null)
+
+// We need to keep track of the scroll height to maintain position when loading older messages
+const previousScrollHeight = ref(0)
+const isPaginationLoad = ref(false)
+
+function handleScroll() {
+  const el = chatContainerRef.value
+  if (!el)
+    return
+
+  if (el.scrollTop === 0 && !props.loading && props.hasMore) {
+    // User scrolled to top, load older messages
+    isPaginationLoad.value = true
+    previousScrollHeight.value = el.scrollHeight
+    emit('loadMore')
+  }
+}
+
+// Watch for messages change to adjust scroll position
+watch(normalizedMessages, async (newMsgs, oldMsgs) => {
+  await nextTick()
+  const el = chatContainerRef.value
+  if (!el)
+    return
+
+  if (isPaginationLoad.value) {
+    // If we just loaded older messages, restore scroll position
+    const contentAddedHeight = el.scrollHeight - previousScrollHeight.value
+    el.scrollTop = contentAddedHeight
+    isPaginationLoad.value = false
+  }
+  else if (!oldMsgs || oldMsgs.length === 0 || (newMsgs.length > oldMsgs.length && newMsgs[newMsgs.length - 1]?.at !== oldMsgs[oldMsgs.length - 1]?.at)) {
+    scrollToBottom()
+  }
 })
 
-
-watch(() => props.contact.id, () => {
-  nextTick(focusInput)
-}, { immediate: true })
-
-const emit = defineEmits(['open-dialer'])
-
-// Chat messages for saved contacts
-const savedContactMessages = [
-  { sender: 'me', text: 'enthallaaa?', time: '10.00 am' },
-  { sender: 'them', text: 'sugam.', time: '10.01 am' },
-  { sender: 'me', text: 'aysheri,verenthallaaa?', time: '10.01 am' },
-  { sender: 'them', text: 'oo,anganoke pon..', time: '10.02 am' },
-]
-
-// Chat messages for unknown/unsaved contacts
-const unknownContactMessages = [
-  { sender: 'them', text: 'Hello, who is this?', time: '09.30 am' },
-  { sender: 'me', text: 'This is John from ABC company', time: '09.31 am' },
-  { sender: 'them', text: 'I dont recognize this number', time: '09.32 am' },
-  { sender: 'me', text: 'We spoke last week about the project', time: '09.33 am' },
-]
-
-const currentMessages = computed(() =>
-  props.isUnknownContact ? unknownContactMessages : savedContactMessages,
-)
-
-function openDialer() {
-  emit('open-dialer')
+function scrollToBottom() {
+  if (chatContainerRef.value) {
+    chatContainerRef.value.scrollTop = chatContainerRef.value.scrollHeight
+  }
 }
+
+onMounted(() => {
+  scrollToBottom()
+})
+
 </script>
 
 <template>
@@ -76,15 +196,16 @@ function openDialer() {
       <!-- Header -->
       <div class="px-4 py-3 border-b border-muted flex justify-between items-center shrink-0">
         <div class="flex items-center gap-2">
-          <div class="w-10 h-10 rounded-full bg-gray-300 text-white flex items-center justify-center text-sm font-semibold">
-            {{ contact.title.split(' ').map(w => w[0]).join('').slice(0, 2) }}
+          <div class="w-10! h-10 px-0! py-0! rounded-full bg-gray-300 text-white flex items-center justify-center text-sm font-semibold">
+            <Icon name="material-symbols:account-circle" size="24" />
           </div>
           <div class="leading-tight">
             <div class="font-medium">
-              {{ contact.title }}
+              <!-- {{ displayName }} -->
+              {{ formatNumber(String(props.contact?.number)) }}
             </div>
             <div class="text-sm text-muted-foreground">
-              {{ contact.number }}
+              <!-- {{ contactNumber }} -->
             </div>
           </div>
         </div>
@@ -102,31 +223,37 @@ function openDialer() {
           </Button>
         </div>
       </div>
-
       <!-- Chat Body -->
-      <div class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;">
-        <div class="w-full flex justify-center mt-2 mb-4">
-          <div class="text-xs text-muted-foreground bg-[#E4E4E7] rounded-xl px-3 py-1 text-center">
-            {{ contact.time }}
-          </div>
+      <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;" @scroll="handleScroll">
+        <!-- Loading indicator -->
+        <div v-if="loading" class="w-full flex justify-center">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#162D3A]" />
         </div>
 
-        <template v-for="(message, index) in currentMessages" :key="index">
-          <div v-if="message.sender === 'me'" class="flex justify-end">
-            <div class="max-w-lg break-words bg-[#162D3A] text-white p-3 rounded-xl rounded-tr-none text-sm relative">
-              {{ message.text }}
-              <div class="flex justify-end items-center gap-1 text-[10px] text-white opacity-70 mt-1">
-                {{ message.time }}
-                <Icon name="material-symbols:done-all" class="text-white" size="14" />
+        <template v-else>
+          <div v-for="(msg, index) in normalizedMessages" :key="index">
+            <div v-if="msg.type === 'outgoing'" class="flex justify-end">
+              <div class="max-w-lg break-words bg-[#162D3A] text-white p-3 rounded-xl rounded-tr-none text-sm relative">
+                <img v-if="msg.mediaUrl" :src="msg.mediaUrl" alt="image" class="mb-2 max-w-[240px] max-h-[240px] rounded-md">
+                <div v-if="msg.text">
+                  {{ msg.text }}
+                </div>
+                <div class="flex justify-end items-center gap-1 text-[10px] text-white opacity-70 mt-1">
+                  {{ formatDate(new Date(msg.at || ''), 'h:mm A') }}
+                  <Icon name="material-symbols:done-all" class="text-white" size="14" />
+                </div>
               </div>
             </div>
-          </div>
-          <div v-else class="flex justify-start">
-            <div class="max-w-lg break-words bg-[#E4E4E7] text-[#162D3A] p-3 rounded-xl rounded-tl-none text-sm">
-              {{ message.text }}
-              <div class="text-right text-[10px] text-[#162D3A] opacity-70 mt-1 flex items-center justify-end gap-1">
-                {{ message.time }}
-                <Icon name="material-symbols:done-all" class="text-[#162D3A]" size="14" />
+            <div v-else class="flex justify-start">
+              <div class="max-w-lg break-words bg-[#E4E4E7] text-[#162D3A] p-3 rounded-xl rounded-tl-none text-sm">
+                <img v-if="msg.mediaUrl" :src="msg.mediaUrl" alt="image" class="mb-2 max-w-[240px] max-h-[240px] rounded-md">
+                <div v-if="msg.text">
+                  {{ msg.text }}
+                </div>
+                <div class="text-right text-[10px] text-[#162D3A] opacity-70 mt-1 flex items-center justify-end gap-1">
+                  {{ formatDate(new Date(msg.at || ''), 'h:mm A') }}
+                  <Icon name="material-symbols:done-all" class="text-[#162D3A]" size="14" />
+                </div>
               </div>
             </div>
           </div>
@@ -134,7 +261,7 @@ function openDialer() {
       </div>
 
       <!-- Unknown Contact Section -->
-      <div v-if="isUnknownContact" class="px-4 py-3 bg-[#F5EFE9CC] rounded-lg border-muted m-5">
+      <!-- <div v-if="isUnknownContact" class="px-4 py-3 bg-[#F5EFE9CC] rounded-lg border-muted m-5">
         <div class="flex flex-col items-center gap-3">
           <p class="text-md text-[#162D3A]">
             The number is not in your contacts
@@ -154,43 +281,52 @@ function openDialer() {
             </Button>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Bottom section -->
-    <div class="">
+    <div>
       <!-- Footer -->
       <div class="bg-[#EBF5F3] py-2 border-t border-muted">
         <div class="flex items-center justify-between text-sm text-muted-foreground px-[24px]">
           <div>
             Send with
-            <span class="text-primary font-medium underline underline-offset-1">+1 (569) 912-3502</span>
+            <span class="text-primary font-medium underline underline-offset-1">
+              {{ formatNumber(String(props.contact?.did)) }}
+            </span>
           </div>
           <Icon name="material-symbols:keyboard-arrow-down" size="22" />
         </div>
       </div>
 
       <!-- Input Field -->
-      <div class="bg-white border-t border-muted py-2">
-        <div class="relative w-full flex items-center">
+      <div class="bg-white border-t border-muted py-4 px-6">
+        <div class="w-full flex items-center">
           <Input
-            :key="contact.id"
-            v-model="currentDraft"
             ref="messageInputRef"
+            v-model="currentDraft"
             placeholder="Send a message..."
-            class="w-full pr-[200px] px-[24px] py-5 border-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:shadow-none"
-       
+            class="w-full pl-0 border-none shadow-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
           />
-          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-4">
-            <button type="button" class="text-muted-foreground hover:text-black border border-black h-10 w-10 flex items-center justify-center rounded-sm">
-              <Icon name="material-symbols:attach-file" size="20" />
-            </button>
-            <button 
-              type="button" 
-              class="bg-[#0B2C3F] hover:bg-[#093142] text-white h-10 w-10 flex items-center justify-center rounded-sm"
+          <div class="flex items-center gap-2">
+            <div class="relative cursor-pointer">
+              <Input
+                type="file"
+                class="relative z-10 h-11 w-11 px-0! py-0! bg-transparent file:text-transparent rounded-lg border border-stone-900 inline-flex justify-start items-center cursor-pointer"
+                @change="handleFileChange"
+              />
+              <Icon name="material-symbols:attach-file" size="20" class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 cursor-pointer" />
+            </div>
+            <Button
+              type="button"
+              size="icon"
+              :loading="loadingSms"
+              :disabled="loadingSms || !currentDraft"
+              class="h-11 w-11"
+              @click="sendMessage()"
             >
-              <Icon name="material-symbols:send-outline" size="20" />
-            </button>
+              <Icon name="material-symbols:send-outline" size="20" :class="loadingSms ? 'hidden' : 'block'" />
+            </Button>
           </div>
         </div>
       </div>
