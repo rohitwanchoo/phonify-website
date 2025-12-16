@@ -279,7 +279,7 @@ function startDialing() {
     return
   }
 
-  navigateTo({ path: '/app/start-dialing/lead-details', query: { campaign_id: id } })
+  navigateTo({ path: '/app/start-dialing', query: { tab: 'lead-details', campaign_id: id } })
 }
 
 onMounted(() => {
