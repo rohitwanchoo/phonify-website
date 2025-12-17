@@ -99,7 +99,7 @@ async function openSheet(id: number) {
   campaignLoadingId.value = id
   try {
     const res = await useApi().post('campaign-by-id', { campaign_id: id })
-    selectedCampaign.value = res[0]
+    selectedCampaign.value = res
     sheet.value = true
   }
   catch (error: any) {
@@ -451,7 +451,7 @@ function changeLimit(val: number) {
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
