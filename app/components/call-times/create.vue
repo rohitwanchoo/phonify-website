@@ -79,34 +79,7 @@ const formSchema = toTypedSchema(
       weeks.forEach((week, index) => {
         const isSelected = selectedDays.value[week.day as keyof typeof selectedDays.value]
 
-        // Default day → always required
-        if (week.day === 'default') {
-          if (!week.start) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: 'start time required',
-              path: [index, 'start'],
-            })
-          }
-          if (!week.end) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: 'end time required',
-              path: [index, 'end'],
-            })
-          }
-          // Validate end time is after start time
-          if (week.start && week.end && week.start >= week.end) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: 'end time must be after start time',
-              path: [index, 'end'],
-            })
-          }
-        }
-
-        // Other days → only required if selected
-        if (isSelected && week.day !== 'default') {
+        if (isSelected) {
           if (!week.start) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
