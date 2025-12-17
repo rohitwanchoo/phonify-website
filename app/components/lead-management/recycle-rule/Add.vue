@@ -38,6 +38,17 @@ const { data: dispositionList, status: dispositionListStatus, refresh: dispositi
   immediate: false,
 })
 
+const dispositionOpen = ref(false)
+const dayOpen = ref(false)
+
+// watch for open state changes to close other select
+watch([dispositionOpen, dayOpen], ([newDisposition, newDay], [oldDisposition, oldDay]) => {
+  if (newDisposition && newDisposition !== oldDisposition)
+    dayOpen.value = false
+  if (newDay && newDay !== oldDay)
+    dispositionOpen.value = false
+})
+
 // day options
 const dayOptions = [
   { label: 'Monday', day: 'monday' },
@@ -66,7 +77,6 @@ const callTimeOptions = [
   { value: 14, label: 'less than or equal to 14' },
   { value: 15, label: 'less than or equal to 15' },
 ]
-
 
 const loading = ref(false)
 
@@ -97,11 +107,9 @@ watch(() => open.value, (newVal) => {
   dispositionRefresh()
 
   if (newVal && props.isEdit) {
-
     const dispositionIds = [props.initialData?.disposition_id]
 
     setValues({ ...props.initialData, disposition_id: dispositionIds, days: props.initialData?.days })
-
   }
   else {
     resetForm({
@@ -186,7 +194,7 @@ const onSubmit = handleSubmit(async (values) => {
     <DialogTrigger as-child>
       <Button class="h-11">
         <Icon class="!text-white" name="material-symbols:add" size="20" />
-        Add Recyle Rule
+        Add Recycle Rule
       </Button>
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
@@ -254,9 +262,9 @@ const onSubmit = handleSubmit(async (values) => {
                 <div class="relative">
                   <!-- Dropdown for selecting days -->
                   <Select
+                    v-model:open="dispositionOpen"
                     v-bind="componentField"
                     multiple
-                   
                   >
                     <SelectTrigger class="w-full flex items-center relative !min-h-11 py-2 !h-auto">
                       <span v-if="!value.length" class="text-muted-foreground">Select disposition</span>
@@ -305,6 +313,7 @@ const onSubmit = handleSubmit(async (values) => {
                 <div class="relative">
                   <!-- Dropdown for selecting days -->
                   <Select
+                    v-model:open="dayOpen"
                     v-bind="componentField"
                     multiple
                   >
