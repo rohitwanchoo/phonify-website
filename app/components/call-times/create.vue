@@ -177,6 +177,8 @@ const onSubmit = handleSubmit(async (values) => {
     })
     emits('complete')
     open.value = false
+    resetForm()
+    resetSelectedDays()
   }
   catch (error) {
     showToast({
