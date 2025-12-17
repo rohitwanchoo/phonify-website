@@ -59,7 +59,7 @@ function validateFileType(files: File[]) {
 }
 
 const formSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().min(1, 'Title is required').max(50, 'Title must be at most 50 characters'),
   file: z.array(z.instanceof(File))
     .min(1, 'File is required')
     .refine(
