@@ -126,7 +126,7 @@ watch(open, async (newValue) => {
                 <Select v-bind="componentField">
                   <Skeleton v-if="loading" class="h-11 w-full" />
                   <SelectTrigger v-else class="w-full !h-11">
-                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Dialing Mode" />
+                    <SelectValue class="text-sm placeholder:text-[#ef698180]" placeholder="Select Role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>

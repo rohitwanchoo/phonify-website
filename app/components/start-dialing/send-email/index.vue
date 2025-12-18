@@ -53,6 +53,7 @@ function getLeadEmail() {
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
   to: z.string().email('Lead Mail Id is required'),
+  from: z.string().optional(),
   // from: z.object({
   //   id: z.number().int().positive(),
   //   from_name: z.string().min(1, 'Agent Name is required'),
@@ -87,7 +88,7 @@ const { handleSubmit, isSubmitting, values, setFieldValue, setValues } = useForm
   validationSchema: formSchema,
   initialValues: {
     to: getLeadEmail(), // Auto-populate with lead email
-    // from: {},
+    from: '',
     template: 0,
     LeadPlaceholders: '',
     SenderPlaceholders: '',
@@ -310,13 +311,14 @@ function onTemplateChange(val: any) {
               </FormItem>
             </FormField>
             <!-- Agent -->
-            <!-- <FormField v-slot="{ componentField }" name="from">
+            <FormField v-slot="{ componentField }" name="from">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   From
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField" @update:model-value="onFromChange">
+                  <Input disabled v-bind="componentField" class="border-gray-200 h-11" :class="{ 'bg-gray-50': componentField.modelValue }" />
+                  <!-- <Select v-bind="componentField" @update:model-value="onFromChange">
                     <SelectTrigger class="w-full !h-11">
                       <SelectValue placeholder="" />
                     </SelectTrigger>
@@ -325,11 +327,11 @@ function onTemplateChange(val: any) {
                         {{ option.from_name }}
                       </SelectItem>
                     </SelectContent>
-                  </Select>
+                  </Select> -->
                 </FormControl>
                 <FormMessage class="text-red-500" />
               </FormItem>
-            </FormField> -->
+            </FormField>
           </div>
           <!-- Template -->
           <FormField v-slot="{ componentField }" name="template">
