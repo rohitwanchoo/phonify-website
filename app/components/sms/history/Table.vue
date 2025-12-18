@@ -64,17 +64,6 @@ function navigateToChat(item: any) {
   })
 }
 
-// Pagination handlers
-function handlePageChange(page: number) {
-  emits('pageNavigation', page)
-}
-
-function changeLimit(val: number | null) {
-  if (val !== null) {
-    emits('changeLimit', val)
-  }
-}
-
 const columnHelper = createColumnHelper<any>()
 const columns = [
   columnHelper.display({
@@ -174,6 +163,16 @@ const table = useVueTable({
     get rowSelection() { return rowSelection.value },
   },
 })
+
+function handlePageChange(page: number) {
+  emits('pageNavigation', page)
+}
+
+function changeLimit(val: number | null) {
+  if (val !== null) {
+    emits('limitChange', val)
+  }
+}
 </script>
 
 <template>

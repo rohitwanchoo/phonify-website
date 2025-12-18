@@ -44,13 +44,10 @@ const { data: customPlaceholders } = await useLazyAsyncData('custom-field-labels
   transform: res => res.data,
 })
 
-const senderPlaceholders = [
-  'first_name',
-  'last_name',
-  'email',
-  'mobile',
-  'company_name',
-]
+const { data: senderPlaceholders } = await useLazyAsyncData('sender-placeholders-email-template', () =>
+  useApi().get('/user/selected'), {
+  transform: res => res.columns,
+})
 
 const formSchema = toTypedSchema(z.object({
   template_name: z.string().min(1, 'Template name is required'),
@@ -130,9 +127,12 @@ watch([subjectFocused, textareaFocused], ([s, t]) => {
 })
 
 // Sync templateContent ref with form
-watch(templateContent, (newContent) => {
-  setFieldValue('template_html', newContent)
-})
+// watch(props.emailTemplate.template_html, (newContent) => {
+//   textareaRef.value?.setHTMLContent(newContent)
+// })
+// onMounted(() => {
+//   textareaRef.value?.setHTMLContent(props.emailTemplate.template_html || '')
+// })
 
 // Sync form values with ref
 watch(() => values.template_html, (newContent) => {
@@ -152,9 +152,9 @@ watch(() => props.emailTemplate, (newTemplate) => {
       senderPlaceholder: '',
       customPlaceholder: '',
       subject: newTemplate.subject || '',
-      template_html: htmlContent,
+      // template_html: htmlContent,
     })
-    templateContent.value = htmlContent
+    textareaRef.value?.setHTMLContent(htmlContent)
   }
 }, { immediate: true, deep: true })
 
@@ -218,7 +218,7 @@ function insertPlaceholder(value: any) {
   }
   else if (textareaFocused.value || lastFocusedField.value === 'template_html') {
     // For Quill editor, use the insertMergeField method
-    textareaRef.value?.insertMergeField(`{{${value}}}`)
+    textareaRef.value?.insertMergeField(`[[${value}]]`)
     return
   }
 
@@ -388,7 +388,7 @@ function onTextareaFocus() {
 
           <!-- Template Editor Row with Quill -->
           <div class="w-full flex justify-start items-start gap-4">
-            <FormField name="template_html" class="flex-1">
+            <FormField v-model="templateContent" name="template_html" class="flex-1">
               <FormItem class="w-full inline-flex flex-col justify-start items-start gap-1">
                 <FormLabel class="justify-start text-slate-800 text-sm font-medium">
                   Template

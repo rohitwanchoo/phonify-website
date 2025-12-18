@@ -45,7 +45,7 @@ function isActive(url: string) {
     return route.path === '/'
   }
   // For other paths, check if current route starts with the url
-  return route.path.startsWith(url)
+  return route.path.startsWith(url?.split('?')[0] || '')
 }
 </script>
 
@@ -109,6 +109,7 @@ function isActive(url: string) {
           </Collapsible>
 
           <!-- Flat menu item -->
+
           <SidebarMenuItem v-else>
             <SidebarMenuButton
               as-child

@@ -147,7 +147,7 @@ const columns = [
         size: 'icon',
         class: 'h-10 w-10 text-white bg-primary',
         onClick: () => {
-          navigateTo(`/app/lead-management/list/${row.original.id}?name=${row.original.list || row.original.title}`, {
+          navigateTo(`/app/lead-management/list/${row.original.list_id}?name=${row.original.list || row.original.title}`, {
             open: { target: '_blank' },
           })
         },
@@ -249,7 +249,7 @@ function changeLimit(val: number | null) {
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
