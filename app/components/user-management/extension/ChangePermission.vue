@@ -96,9 +96,12 @@ watch(open, async (newValue) => {
   if (newValue) {
     await rolesListListRefresh()
     if (rolesList.value?.length) {
-      const defaultValue = rolesList.value.find((role: { assigned: boolean }) => role.assigned)?.roleId
+      const defaultValue = rolesList.value.find((role: any) => role.roleId === props.selectedExtension?.role)
       if (defaultValue)
-        setFieldValue('role', defaultValue)
+        setFieldValue('role', defaultValue.roleId)
+      // const defaultValue = rolesList.value.find((role: { assigned: boolean }) => role.assigned)?.roleId
+      // if (defaultValue)
+      //   setFieldValue('role', defaultValue)
     }
   }
 })

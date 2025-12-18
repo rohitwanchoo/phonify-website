@@ -35,4 +35,5 @@ export interface Extension {
   receive_sms_on_email: string
   receive_sms_on_mobile: string
   extension_id: number
+  role: string
 }
