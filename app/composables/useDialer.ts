@@ -22,10 +22,20 @@ export function useDialer() {
     dialerLeadId.value = null
   }
 
+  const toggleDialer = () => {
+    if (isDialerOpen.value) {
+      closeDialer()
+    }
+    else {
+      openDialer()
+    }
+  }
+
   return {
     isDialerOpen: readonly(isDialerOpen),
     dialerPhoneNumber: readonly(dialerPhoneNumber),
     openDialer,
     closeDialer,
+    toggleDialer,
   }
 }

@@ -29,7 +29,12 @@ export function showToast(options: ToastOptions) {
   })
 }
 
-export function handleError(err: { message: string }) {
+export function handleError(err: { message: string, data?: ErrorResponse }) {
+  if (err.data?.errors) {
+    const errorMessages = Object.values(err.data.errors).flat().join('\n')
+    showToast({ type: 'error', message: errorMessages || 'An error occurred' })
+    return
+  }
   showToast({ type: 'error', message: err.message || 'An error occurred' })
 }
 

@@ -280,12 +280,7 @@ const onSubmit = handleSubmit((values) => {
       navigateTo('/app/user-management/extension')
     }).catch((err) => {
       handleFieldErrors(err.data, setFieldError)
-
-      showToast({
-        message: err.message,
-        type: 'error',
-      })
-      // handleFieldErrors(err.)
+      handleError(err)
     }).finally(() => {
       loading.value = false
     })
@@ -301,12 +296,8 @@ const onSubmit = handleSubmit((values) => {
     navigateTo('/app/user-management/extension')
   }).catch((err) => {
     handleFieldErrors(err.data, setFieldError)
-
-    showToast({
-      message: err.message,
-      type: 'error',
-    })
-    console.log(err)
+    handleError(err)
+   
   }).finally(() => {
     loading.value = false
   })
