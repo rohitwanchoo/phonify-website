@@ -61,6 +61,7 @@ function handleContinue() {
   useApi().post('/campaign/assign-lists', { campaign_id, lead_list_ids: selectedRowIds.value }).then(() => {
     assignLoading.value = false
     emit('completed')
+    showToast({ type: 'success', message: 'List assigned to campaign successfully' })
   }).catch((error) => {
     showToast({ type: 'error', message: error.message })
   }).finally(() => {

@@ -35,6 +35,12 @@ defineProps<{
 function formatTime(time: any) {
   return moment(time, 'HH:mm').format('h:mm A')
 }
+
+const callerIds = {
+  area_code: 'Area Code',
+  custom: 'Custom (Enabled for Custom CLI)',
+  area_code_random: 'Area Code and Randomizer',
+}
 const open = defineModel<boolean>()
 </script>
 
@@ -113,7 +119,7 @@ const open = defineModel<boolean>()
             </div>
 
             <!-- Call Time -->
-            <div class="space-y-2">
+            <div v-if="campaign?.time_based_calling === 1 && campaign?.call_time_start && campaign?.call_time_end" class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <icon name="lucide:clock-4" />
                 <span class="text-sm font-normal">Call Time</span>
@@ -124,24 +130,24 @@ const open = defineModel<boolean>()
             </div>
 
             <!-- Caller ID -->
-            <div class="space-y-2">
+            <div v-if="campaign?.caller_id" class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="clarity:user-line" />
                 <span class="text-sm font-normal">Caller ID</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.caller_id }}
+                {{ callerIds[campaign?.caller_id as keyof typeof callerIds] }}
               </p>
             </div>
 
             <!-- Custom Caller ID -->
-            <div class="space-y-2">
+            <div v-if="campaign?.custom_caller_id && campaign?.caller_id === 'custom'" class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <icon name="lucide:user-round-cog" />
                 <span class="text-sm font-normal">Custom Caller ID</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.custom_caller_id }}
+                {{ formatNumber(String(campaign?.custom_caller_id)) }}
               </p>
             </div>
 

@@ -68,7 +68,7 @@ const {
   cancel: deleteCancel,
 } = useConfirmDialog()
 
-function dispositionType (type: string) {
+function dispositionType(type: string) {
   switch (type) {
     case '1':
       return 'Status'
@@ -127,8 +127,13 @@ export interface dispositionList {
   actions?: string
 }
 
+const updateStatusLoading = ref(false)
+const selectedRowId = ref<number | null>(null)
+
 async function updateStatus(id: number, status: number) {
   try {
+    selectedRowId.value = id
+    updateStatusLoading.value = true
     const res = await useApi().post('/status-update-disposition', {
       listId: id,
       status,
@@ -153,6 +158,10 @@ async function updateStatus(id: number, status: number) {
       message: `${err.message}`,
       type: 'error',
     })
+  }
+  finally {
+    updateStatusLoading.value = false
+    selectedRowId.value = null
   }
 }
 
@@ -231,6 +240,7 @@ const columns = [
       h('div', { class: 'text-center font-normal leading-[9px] text-sm w-full' }, h(Switch, {
         'class': 'data-[state=checked]:bg-green-600 cursor-pointer',
         'modelValue': row.original.status === 1,
+        'disabled': updateStatusLoading.value && selectedRowId.value === row.original.id,
         'onUpdate:modelValue': (val: boolean) => {
           updateStatus(row.original.id, val ? 1 : 0)
         },
@@ -373,7 +383,7 @@ const table = useVueTable({
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="n in [5,10,20,30,40,50]" :key="n" :value="n">
+              <SelectItem v-for="n in [5, 10, 20, 30, 40, 50]" :key="n" :value="n">
                 {{ n }}
               </SelectItem>
             </SelectContent>
