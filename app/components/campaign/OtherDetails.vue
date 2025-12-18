@@ -176,7 +176,7 @@ const filteredDispositionList = computed(() => {
                     <div class="flex gap-2 flex-wrap items-center ">
                       <TagsInputItem v-for="item in formState.disposition_id" :key="item" class="rounded-[6px] border border-[#00A086] bg-[#00A0861A] py-3 px-[7px] flex item-center justify-between gap-x-2" :value="item">
                         <div>
-                          {{ dispositionList?.find((val: { id: any }) => val.id === item).title }}
+                          {{ dispositionList?.find((val: { id: any }) => val.id === item)?.title }}
                         </div>
                         <TagsInputItemDelete class="mr-0">
                           <Icon name="lucide:x" />
@@ -212,7 +212,7 @@ const filteredDispositionList = computed(() => {
               <div v-else class="text-[16px] font-normal text-primary flex gap-2 mt-1 flex-wrap">
                 <div v-for="item in formState.disposition_id" :key="item" class="rounded-[6px] items-center border border-[#00A086] bg-[#00A0861A] h-[22px] px-[7px] flex item-center justify-between text-wrap " :value="item">
                   <div class="text-xs">
-                    {{ dispositionList?.find((val: { id: any }) => val.id === item).title }}
+                    {{ dispositionList?.find((val: { id: any }) => val.id === item)?.title || 'Unknown' }}
                   </div>
                 </div>
               </div>

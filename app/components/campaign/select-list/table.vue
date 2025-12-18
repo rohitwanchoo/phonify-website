@@ -95,6 +95,7 @@ const columns = [
   columnHelper.accessor('list', {
     header: ({ column }) =>
       h(Button, {
+        type: 'button',
         variant: 'ghost',
         class: 'text-sm font-medium mx-auto',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
@@ -110,6 +111,7 @@ const columns = [
     header: ({ column }) =>
       h(Button, {
         variant: 'ghost',
+        type: 'button',
         class: 'text-sm font-medium mx-auto',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => [
@@ -126,6 +128,7 @@ const columns = [
   columnHelper.accessor('totalLeads', {
     header: ({ column }) =>
       h(Button, {
+        type: 'button',
         variant: 'ghost',
         class: 'text-sm font-medium mx-auto',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),

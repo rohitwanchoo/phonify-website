@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { Button } from '~/components/ui/button'
 
 interface Props {
@@ -28,6 +29,12 @@ const { data: campaignList, status: campaignListStatus, refresh } = await useLaz
     return res
   },
 })
+
+// search function
+const searchList = useDebounceFn(() => {
+  start.value = 0
+  refresh()
+}, 1000, { maxWait: 5000 })
 
 function onEditClick() {
   selectedRowIds.value = campaignList.value.data.map((val: { list_id: number }) => val.list_id)
@@ -96,6 +103,9 @@ function save() {
           </Button>
         </div>
       </div>
+    </div>
+    <div v-if="enableEditSection === 'associated-list'" class="px-3">
+      <BaseInputSearch v-model="search" class="w-[300px]" placeholder="Search" @update:model-value="searchList" />
     </div>
     <CampaignSelectListTable
       v-model:selected-rows="selectedRowIds"
