@@ -257,6 +257,8 @@ const onSubmit = handleSubmit((values) => {
     voicemail: values.voicemail ? '1' : '0',
     voicemail_send_to_email: values.voicemail_send_to_email ? '1' : '0',
     mobile: values.mobile.replace(/[-\s()]/g, ''),
+    enable_2fa: values.enable_2fa ? '1' : '0',
+    ip_filtering: values.ip_filtering ? '1' : '0',
     // country_code: selectedCountry.value.dial_code
   }
 

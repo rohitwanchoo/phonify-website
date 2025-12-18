@@ -23,6 +23,10 @@ const ip_filtering = computed(() => {
   return props?.data?.ip_filtering !== '0'
 })
 
+const app_status = computed(() => {
+  return props?.data?.app_status !== '0'
+})
+
 const twinning = computed(() => {
   return props?.data?.twinning !== '0'
 })
@@ -154,9 +158,8 @@ const extensionType = computed(() => {
                 <Icon name="mdi:logout" />
                 <span class="text-sm font-normal">Allow Mobile App Login</span>
               </div>
-              <p class="text-red-600">
-                <!-- TODO: cant find field -->
-                No
+              <p :class="app_status ? 'text-green-600' : 'text-red-600'">
+                {{ app_status ? 'Yes' : 'No' }}
               </p>
             </div>
           </div>
