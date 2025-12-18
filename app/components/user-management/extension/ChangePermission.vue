@@ -44,7 +44,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 const props = defineProps<{
   selectedExtension?: Extension
 }>()
-defineEmits(['save'])
+const emits = defineEmits(['refresh'])
 
 const formSchema = toTypedSchema(z.object({
   role: z.number().min(1, 'Role is required'),
@@ -78,6 +78,7 @@ const onSubmit = handleSubmit(async (values) => {
       message: 'Permission updated successfully',
     })
     open.value = false
+    emits('refresh')
   }).catch((err) => {
     showToast({
       type: 'error',

@@ -393,7 +393,7 @@ const table = useVueTable({
   <UserManagementExtensionChangePassword v-model="changePasswordModel" :selected-extension="selectedExtension" />
 
   <!-- CHANGE PERMISSION -->
-  <UserManagementExtensionChangePermission v-model="changePermissionModel" :selected-extension="selectedExtension" />
+  <UserManagementExtensionChangePermission v-model="changePermissionModel" :selected-extension="selectedExtension" @refresh="emits('refresh')" />
 </template>
 
 <style scoped>
