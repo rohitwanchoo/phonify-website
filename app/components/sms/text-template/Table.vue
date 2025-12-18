@@ -5,11 +5,6 @@ import type {
   VisibilityState,
 } from '@tanstack/vue-table'
 import { Icon } from '#components'
-import type {
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-} from '@tanstack/vue-table'
 import {
   createColumnHelper,
   FlexRender,

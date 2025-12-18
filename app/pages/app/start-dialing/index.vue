@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouteQuery } from '@vueuse/router'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -18,54 +19,62 @@ import {
 const route = useRoute()
 const { user } = useAuth()
 
-const { callStatus, callerDetails, endCall, isRegistered } = useSIPml5()
+const { callStatus, endCall, isRegistered, callerDetails: _callerDetails } = useSIPml5()
 const { closeDialer } = useDialer()
 
 const selectedTab = ref(route.query.tab as string || 'lead-details')
 
 const selectedCampaign = ref()
+const campaignId = useRouteQuery('campaign_id')
+
+const disableTab = computed(() => {
+  if (campaignId.value && callStatus.value === 'active') {
+    return false
+  }
+  return true
+})
 
 const sidePanel = computed(() => [
   {
     title: 'Lead Details',
     value: 'lead-details',
     icon: 'material-symbols:person',
-    link: selectedCampaign.value ? `/app/start-dialing/lead-details?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/lead-details',
+    link: selectedCampaign.value?.[0] ? `/app/start-dialing/lead-details?campaign_id=${selectedCampaign.value[0]}` : '/app/start-dialing/lead-details',
     disabled: false,
   },
   {
     title: 'Send SMS',
     value: 'send-sms',
     icon: 'material-symbols:chat',
-    link: selectedCampaign.value ? `/app/start-dialing/send-sms?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-sms',
-    disabled: false,
+    link: selectedCampaign.value?.[0] ? `/app/start-dialing/send-sms?campaign_id=${selectedCampaign.value[0]}` : '/app/start-dialing/send-sms',
+    disabled: disableTab.value,
   },
   {
     title: 'Send Email',
     value: 'send-email',
     icon: 'material-symbols:mail',
-    link: selectedCampaign.value ? `/app/start-dialing/send-email?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/send-email',
-    disabled: false,
+    link: selectedCampaign.value?.[0] ? `/app/start-dialing/send-email?campaign_id=${selectedCampaign.value[0]}` : '/app/start-dialing/send-email',
+    disabled: disableTab.value,
   },
   {
     title: 'Agent Script',
     value: 'agent-script',
     icon: 'material-symbols:script',
-    link: selectedCampaign.value ? `/app/start-dialing/agent-script?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/agent-script',
+    link: selectedCampaign.value?.[0] ? `/app/start-dialing/agent-script?campaign_id=${selectedCampaign.value[0]}` : '/app/start-dialing/agent-script',
     disabled: true,
   },
   {
     title: 'Notes',
     value: 'notes',
     icon: 'material-symbols:description',
-    link: selectedCampaign.value ? `/app/start-dialing/notes?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/notes',
+    link: selectedCampaign.value?.[0] ? `/app/start-dialing/notes?campaign_id=${selectedCampaign.value[0]}` : '/app/start-dialing/notes',
     disabled: true,
   },
   {
     title: 'Events',
     value: 'events',
     icon: 'material-symbols:event',
-    link: selectedCampaign.value ? `/app/start-dialing/events?campaign_id=${selectedCampaign.value}` : '/app/start-dialing/events',
+    link: selectedCampaign.value?.[0] ? `/app/start-dialing/events?campaign_id=${selectedCampaign.value[0]}` : '/app/start-dialing/events',
     disabled: true,
   },
 ])
@@ -85,10 +94,7 @@ const phoneType = [
   },
 ]
 
-function isActive(link: string) {
-  const base = link.split('?')[0]
-  return base ? route.path.startsWith(base) : false
-}
+// Removed unused isActive helper to satisfy lint rules
 
 // onMounted(() => {
 //   if (route.path === '/app/start-dialing') {
@@ -96,7 +102,7 @@ function isActive(link: string) {
 //   }
 // })
 
-const { data: campaignList, status: campaignListStatus } = await useLazyAsyncData('campaign-list', () =>
+const { data: campaignList, status: _campaignListStatus } = await useLazyAsyncData('campaign-list', () =>
   useApi().post('/agent-campaign'), {
   transform: res => res.data,
   immediate: true,
@@ -179,7 +185,7 @@ const initiateLoading = ref(false)
 function initiateCampaign() {
   initiateLoading.value = true
   useApi().post('/extension-login', {
-    campaign_id: selectedCampaign.value,
+    campaign_id: selectedCampaign.value?.[0],
   }).then((res) => {
     showToast({ type: 'success', message: res.message })
     if (callStatus?.value === 'active') {
@@ -203,7 +209,7 @@ async function setRouteForInitCampaign() {
     await navigateTo({
       query: {
         ...route.query,
-        campaign_id: selectedCampaign.value,
+        campaign_id: selectedCampaign.value[0],
       },
     })
     initiateCampaign()
@@ -217,40 +223,7 @@ onMounted(() => {
   }
 })
 
-// const leadDataTemp = {
-//   success: true,
-//   message: 'lead detail.',
-//   number: '7622132802',
-//   lead_id: 735448,
-//   list_id: 202,
-//   data: {
-//     option_1: {
-//       label: 'First Name',
-//       value: 'Easify',
-//       is_dialing: 0,
-//       is_visible: 1,
-//       is_editable: 0,
-//       alternate_phone: null,
-//     },
-//     option_2: {
-//       label: 'Last Name',
-//       value: 'Two',
-//       is_dialing: 0,
-//       is_visible: 1,
-//       is_editable: 0,
-//       alternate_phone: null,
-//     },
-//     option_3: {
-//       label: 'Mobile',
-//       value: '7622132802',
-//       is_dialing: 1,
-//       is_visible: 1,
-//       is_editable: 0,
-//       alternate_phone: null,
-//     },
-//   },
-// }
-function setRouteForTabChange(val: string) {
+function setRouteForTabChange(val: any) {
   if (!val)
     return
   navigateTo({ name: route.name as string, params: route.params, query: { ...route.query, tab: val } })
@@ -263,25 +236,16 @@ function setRouteForTabChange(val: string) {
     <BaseHeader>
       <template #actions>
         <div class="flex gap-3 items-center">
-          <Select v-model="selectedCampaign">
-            <SelectTrigger class="lg:min-w-[300px] !h-11">
-              <SelectValue placeholder="Select a Campaign" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-if="campaignListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
-                <Icon name="eos-icons:loading" />
-              </SelectItem>
-              <!-- if empty campaign list -->
-              <SelectItem v-else-if="campaignList.length === 0" class="text-center justify-center" :value="null" disabled>
-                No campaigns available
-              </SelectItem>
-              <template v-else>
-                <SelectItem v-for="option in campaignList" :key="option.id" :value="option.id">
-                  {{ option.title }}
-                </SelectItem>
-              </template>
-            </SelectContent>
-          </Select>
+          <DsCombobox
+            v-model="selectedCampaign"
+            :options="campaignList"
+            value-key="id"
+            label-key="title"
+            placeholder="Select a Campaign"
+            class="lg:min-w-[300px] !h-11"
+            search-placeholder="Search Agent Campaigns"
+          />
+
           <Select v-model="dialerMode">
             <SelectTrigger class="lg:min-w-[300px] !h-11">
               <SelectValue placeholder="Select Dialer Mode" class="text-sm placeholder:text-gray-600" />
@@ -306,10 +270,10 @@ function setRouteForTabChange(val: string) {
       </template>
     </BaseHeader>
 
-    <div class="h-full max-h-[calc(100vh-166px)]">
-      <Tabs v-model="selectedTab" class="gap-0 w-full flex flex-row h-full overflow-y-auto mt-6 " orientation="vertical" @update:model-value="setRouteForTabChange">
-        <div class=" bg-primary rounded-l-lg p-1">
-          <TabsList class="flex flex-col justify-start w-[300px] bg-primary h-max !gap-y-[20px]">
+    <div class="h-[calc(100vh-180px)] ">
+      <Tabs v-model="selectedTab" class="gap-0 w-full flex h-full flex-row items-stretch mt-6" orientation="vertical" @update:model-value="setRouteForTabChange">
+        <div class=" bg-primary rounded-l-lg p-1 h-full">
+          <TabsList class="flex flex-col justify-start w-[300px] bg-primary h-full !gap-y-[20px]">
             <TabsTrigger
               v-for="(item, index) in sidePanel" :key="index" :value="item.value"
               :disabled="item.disabled"
@@ -321,13 +285,13 @@ function setRouteForTabChange(val: string) {
             </TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="lead-details" class="bg-[#FAFAFA] rounded-r-lg">
+        <TabsContent value="lead-details" class="flex-1 h-full min-h-0 bg-[#FAFAFA] rounded-r-lg overflow-y-auto">
           <StartDialingLeadDetails :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
         </TabsContent>
-        <TabsContent value="send-sms" class="bg-[#FAFAFA] rounded-r-lg">
+        <TabsContent value="send-sms" class="flex-1 h-full min-h-0 bg-[#FAFAFA] rounded-r-lg overflow-y-auto">
           <StartDialingSendSms :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
         </TabsContent>
-        <TabsContent value="send-email" class="bg-[#FAFAFA] rounded-r-lg">
+        <TabsContent value="send-email" class="flex-1 h-full min-h-0 bg-[#FAFAFA] rounded-r-lg overflow-y-auto">
           <StartDialingSendEmail :lead-data="leadData" :lead-data-status="leadDataStatus" @refresh-lead-data="refreshLeadData" />
         </TabsContent>
       </Tabs>

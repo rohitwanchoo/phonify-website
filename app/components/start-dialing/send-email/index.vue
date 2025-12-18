@@ -4,12 +4,17 @@ import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
 
 import { useFocus } from '@vueuse/core'
+import { useRouteQuery } from '@vueuse/router'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
+
+const props = defineProps<Props>()
+const campaign_id = useRouteQuery('campaign_id')
+const { user } = useUserSession()
 
 interface LeadData {
   id: number
@@ -28,9 +33,7 @@ interface LeadData {
 interface Props {
   leadData: LeadData
 }
-const props = defineProps<Props>()
-
-const senderType = 'user' // Fixed sender type
+const senderType = 'system' // Fixed sender type
 
 const showHtml = ref(false)
 
@@ -50,13 +53,13 @@ function getLeadEmail() {
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
   to: z.string().email('Lead Mail Id is required'),
-  from: z.object({
-    id: z.number().int().positive(),
-    from_name: z.string().min(1, 'Agent Name is required'),
-  }),
+  // from: z.object({
+  //   id: z.number().int().positive(),
+  //   from_name: z.string().min(1, 'Agent Name is required'),
+  // }),
   template: z.number().min(1, 'Please select a template').optional(),
   LeadPlaceholders: z.string().optional(),
-  SenderPlaceholders: z.string().min(1, 'Please select a sender placeholder'),
+  SenderPlaceholders: z.string().optional(),
   subject: z.string().min(1, 'Subject is required').max(100, 'Subject cannot exceed 100 characters'),
   templateContent: z.string().min(1, 'Template Preview is required'),
 }))
@@ -66,8 +69,13 @@ const { data: emailSenderData } = await useLazyAsyncData('email-sender-details',
   useApi().get(`/smtp/type/${senderType}`), {
   transform: res => res.data,
 })
-// "lead_id": 735443,
-// "list_id": 199,
+
+// fetch sender placeholders
+const { data: senderPlaceholders } = await useLazyAsyncData('sender-placeholders-start-dialing', () =>
+  useApi().get('/user/selected'), {
+  transform: res => res.columns,
+})
+
 // get lead placeholders
 const { data: leadPlaceholders } = await useLazyAsyncData('lead-placeholder-start-dialing', () =>
   useApi().post(`/label`), {
@@ -79,8 +87,8 @@ const { handleSubmit, isSubmitting, values, setFieldValue, setValues } = useForm
   validationSchema: formSchema,
   initialValues: {
     to: getLeadEmail(), // Auto-populate with lead email
-    from: {},
-    template: '',
+    // from: {},
+    template: 0,
     LeadPlaceholders: '',
     SenderPlaceholders: '',
     subject: '',
@@ -90,10 +98,12 @@ const { handleSubmit, isSubmitting, values, setFieldValue, setValues } = useForm
 
 // get email template
 const { data: emailTemplateData, refresh: refreshEmailTemplateData } = await useLazyAsyncData('email-template-start-dialing', () =>
-  useApi().get(`/email-templates`), {
+  useApi().get('/email-templates'), {
   transform: res => res.data,
   immediate: true,
 })
+
+// get
 const subjectRef = useTemplateRef<HTMLInputElement | null>('subjectRef')
 const textareaRef = useTemplateRef<typeof QuillEditor | null>('textareaRef')
 const textareaFocused = ref(false)
@@ -141,7 +151,7 @@ watch([subjectFocused, textareaFocused], ([s, t]) => {
 })
 
 function onFromChange() {
-  refreshEmailTemplateData()
+  // refreshEmailTemplateData()
 }
 
 // Insert placeholder
@@ -182,8 +192,8 @@ function insertPlaceholder(value: any) {
   nextTick(() => {
     const newCursorPos = start + newText.length
     if (modelKey === 'subject' && el) {
-      el.focus()
-      el.setSelectionRange(newCursorPos, newCursorPos)
+      el?.focus()
+      el?.setSelectionRange(newCursorPos, newCursorPos)
     }
 
     // Also update cursor cache in case user adds multiple placeholders
@@ -193,10 +203,6 @@ function insertPlaceholder(value: any) {
     }
   })
 }
-
-// Refs for managing selected sender and template data
-const selectedSender = ref()
-const _selectedTemplateData = ref(null)
 
 // Reactive ref for template content to ensure proper reactivity
 const templateContent = ref('')
@@ -233,36 +239,34 @@ watch(() => props.leadData, (newLeadData) => {
 
 // Submit handler for sending email
 const onSubmit = handleSubmit(async (vals) => {
-  const payload = {
-    senderType: 'user',
-    user_id: selectedSender.value.user_id,
-    campaign_id: selectedSender.value.campaign_id,
-    subject: vals.subject,
-    body: vals.templateContent, // This now contains the actual Quill editor content
-    to: vals.to,
-  }
-
   try {
-    const response = await useApi().post('/send-email/generic', {
-      ...payload,
-    })
+    const payload = {
+      senderType: 'system',
+      user_id: user.value?.id,
+      campaign_id: campaign_id.value || 40,
+      subject: vals.subject,
+      body: vals.templateContent, // This now contains the actual Quill editor content
+      to: vals.to,
+    }
+
+    const response = await useApi().post('/send-email/generic', payload)
 
     if (response.success === true) {
       showToast({
-        message: response.message,
+        message: response.message || 'Email sent successfully',
         type: 'success',
       })
     }
     else {
       showToast({
-        message: response.message,
+        message: response.message || 'Failed to send email',
         type: 'error',
       })
     }
   }
   catch (error: any) {
     showToast({
-      message: `${error.message}`,
+      message: `${error.message || 'An error occurred while sending the email'}`,
       type: 'error',
     })
   }
@@ -306,7 +310,7 @@ function onTemplateChange(val: any) {
               </FormItem>
             </FormField>
             <!-- Agent -->
-            <FormField v-slot="{ componentField }" name="from">
+            <!-- <FormField v-slot="{ componentField }" name="from">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   From
@@ -314,7 +318,7 @@ function onTemplateChange(val: any) {
                 <FormControl>
                   <Select v-bind="componentField" @update:model-value="onFromChange">
                     <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Agent Mail Id" />
+                      <SelectValue placeholder="" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="option in emailSenderData" :key="option.id" :value="{ id: option.id, from_name: option.from_name }">
@@ -325,7 +329,7 @@ function onTemplateChange(val: any) {
                 </FormControl>
                 <FormMessage class="text-red-500" />
               </FormItem>
-            </FormField>
+            </FormField> -->
           </div>
           <!-- Template -->
           <FormField v-slot="{ componentField }" name="template">
@@ -370,7 +374,7 @@ function onTemplateChange(val: any) {
               </FormItem>
             </FormField>
             <!-- Sender Placeholders -->
-            <FormField v-slot="{ componentField }" name="SenderPlaceholders">
+            <FormField v-slot="{ componentField }" name="SenderPlaceholders" @update:model-value="insertPlaceholder">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Sender Placeholders
@@ -381,8 +385,8 @@ function onTemplateChange(val: any) {
                       <SelectValue placeholder="Select Placeholder" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in emailSenderData" :key="option.id" :value="option.from_email">
-                        {{ option.from_name }}
+                      <SelectItem v-for="option in senderPlaceholders" :key="option" :value="option">
+                        {{ option }}
                       </SelectItem>
                     </SelectContent>
                   </Select>
