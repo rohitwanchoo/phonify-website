@@ -27,7 +27,6 @@ const { data: campaignById, status: campaignByIdStatus, refresh } = await useLaz
 })
 
 function setData() {
-  debugger
   if (route.query.id) {
     refresh().then(() => {
       const action = campaignById.value?.no_agent_available_action
