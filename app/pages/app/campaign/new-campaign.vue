@@ -18,7 +18,7 @@ const breadcrumbs = [
 
 const { data: campaignById, status: campaignByIdStatus, refresh } = await useLazyAsyncData('get-campaign-by-id', () =>
   useApi().post('/campaign-by-id', {
-    campaign_id: id,
+    campaign_id: route.query.id,
   }), {
   transform: (res) => {
     return res
@@ -27,7 +27,8 @@ const { data: campaignById, status: campaignByIdStatus, refresh } = await useLaz
 })
 
 function setData() {
-  if (isEdit.value) {
+  debugger
+  if (route.query.id) {
     refresh().then(() => {
       const action = campaignById.value?.no_agent_available_action
       if (action) {
