@@ -48,7 +48,7 @@ const filteredListData = computed(() => {
 
   return listData.value.filter((item: listItem) =>
     !selectedLists.value.some((selected: listItem) => selected.list_id === item.list_id)
-    && item.list.toLowerCase().includes(listSearchTerm.value.toLowerCase()),
+    && item.list?.toLowerCase().includes(listSearchTerm.value.toLowerCase()),
   )
 })
 
