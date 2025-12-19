@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useConfirmDialog, useDebounceFn } from '@vueuse/core'
+import { useConfirmDialog, useDebounceFn, until } from '@vueuse/core'
+import { useRouteQuery } from '@vueuse/router'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -39,6 +40,7 @@ const emits = defineEmits(['refresh', 'onRename'])
 // ==================== COMPOSABLES ====================
 const route = useRoute()
 const router = useRouter()
+const groupIdQuery = useRouteQuery('id')
 
 // ==================== STATE ====================
 // Search and Pagination
@@ -73,9 +75,14 @@ const {
   status: extensionDataStatus,
   refresh: refreshExtensionDataByGroupId,
 } = await useLazyAsyncData('extension-list-by-group-id', () =>
-  useApi().get(`/extension-group-map?group_id=${toggledGroup.value?.id}`, {}), {
+  useApi().get(`/extension-group-map`, {
+    params: {
+      group_id: Number(groupIdQuery.value),
+    },
+  }), {
   transform: res => res.data,
   immediate: false,
+  watch: [groupIdQuery],
 })
 
 // ==================== COMPUTED ====================
@@ -173,25 +180,20 @@ function addExtension() {
 // ==================== WATCHERS ====================
 watch(() => extensionGroupStatus.value, async (newStatus) => {
   if (newStatus === 'success' && extensionGroup.value?.total) {
+    debugger
     const firstExtensionGroup = extensionGroup.value.data[0]
     toggledGroup.value = firstExtensionGroup
 
-    const id = route.query.id
-    if (!id) {
-      await navigateTo({
-        query: {
-          ...route.query,
-          id: firstExtensionGroup.id,
-        },
-      })
-    }
-    else {
-      await router.push({
-        query: { id },
-      })
-    }
+    await navigateTo({
+      query: {
+        ...route.query,
+        id: firstExtensionGroup.id,
+      },
+    })
+    await until(groupIdQuery).toBe(String(firstExtensionGroup.id))
 
-    await refreshNuxtData('extension-list-by-group-id')
+    await refreshExtensionDataByGroupId()
+    // console.log(route.query?.id)
     const { data: extensions } = useNuxtData('extension-list-by-group-id')
     selectedExtensions.value = extensions.value.map((item: any) => ({
       first_name: item.first_name,
