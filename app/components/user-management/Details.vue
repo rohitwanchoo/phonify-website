@@ -34,6 +34,12 @@ const twinning = computed(() => {
 const extensionType = computed(() => {
   return props?.data?.extension_type !== '0'
 })
+
+const cliList = {
+  0: 'Area Code',
+  1: 'Custom (Enabled for Custom CLI)',
+  2: 'Area Code and Randomizer',
+}
 </script>
 
 <template>
@@ -218,8 +224,8 @@ const extensionType = computed(() => {
                 <Icon name="material-symbols:settings-outline" />
                 <span class="text-sm font-normal">CLI Settings</span>
               </div>
-              <p :class=" data?.cli_setting ? 'text-green-600' : 'text-red-600'">
-                {{ data?.cli_setting ? 'Yes' : 'No' }}
+              <p class="text-gray-700">
+                {{ cliList[data?.cli_setting as keyof typeof cliList] }}
               </p>
             </div>
             <div class="space-y-2">
@@ -235,16 +241,21 @@ const extensionType = computed(() => {
 
           <Separator class="bg-[#F4F4F5]" />
 
-          <div class="grid grid-cols-1 gap-6">
+          <div v-if="data?.receive_sms_on_email || data?.receive_sms_on_mobile" class="grid grid-cols-1 gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-gray-600">
                 <Icon name="material-symbols:settings-outline" />
                 <span class="text-sm font-normal">Forward Incoming SMS to</span>
               </div>
-              <p class="text-green-600">
-                Yes
+              <div class="flex gap-x-2">
+                <div v-if="data?.receive_sms_on_email" class="bg-primary text-sm px-2.5 py-1 rounded-[4px] text-white">
+                  Email
+                </div>
+                <div v-if="data?.receive_sms_on_mobile" class="bg-primary text-sm px-2.5 py-1 rounded-[4px] text-white">
+                  Phone
+                </div>
                 <!-- TODO: cant find field -->
-              </p>
+              </div>
             </div>
           </div>
         </div>
