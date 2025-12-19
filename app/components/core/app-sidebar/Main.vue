@@ -32,7 +32,7 @@ const data = {
       { title: 'Campaign', url: '/app/campaign', disabled: false },
       { title: 'Agent Status', url: '/app/campaign/agent-status', disabled: false },
       { title: 'Disposition', url: '/app/campaign/disposition', disabled: false },
-      { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign', disabled: false },
+      // { title: 'Marketing Campaign', url: '/app/campaign/marketing-campaign', disabled: false },
     ] },
     { title: 'Do Not Call', url: '/do-not-call', icon: 'icons:do-not-call', disabled: false, items: [
       { title: 'DNC', url: '/app/do-not-call/dnc', disabled: false },
