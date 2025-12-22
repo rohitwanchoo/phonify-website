@@ -43,7 +43,7 @@ const formSchema = toTypedSchema(z.object({
 }))
 
 // Initialize form with validateOnMount: false
-const { handleSubmit, resetForm, setValues } = useForm({
+const { handleSubmit, resetForm, setValues, setFieldError } = useForm({
   validationSchema: formSchema,
   initialValues: {
     title: '',
@@ -108,6 +108,7 @@ const onSubmit = handleSubmit(async (values) => {
       emits('refresh')
     }
     else {
+      // handleFieldErrors(response)
       showToast({
         message: response.message,
         type: 'error',
@@ -115,6 +116,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
   }
   catch (error: any) {
+    handleFieldErrors(error.data, setFieldError as any)
     showToast({
       message: error.message,
       type: 'error',
@@ -145,12 +147,12 @@ const onSubmit = handleSubmit(async (values) => {
         <div class="space-y-4">
           <FormField v-slot="{ field }" name="title">
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Title</FormLabel>
               <FormControl>
                 <Input
                   class="h-11"
                   v-bind="field"
-                  placeholder="Label Name"
+                  placeholder="Label Title"ß
                 />
               </FormControl>
               <FormMessage />
