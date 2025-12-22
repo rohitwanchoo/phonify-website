@@ -211,21 +211,11 @@ const columns = [
   }),
 
   columnHelper.accessor('enable_sms', {
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        variant: 'ghost',
-        class: 'text-sm font-normal',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Enable SMS', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    header: () =>
+      h('div', { class: 'text-center text-sm font-normal' }, 'Enable SMS'),
     cell: ({ row }) => {
-      const enable_sms = row.original.enable_sms === 1 ? 'YES' : 'NO'
-
-      return h('div', { class: 'flex justify-center' }, h('span', {
-        class: cn(
-          'px-3 py-1 w-[80px] text-center text-xs rounded-full font-medium',
-          enable_sms === 'YES' ? 'bg-green-^00 text-white' : 'bg-red-600 text-white',
-        ),
-      }, enable_sms))
+      const enable_sms = row.original.enable_sms === 1 ? 'Yes' : 'No'
+      return h('div', { class: `text-center font-normal text-sm py-0.5 ${enable_sms === 'Yes' ? 'text-green-600 bg-green-600 text-white w-[80px] mx-auto px-2 rounded-full' : 'text-red-600 bg-red-600 text-white w-[80px] mx-auto px-2 rounded-full'}` }, enable_sms || '-')
     },
   }),
 
