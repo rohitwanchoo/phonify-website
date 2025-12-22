@@ -45,17 +45,27 @@ const { handleSubmit, isSubmitting, resetForm, setValues } = useForm({
   },
 })
 
-watch(open, async (newVal) => {
-  if (newVal) {
-    campaignRefresh()
+watch([open, () => props.initialData], async ([newOpen, newInitialData]) => {
+  if (newOpen) {
+    // Only fetch campaigns if data doesn't exist
+    if (!campaignList.value || campaignList.value.length === 0) {
+      await campaignRefresh()
+    }
 
-    if (props.isEdit && props.initialData) {
+    // Wait a tick to ensure campaigns are loaded
+    await nextTick()
+
+    if (props.isEdit && newInitialData) {
+      // Extract only the last 10 digits if the number has country code
+      const cleanNumber = String(newInitialData.number || '').replace(/\D/g, '')
+      const displayNumber = cleanNumber.length > 10 ? cleanNumber.slice(-10) : cleanNumber
+
       setValues({
-        first_name: props.initialData.first_name,
-        last_name: props.initialData.last_name,
-        company_name: props.initialData.company_name,
-        number: props.initialData.number,
-        campaign_id: Number(props.initialData.campaign_id),
+        first_name: newInitialData.first_name || '',
+        last_name: newInitialData.last_name || '',
+        company_name: newInitialData.company_name || '',
+        number: displayNumber,
+        campaign_id: Number(newInitialData.campaign_id) || 0,
       })
     }
     else {
@@ -70,60 +80,87 @@ watch(open, async (newVal) => {
       })
     }
   }
-})
+}, { immediate: true })
 
 const onSubmit = handleSubmit(async (values) => {
   // Clean the phone number - remove formatting
   const cleanNumber = values.number.replace(/\D/g, '')
 
-  const payload = {
-    first_name: values.first_name,
-    last_name: values.last_name,
-    number: cleanNumber,
-    company_name: values.company_name,
-    campaign_id: props.isEdit ? Number(props.initialData?.campaign_id) : values.campaign_id,
+  const payload = ref({})
+
+  if (props.isEdit) {
+    // Extract the original number without country code (last 10 digits)
+    const originalCleanNumber = String(props.initialData.number || '').replace(/\D/g, '')
+    const originalDisplayNumber = originalCleanNumber.length > 10
+      ? originalCleanNumber.slice(-10)
+      : originalCleanNumber
+
+    // Check if the number has actually changed
+    const hasNumberChanged = cleanNumber !== originalDisplayNumber
+
+    payload.value = {
+      first_name: values.first_name,
+      last_name: values.last_name,
+      number: props.initialData.number, // Original number with country code
+      company_name: values.company_name,
+      campaign_id: values.campaign_id,
+    }
+
+    // Only add new_number if the number was changed
+    if (hasNumberChanged) {
+      (payload.value as any).new_number = cleanNumber
+    }
+  }
+  else {
+    payload.value = {
+      first_name: values.first_name,
+      last_name: values.last_name,
+      number: cleanNumber,
+      company_name: values.company_name,
+      campaign_id: values.campaign_id,
+    }
   }
 
   try {
     const api = props.isEdit ? '/edit-exclude-number' : '/add-exclude-number'
-    const response = await useApi().post(api, payload)
-    if(!props.isEdit) {
+    const response = await useApi().post(api, payload.value)
+    if (!props.isEdit) {
       if (response.success === 'true') {
-      showToast({
-        message: response.message,
-        type: 'success',
-      })
+        showToast({
+          message: response.message,
+          type: 'success',
+        })
 
-      resetForm()
-      open.value = false
-      refreshNuxtData('exclude-number-list')
+        resetForm()
+        open.value = false
+        refreshNuxtData('exclude-number-list')
+      }
+      else {
+        showToast({
+          message: response.message,
+          type: 'error',
+        })
+      }
     }
     else {
-      showToast({
-        message: response.message,
-        type: 'error',
-      })
-    }
-  }
-  else {
-    if (response.original.success === true) {
-      showToast({
-        message: response.original.message,
-        type: 'success',
-      })
+      if (response.success === true) {
+        showToast({
+          message: response.message,
+          type: 'success',
+        })
 
-      resetForm()
-      open.value = false
-      refreshNuxtData('exclude-number-list')
-    }
-    else {
-      showToast({
-        message: response.original.message,
-        type: 'error',
-      })
+        resetForm()
+        open.value = false
+        refreshNuxtData('exclude-number-list')
+      }
+      else {
+        showToast({
+          message: response.message,
+          type: 'error',
+        })
+      }
     }
   }
-    }
   catch (error: any) {
     showToast({
       message: `${error.message}`,
@@ -139,14 +176,14 @@ const onSubmit = handleSubmit(async (values) => {
       <slot>
         <Button class="h-11">
           <Icon class="!text-white" size="20" name="material-symbols:add" />
-          {{ props.isEdit ? 'Edit' : 'Add' }} Exclude Number
+          Add Exclude Number
         </Button>
       </slot>
     </DialogTrigger>
     <DialogContent class="max-h-[90vh] h-fit overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
-          {{ props.isEdit ? 'Edit' : 'Add Exclude Number' }}
+          {{ props.isEdit ? 'Edit' : 'Add' }} Exclude Number
         </DialogTitle>
       </DialogHeader>
       <Separator class="my-1" />
@@ -234,8 +271,8 @@ const onSubmit = handleSubmit(async (values) => {
             <FormItem>
               <FormLabel>Campaign</FormLabel>
               <FormControl>
-                <Select v-bind="componentField">
-                  <SelectTrigger class="w-full !h-11">
+                <Select v-bind="componentField" :disabled="props.isEdit">
+                  <SelectTrigger class="w-full !h-11" :disabled="props.isEdit">
                     <SelectValue placeholder="Select Campaign" />
                   </SelectTrigger>
                   <SelectContent>
