@@ -252,9 +252,8 @@ const cliList = {
                   Email
                 </div>
                 <div v-if="data?.receive_sms_on_mobile" class="bg-primary text-sm px-2.5 py-1 rounded-[4px] text-white">
-                  Phone
+                  SMS
                 </div>
-                <!-- TODO: cant find field -->
               </div>
             </div>
           </div>
