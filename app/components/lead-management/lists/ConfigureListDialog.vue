@@ -49,6 +49,7 @@ const emit = defineEmits(['update:open', 'complete'])
 const listSchema = toTypedSchema(z.object({
   title: z.string().min(1, 'Title is required'),
   campaign_id: z.number().optional(),
+  new_campaign_id: z.number().optional(),
 }))
 
 const dialingError = ref('')
@@ -276,7 +277,7 @@ const saveConfigureList = handleSubmit((values) => {
   const payload = {
     ...values,
     list_id: props.listData?.list_id,
-    campaign_id: props.listData?.campaign_id,
+    campaign_id: values.new_campaign_id || props.listData?.campaign_id,
     list_header,
   }
   saveLoading.value = true
@@ -325,10 +326,10 @@ watch(() => props.open, (val) => {
           </div>
 
           <div class="w-1/2">
-            <FormField v-slot="{ componentField, errorMessage }" name="new_campaign_id" class="w-1/2">
+            <FormField v-slot="{ componentField, errorMessage, value }" name="new_campaign_id" class="w-1/2">
               <FormItem v-auto-animate class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-primary mb-1">
-                  Campaign
+                  Campaign {{ value }}
                 </FormLabel>
                 <FormControl>
                   <Select :disabled="campaignLoading" v-bind="componentField">
