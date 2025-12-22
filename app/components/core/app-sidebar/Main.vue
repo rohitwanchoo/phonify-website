@@ -95,7 +95,7 @@ const data = {
       { title: 'Text Template', url: '/app/sms/text-template', disabled: false },
     ] },
     // { title: 'Fax', url: '/app/fax', icon: 'icons:fax', disabled: false },
-    { title: 'Mailbox', url: '/app/mailbox', icon: 'icons:mailbox', disabled: false },
+    { title: 'Voicemail Inbox', url: '/app/mailbox', icon: 'icons:mailbox', disabled: false },
   ],
 
   // 'AI Messaging': [

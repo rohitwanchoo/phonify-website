@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { until, useConfirmDialog, useDebounceFn } from '@vueuse/core'
+import { useConfirmDialog, useDebounceFn } from '@vueuse/core'
 import { useRouteQuery } from '@vueuse/router'
 import {
   ResizableHandle,
@@ -74,14 +74,17 @@ const {
   data: extensionDataByGroupId,
   status: extensionDataStatus,
   refresh: refreshExtensionDataByGroupId,
-} = await useLazyAsyncData('extension-list-by-group-id', () =>
-  useApi().get(`/extension-group-map`, {
+} = await useLazyAsyncData(`extension-list-by-group-${groupIdQuery.value}`, () => {
+  const group_id = groupIdQuery.value
+  return useApi().get(`/extension-group-map`, {
     params: {
-      group_id: Number(groupIdQuery.value),
+      group_id,
     },
-  }), {
+  })
+}, {
   transform: res => res.data,
   immediate: false,
+  server: false,
   watch: [groupIdQuery],
 })
 
@@ -123,13 +126,13 @@ function searchGroup() {
 
 // ==================== GROUP METHODS ====================
 function onSelectGroup() {
-  refreshExtensionDataByGroupId().then(() => {
-    selectedExtensions.value = extensionDataByGroupId.value.map((item: any) => ({
-      first_name: item.first_name,
-      last_name: item.last_name,
-      extension: item.extension,
-    }))
-  })
+  // refreshExtensionDataByGroupId().then(() => {
+  //   selectedExtensions.value = extensionDataByGroupId.value.map((item: any) => ({
+  //     first_name: item.first_name,
+  //     last_name: item.last_name,
+  //     extension: item.extension,
+  //   }))
+  // })
 }
 
 async function deleteGroup(group: Group) {
@@ -189,9 +192,9 @@ watch(() => extensionGroupStatus.value, async (newStatus) => {
         id: firstExtensionGroup.id,
       },
     })
-    await until(groupIdQuery).toBe(String(firstExtensionGroup.id))
+    // await until(groupIdQuery).toBe(String(firstExtensionGroup.id))
 
-    await refreshExtensionDataByGroupId()
+    // await refreshExtensionDataByGroupId()
     // console.log(route.query?.id)
     const { data: extensions } = useNuxtData('extension-list-by-group-id')
     selectedExtensions.value = extensions.value.map((item: any) => ({
