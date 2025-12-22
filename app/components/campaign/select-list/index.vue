@@ -78,7 +78,7 @@ const { data: campaignList, status: campaignListStatus, refresh: refreshCampaign
   immediate: false,
 })
 const { data: list, status: listStatus, refresh: listRefresh } = await useLazyAsyncData('get-list-create-campaign', () =>
-  useApi().post('/list', { start: start.value, limit: limit.value, title: search.value }), {
+  useApi().post('/raw-list', { start: start.value, limit: limit.value, title: search.value }), {
   transform: (res) => {
     return { data: res.data, total_rows: res.total_rows }
   },
