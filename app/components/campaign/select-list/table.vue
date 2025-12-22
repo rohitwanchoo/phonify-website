@@ -160,7 +160,7 @@ const columns = [
         size: 'sm',
         type: 'button',
         class: cn('h-10 w-28 flex items-center justify-center gap-1', {
-          'bg-green-600 text-white hover:bg-green-700 cursor-pointer': selectedRows.value.includes(row.original.id),
+          'bg-green-600 text-white hover:bg-green-700 cursor-pointer hover:text-white': selectedRows.value.includes(row.original.id),
           'text-primary border-primary cursor-pointer': !selectedRows.value.includes(row.original.id),
         }),
         onClick: () => toggleSelected(row.original.id),

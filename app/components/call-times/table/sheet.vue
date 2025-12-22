@@ -36,7 +36,7 @@ const open = defineModel<boolean>()
         </SheetTitle>
       </SheetHeader>
 
-      <div>
+      <div class="overflow-auto">
         <div class=" mx-auto p-6 space-y-6 ">
           <div class="grid grid-cols-2 gap-[50px] items-start">
             <div class="space-y-2">
