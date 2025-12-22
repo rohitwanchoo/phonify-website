@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useConfirmDialog, useDebounceFn, until } from '@vueuse/core'
+import { until, useConfirmDialog, useDebounceFn } from '@vueuse/core'
 import { useRouteQuery } from '@vueuse/router'
 import {
   ResizableHandle,
@@ -180,7 +180,6 @@ function addExtension() {
 // ==================== WATCHERS ====================
 watch(() => extensionGroupStatus.value, async (newStatus) => {
   if (newStatus === 'success' && extensionGroup.value?.total) {
-    debugger
     const firstExtensionGroup = extensionGroup.value.data[0]
     toggledGroup.value = firstExtensionGroup
 

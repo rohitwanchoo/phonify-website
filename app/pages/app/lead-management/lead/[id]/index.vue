@@ -20,7 +20,7 @@ const leadNumber = ref('')
 // get lead activity data
 const { data: leadActivityData, status: leadActivityStatus, refresh: refreshLeadActivity } = await useLazyAsyncData('lead-activity', () =>
   useApi().post('/get-cdr', {
-    phone_number: leadNumber.value,
+    phone_number: leadNumber.value.replace(/(?!^\+)\D/g, ''),
   }), {
   immediate: false,
 })

@@ -120,7 +120,12 @@ const columns = [
       h('div', { class: 'text-center' }, 'Visible'),
     cell: ({ row }) => h('div', { class: 'text-center' }, h(Checkbox, {
       'modelValue': !!row.original.is_visible,
-      'onUpdate:modelValue': (val: any) => row.original.is_visible = val ? 1 : 0,
+      'onUpdate:modelValue': (val: any) => {
+        row.original.is_visible = val ? 1 : 0
+        if (!val) {
+          row.original.is_editable = 0
+        }
+      },
       'class': 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]',
     })),
   }),
@@ -134,6 +139,7 @@ const columns = [
         'modelValue': !!row.original.is_editable,
         'onUpdate:modelValue': (val: any) => row.original.is_editable = val ? 1 : 0,
         'class': 'mx-auto border-primary data-[state=checked]:bg-[#16A34A] data-[state=checked]:border-[#16A34A]',
+        'disabled': !row.original.is_visible,
       }),
     ]),
   }),

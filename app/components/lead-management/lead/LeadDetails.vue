@@ -43,9 +43,11 @@ function onEdit() {
         <BaseSkelton v-for="i in 9" :key="i" class="h-10 w-full mb-2" rounded="rounded-sm" />
       </template>
       <template v-else>
-        <div v-for="item in data" :key="item.id" class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
-          <span class="text-[#162D3AB2]">{{ item.title }}</span><span>{{ item.value || '-' }}</span>
-        </div>
+        <template v-for="item in data" :key="item.id">
+          <div class="flex justify-between border border-[#00A0861A] p-3 rounded-lg text-sm bg-[#00A08605]">
+            <span class="text-[#162D3AB2]">{{ item.title }}</span><span>{{ item.value || '-' }}</span>
+          </div>
+        </template>
       </template>
 
       <div class="flex justify-between text-sm">

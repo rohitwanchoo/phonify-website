@@ -255,6 +255,7 @@ function changeLimit(val: number) {
           v-model="headerValue"
           class="w-[180px] h-11"
           placeholder="Enter search value"
+          @keyup.enter="searchLeadWithHeaders"
         />
 
         <!-- Search Button - Only show and enable when all fields are filled -->

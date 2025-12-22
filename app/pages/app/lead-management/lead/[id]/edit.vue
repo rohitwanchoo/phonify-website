@@ -281,7 +281,7 @@ onMounted(async () => {
               <FormItem v-auto-animate>
                 <FormLabel>{{ field.title }}</FormLabel>
                 <FormControl>
-                  <Input v-bind="componentField" class="h-11" />
+                  <Input :disabled="!field.is_editable" v-bind="componentField" class="h-11" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
