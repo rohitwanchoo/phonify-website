@@ -48,8 +48,6 @@ const formTitle = ref('')
 const formCampaign = ref('')
 const showConfigureDialog = ref(false)
 
-const api = useApi()
-
 // zod schema
 const formSchema = toTypedSchema(
   z.object({
@@ -60,8 +58,8 @@ const formSchema = toTypedSchema(
       .refine(file => file.size <= 5 * 1024 * 1024, 'Max file size is 5MB')
       .refine((file) => {
         const ext = file.name.split('.').pop()?.toLowerCase()
-        return ['xlsx', 'xls', 'csv'].includes(ext || '')
-      }, 'Only Excel/CSV files allowed'),
+        return ext === 'csv'
+      }, 'Only CSV files allowed'),
   }),
 )
 
@@ -70,7 +68,7 @@ const { handleSubmit, resetForm, setFieldValue, validateField } = useForm({
   initialValues: {
     title: '',
     campaign: '',
-    file: null as File | null,
+    file: undefined,
   },
 })
 
@@ -103,7 +101,7 @@ async function handleFileUpdate(files: File[]) {
       const lines = text.split('\n')
       if (lines.length > 0) {
         // Parse CSV header row (handle commas within quotes)
-        const headerLine = lines[0].trim()
+        const headerLine = lines[0]?.trim() ?? ''
         const headers = parseCSVLine(headerLine)
         fileHeaders.value = headers.filter(header => header && header.trim() !== '')
       }
@@ -113,7 +111,10 @@ async function handleFileUpdate(files: File[]) {
       const data = await file.arrayBuffer()
       const workbook = XLSX.read(data, { type: 'array' })
       const sheetName = workbook.SheetNames[0]
-      const worksheet = workbook.Sheets[sheetName]
+      const worksheet = workbook.Sheets[sheetName as string]
+      if (!worksheet) {
+        throw new Error('Could not read the first sheet from the Excel file.')
+      }
       const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
       if (json.length > 0) {
@@ -123,12 +124,10 @@ async function handleFileUpdate(files: File[]) {
           .map(header => String(header).trim())
       }
     }
-
-    console.log('Extracted headers:', fileHeaders.value) // Debug log
   }
   catch (error) {
     console.error('Error processing file:', error)
-    setFieldValue('file', null)
+    setFieldValue('file', undefined)
     fileHeaders.value = []
     showToast({
       type: 'error',
@@ -234,7 +233,7 @@ const onSubmit = handleSubmit(async (values) => {
             <FormControl>
               <BaseFileUploader
                 v-bind="componentField"
-                accept=".xlsx,.xls,.csv"
+                accept=".csv"
                 max-size="5MB"
                 @update:files="handleFileUpdate"
               />
@@ -296,5 +295,6 @@ const onSubmit = handleSubmit(async (values) => {
     :selected-campaign="formCampaign"
     :campaigns="props.campaigns"
     :headers="fileHeaders"
+    :list-id="0"
   />
 </template>
