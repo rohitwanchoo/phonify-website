@@ -86,6 +86,9 @@ export default defineNuxtConfig({
       apiBaseUrl: '/api/proxy',
       asteriskDomain: process.env.NUXT_ASTERISK_DOMAIN || 'sip2.voiptella.com',
       asteriskWsPort: process.env.NUXT_ASTERISK_WS_PORT || '8089',
+      // TODO: Remove this after account center integration
+      xEasifyAppKey: 'test_easify_key_123456',
+      xEasifyUserToken: '3f1a9d0c-8e4b-4c7a-9b61-2a5f6c8d9e22',
     },
   },
   nitro: {

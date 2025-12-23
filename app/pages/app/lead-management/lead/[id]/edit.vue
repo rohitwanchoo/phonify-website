@@ -12,7 +12,15 @@ const leadID = route.params.id
 
 const listId = route.query.list_id
 
-const { data: leadDetail } = useNuxtData('lead-details')
+// const { data: leadDetail } = useNuxtData('lead-details')
+
+const { data: leadDetail } = await useLazyAsyncData('lead-details-edit', () =>
+  useApi().post('/get-data-for-edit-lead-page', {
+    lead_id: leadID,
+    parent_id: listId,
+  }), {
+  transform: res => res.data.leadData,
+})
 
 const fieldsData = computed(() => Object.values(leadDetail.value ?? {}))
 

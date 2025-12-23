@@ -152,7 +152,7 @@ const columns = [
         class: 'text-sm font-normal',
         variant: 'ghost',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Name', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
+      }, () => ['Title', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })]))
     },
     cell: ({ row }) =>
       h('div', { class: 'text-center font-normal text-sm' }, row.getValue('title') || '-'),
@@ -176,12 +176,8 @@ const columns = [
 
   // Status
   columnHelper.accessor('status', {
-    header: ({ column }) =>
-      h('div', { class: 'text-center' }, h(Button, {
-        variant: 'ghost',
-        class: 'text-sm font-normal',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      }, () => ['Status', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
+    header: () =>
+      h('div', { class: 'text-center text-sm font-normal' }, 'Status'),
     cell: ({ row }) => {
       const status = row.index % 2 === 0 ? 'Active' : 'Inactive'
 

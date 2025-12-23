@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { Extension } from '@/types/extension'
 import { useConfirmDialog, useDebounceFn } from '@vueuse/core'
+
 import { useRouteQuery } from '@vueuse/router'
 import {
   ResizableHandle,
@@ -52,7 +54,7 @@ const start = ref(0)
 const addExtensionSheet = ref(false)
 const toggledGroup = ref<{ id: string, title: string, count: number, status: number }>()
 const selectedGroup = ref({})
-const selectedExtensions = ref<any>([])
+const selectedExtensions = ref<Extension[]>()
 
 // ==================== DATA FETCHING ====================
 const {
@@ -125,13 +127,14 @@ function searchGroup() {
 }
 
 // ==================== GROUP METHODS ====================
-function onSelectGroup() {
+function onSelectGroup(val: Group) {
+  console.log(val)
   // refreshExtensionDataByGroupId().then(() => {
-  //   selectedExtensions.value = extensionDataByGroupId.value.map((item: any) => ({
-  //     first_name: item.first_name,
-  //     last_name: item.last_name,
-  //     extension: item.extension,
-  //   }))
+  // selectedExtensions.value = extensionDataByGroupId.value.map((item: any) => ({
+  //   first_name: item.first_name,
+  //   last_name: item.last_name,
+  //   extension: item.extension,
+  // }))
   // })
 }
 
@@ -164,14 +167,15 @@ function addExtension() {
     group_id: toggledGroup.value?.id,
     title: toggledGroup.value?.title,
     status: !!toggledGroup.value?.status,
-    extensions: selectedExtensions.value.map((item: any) => item.extension),
+    extensions: selectedExtensions.value?.map((item: Extension) => item.extension),
   }).then((res: any) => {
     showToast({
       type: 'success',
       message: res.message,
     })
     addExtensionSheet.value = false
-    refreshNuxtData('extension-list-by-group-id')
+    refreshExtensionDataByGroupId()
+    // refreshNuxtData(`extension-list-by-group-${toggledGroup.value?.id}`)
   }).catch(({ data }) => {
     showToast({
       type: 'error',
@@ -194,14 +198,24 @@ watch(() => extensionGroupStatus.value, async (newStatus) => {
     })
     // await until(groupIdQuery).toBe(String(firstExtensionGroup.id))
 
-    // await refreshExtensionDataByGroupId()
+    await refreshExtensionDataByGroupId()
     // console.log(route.query?.id)
-    const { data: extensions } = useNuxtData('extension-list-by-group-id')
-    selectedExtensions.value = extensions.value.map((item: any) => ({
+
+    selectedExtensions.value = extensionDataByGroupId?.value?.map((item: any) => ({
       first_name: item.first_name,
       last_name: item.last_name,
       extension: item.extension,
-    }))
+    })) as Extension[]
+  }
+})
+
+watch(() => extensionDataStatus.value, (newStatus) => {
+  if (newStatus === 'success') {
+    selectedExtensions.value = extensionDataByGroupId?.value?.map((item: any) => ({
+      first_name: item.first_name,
+      last_name: item.last_name,
+      extension: item.extension,
+    })) as Extension[]
   }
 })
 </script>
@@ -260,12 +274,13 @@ watch(() => extensionGroupStatus.value, async (newStatus) => {
         </div>
 
         <div class="flex gap-x-2">
-          <!-- TO DO: need to add search functionality when API(extension-group-map) is ready -->
+          <!-- TODO:need to add search functionality when API(extension-group-map) is ready -->
           <!-- <BaseInputSearch v-model="search" class="w-full mt-1" placeholder="Search" @update:model-value="searchText" /> -->
 
           <UserManagementGroupAddExtension
             v-model="addExtensionSheet"
             v-model:selected-extensions="selectedExtensions"
+
             @submit="addExtension"
           />
         </div>
