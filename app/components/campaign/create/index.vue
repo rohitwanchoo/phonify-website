@@ -287,6 +287,13 @@ onMounted(() => {
     resetForm()
   }
 })
+
+function saveCampaign() {
+  showToast({
+    message: 'Campaign saved successfully',
+  })
+  navigateTo({ path: '/app/campaign' })
+}
 </script>
 
 <template>
@@ -320,8 +327,11 @@ onMounted(() => {
       <!-- @page-navigation="changePage" @change-limit="changeLimit" -->
       </form>
     </div>
-    <div v-if="isPreview" class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
+    <div v-if="isPreview" class="sticky bottom-0 right-0 w-full flex gap-x-2 bg-white shadow-2xl p-4">
+      <Button class="w-1/2 h-[52px]" variant="outline" @click="saveCampaign">
+        Save
+      </Button>
+      <Button class="w-1/2 h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
         <Icon name="material-symbols:call" />
         Start Dialing
       </Button>
