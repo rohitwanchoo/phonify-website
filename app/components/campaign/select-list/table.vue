@@ -103,7 +103,7 @@ const columns = [
         'List Name',
         h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' }),
       ]),
-    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.title || '-'),
+    cell: ({ row }) => h('div', { class: 'text-sm font-normal text-center' }, row.original.list || row.original.l_title || '-'),
   }),
 
   // Created Date column (sortable)
@@ -150,7 +150,7 @@ const columns = [
         size: 'icon',
         class: 'h-10 w-10 text-white bg-primary',
         onClick: () => {
-          navigateTo(`/app/lead-management/list/${row.original.id}?name=${row.original.title}`, {
+          navigateTo(`/app/lead-management/list/${row.original.id || row.original.list_id}?name=${row.original.list || row.original.l_title}`, {
             open: { target: '_blank' },
           })
         },
@@ -160,18 +160,18 @@ const columns = [
         size: 'sm',
         type: 'button',
         class: cn('h-10 w-28 flex items-center justify-center gap-1', {
-          'bg-green-600 text-white hover:bg-green-700 cursor-pointer hover:text-white': selectedRows.value.includes(row.original.id),
-          'text-primary border-primary cursor-pointer': !selectedRows.value.includes(row.original.id),
+          'bg-green-600 text-white hover:bg-green-700 cursor-pointer hover:text-white': selectedRows.value.includes(row.original.id || row.original.list_id),
+          'text-primary border-primary cursor-pointer': !selectedRows.value.includes(row.original.id || row.original.list_id),
         }),
-        onClick: () => toggleSelected(row.original.id),
+        onClick: () => toggleSelected(row.original.id || row.original.list_id),
       }, () => [
         h(Check, {
           class: cn('h-4 w-4', {
-            'text-white': selectedRows.value.includes(row.original.id),
-            'text-primary': !selectedRows.value.includes(row.original.id),
+            'text-white': selectedRows.value.includes(row.original.id || row.original.list_id),
+            'text-primary': !selectedRows.value.includes(row.original.id || row.original.list_id),
           }),
         }),
-        selectedRows.value.includes(row.original.id) ? 'Selected' : 'Select',
+        selectedRows.value.includes(row.original.id || row.original.list_id) ? 'Selected' : 'Select',
       ]),
 
     ]),

@@ -38,7 +38,7 @@ const searchList = useDebounceFn(() => {
 
 function onEditClick() {
   selectedRowIds.value = campaignList.value.data.map((val: { list_id: number }) => val.list_id)
-  api.value = '/list'
+  api.value = '/raw-list'
   enableSelect.value = true
   enableEditSection.value = 'associated-list'
   refresh()
