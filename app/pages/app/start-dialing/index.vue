@@ -218,7 +218,7 @@ async function setRouteForInitCampaign() {
 
 onMounted(() => {
   if (route.query.campaign_id) {
-    selectedCampaign.value = Number(route.query.campaign_id)
+    selectedCampaign.value = [Number(route.query.campaign_id)]
     initiateCampaign()
   }
 })
