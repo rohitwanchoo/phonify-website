@@ -143,7 +143,7 @@ function onEdit() {
           </div>
           <AccordionContent class="p-5">
             <Accordion v-model="accordion2" collapsible class="">
-              <AccordionItem v-if="enableEdit" value="item-2" class="">
+              <AccordionItem v-show="enableEdit" value="item-2" class="">
                 <FormField v-slot="{ errorMessage }" v-model="formState.call_schedule_id" name="call_schedule_id">
                   <FormItem v-auto-animate>
                     <FormControl>
@@ -184,7 +184,7 @@ function onEdit() {
                   </Command>
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem v-else value="item-3" class="">
+              <AccordionItem v-if="!enableEdit" value="item-3" class="">
                 <div class="grid grid-cols-2">
                   <div class="space-y-2">
                     <div class="text-sm font-normal text-gray-400">

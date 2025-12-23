@@ -89,6 +89,7 @@ function setData() {
         redirect_to: Number(values.redirect_to),
         redirect_to_dropdown: Number(values.redirect_to_dropdown),
         no_agent_dropdown_action: Number(values.no_agent_dropdown_action),
+        call_schedule_id: values.call_schedule_id,
         // custom_caller_id: values.custom_caller_id ? values.custom_caller_id : null,
       }
       if (values?.custom_caller_id === 'null') {
@@ -115,8 +116,8 @@ watch(currentStep, (val) => {
 })
 
 function goToNext() {
-  if (stepper.isCurrent('select-list'))
-    refresh()
+  // if (stepper.isCurrent('select-list'))
+  //   refresh()
   stepper.goToNext()
 }
 </script>

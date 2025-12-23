@@ -50,7 +50,7 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  time_based_calling: z.boolean(),
+  time_based_calling: z.boolean().optional(),
   // call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
   //   if (values.time_based_calling && !val) {
   //     ctx.addIssue({
@@ -306,7 +306,7 @@ onMounted(() => {
         <CampaignSendDetails :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
 
         <!-- Other Details -->
-        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" />
 
         <!-- Associate List -->
         <CampaignAssociatedList
