@@ -80,44 +80,55 @@ const callTimeOptions = [
 
 const loading = ref(false)
 
-const formSchema = toTypedSchema(z.object({
+// Dynamic schema based on edit mode
+const formSchema = computed(() => toTypedSchema(z.object({
   campaign_id: z.number().min(1, 'Campaign is required'),
   list_id: z.number().min(1, 'List is required'),
-  disposition_id: z.array(z.number()).min(1, 'Disposition is required'),
-  days: z.array(z.string()).min(1, 'At least one day is required'),
+  disposition_id: props.isEdit
+    ? z.number().min(1, 'Disposition is required')
+    : z.array(z.number()).min(1, 'Disposition is required'),
+  days: props.isEdit
+    ? z.string().min(1, 'Day is required')
+    : z.array(z.string()).min(1, 'At least one day is required'),
   call_time: z.number().min(1, 'Call Time is required'),
   time: z.string().min(1, 'From time is required'),
-}))
+})))
 
 const { handleSubmit, resetForm, setValues, values } = useForm({
   validationSchema: formSchema,
   initialValues: {
     campaign_id: props.initialData?.campaign_id,
     list_id: props.initialData?.list_id,
-    disposition_id: [],
-    days: props.initialData?.days || [],
+    disposition_id: props.isEdit ? undefined : [],
+    days: props.isEdit ? '' : [],
     call_time: props.initialData?.call_time || 2,
     time: props.initialData?.time || '',
   },
 })
 
 watch(() => open.value, (newVal) => {
-  campaignRefresh()
-  leadListRefresh()
-  dispositionRefresh()
+  // Only fetch data if it hasn't been loaded yet
+  if (!campaignList.value)
+    campaignRefresh()
+  if (!leadList.value)
+    leadListRefresh()
+  if (!dispositionList.value)
+    dispositionRefresh()
 
   if (newVal && props.isEdit) {
-    const dispositionIds = [props.initialData?.disposition_id]
-
-    setValues({ ...props.initialData, disposition_id: dispositionIds, days: props.initialData?.days })
+    setValues({
+      ...props.initialData,
+      disposition_id: props.initialData?.disposition_id,
+      days: Array.isArray(props.initialData?.days) ? props.initialData.days[0] : props.initialData?.days,
+    })
   }
   else {
     resetForm({
       values: {
         campaign_id: undefined,
         list_id: undefined,
-        disposition_id: [],
-        days: [],
+        disposition_id: props.isEdit ? undefined : [],
+        days: props.isEdit ? '' : [],
         call_time: 2,
         time: '',
       },
@@ -125,8 +136,19 @@ watch(() => open.value, (newVal) => {
   }
 })
 
-const availableDayOptions = computed(() => dayOptions.filter(opt => !values?.days?.includes(opt.day)))
-const availableDispositionOptions = computed(() => (dispositionList.value || []).filter((opt: any) => !values?.disposition_id?.includes(opt.id)))
+const availableDayOptions = computed(() => {
+  if (props.isEdit)
+    return dayOptions
+  return dayOptions.filter(opt => !values?.days?.includes(opt.day))
+})
+
+const availableDispositionOptions = computed(() => {
+  if (props.isEdit)
+    return dispositionList.value || []
+  return (dispositionList.value || []).filter((opt: any) =>
+    Array.isArray(values?.disposition_id) && !values.disposition_id.includes(opt.id),
+  )
+})
 
 const onSubmit = handleSubmit(async (values) => {
   let payload = {}
@@ -145,8 +167,8 @@ const onSubmit = handleSubmit(async (values) => {
       recycle_rule_id: props.initialData?.id,
       campaign_id: values.campaign_id,
       list_id: values.list_id,
-      disposition_id: values.disposition_id,
-      day: values.days,
+      disposition_id: Number(values.disposition_id),
+      day: String(values.days),
       time: values.time?.slice(0, 5), // Format HH:mm:ss to HH:mm
       call_time: Number(values.call_time),
       is_deleted: 0,
@@ -255,12 +277,37 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField, value }" name="disposition_id">
+
+          <!-- Disposition field - single select in edit mode, multi-select in add mode -->
+          <FormField v-if="props.isEdit" v-slot="{ componentField }" name="disposition_id">
+            <FormItem>
+              <FormLabel>Select disposition</FormLabel>
+              <FormControl>
+                <Select v-bind="componentField">
+                  <SelectTrigger class="w-full !h-11">
+                    <SelectValue placeholder="Select disposition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-if="dispositionListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+                      <Icon name="eos-icons:loading" />
+                    </SelectItem>
+                    <template v-else>
+                      <SelectItem v-for="option in availableDispositionOptions" :key="option.id" :value="option.id">
+                        {{ option.title }}
+                      </SelectItem>
+                    </template>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField v-else v-slot="{ componentField, value }" name="disposition_id">
             <FormItem>
               <FormLabel>Select disposition</FormLabel>
               <FormControl>
                 <div class="relative">
-                  <!-- Dropdown for selecting days -->
                   <Select
                     v-model:open="dispositionOpen"
                     v-bind="componentField"
@@ -306,12 +353,32 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField, value }" name="days">
+
+          <!-- Day field - single select in edit mode, multi-select in add mode -->
+          <FormField v-if="props.isEdit" v-slot="{ componentField }" name="days">
+            <FormItem>
+              <FormLabel>Select Day</FormLabel>
+              <FormControl>
+                <Select v-bind="componentField">
+                  <SelectTrigger class="w-full !h-11">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="option in availableDayOptions" :key="option.day" :value="option.day">
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField v-else v-slot="{ componentField, value }" name="days">
             <FormItem>
               <FormLabel>Select Day</FormLabel>
               <FormControl>
                 <div class="relative">
-                  <!-- Dropdown for selecting days -->
                   <Select
                     v-model:open="dayOpen"
                     v-bind="componentField"
@@ -351,6 +418,7 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
+
           <FormField v-slot="{ componentField }" name="call_time">
             <FormItem>
               <FormLabel>Call Time</FormLabel>
