@@ -226,7 +226,7 @@ const open = defineModel<boolean>()
                   campaign?.sms === '1' ? 'text-green-600' : 'text-red-600',
                 ]"
               >
-                {{ campaign?.sms === '1' ? 'With user phone number' : 'No' }}
+                {{ campaign?.sms === '1' ? 'Yes' : 'No' }}
               </p>
             </div>
 

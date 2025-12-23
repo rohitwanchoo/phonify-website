@@ -271,6 +271,13 @@ const onSubmit = handleSubmit(async (values) => {
 })
 
 function startDialing() {
+  if (!formState.value.status) {
+    showToast({
+      message: 'Campaign is not active. Please activate.',
+      type: 'error',
+    })
+    return
+  }
   if (!isRegistered.value) {
     showToast({
       message: 'Webphone is not registered. Please register it first.',
@@ -328,7 +335,7 @@ function saveCampaign() {
       </form>
     </div>
     <div v-if="isPreview" class="sticky bottom-0 right-0 w-full flex gap-x-2 bg-white shadow-2xl p-4">
-      <Button class="w-1/2 h-[52px]" variant="outline" @click="saveCampaign">
+      <Button :disabled="dataLoading || enableEditSection.length" class="w-1/2 h-[52px]" variant="outline" @click="saveCampaign">
         Save
       </Button>
       <Button class="w-1/2 h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
