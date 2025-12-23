@@ -82,7 +82,7 @@ function onNext() {
                 Uploaded File
               </FormLabel>
               <FormControl>
-                <BaseFileUploader accept=".xlc,.xlxs,.csv" max-size="5MB" @update:files="handleFileUpdate" />
+                <BaseFileUploader accept=".csv" max-size="5MB" @update:files="handleFileUpdate" />
               </FormControl>
               <FormMessage />
             </FormItem>

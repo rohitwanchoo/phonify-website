@@ -50,7 +50,7 @@ const formSchema = toTypedSchema(z.object({
       })
     }
   }),
-  time_based_calling: z.boolean(),
+  time_based_calling: z.boolean().optional(),
   // call_time: z.object({ id: z.number().optional(), title: z.string().optional() }).optional().superRefine((val, ctx) => {
   //   if (values.time_based_calling && !val) {
   //     ctx.addIssue({
@@ -271,6 +271,13 @@ const onSubmit = handleSubmit(async (values) => {
 })
 
 function startDialing() {
+  if (!formState.value.status) {
+    showToast({
+      message: 'Campaign is not active. Please activate.',
+      type: 'error',
+    })
+    return
+  }
   if (!isRegistered.value) {
     showToast({
       message: 'Webphone is not registered. Please register it first.',
@@ -287,6 +294,13 @@ onMounted(() => {
     resetForm()
   }
 })
+
+function saveCampaign() {
+  showToast({
+    message: 'Campaign saved successfully',
+  })
+  navigateTo({ path: '/app/campaign' })
+}
 </script>
 
 <template>
@@ -306,7 +320,7 @@ onMounted(() => {
         <CampaignSendDetails :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
 
         <!-- Other Details -->
-        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" @submit="onSubmit()" />
+        <CampaignOtherDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @cancel-edit="emits('resetData')" />
 
         <!-- Associate List -->
         <CampaignAssociatedList
@@ -320,8 +334,11 @@ onMounted(() => {
       <!-- @page-navigation="changePage" @change-limit="changeLimit" -->
       </form>
     </div>
-    <div v-if="isPreview" class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
+    <div v-if="isPreview" class="sticky bottom-0 right-0 w-full flex gap-x-2 bg-white shadow-2xl p-4">
+      <Button :disabled="dataLoading || enableEditSection.length" class="w-1/2 h-[52px]" variant="outline" @click="saveCampaign">
+        Save
+      </Button>
+      <Button class="w-1/2 h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
         <Icon name="material-symbols:call" />
         Start Dialing
       </Button>

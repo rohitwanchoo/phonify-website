@@ -33,7 +33,7 @@ const { data: campaigns, refresh: refreshCampaigns, status: campaignsStatus } = 
 })
 
 // Allowed file types
-const ALLOWED_FILE_TYPES = ['.xlc', '.xlsx', '.csv', '.xls']
+const ALLOWED_FILE_TYPES = ['.csv']
 const ALLOWED_MIME_TYPES = [
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -64,7 +64,7 @@ const formSchema = z.object({
     .min(1, 'File is required')
     .refine(
       files => validateFileType(files),
-      'Invalid file type. Please upload .xlc, .xlsx, .csv, or .xls files only',
+      'Invalid file type. Please upload .csv file only',
     ),
   campaign: z.number().optional(),
   duplicate_check: z.boolean().optional(),
@@ -183,7 +183,7 @@ function onModelOpen(val: boolean) {
             <FormItem>
               <FormLabel>File Upload</FormLabel>
               <FormControl>
-                <BaseFileUploader accept=".xlc,.xlsx,.csv,.xls" max-size="5MB" @update:files="handleFileUpdate" />
+                <BaseFileUploader accept=".csv" max-size="5MB" @update:files="handleFileUpdate" />
               </FormControl>
               <FormMessage />
             </FormItem>

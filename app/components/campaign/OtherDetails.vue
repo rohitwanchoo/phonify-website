@@ -93,10 +93,14 @@ const filteredDispositionList = computed(() => {
             <Icon name="lucide:x" />
             Cancel
           </Button>
-          <Button type="submit" :disabled="loading" class="w-[105px] rounded" size="sm" @click="emits('submit')">
+          <Button class="w-[105px] rounded" type="submit" size="sm" :disabled="loading" @click="emit('submit')">
             <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save-rounded'" />
             Save
           </Button>
+          <!-- <Button type="submit" :disabled="loading" class="w-[105px] rounded" size="sm" @click="emits('submit')">
+            <Icon :name="loading ? 'eos-icons:loading' : 'material-symbols:save-rounded'" />
+            Save
+          </Button> -->
         </div>
         <div v-else class="flex items-center gap-x-2">
           <Button :disabled="enableEditSection.length" variant="outline" size="sm" class="rounded" @click="enableEditSection = 'other-details'">
