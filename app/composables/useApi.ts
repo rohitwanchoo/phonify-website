@@ -54,11 +54,6 @@ export function useApi() {
     const response = await apiClient('/authentication', {
       method: 'POST',
       body: credentials,
-      // TODO: Remove this after account center integration
-      headers: {
-        'X-Easify-App-Key': config.public.xEasifyAppKey,
-        'X-Easify-User-Token': config.public.xEasifyUserToken,
-      },
     }) as any
 
     // Handle the API response structure where data is nested
