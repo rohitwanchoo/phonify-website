@@ -27,6 +27,7 @@ interface Campaign {
   total_leads: number
   dialed_leads: number
   created_date?: string
+  schedule_name?: string
 }
 
 defineProps<{
@@ -125,7 +126,8 @@ const open = defineModel<boolean>()
                 <span class="text-sm font-normal">Call Time</span>
               </div>
               <p class="text-gray-700 text-[16px] font-normal">
-                {{ formatTime(campaign?.call_time_start) }} to {{ formatTime(campaign?.call_time_end) }}
+                <!-- {{ formatTime(campaign?.call_time_start) }} to {{ formatTime(campaign?.call_time_end) }} -->
+                {{ campaign.schedule_name }}
               </p>
             </div>
 
