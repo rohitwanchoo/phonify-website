@@ -120,11 +120,12 @@ const onSubmit = handleSubmit((values) => {
     emits('complete', { campaign_id: values.campaign?.toString() ?? '', list_id: response?.list_id.toString(), list: values.title })
     closeDialog()
   }).catch((error) => {
-    showToast({
-      type: 'error',
-      message: error.message,
-    })
     handleFieldErrors({ errors: error.data }, setFieldError as any)
+    // Handle error toast with first error message
+    const { errors } = error.data
+    if (Object.keys(errors).length > 0) {
+      showToast({ type: 'error', message: Object.values(errors)[0][0] || 'An error occurred' })
+    }
   }).finally(() => {
     loading.value = false
   })

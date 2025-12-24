@@ -39,7 +39,7 @@ const dialogTitle = computed(() =>
 )
 
 const formSchema = toTypedSchema(z.object({
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().min(1, 'Title is required').max(30, 'Title must be at most 30 characters'),
 }))
 
 // Initialize form with validateOnMount: false
