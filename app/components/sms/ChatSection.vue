@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import Button from '../ui/button/Button.vue'
 import Input from '../ui/input/Input.vue'
 
@@ -39,6 +46,25 @@ const currentDraft = ref('')
 const messageInputRef = ref<HTMLInputElement | null>(null)
 const loadingSms = ref(false)
 const selectedFile = ref<File | null>(null)
+
+const { data: smsDidList, status: smsDidListStatus, refresh: refreshSmsDidList } = await useLazyAsyncData('sms-did-list', () =>
+  useApi().get('sms_did_list'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const selectedDid = ref<number | string | undefined>(props.contact?.did)
+
+watch(() => props.contact?.did, (newDid) => {
+  if (newDid) {
+    selectedDid.value = newDid
+  }
+})
+
+onMounted(() => {
+  refreshSmsDidList()
+  scrollToBottom()
+})
 
 interface NormalizedMessage {
   type: 'outgoing' | 'incoming'
@@ -89,7 +115,7 @@ async function sendMessage(file?: File) {
     let body: any
     if (file) {
       const formData = new FormData()
-      formData.append('from', String(props.contact?.did ?? ''))
+      formData.append('from', String(selectedDid.value ?? ''))
       formData.append('to', String(props.contact?.number ?? ''))
       formData.append('message', String(currentDraft.value || ''))
       formData.append('mms_file', file)
@@ -98,7 +124,7 @@ async function sendMessage(file?: File) {
     }
     else {
       body = {
-        from: props.contact?.did,
+        from: selectedDid.value,
         to: props.contact?.number,
         message: currentDraft.value,
         mms_file: null,
@@ -289,16 +315,32 @@ onMounted(() => {
     <!-- Bottom section -->
     <div>
       <!-- Footer -->
-      <div class="bg-[#EBF5F3] py-2 border-t border-muted">
-        <div class="flex items-center justify-between text-sm text-muted-foreground px-[24px]">
-          <div>
-            Send with
-            <span class="text-primary font-medium underline underline-offset-1">
-              {{ formatNumber(String(props.contact?.did)) }}
-            </span>
-          </div>
-          <Icon name="material-symbols:keyboard-arrow-down" size="22" />
-        </div>
+      <div class="bg-[#EBF5F3]">
+        <Select v-model="selectedDid">
+          <SelectTrigger class="w-full !h-9 border-none bg-transparent shadow-none focus:ring-0 px-6 justify-between flex items-center">
+            <div class="flex items-center gap-1 text-sm text-muted-foreground">
+              Send with
+              <span class="text-primary font-medium underline underline-offset-1">
+                <SelectValue>
+                  {{ formatNumber(String(selectedDid)) }}
+                </SelectValue>
+              </span>
+            </div>
+            <template #icon>
+              <Icon name="material-symbols:keyboard-arrow-down" size="22" class="text-muted-foreground" />
+            </template>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-if="smsDidListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+              <Icon name="eos-icons:loading" />
+            </SelectItem>
+            <template v-else>
+              <SelectItem v-for="(option, index) in smsDidList" :key="index" :value="option.cli">
+                {{ formatNumber(option.cli) }}
+              </SelectItem>
+            </template>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Input Field -->
