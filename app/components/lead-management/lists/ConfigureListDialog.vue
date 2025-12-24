@@ -190,7 +190,7 @@ const columns = [
         h(SelectContent, {
           class: 'w-full',
         }, () =>
-          labelOptions.value?.map((option: any) =>
+          labelOptions.value?.filter((option: any) => option.status !== '0')?.map((option: any) =>
             h(SelectItem, {
               key: option.id,
               value: option.id,
