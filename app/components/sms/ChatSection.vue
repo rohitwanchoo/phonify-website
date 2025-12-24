@@ -47,6 +47,17 @@ interface NormalizedMessage {
   mediaUrl?: string
 }
 
+const previewUrl = ref<string | null>(null)
+watch(selectedFile, (newFile) => {
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
+  }
+  if (newFile && newFile.type.startsWith('image/')) {
+    previewUrl.value = URL.createObjectURL(newFile)
+  }
+})
+
 const normalizedMessages = computed<NormalizedMessage[]>(() => {
   if (!Array.isArray(props.messages))
     return []
@@ -126,19 +137,6 @@ async function sendMessage(file?: File) {
   }
 }
 
-function handleFileChange(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input?.files?.[0] || null
-  if (!file)
-    return
-  selectedFile.value = file
-  sendMessage(file).finally(() => {
-    selectedFile.value = null
-    if (input)
-      input.value = ''
-  })
-}
-
 // Scroll Handling
 const chatContainerRef = ref<HTMLDivElement | null>(null)
 
@@ -186,7 +184,6 @@ function scrollToBottom() {
 onMounted(() => {
   scrollToBottom()
 })
-
 </script>
 
 <template>
@@ -309,21 +306,23 @@ onMounted(() => {
             class="w-full pl-0 border-none shadow-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
           />
           <div class="flex items-center gap-2">
-            <div class="relative cursor-pointer">
-              <Input
-                type="file"
-                class="relative z-10 h-11 w-11 px-0! py-0! bg-transparent file:text-transparent rounded-lg border border-stone-900 inline-flex justify-start items-center cursor-pointer"
-                @change="handleFileChange"
-              />
-              <Icon name="material-symbols:attach-file" size="20" class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 cursor-pointer" />
-            </div>
+            <BaseFileInput
+              v-model="selectedFile"
+              :max-size-by-type="{
+                image: 3000000, // 3MB for images
+                audio: 600000, // 600KB for audio
+                video: 600000, // 600KB for video
+                default: 600000, // 600KB for other types
+              }"
+              :supported-extensions="['png']"
+            />
             <Button
               type="button"
               size="icon"
               :loading="loadingSms"
-              :disabled="loadingSms || !currentDraft"
+              :disabled="loadingSms || (!currentDraft && !selectedFile)"
               class="h-11 w-11"
-              @click="sendMessage()"
+              @click="sendMessage(selectedFile || undefined)"
             >
               <Icon name="material-symbols:send-outline" size="20" :class="loadingSms ? 'hidden' : 'block'" />
             </Button>
