@@ -324,7 +324,7 @@ onMounted(() => {
               class="h-11 w-11"
               @click="sendMessage(selectedFile || undefined)"
             >
-              <Icon name="material-symbols:send-outline" size="20" :class="loadingSms ? 'hidden' : 'block'" />
+              <Icon name="material-symbols:send-outline" size="20" />
             </Button>
           </div>
         </div>
