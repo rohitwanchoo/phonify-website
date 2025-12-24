@@ -222,12 +222,17 @@ onMounted(() => {
       </div>
       <!-- Chat Body -->
       <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;" @scroll="handleScroll">
-        <!-- Loading indicator -->
-        <div v-if="loading" class="w-full flex justify-center">
+        <!-- Pagination Loading indicator (at top) -->
+        <div v-if="loading && normalizedMessages.length > 0" class="w-full flex justify-center py-2">
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#162D3A]" />
         </div>
 
-        <template v-else>
+        <!-- Initial Loading indicator (full area) -->
+        <div v-if="loading && normalizedMessages.length === 0" class="h-full w-full flex items-center justify-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#162D3A]" />
+        </div>
+
+        <template v-if="normalizedMessages.length > 0">
           <div v-for="(msg, index) in normalizedMessages" :key="index">
             <div v-if="msg.type === 'outgoing'" class="flex justify-end">
               <div class="max-w-lg break-words bg-[#162D3A] text-white p-3 rounded-xl rounded-tr-none text-sm relative">
