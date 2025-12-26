@@ -267,7 +267,7 @@ const onSubmit = handleSubmit(async (values) => {
                       <Icon name="eos-icons:loading" />
                     </SelectItem>
                     <template v-else>
-                      <SelectItem v-for="option in leadList" :key="option.list_id" :value="option.list_id">
+                      <SelectItem v-for="option in leadList" :key="option.list_id" :value="option.list_id" class="sm:max-w-[442px]">
                         {{ option.list }}
                       </SelectItem>
                     </template>
