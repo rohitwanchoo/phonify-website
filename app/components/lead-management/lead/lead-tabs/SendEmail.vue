@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { QuillEditor } from '@vueup/vue-quill'
 import { Icon } from '#components'
 import { toTypedSchema } from '@vee-validate/zod'
+
+import { useFocus } from '@vueuse/core'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -8,11 +11,27 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '~/components/ui/button'
 
-const props = defineProps({
-  leadData: Object,
-})
+const props = defineProps<Props>()
+const { user } = useUserSession()
 
-const senderType = 'user' // Fixed sender type
+interface LeadData {
+  id: number
+  list_id: number
+  number: string
+  lead_id: number
+  data: Record<string, {
+    label: string
+    value: string
+    is_dialing: number
+    is_visible: number
+    is_editable: number
+    alternate_phone: string | null
+  }>
+}
+interface Props {
+  leadData: LeadData
+}
+const senderType = 'system' // Fixed sender type
 
 const showHtml = ref(false)
 
@@ -32,27 +51,37 @@ function getLeadEmail() {
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
   to: z.string().email('Lead Mail Id is required'),
-  from: z.string().email('Agent Mail Id is required'),
-  template: z.string().min(1, 'Please select a template').optional(),
-  LeadPlaceholders: z.string().min(1, 'Please select a lead placeholder'),
-  SenderPlaceholders: z.string().min(1, 'Please select a sender placeholder'),
+  from: z.string().optional(),
+  // from: z.object({
+  //   id: z.number().int().positive(),
+  //   from_name: z.string().min(1, 'Agent Name is required'),
+  // }),
+  template: z.number().min(1, 'Please select a template').optional(),
+  LeadPlaceholders: z.string().optional(),
+  SenderPlaceholders: z.string().optional(),
   subject: z.string().min(1, 'Subject is required').max(100, 'Subject cannot exceed 100 characters'),
   templateContent: z.string().min(1, 'Template Preview is required'),
 }))
 
-// Fetch sender details (agent emails)
-const { data: emailSenderData } = await useLazyAsyncData('email-sender-details', () =>
-  useApi().get(`/smtp/type/${senderType}`), {
+// fetch sender placeholders
+const { data: senderPlaceholders } = await useLazyAsyncData('sender-placeholders-start-dialing', () =>
+  useApi().get('/user/selected'), {
+  transform: res => res.columns,
+})
+
+// get lead placeholders
+const { data: leadPlaceholders } = await useLazyAsyncData('lead-placeholder-start-dialing', () =>
+  useApi().post(`/label`), {
   transform: res => res.data,
 })
 
 // Set up form using vee-validate
-const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
+const { handleSubmit, isSubmitting, values, setFieldValue, setValues } = useForm({
   validationSchema: formSchema,
   initialValues: {
     to: getLeadEmail(), // Auto-populate with lead email
     from: '',
-    template: '',
+    template: 0,
     LeadPlaceholders: '',
     SenderPlaceholders: '',
     subject: '',
@@ -60,10 +89,109 @@ const { handleSubmit, isSubmitting, values, setFieldValue } = useForm({
   },
 })
 
-// Refs for managing selected sender and template data
-const selectedSender = ref()
-const emailTemplateData = ref([])
-const selectedTemplateData = ref(null)
+// get email template
+const { data: emailTemplateData, refresh: refreshEmailTemplateData } = await useLazyAsyncData('email-template-start-dialing', () =>
+  useApi().get('/email-templates'), {
+  transform: res => res.data,
+  immediate: true,
+})
+
+// get
+const subjectRef = useTemplateRef<HTMLInputElement | null>('subjectRef')
+const textareaRef = useTemplateRef<typeof QuillEditor | null>('textareaRef')
+const textareaFocused = ref(false)
+
+const { focused: subjectFocused } = useFocus(subjectRef)
+
+// Cache last focused field and cursor positions to survive focus loss
+const lastFocusedField = ref<'subject' | 'template_html' | null>(null)
+const cursorPos = ref({ start: 0, end: 0 })
+
+function cacheSubjectCursor() {
+  const el = subjectRef.value
+  if (!el)
+    return
+  const start = (el.selectionStart ?? (values.subject?.length || 0))
+  const end = (el.selectionEnd ?? start)
+  cursorPos.value = { start, end }
+}
+
+function updateSubjectCursorFromEvent(e: Event) {
+  const target = e.target as HTMLInputElement | null
+  if (!target)
+    return
+  const start = target.selectionStart ?? (values.subject?.length || 0)
+  const end = target.selectionEnd ?? start
+  cursorPos.value = { start, end }
+  lastFocusedField.value = 'subject'
+}
+
+function cacheTemplateCursor() {
+  // For Quill editor, fallback to insert at end of content
+  const len = (values.templateContent || '').length
+  cursorPos.value = { start: len, end: len }
+}
+
+watch([subjectFocused, textareaFocused], ([s, t]) => {
+  if (s) {
+    lastFocusedField.value = 'subject'
+    cacheSubjectCursor()
+  }
+  else if (t) {
+    lastFocusedField.value = 'template_html'
+    cacheTemplateCursor()
+  }
+})
+
+// Insert placeholder
+function insertPlaceholder(value: any) {
+  let el: HTMLInputElement | HTMLTextAreaElement | null = null
+  let currentValue = ''
+  let modelKey: 'subject' | 'template_html' | null = null
+
+  if (subjectFocused.value || lastFocusedField.value === 'subject') {
+    el = subjectRef.value as HTMLInputElement | null
+    currentValue = values.subject || ''
+    modelKey = 'subject'
+  }
+  else if (textareaFocused.value || lastFocusedField.value === 'template_html') {
+    el = textareaRef.value as HTMLTextAreaElement | null
+    textareaRef.value?.insertMergeField(`[[${value}]]`)
+  }
+
+  if (!el || !modelKey)
+    return
+
+  const start = (modelKey === 'subject' && el && typeof (el as HTMLInputElement).selectionStart === 'number')
+    ? (el as HTMLInputElement).selectionStart!
+    : cursorPos.value.start
+  const end = (modelKey === 'subject' && el && typeof (el as HTMLInputElement).selectionEnd === 'number')
+    ? (el as HTMLInputElement).selectionEnd!
+    : cursorPos.value.end
+  const newText = `[[${value}]]`
+
+  const updatedValue = currentValue.slice(0, start) + newText + currentValue.slice(end)
+
+  setValues({
+    ...values,
+    [modelKey]: updatedValue,
+  })
+
+  // Update cursor AFTER DOM updates
+  nextTick(() => {
+    const newCursorPos = start + newText.length
+    if (modelKey === 'subject' && el) {
+      el?.focus()
+      el?.setSelectionRange(newCursorPos, newCursorPos)
+    }
+
+    // Also update cursor cache in case user adds multiple placeholders
+    cursorPos.value = {
+      start: newCursorPos,
+      end: newCursorPos,
+    }
+  })
+}
 
 // Reactive ref for template content to ensure proper reactivity
 const templateContent = ref('')
@@ -82,8 +210,9 @@ watch(templateContent, (newContent) => {
 
 // Watch form values.templateContent and sync with ref
 watch(() => values.templateContent, (newContent) => {
-  if (newContent !== templateContent.value) {
-    templateContent.value = newContent
+  const safeContent = newContent ?? ''
+  if (safeContent !== templateContent.value) {
+    templateContent.value = safeContent
   }
 })
 
@@ -97,122 +226,57 @@ watch(() => props.leadData, (newLeadData) => {
   }
 }, { immediate: true, deep: true })
 
-// Watch for template change → auto-fill subject & content
-watch(() => values.template, (newTemplateId) => {
-  if (newTemplateId && emailTemplateData.value.length > 0) {
-    const selectedTemplate = emailTemplateData.value.find((template: { id: number | string }) => template.id.toString() === newTemplateId)
-    if (selectedTemplate) {
-      selectedTemplateData.value = selectedTemplate
-      setFieldValue('subject', (selectedTemplate as any).subject || '')
-      const htmlContent = (selectedTemplate as any).template_html || ''
-      setFieldValue('templateContent', htmlContent)
-      templateContent.value = htmlContent // Update the ref as well
-    }
-  }
-  else {
-    selectedTemplateData.value = null
-  }
-})
-
-// Watch for sender selection → load related templates
-watch(() => values.from, async (newFromEmail) => {
-  if (newFromEmail && emailSenderData.value) {
-    // Find the selected sender object by email to get its ID
-    selectedSender.value = emailSenderData.value.find((sender: { from_email: string }) => sender.from_email === newFromEmail)
-
-    if (selectedSender.value) {
-      const { data: templateData } = await useLazyAsyncData(`email-template-${selectedSender.value.id}`, () =>
-        useApi().get(`/email-template/${selectedSender.value.id}`), {
-        transform: res => res.data,
-      })
-
-      // Normalize to array and update form values
-      if (templateData.value) {
-        emailTemplateData.value = Array.isArray(templateData.value) ? templateData.value : [templateData.value]
-
-        // If only one template, auto-select it
-        if (emailTemplateData.value.length === 1) {
-          const singleTemplate = emailTemplateData.value[0]
-          const htmlContent = (singleTemplate as any)?.template_html || ''
-          setFieldValue('template', (singleTemplate as any).id?.toString() ?? '')
-          setFieldValue('subject', (singleTemplate as any)?.subject || '')
-          setFieldValue('templateContent', htmlContent)
-          templateContent.value = htmlContent // Update the ref
-          selectedTemplateData.value = singleTemplate || null
-        }
-        else {
-          // Multiple templates - clear fields and let user choose
-          setFieldValue('template', '')
-          setFieldValue('subject', '')
-          setFieldValue('templateContent', '')
-          templateContent.value = '' // Clear the ref
-          selectedTemplateData.value = null
-        }
-      }
-      else {
-        // No templates found for sender – clear everything
-        emailTemplateData.value = []
-        setFieldValue('template', '')
-        setFieldValue('subject', '')
-        setFieldValue('templateContent', '')
-        templateContent.value = '' // Clear the ref
-        selectedTemplateData.value = null
-      }
-    }
-  }
-  else {
-    // No sender selected – clear fields
-    emailTemplateData.value = []
-    selectedTemplateData.value = null
-    setFieldValue('subject', '')
-    setFieldValue('templateContent', '')
-    templateContent.value = '' // Clear the ref
-    setFieldValue('template', '')
-  }
-}, { immediate: true })
-
 // Submit handler for sending email
 const onSubmit = handleSubmit(async (vals) => {
-  const payload = {
-    senderType: 'user',
-    user_id: selectedSender.value.user_id,
-    campaign_id: selectedSender.value.campaign_id,
-    subject: vals.subject,
-    body: vals.templateContent, // This now contains the actual Quill editor content
-    to: vals.to,
-  }
-
   try {
-    const response = await useApi().post('/send-email/generic', {
-      ...payload,
-    })
+    const payload = {
+      senderType: 'system',
+      user_id: user.value?.id,
+      subject: vals.subject,
+      body: vals.templateContent, // This now contains the actual Quill editor content
+      to: vals.to,
+    }
+
+    const response = await useApi().post('/send-email/generic', payload)
 
     if (response.success === true) {
       showToast({
-        message: response.message,
+        message: response.message || 'Email sent successfully',
         type: 'success',
       })
     }
     else {
       showToast({
-        message: response.message,
+        message: response.message || 'Failed to send email',
         type: 'error',
       })
     }
   }
   catch (error: any) {
     showToast({
-      message: `${error.message}`,
+      message: `${error.message || 'An error occurred while sending the email'}`,
       type: 'error',
     })
   }
 })
+
+function onTextareaFocus() {
+  textareaFocused.value = true
+  lastFocusedField.value = 'template_html'
+}
+
+function onTemplateChange(val: any) {
+  const template = emailTemplateData.value.find((item: any) => item.id === val)
+  if (template) {
+    textareaRef.value?.setHTMLContent(template.template_html)
+  }
+}
 </script>
 
 <template>
-  <div class="p-4 bg-white rounded-md border border-[#F4F4F5]">
-    <form @submit.prevent="onSubmit">
-      <div class="flex flex-col justify-between gap-6 h-fit">
+  <div class="p-4 bg-white rounded-md border border-[#F4F4F5] h-full">
+    <form class="h-full" @submit.prevent="onSubmit">
+      <div class="flex flex-col justify-between gap-6 h-full">
         <!-- Form fields section -->
         <div class="flex-1 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,16 +304,7 @@ const onSubmit = handleSubmit(async (vals) => {
                   From
                 </FormLabel>
                 <FormControl>
-                  <Select v-bind="componentField">
-                    <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="Agent Mail Id" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="option in emailSenderData" :key="option.id" :value="option.from_email">
-                        {{ option.from_name }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input disabled v-bind="componentField" class="border-gray-200 h-11" :class="{ 'bg-gray-50': componentField.modelValue }" />
                 </FormControl>
                 <FormMessage class="text-red-500" />
               </FormItem>
@@ -260,13 +315,13 @@ const onSubmit = handleSubmit(async (vals) => {
             <FormItem>
               <FormLabel>Template</FormLabel>
               <FormControl>
-                <Select v-bind="componentField" :disabled="emailTemplateData.length === 0">
+                <Select v-bind="componentField" :disabled="emailTemplateData?.length === 0" @update:model-value="onTemplateChange">
                   <SelectTrigger class="w-full !h-11">
-                    <SelectValue :placeholder="emailTemplateData.length === 0 ? 'No templates available' : 'Select template'" />
+                    <SelectValue :placeholder="emailTemplateData?.length === 0 ? 'No templates available' : 'Select template'" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="template in emailTemplateData" :key="(template as any).id" :value="(template as any).id.toString()">
-                      {{ (template as any).template_name }}
+                    <SelectItem v-for="template in emailTemplateData" :key="template?.id" :value="template?.id">
+                      {{ template?.template_name }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -277,23 +332,28 @@ const onSubmit = handleSubmit(async (vals) => {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Lead Placeholders -->
-            <FormField v-slot="{ componentField }" name="LeadPlaceholders">
+            <FormField v-slot="{ componentField, value }" name="LeadPlaceholders">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Lead Placeholders
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Select Placeholder"
-                    v-bind="componentField"
-                    class="border-gray-200 h-11"
-                  />
+                  <Select v-bind="componentField" @update:model-value="insertPlaceholder">
+                    <SelectTrigger class="w-full px-3 !h-11 py-2 bg-white rounded-lg outline outline-offset-[-1px] outline-zinc-200 inline-flex justify-between items-center overflow-hidden">
+                      <SelectValue placeholder="Select Lead Placeholder" class="justify-start text-slate-800 text-sm font-normal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="option in leadPlaceholders" :key="option.id" type="menu" :value="option.title">
+                        {{ option.title }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage class="text-red-500" />
               </FormItem>
             </FormField>
             <!-- Sender Placeholders -->
-            <FormField v-slot="{ componentField }" name="SenderPlaceholders">
+            <FormField v-slot="{ componentField }" name="SenderPlaceholders" @update:model-value="insertPlaceholder">
               <FormItem class="flex flex-col gap-1">
                 <FormLabel class="text-sm font-medium text-gray-700">
                   Sender Placeholders
@@ -304,8 +364,8 @@ const onSubmit = handleSubmit(async (vals) => {
                       <SelectValue placeholder="Select Placeholder" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="option in emailSenderData" :key="option.id" :value="option.from_email">
-                        {{ option.from_name }}
+                      <SelectItem v-for="option in senderPlaceholders" :key="option" :value="option">
+                        {{ option }}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -321,23 +381,33 @@ const onSubmit = handleSubmit(async (vals) => {
               <FormLabel>Subject</FormLabel>
               <FormControl>
                 <Input
+                  ref="subjectRef"
                   placeholder="Enter Mail Subject"
                   v-bind="componentField"
                   class="border-gray-200 h-11"
+                  @focus="updateSubjectCursorFromEvent"
+                  @input="updateSubjectCursorFromEvent"
+                  @keyup="updateSubjectCursorFromEvent"
+                  @mouseup="updateSubjectCursorFromEvent"
+                  @select="updateSubjectCursorFromEvent"
                 />
               </FormControl>
               <FormMessage class="text-red-500" />
             </FormItem>
           </FormField>
           <!-- Message (full width) -->
+
           <FormField name="templateContent">
             <FormItem>
               <FormLabel>Template Preview</FormLabel>
               <FormControl>
                 <BaseQuillEditor
+                  ref="textareaRef"
                   v-model="templateContent"
+                  class="h-full"
                   content-type="html"
                   @toggle-view="() => showHtml = !showHtml"
+                  @focus="onTextareaFocus"
                 />
               </FormControl>
               <div class="flex justify-between">

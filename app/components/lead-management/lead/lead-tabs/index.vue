@@ -18,7 +18,7 @@ const props = defineProps({
   <div class="border rounded-lg">
     <Tabs default-value="activity" class="w-full gap-0">
       <div class=" border-b pb-4 p-2 md:p-4">
-        <TabsList class="grid w-full grid-cols-4 p-0">
+        <TabsList class="grid w-full grid-cols-3 p-0">
           <TabsTrigger value="activity" class="data-[state=active]:bg-black data-[state=active]:text-[#FAFAFA] font-light text-xs md:text-sm">
             <p>Activity</p>
           </TabsTrigger>
@@ -28,9 +28,9 @@ const props = defineProps({
           <TabsTrigger value="email" class="data-[state=active]:bg-black data-[state=active]:text-white font-light text-xs md:text-sm">
             <p>Send Email</p>
           </TabsTrigger>
-          <TabsTrigger value="fax" class="data-[state=active]:bg-black data-[state=active]:text-white font-light text-xs md:text-sm">
+          <!-- <TabsTrigger value="fax" class="data-[state=active]:bg-black data-[state=active]:text-white font-light text-xs md:text-sm">
             <p>Send Fax</p>
-          </TabsTrigger>
+          </TabsTrigger> -->
         </TabsList>
       </div>
 
