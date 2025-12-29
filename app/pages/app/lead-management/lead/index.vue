@@ -241,7 +241,7 @@ function changeLimit(val: number) {
                 <Icon name="eos-icons:loading" />
               </SelectItem>
               <template v-else>
-                <SelectItem v-for="(header, index) in listHeaders" :key="index" :value="header">
+                <SelectItem v-for="(header, index) in listHeaders" :key="index" :value="header" :disabled="header?.is_search !== 1">
                   {{ header?.title }}
                 </SelectItem>
               </template>
