@@ -33,9 +33,6 @@ interface Campaign {
 defineProps<{
   campaign?: Campaign // Accept the campaign details object as a prop
 }>()
-function formatTime(time: any) {
-  return moment(time, 'HH:mm').format('h:mm A')
-}
 
 const callerIds = {
   area_code: 'Area Code',
@@ -47,228 +44,229 @@ const open = defineModel<boolean>()
 
 <template>
   <Sheet v-model:open="open">
-    <SheetContent class="min-w-[483px]">
+    <SheetContent class="min-w-[483px] gap-0">
       <SheetHeader class="bg-[#162D3A] ">
         <SheetTitle class="text-white">
           Campaign Details
         </SheetTitle>
       </SheetHeader>
-      <div>
-        <div class="mx-auto p-6 space-y-6">
-          <div class="space-y-2">
-            <div class="flex items-center gap-2 text-gray-600">
-              <Icon name="material-symbols:campaign-outline" size="20" />
-              <span class="text-sm font-normal">Name</span>
-            </div>
-            <div class="text-[16px] font-medium">
-              {{ campaign?.title }}
-            </div>
+      <div class="mx-auto p-6 space-y-6 overflow-y-auto">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-gray-600">
+            <Icon name="material-symbols:campaign-outline" size="20" />
+            <span class="text-sm font-normal">Name</span>
           </div>
+          <div class="text-base font-medium">
+            {{ campaign?.title }}
+          </div>
+        </div>
 
-          <!-- Description Section -->
+        <!-- Description Section -->
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-gray-600">
+            <Icon name="lucide:file-text" />
+            <span class="text-sm font-normal">Description</span>
+          </div>
+          <p class="text-gray-700">
+            {{ campaign?.description }}
+          </p>
+        </div>
+
+        <!-- Grid Layout for Details -->
+        <div class="grid grid-cols-2 gap-6">
+          <!-- Dialing Mode -->
           <div class="space-y-2">
             <div class="flex items-center gap-2 text-gray-600">
-              <Icon name="lucide:file-text" />
-              <span class="text-sm font-normal">Description</span>
+              <Icon name="ic:outline-local-phone" />
+              <span class="text-sm font-normal">Dialing Mode</span>
             </div>
-            <p class="text-gray-700">
-              {{ campaign?.description }}
+            <p class="text-gray-700 capitalize">
+              {{ campaign?.dial_mode?.replace(/_/g, ' ') }}
             </p>
           </div>
 
-          <!-- Grid Layout for Details -->
-          <div class="grid grid-cols-2 gap-6">
-            <!-- Dialing Mode -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <Icon name="ic:outline-local-phone" />
-                <span class="text-sm font-normal">Dialing Mode</span>
-              </div>
-              <p class="text-gray-700 capitalize">
-                {{ campaign?.dial_mode?.replace(/_/g, ' ') }}
-              </p>
+          <!-- Status -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <Icon name="lucide:zap" />
+              <span class="text-sm font-normal">Status</span>
             </div>
+            <p
+              class="font-medium text-base" :class="[
+                campaign?.status === 1 ? 'text-green-600' : 'text-red-600',
+              ]"
+            >
+              {{ campaign?.status === 1 ? 'Active' : 'Inactive' }}
+            </p>
+          </div>
 
-            <!-- Status -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <Icon name="lucide:zap" />
-                <span class="text-sm font-normal">Status</span>
-              </div>
-              <p
-                class="font-medium text-[16px]" :class="[
-                  campaign?.status === 1 ? 'text-green-600' : 'text-red-600',
-                ]"
-              >
-                {{ campaign?.status === 1 ? 'Active' : 'Inactive' }}
-              </p>
+          <!-- Time based calling -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <Icon name="material-symbols:clock-loader-60" />
+              <span class="text-sm font-normal">Time based calling</span>
             </div>
+            <p
+              class="font-medium text-base" :class="[
+                campaign?.time_based_calling === 1 ? 'text-green-600' : 'text-red-600',
+              ]"
+            >
+              {{ campaign?.time_based_calling === 1 ? 'Yes' : 'No' }}
+            </p>
+          </div>
 
-            <!-- Time based calling -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <Icon name="material-symbols:clock-loader-60" />
-                <span class="text-sm font-normal">Time based calling</span>
-              </div>
-              <p
-                class="font-medium text-[16px]" :class="[
-                  campaign?.time_based_calling === 1 ? 'text-green-600' : 'text-red-600',
-                ]"
-              >
-                {{ campaign?.time_based_calling === 1 ? 'Yes' : 'No' }}
-              </p>
+          <!-- Call Time -->
+          <div v-if="campaign?.time_based_calling === 1 && campaign?.call_time_start && campaign?.call_time_end" class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:clock-4" />
+              <span class="text-sm font-normal">Call Time</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              <!-- {{ formatTime(campaign?.call_time_start) }} to {{ formatTime(campaign?.call_time_end) }} -->
+              {{ campaign.schedule_name }}
+            </p>
+          </div>
 
-            <!-- Call Time -->
-            <div v-if="campaign?.time_based_calling === 1 && campaign?.call_time_start && campaign?.call_time_end" class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:clock-4" />
-                <span class="text-sm font-normal">Call Time</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                <!-- {{ formatTime(campaign?.call_time_start) }} to {{ formatTime(campaign?.call_time_end) }} -->
-                {{ campaign.schedule_name }}
-              </p>
+          <!-- Caller ID -->
+          <div v-if="campaign?.caller_id" class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <Icon name="clarity:user-line" />
+              <span class="text-sm font-normal">Caller ID</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              {{ callerIds[campaign?.caller_id as keyof typeof callerIds] }}
+            </p>
+          </div>
 
-            <!-- Caller ID -->
-            <div v-if="campaign?.caller_id" class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <Icon name="clarity:user-line" />
-                <span class="text-sm font-normal">Caller ID</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ callerIds[campaign?.caller_id as keyof typeof callerIds] }}
-              </p>
+          <!-- Custom Caller ID -->
+          <div v-if="campaign?.custom_caller_id && campaign?.caller_id === 'custom'" class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:user-round-cog" />
+              <span class="text-sm font-normal">Custom Caller ID</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              {{ formatNumber(String(campaign?.custom_caller_id)) }}
+            </p>
+          </div>
 
-            <!-- Custom Caller ID -->
-            <div v-if="campaign?.custom_caller_id && campaign?.caller_id === 'custom'" class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:user-round-cog" />
-                <span class="text-sm font-normal">Custom Caller ID</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ formatNumber(String(campaign?.custom_caller_id)) }}
-              </p>
+          <!-- Country Code -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <Icon name="lucide:flag" />
+              <span class="text-sm font-normal">Country Code</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              {{ campaign?.country_code }}
+            </p>
+          </div>
 
-            <!-- Country Code -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <Icon name="lucide:flag" />
-                <span class="text-sm font-normal">Country Code</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.country_code }}
-              </p>
+          <!-- List Associated -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:list" />
+              <span class="text-sm font-normal">List Associated</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              {{ campaign?.rowList }}
+            </p>
+          </div>
 
-            <!-- List Associated -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:list" />
-                <span class="text-sm font-normal">List Associated</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.rowList }}
-              </p>
+          <!-- Send to CRM -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:rocket" />
+              <span class="text-sm font-normal">Send to CRM</span>
             </div>
+            <p
+              class="font-medium text-base" :class="[
+                campaign?.send_crm === '1' ? 'text-green-600' : 'text-red-600',
+              ]"
+            >
+              {{ campaign?.send_crm === '1' ? 'Yes' : 'No' }}
+            </p>
+          </div>
 
-            <!-- Send to CRM -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:rocket" />
-                <span class="text-sm font-normal">Send to CRM</span>
-              </div>
-              <p
-                class="font-medium text-[16px]" :class="[
-                  campaign?.send_crm === '1' ? 'text-green-600' : 'text-red-600',
-                ]"
-              >
-                {{ campaign?.send_crm === '1' ? 'Yes' : 'No' }}
-              </p>
+          <!-- Dialed Leads/Total Leads -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="gravity-ui:nodes-down" />
+              <span class="text-sm font-normal">Dialed Leads/Total Leads</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              {{ campaign?.dialed_leads }}/{{ campaign?.total_leads }}
+            </p>
+          </div>
 
-            <!-- Dialed Leads/Total Leads -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="gravity-ui:nodes-down" />
-                <span class="text-sm font-normal">Dialed Leads/Total Leads</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.dialed_leads }}/{{ campaign?.total_leads }}
-              </p>
+          <!-- Send Email -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:mail" />
+              <span class="text-sm font-normal">Send Email</span>
             </div>
+            <p
+              class="font-medium text-base" :class="[
+                campaign?.email === '1' ? 'text-green-600' : 'text-red-600',
+              ]"
+            >
+              {{ campaign?.email === '1' ? 'With user email' : 'No' }}
+            </p>
+          </div>
 
-            <!-- Send Email -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:mail" />
-                <span class="text-sm font-normal">Send Email</span>
-              </div>
-              <p
-                class="font-medium text-[16px]" :class="[
-                  campaign?.email === '1' ? 'text-green-600' : 'text-red-600',
-                ]"
-              >
-                {{ campaign?.email === '1' ? 'With user email' : 'No' }}
-              </p>
+          <!-- Send SMS -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:message-square-text" />
+
+              <span class="text-sm font-normal">Send SMS</span>
             </div>
+            <p
+              class="font-medium text-base" :class="[
+                campaign?.sms === '1' ? 'text-green-600' : 'text-red-600',
+              ]"
+            >
+              {{ campaign?.sms === '1' ? 'Yes' : 'No' }}
+            </p>
+          </div>
 
-            <!-- Send SMS -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:message-square-text" />
+          <!-- Hopper Count -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="material-symbols-light:filter-alt-outline" />
 
-                <span class="text-sm font-normal">Send SMS</span>
-              </div>
-              <p
-                class="font-medium text-[16px]" :class="[
-                  campaign?.sms === '1' ? 'text-green-600' : 'text-red-600',
-                ]"
-              >
-                {{ campaign?.sms === '1' ? 'Yes' : 'No' }}
-              </p>
+              <span class="text-sm font-normal">Hopper Count</span>
             </div>
+            <p class="text-gray-700 text-base font-normal">
+              {{ campaign?.hopper_count }}
+            </p>
+          </div>
 
-            <!-- Hopper Count -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="material-symbols-light:filter-alt-outline" />
-
-                <span class="text-sm font-normal">Hopper Count</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.hopper_count }}
-              </p>
+          <!-- Created Date -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="lucide:calendar-days" />
+              <span class="text-sm font-normal">Created Date</span>
             </div>
+            <p class="text-gray-700 text-base font-normal flex flex-col">
+              {{ moment(campaign?.created_date, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') }}
+              <span class="text-sm">
+                {{ moment(campaign?.created_date, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') }}
+              </span>
+            </p>
+          </div>
 
-            <!-- Created Date -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="lucide:calendar-days" />
-                <span class="text-sm font-normal">Created Date</span>
-              </div>
-              <p class="text-gray-700 text-[16px] font-normal">
-                {{ campaign?.created_date }}
-              </p>
+          <!-- Send Report -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-gray-600">
+              <icon name="icon-park-solid:notepad" />
+              <span class="text-sm font-normal ">Send Report</span>
             </div>
-
-            <!-- Send Report -->
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-600">
-                <icon name="icon-park-solid:notepad" />
-                <span class="text-sm font-normal ">Send Report</span>
-              </div>
-              <p
-                class="font-medium text-[16px]" :class="[
-                  campaign?.send_report === 1 ? 'text-green-600' : 'text-red-600',
-                ]"
-              >
-                {{ campaign?.send_report === 1 ? 'Yes' : 'No' }}
-              </p>
-            </div>
+            <p
+              class="font-medium text-base" :class="[
+                campaign?.send_report === 1 ? 'text-green-600' : 'text-red-600',
+              ]"
+            >
+              {{ campaign?.send_report === 1 ? 'Yes' : 'No' }}
+            </p>
           </div>
         </div>
       </div>
