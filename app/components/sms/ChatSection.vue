@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import Button from '../ui/button/Button.vue'
 import Input from '../ui/input/Input.vue'
 
@@ -40,12 +47,42 @@ const messageInputRef = ref<HTMLInputElement | null>(null)
 const loadingSms = ref(false)
 const selectedFile = ref<File | null>(null)
 
+const { data: smsDidList, status: smsDidListStatus, refresh: refreshSmsDidList } = await useLazyAsyncData('sms-did-list', () =>
+  useApi().get('sms_did_list'), {
+  transform: res => res.data,
+  immediate: false,
+})
+
+const selectedDid = ref<number | string | undefined>(props.contact?.did)
+
+watch(() => props.contact?.did, (newDid) => {
+  if (newDid) {
+    selectedDid.value = newDid
+  }
+})
+
+onMounted(() => {
+  refreshSmsDidList()
+  scrollToBottom()
+})
+
 interface NormalizedMessage {
   type: 'outgoing' | 'incoming'
   text: string
   at?: string | Date
   mediaUrl?: string
 }
+
+const previewUrl = ref<string | null>(null)
+watch(selectedFile, (newFile) => {
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
+  }
+  if (newFile && newFile.type.startsWith('image/')) {
+    previewUrl.value = URL.createObjectURL(newFile)
+  }
+})
 
 const normalizedMessages = computed<NormalizedMessage[]>(() => {
   if (!Array.isArray(props.messages))
@@ -78,7 +115,7 @@ async function sendMessage(file?: File) {
     let body: any
     if (file) {
       const formData = new FormData()
-      formData.append('from', String(props.contact?.did ?? ''))
+      formData.append('from', String(selectedDid.value ?? ''))
       formData.append('to', String(props.contact?.number ?? ''))
       formData.append('message', String(currentDraft.value || ''))
       formData.append('mms_file', file)
@@ -87,7 +124,7 @@ async function sendMessage(file?: File) {
     }
     else {
       body = {
-        from: props.contact?.did,
+        from: selectedDid.value,
         to: props.contact?.number,
         message: currentDraft.value,
         mms_file: null,
@@ -124,19 +161,6 @@ async function sendMessage(file?: File) {
   finally {
     loadingSms.value = false
   }
-}
-
-function handleFileChange(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input?.files?.[0] || null
-  if (!file)
-    return
-  selectedFile.value = file
-  sendMessage(file).finally(() => {
-    selectedFile.value = null
-    if (input)
-      input.value = ''
-  })
 }
 
 // Scroll Handling
@@ -186,7 +210,6 @@ function scrollToBottom() {
 onMounted(() => {
   scrollToBottom()
 })
-
 </script>
 
 <template>
@@ -225,12 +248,17 @@ onMounted(() => {
       </div>
       <!-- Chat Body -->
       <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="background-image: url('/images/chat-bg.png'); background-size: cover; background-repeat: repeat;" @scroll="handleScroll">
-        <!-- Loading indicator -->
-        <div v-if="loading" class="w-full flex justify-center">
+        <!-- Pagination Loading indicator (at top) -->
+        <div v-if="loading && normalizedMessages.length > 0" class="w-full flex justify-center py-2">
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[#162D3A]" />
         </div>
 
-        <template v-else>
+        <!-- Initial Loading indicator (full area) -->
+        <div v-if="loading && normalizedMessages.length === 0" class="h-full w-full flex items-center justify-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#162D3A]" />
+        </div>
+
+        <template v-if="normalizedMessages.length > 0">
           <div v-for="(msg, index) in normalizedMessages" :key="index">
             <div v-if="msg.type === 'outgoing'" class="flex justify-end">
               <div class="max-w-lg break-words bg-[#162D3A] text-white p-3 rounded-xl rounded-tr-none text-sm relative">
@@ -287,16 +315,32 @@ onMounted(() => {
     <!-- Bottom section -->
     <div>
       <!-- Footer -->
-      <div class="bg-[#EBF5F3] py-2 border-t border-muted">
-        <div class="flex items-center justify-between text-sm text-muted-foreground px-[24px]">
-          <div>
-            Send with
-            <span class="text-primary font-medium underline underline-offset-1">
-              {{ formatNumber(String(props.contact?.did)) }}
-            </span>
-          </div>
-          <Icon name="material-symbols:keyboard-arrow-down" size="22" />
-        </div>
+      <div class="bg-[#EBF5F3]">
+        <Select v-model="selectedDid">
+          <SelectTrigger class="w-full !h-9 border-none bg-transparent shadow-none focus:ring-0 px-6 justify-between flex items-center">
+            <div class="flex items-center gap-1 text-sm text-muted-foreground">
+              Send with
+              <span class="text-primary font-medium underline underline-offset-1">
+                <SelectValue>
+                  {{ formatNumber(String(selectedDid)) }}
+                </SelectValue>
+              </span>
+            </div>
+            <template #icon>
+              <Icon name="material-symbols:keyboard-arrow-down" size="22" class="text-muted-foreground" />
+            </template>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-if="smsDidListStatus === 'pending'" class="text-center justify-center" :value="null" disabled>
+              <Icon name="eos-icons:loading" />
+            </SelectItem>
+            <template v-else>
+              <SelectItem v-for="(option, index) in smsDidList" :key="index" :value="option.cli">
+                {{ formatNumber(option.cli) }}
+              </SelectItem>
+            </template>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Input Field -->
@@ -309,23 +353,25 @@ onMounted(() => {
             class="w-full pl-0 border-none shadow-none rounded-none bg-transparent placeholder:text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
           />
           <div class="flex items-center gap-2">
-            <div class="relative cursor-pointer">
-              <Input
-                type="file"
-                class="relative z-10 h-11 w-11 px-0! py-0! bg-transparent file:text-transparent rounded-lg border border-stone-900 inline-flex justify-start items-center cursor-pointer"
-                @change="handleFileChange"
-              />
-              <Icon name="material-symbols:attach-file" size="20" class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 cursor-pointer" />
-            </div>
+            <BaseFileInput
+              v-model="selectedFile"
+              :max-size-by-type="{
+                image: 3000000, // 3MB for images
+                audio: 600000, // 600KB for audio
+                video: 600000, // 600KB for video
+                default: 600000, // 600KB for other types
+              }"
+              :supported-extensions="['png']"
+            />
             <Button
               type="button"
               size="icon"
               :loading="loadingSms"
-              :disabled="loadingSms || !currentDraft"
+              :disabled="loadingSms || (!currentDraft && !selectedFile)"
               class="h-11 w-11"
-              @click="sendMessage()"
+              @click="sendMessage(selectedFile || undefined)"
             >
-              <Icon name="material-symbols:send-outline" size="20" :class="loadingSms ? 'hidden' : 'block'" />
+              <Icon name="material-symbols:send-outline" size="20" />
             </Button>
           </div>
         </div>
