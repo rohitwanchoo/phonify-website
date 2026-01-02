@@ -100,6 +100,14 @@ async function deleteExtension(id: string) {
   if (isCanceled) {
     return false
   }
+ 
+  // check the length of list
+  if(props.list.length === 1){
+    showToast({ type: 'error', message: 'The last extension cannot be removed.' })
+    return
+  }
+
+
   useApi().post('extension/deleteFromGroup', {
     group_id: route.query.id,
     extension_id: id,

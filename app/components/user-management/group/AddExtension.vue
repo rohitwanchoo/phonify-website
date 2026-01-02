@@ -123,7 +123,7 @@ function submit() {
       </div>
       <SheetFooter class="">
         <SheetClose as-child>
-          <Button type="submit" class="h-[52px]" @click="submit">
+          <Button :disabled="!selectedExtensions.length" type="submit" class="h-[52px]" @click="submit">
             <Icon class="text-xl" name="material-symbols:save" />
             Save
           </Button>
