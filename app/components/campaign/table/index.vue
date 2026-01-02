@@ -290,7 +290,7 @@ const columns = [
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
       }, () => ['Date', h(ChevronsUpDown, { class: 'ml-2 h-4 w-4' })])),
     cell: ({ row }) => {
-      const updated = row.original.updated
+      const updated = row.original.created_at
       return h('div', { class: 'text-center font-normal leading-[9px] text-sm' }, [
         h('div', updated ? moment(updated, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') : '-'),
         h('br'),
