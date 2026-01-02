@@ -145,15 +145,16 @@ async function deleteGroup(group: Group) {
     return false
   }
   try {
-    const response = await useApi().delete(`extension-group/${group.id}`)
+    const response = await useApi().delete('extension-group-delete', {
+      params: {
+        group_id: group.id
+      }
+    })
     showToast({ message: response.message })
     refreshExtensionGroup()
   }
   catch (error) {
-    showToast({
-      message: (error as any)?.message || 'Failed to delete extension group',
-      type: 'error',
-    })
+    handleError(error as any)
   }
 }
 
