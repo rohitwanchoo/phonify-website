@@ -48,6 +48,17 @@ function searchText() {
 
 const selectedExtensions = defineModel<Extension[]>('selectedExtensions', { default: [] })
 
+// Temporary selection state to prevent auto-save
+const tempSelectedExtensions = ref<Extension[]>([])
+
+// Sync temp state with actual selections when sheet opens
+watch(open, (isOpen) => {
+  if (isOpen) {
+    // Clone the current selections to temp state
+    tempSelectedExtensions.value = [...selectedExtensions.value]
+  }
+})
+
 function handleCheckboxChange(id: any, extension: Extension) {
   const extensionData = {
     first_name: extension.first_name,
@@ -55,19 +66,20 @@ function handleCheckboxChange(id: any, extension: Extension) {
     extension: extension.extension,
   }
 
-  if (selectedExtensions?.value.some(item => item?.extension === extension?.extension)) {
-    selectedExtensions.value = selectedExtensions?.value.filter(
+  if (tempSelectedExtensions.value.some(item => item?.extension === extension?.extension)) {
+    tempSelectedExtensions.value = tempSelectedExtensions.value.filter(
       item => item?.extension !== extension?.extension,
     )
   }
   else {
-    selectedExtensions.value.push(extensionData)
+    tempSelectedExtensions.value.push(extensionData)
   }
 }
 
 function submit() {
+  // Only update the parent's selectedExtensions when Save is clicked
+  selectedExtensions.value = [...tempSelectedExtensions.value]
   emits('submit', selectedExtensions.value)
-  // selectedExtensions.value = []
 }
 </script>
 
@@ -114,7 +126,7 @@ function submit() {
             </label>
             <Checkbox
               :id="extension.id"
-              :model-value="selectedExtensions.some(item => item.extension === extension.extension)"
+              :model-value="tempSelectedExtensions.some(item => item.extension === extension.extension)"
               class="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
               @update:model-value="(checked) => handleCheckboxChange(extension.id, extension)"
             />
@@ -123,7 +135,7 @@ function submit() {
       </div>
       <SheetFooter class="">
         <SheetClose as-child>
-          <Button :disabled="!selectedExtensions.length" type="submit" class="h-[52px]" @click="submit">
+          <Button :disabled="!tempSelectedExtensions.length" type="submit" class="h-[52px]" @click="submit">
             <Icon class="text-xl" name="material-symbols:save" />
             Save
           </Button>
