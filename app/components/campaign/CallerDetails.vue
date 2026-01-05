@@ -144,6 +144,10 @@ function onSelectDialMode(val: any): void {
     emit('setFieldValue', 'automated_duration', undefined)
     emit('setFieldValue', 'amd', undefined)
   }
+
+  if (val === 'outbound_ai') {
+    emit('setFieldValue', 'redirect_to', 0)
+  }
 }
 
 function onSelectNoAgentAvailableAction(val: any) {
@@ -350,7 +354,7 @@ function cancelEdit() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem v-for="item in [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]" :key="item" :value="String(item)">
+                      <SelectItem v-for="item in ['1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5']" :key="item" :value="String(item)">
                         {{ item }}
                       </SelectItem>
                     </SelectGroup>
@@ -377,7 +381,7 @@ function cancelEdit() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem v-for="item in 15" :key="item" :value="String(item)">
+                      <SelectItem v-for="item in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']" :key="item" :value="item">
                         {{ item }}
                       </SelectItem>
                     </SelectGroup>

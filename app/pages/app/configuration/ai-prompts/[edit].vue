@@ -381,7 +381,7 @@ const onSubmit = handleSubmit(async (values) => {
             </div>
           </div>
 
-          <div class="bg-white rounded-xl border border-zinc-100">
+          <div v-if="promptData?.functions.length" class="bg-white rounded-xl border border-zinc-100">
             <div class="px-5 py-3 border-b border-zinc-100">
               <h5 class="text-stone-900 text-base font-medium">
                 Functions

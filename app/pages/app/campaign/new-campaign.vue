@@ -90,6 +90,8 @@ function setData() {
         redirect_to_dropdown: Number(values.redirect_to_dropdown),
         no_agent_dropdown_action: Number(values.no_agent_dropdown_action),
         call_schedule_id: values.call_schedule_id,
+        call_ratio: String(values.call_ratio),
+        duration: values.duration === 0 ? '' : values.duration
         // custom_caller_id: values.custom_caller_id ? values.custom_caller_id : null,
       }
       if (values?.custom_caller_id === 'null') {

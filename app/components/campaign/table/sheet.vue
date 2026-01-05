@@ -28,6 +28,7 @@ interface Campaign {
   dialed_leads: number
   created_date?: string
   schedule_name?: string
+  created_at?: string
 }
 
 defineProps<{
@@ -116,7 +117,7 @@ const open = defineModel<boolean>()
           </div>
 
           <!-- Call Time -->
-          <div v-if="campaign?.time_based_calling === 1 && campaign?.call_time_start && campaign?.call_time_end" class="space-y-2">
+          <div v-if="campaign?.time_based_calling === 1 " class="space-y-2">
             <div class="flex items-center gap-2 text-gray-600">
               <icon name="lucide:clock-4" />
               <span class="text-sm font-normal">Call Time</span>
@@ -247,9 +248,9 @@ const open = defineModel<boolean>()
               <span class="text-sm font-normal">Created Date</span>
             </div>
             <p class="text-gray-700 text-base font-normal flex flex-col">
-              {{ moment(campaign?.created_date, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') }}
+              {{ moment(campaign?.created_at, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD') }}
               <span class="text-sm">
-                {{ moment(campaign?.created_date, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') }}
+                {{ moment(campaign?.created_at, 'YYYY-MM-DD HH:mm:ss').format('hh:mm A') }}
               </span>
             </p>
           </div>
