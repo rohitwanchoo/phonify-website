@@ -147,8 +147,8 @@ async function deleteGroup(group: Group) {
   try {
     const response = await useApi().delete('extension-group-delete', {
       params: {
-        group_id: group.id
-      }
+        group_id: group.id,
+      },
     })
     showToast({ message: response.message })
     refreshExtensionGroup()
@@ -201,24 +201,20 @@ watch(() => extensionGroupStatus.value, async (newStatus) => {
 
     await refreshExtensionDataByGroupId()
     // console.log(route.query?.id)
-
-    selectedExtensions.value = extensionDataByGroupId?.value?.map((item: any) => ({
-      first_name: item.first_name,
-      last_name: item.last_name,
-      extension: item.extension,
-    })) as Extension[]
   }
 })
 
-watch(() => extensionDataStatus.value, (newStatus) => {
-  if (newStatus === 'success') {
-    selectedExtensions.value = extensionDataByGroupId?.value?.map((item: any) => ({
-      first_name: item.first_name,
-      last_name: item.last_name,
-      extension: item.extension,
-    })) as Extension[]
+function onUpdateExtensionSheet(val: any) {
+  if (val) {
+    if (extensionDataByGroupId.value.length) {
+      selectedExtensions.value = extensionDataByGroupId?.value?.map((item: any) => ({
+        first_name: item.first_name,
+        last_name: item.last_name,
+        extension: item.extension,
+      })) as Extension[]
+    }
   }
-})
+}
 </script>
 
 <template>
@@ -281,7 +277,7 @@ watch(() => extensionDataStatus.value, (newStatus) => {
           <UserManagementGroupAddExtension
             v-model="addExtensionSheet"
             v-model:selected-extensions="selectedExtensions"
-
+            @update:model-value="onUpdateExtensionSheet"
             @submit="addExtension"
           />
         </div>
