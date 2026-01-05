@@ -27,7 +27,7 @@ const props = defineProps<{
   loading: boolean
 }>()
 
-const emits = defineEmits(['cancelEdit'])
+const emits = defineEmits(['cancelEdit', 'getCallSchedule'])
 
 const { enableEditSection, formState } = useCreateCampaign()
 
@@ -81,7 +81,9 @@ function onSelectCallTime() {
 }
 
 const scheduleTitle = computed(() => {
-  return callTimingList.value?.find((item: any) => item.id === formState.value.call_schedule_id)?.title
+  const callSchedule = callTimingList.value?.find((item: any) => item.id === formState.value.call_schedule_id)
+  emits('getCallSchedule', callSchedule)
+  return callSchedule?.title
 })
 const enableEdit = computed(() => enableEditSection.value === 'time-based-calling' || !props.isPreview)
 

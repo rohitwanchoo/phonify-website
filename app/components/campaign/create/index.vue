@@ -7,7 +7,7 @@ import * as z from 'zod'
 
 import { Button } from '~/components/ui/button'
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const emits = defineEmits([
   'completed',
@@ -24,6 +24,7 @@ interface Props {
 
 const route = useRoute()
 const id = route.query.id
+const callSchedule = ref({})
 
 const isEdit = computed(() => !!id)
 
@@ -190,7 +191,7 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, values, setFieldValue, resetForm, setFieldError, errors } = useForm({
+const { handleSubmit, values, setFieldValue, resetForm, setFieldError } = useForm({
   validationSchema: formSchema,
   initialValues: {
     title: '',
@@ -270,6 +271,53 @@ const onSubmit = handleSubmit(async (values) => {
   // console.log('Form submitted!', values)
 })
 
+function checkTimeRange() {
+  // If time based calling is disabled, we don't enforce schedule
+  if (!formState.value.time_based_calling)
+    return { valid: true }
+
+  const schedule = callSchedule.value as any
+  if (!schedule || !schedule.week_plan)
+    return { valid: false, message: 'No call schedule found' }
+
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  const now = new Date()
+  const currentDay = days[now.getDay()]
+
+  if (!currentDay)
+    return { valid: false, message: 'Invalid day' }
+
+  const dayPlan = schedule.week_plan[currentDay] || schedule.week_plan.default
+
+  if (!dayPlan || !dayPlan.start || !dayPlan.end)
+    return { valid: false, message: `No schedule configured for ${currentDay}` }
+
+  const [startH, startM] = dayPlan.start.split(':').map(Number)
+  const [endH, endM] = dayPlan.end.split(':').map(Number)
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  const startMinutes = startH * 60 + startM
+  const endMinutes = endH * 60 + endM
+
+  let isValid = false
+  if (startMinutes <= endMinutes) {
+    isValid = currentMinutes >= startMinutes && currentMinutes <= endMinutes
+  }
+  else {
+    // Overnight schedule
+    isValid = currentMinutes >= startMinutes || currentMinutes <= endMinutes
+  }
+
+  if (!isValid) {
+    return {
+      valid: false,
+      message: `Current time (${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}) is outside the allowed schedule (${dayPlan.start} - ${dayPlan.end})`,
+    }
+  }
+
+  return { valid: true }
+}
+
 function startDialing() {
   if (!formState.value.status) {
     showToast({
@@ -282,6 +330,15 @@ function startDialing() {
     showToast({
       message: 'Webphone is not registered. Please register it first.',
       type: 'warning',
+    })
+    return
+  }
+
+  const timeCheck = checkTimeRange()
+  if (!timeCheck.valid) {
+    showToast({
+      message: timeCheck.message || 'Current time is outside the allowed schedule.',
+      type: 'error',
     })
     return
   }
@@ -314,7 +371,7 @@ function saveCampaign() {
         <CampaignCallerDetails :is-preview="isPreview" :values :loading @set-field-value="setFieldValue" @set-field-error="setFieldError" @cancel-edit="emits('resetData')" />
 
         <!-- Time Based Calling -->
-        <CampaignTimeBaseCalling :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
+        <CampaignTimeBaseCalling :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" @get-call-schedule="(val: any) => callSchedule = val" />
 
         <!-- Send Details -->
         <CampaignSendDetails :is-preview="isPreview" :values :loading @cancel-edit="emits('resetData')" />
