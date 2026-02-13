@@ -14,10 +14,10 @@ export default defineNuxtConfig({
       ssr: true,
     },
     '/design': {
-      ssr: true,
+      ssr: false,
     },
     '/design/app': {
-      ssr: true,
+      ssr: false,
     },
   },
   future: {

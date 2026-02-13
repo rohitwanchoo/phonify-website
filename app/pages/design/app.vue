@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import moment from 'moment'
-
 useHead({
   title: 'Phonify - Internal App Design System',
   meta: [
@@ -11,70 +9,48 @@ useHead({
   ],
 })
 
-// Remove auth middleware to make it publicly accessible
 definePageMeta({
   layout: 'default',
 })
-
-// Mock data for demonstration
-const mockCounts = {
-  users: 156,
-  phoneNumbers: 43,
-  campaigns: 12,
-  leads: 8456,
-  lists: 23,
-  callbacks: 89,
-  smsReceived: 234,
-  smsSent: 567,
-  voicemailReceived: 45,
-  unreadVoicemail: 12,
-}
-
-const mockDateFilter = ref({
-  startTime: moment().startOf('day').format('YYYY-MM-DD HH:mm:ss'),
-  endTime: moment().format('YYYY-MM-DD HH:mm:ss'),
-})
-
-const mockStateWiseCalls = ref([])
 
 const componentSections = [
   {
     category: 'Dashboard Components',
     id: 'dashboard',
     components: [
-      { id: 'campaign-switcher', name: 'Campaign Switcher', component: 'dashboardCampaignSwitcher', description: 'Campaign selection dropdown with filters' },
-      { id: 'export-panel', name: 'Export Panel', component: 'dashboardExportPanel', description: 'Data export controls and options' },
-      { id: 'anomaly-alerts', name: 'Anomaly Alerts', component: 'dashboardAnomalyAlerts', description: 'Real-time anomaly detection alerts' },
-      { id: 'cards-section', name: 'KPI Cards', component: 'dashboardCardsSection', description: 'Key metric cards with counts', requiresProps: true },
-      { id: 'kpi-tracking', name: 'KPI Tracking', component: 'dashboardKpiTracking', description: 'Real-time KPI performance tracking' },
-      { id: 'system-health', name: 'System Health', component: 'dashboardSystemHealth', description: 'System status and health monitoring' },
-      { id: 'period-comparison', name: 'Period Comparison', component: 'dashboardPeriodComparison', description: 'Compare metrics across time periods' },
-      { id: 'ai-metrics', name: 'AI Metrics', component: 'dashboardAiMetrics', description: 'AI performance and analytics' },
-      { id: 'lead-funnel', name: 'Lead Funnel', component: 'dashboardLeadFunnel', description: 'Lead conversion funnel visualization' },
-      { id: 'wallet-metrics', name: 'Wallet Metrics', component: 'dashboardWalletMetrics', description: 'Wallet balance and transaction metrics' },
-      { id: 'agent-leaderboard', name: 'Agent Leaderboard', component: 'dashboardAgentLeaderboard', description: 'Top performing agents ranking' },
-      { id: 'peak-hours', name: 'Peak Hours', component: 'dashboardPeakHours', description: 'Call volume by hour analysis' },
-      { id: 'disposition-trends', name: 'Disposition Trends', component: 'dashboardDispositionTrends', description: 'Call disposition analytics' },
-      { id: 'callback-schedule', name: 'Callback Schedule', component: 'dashboardCallbackSchedule', description: 'Scheduled callback management' },
-      { id: 'activity-feed', name: 'Activity Feed', component: 'dashboardActivityFeed', description: 'Recent activity timeline' },
+      { id: 'campaign-switcher', name: 'Campaign Switcher', description: 'Campaign selection dropdown with filters' },
+      { id: 'export-panel', name: 'Export Panel', description: 'Data export controls and options' },
+      { id: 'anomaly-alerts', name: 'Anomaly Alerts', description: 'Real-time anomaly detection alerts' },
+      { id: 'kpi-cards', name: 'KPI Cards', description: 'Key metric cards with counts' },
+      { id: 'kpi-tracking', name: 'KPI Tracking', description: 'Real-time KPI performance tracking' },
+      { id: 'system-health', name: 'System Health', description: 'System status and health monitoring' },
+      { id: 'period-comparison', name: 'Period Comparison', description: 'Compare metrics across time periods' },
+      { id: 'ai-metrics', name: 'AI Metrics', description: 'AI performance and analytics' },
+      { id: 'lead-funnel', name: 'Lead Funnel', description: 'Lead conversion funnel visualization' },
+      { id: 'wallet-metrics', name: 'Wallet Metrics', description: 'Wallet balance and transaction metrics' },
+      { id: 'agent-leaderboard', name: 'Agent Leaderboard', description: 'Top performing agents ranking' },
+      { id: 'peak-hours', name: 'Peak Hours', description: 'Call volume by hour analysis' },
+      { id: 'disposition-trends', name: 'Disposition Trends', description: 'Call disposition analytics' },
+      { id: 'callback-schedule', name: 'Callback Schedule', description: 'Scheduled callback management' },
+      { id: 'activity-feed', name: 'Activity Feed', description: 'Recent activity timeline' },
     ],
   },
   {
     category: 'Campaign Management',
     id: 'campaign',
     components: [
-      { id: 'campaign-table', name: 'Campaign Table', component: 'campaignTable', description: 'Campaign list with actions and filters' },
-      { id: 'campaign-create', name: 'Campaign Creation Form', component: 'campaignCreate', description: 'Multi-step campaign creation wizard' },
-      { id: 'campaign-stepper', name: 'Campaign Stepper', component: 'campaignStepper', description: 'Step-by-step campaign setup' },
+      { id: 'campaign-table', name: 'Campaign Table', description: 'Campaign list with actions and filters' },
+      { id: 'campaign-create', name: 'Campaign Creation Form', description: 'Multi-step campaign creation wizard' },
+      { id: 'campaign-stepper', name: 'Campaign Stepper', description: 'Step-by-step campaign setup' },
     ],
   },
   {
     category: 'Dialing Interface',
     id: 'dialing',
     components: [
-      { id: 'lead-details', name: 'Lead Details Panel', component: 'startDialingLeadDetails', description: 'Detailed lead information during calls' },
-      { id: 'send-sms', name: 'Send SMS Panel', component: 'startDialingSendSms', description: 'SMS composition and sending interface' },
-      { id: 'send-email', name: 'Send Email Panel', component: 'startDialingSendEmail', description: 'Email composition interface' },
+      { id: 'lead-details', name: 'Lead Details Panel', description: 'Detailed lead information during calls' },
+      { id: 'send-sms', name: 'Send SMS Panel', description: 'SMS composition and sending interface' },
+      { id: 'send-email', name: 'Send Email Panel', description: 'Email composition interface' },
     ],
   },
 ]
@@ -141,7 +117,6 @@ const scrollToSection = (id: string) => {
     <!-- Component Sections -->
     <div class="py-8">
       <div class="container mx-auto px-4">
-        <!-- Dashboard Components Section -->
         <section
           v-for="section in componentSections"
           :id="section.id"
@@ -181,93 +156,34 @@ const scrollToSection = (id: string) => {
                 </div>
                 <div class="mt-4 bg-gray-50 rounded-md p-4 border border-gray-200">
                   <div class="flex items-start gap-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Component:</span>
-                    <code class="text-sm bg-gray-800 text-green-400 px-3 py-1 rounded font-mono">
-                      &lt;{{ comp.component }} /&gt;
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Component Path:</span>
+                    <code class="text-sm bg-gray-800 text-green-400 px-3 py-1 rounded font-mono break-all">
+                      app/components/{{ comp.id }}/index.vue
                     </code>
                   </div>
                 </div>
               </div>
 
-              <!-- Component Preview -->
+              <!-- Component Preview Notice -->
               <div class="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
-                <div class="mb-4 flex items-center gap-2">
-                  <div class="w-3 h-3 rounded-full bg-red-500" />
-                  <div class="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div class="w-3 h-3 rounded-full bg-green-500" />
-                  <span class="ml-2 text-xs text-gray-500 font-medium">Live Preview</span>
-                </div>
-                <div class="border-t border-gray-200 pt-6">
-                  <!-- Campaign Switcher -->
-                  <dashboardCampaignSwitcher v-if="comp.id === 'campaign-switcher'" />
-
-                  <!-- Export Panel -->
-                  <dashboardExportPanel v-else-if="comp.id === 'export-panel'" />
-
-                  <!-- Anomaly Alerts -->
-                  <dashboardAnomalyAlerts v-else-if="comp.id === 'anomaly-alerts'" />
-
-                  <!-- Cards Section -->
-                  <dashboardCardsSection v-else-if="comp.id === 'cards-section'" :counts="mockCounts" />
-
-                  <!-- KPI Tracking -->
-                  <dashboardKpiTracking v-else-if="comp.id === 'kpi-tracking'" />
-
-                  <!-- System Health -->
-                  <dashboardSystemHealth v-else-if="comp.id === 'system-health'" />
-
-                  <!-- Period Comparison -->
-                  <dashboardPeriodComparison v-else-if="comp.id === 'period-comparison'" />
-
-                  <!-- AI Metrics -->
-                  <dashboardAiMetrics v-else-if="comp.id === 'ai-metrics'" />
-
-                  <!-- Lead Funnel -->
-                  <dashboardLeadFunnel v-else-if="comp.id === 'lead-funnel'" />
-
-                  <!-- Wallet Metrics -->
-                  <dashboardWalletMetrics v-else-if="comp.id === 'wallet-metrics'" />
-
-                  <!-- Agent Leaderboard -->
-                  <dashboardAgentLeaderboard v-else-if="comp.id === 'agent-leaderboard'" />
-
-                  <!-- Peak Hours -->
-                  <dashboardPeakHours v-else-if="comp.id === 'peak-hours'" />
-
-                  <!-- Disposition Trends -->
-                  <dashboardDispositionTrends v-else-if="comp.id === 'disposition-trends'" />
-
-                  <!-- Callback Schedule -->
-                  <dashboardCallbackSchedule v-else-if="comp.id === 'callback-schedule'" />
-
-                  <!-- Activity Feed -->
-                  <dashboardActivityFeed v-else-if="comp.id === 'activity-feed'" />
-
-                  <!-- Campaign Table -->
-                  <campaignTable v-else-if="comp.id === 'campaign-table'" />
-
-                  <!-- Campaign Create -->
-                  <div v-else-if="comp.id === 'campaign-create'" class="max-w-4xl">
-                    <campaignCreate />
+                <div class="text-center py-12">
+                  <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
                   </div>
-
-                  <!-- Campaign Stepper -->
-                  <campaignStepper v-else-if="comp.id === 'campaign-stepper'" />
-
-                  <!-- Lead Details -->
-                  <div v-else-if="comp.id === 'lead-details'" class="max-w-2xl">
-                    <startDialingLeadDetails />
-                  </div>
-
-                  <!-- Send SMS -->
-                  <div v-else-if="comp.id === 'send-sms'" class="max-w-2xl">
-                    <startDialingSendSms />
-                  </div>
-
-                  <!-- Send Email -->
-                  <div v-else-if="comp.id === 'send-email'" class="max-w-2xl">
-                    <startDialingSendEmail />
-                  </div>
+                  <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                    Component: {{ comp.name }}
+                  </h4>
+                  <p class="text-gray-600 max-w-md mx-auto">
+                    This component requires authentication and real-time data. View it in the actual application after logging in.
+                  </p>
+                  <a
+                    href="/auth/login"
+                    class="inline-block mt-4 px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View in App
+                  </a>
                 </div>
               </div>
             </div>
