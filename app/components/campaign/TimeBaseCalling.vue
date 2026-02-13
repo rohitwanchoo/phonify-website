@@ -104,7 +104,10 @@ function onEdit() {
       <Accordion v-model="accordion" collapsible>
         <AccordionItem value="item-1">
           <div class="flex items-center justify-between px-5 h-[57px]" :class="accordion === 'item-1' && 'border-b'">
-            <div class="text-[16px] font-medium text-primary/100">
+            <div class="text-[16px] font-medium text-primary/100 flex items-center gap-2">
+              <div class="p-1.5 bg-orange-100 rounded-lg">
+                <Icon name="lucide:clock" class="h-4 w-4 text-orange-600" />
+              </div>
               Time Based Calling
             </div>
             <div class="flex items-center gap-x-2">

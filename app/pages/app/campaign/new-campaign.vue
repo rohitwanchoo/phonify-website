@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '~/components/ui/button'
+
 const route = useRoute()
 const id = route.query.id
 const isEdit = computed(() => !!id)
@@ -126,13 +128,26 @@ function goToNext() {
 
 <template>
   <BaseHeader :title="isEdit ? 'Update Campaign' : 'Create New Campaign'" :breadcrumbs="breadcrumbs">
-    <!-- <template #actions>
-      <Button variant="outline" class="h-11">
-        <icon name="material-symbols:save-rounded" size="18" />
-        Save as Draft
-      </Button>
-    </template> -->
+    <template #actions>
+      <div class="flex items-center gap-3">
+        <NuxtLink to="/app/campaign">
+          <Button variant="outline" class="h-10">
+            <Icon name="lucide:arrow-left" size="16" class="mr-2" />
+            Back to Campaigns
+          </Button>
+        </NuxtLink>
+      </div>
+    </template>
   </BaseHeader>
+
+  <!-- Edit Mode Indicator -->
+  <div v-if="isEdit && campaignByIdStatus === 'success'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+    <Icon name="lucide:info" class="h-5 w-5 text-blue-600" />
+    <p class="text-sm text-blue-700">
+      You are editing an existing campaign. Changes will be saved when you click Save or Continue.
+    </p>
+  </div>
+
   <CampaignStepper :stepper="stepper">
     <component :is="stepper.current.value.component" :is-preview="isPreview" :data-loading="campaignByIdStatus === 'pending'" @reset-data="setData" @completed="(e: any) => goToNext()" @go-to="(e: any) => stepper.goTo(e)" />
   </CampaignStepper>

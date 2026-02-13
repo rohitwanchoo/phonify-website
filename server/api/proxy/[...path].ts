@@ -4,6 +4,15 @@ export default defineEventHandler(async (event) => {
   const method = event.method
   const query = getQuery(event)
 
+  // Get origin from request headers
+  const origin = getHeader(event, 'origin') || ''
+
+  // Define allowed origins (configure via environment variable in production)
+  const allowedOrigins = (process.env.NUXT_ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001').split(',')
+
+  // Check if origin is allowed (allow same-origin requests without origin header)
+  const isAllowedOrigin = !origin || allowedOrigins.includes(origin) || origin.includes('localhost')
+
   const headers = getHeaders(event)
   delete headers.host
   delete headers.origin
@@ -59,8 +68,11 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Allow CORS
-    setHeader(event, 'Access-Control-Allow-Origin', '*')
+    // Allow CORS with specific origin (not wildcard)
+    if (isAllowedOrigin && origin) {
+      setHeader(event, 'Access-Control-Allow-Origin', origin)
+      setHeader(event, 'Access-Control-Allow-Credentials', 'true')
+    }
     setHeader(event, 'Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
     setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
 

@@ -59,8 +59,11 @@ function cancelEdit() {
 <template>
   <div class="border rounded-lg bg-white">
     <div class="border-b px-5 pt-5 pb-3 flex items-center justify-between">
-      <div class="text-[16px] font-medium text-primary/100">
-        Send Details (temp.)
+      <div class="text-[16px] font-medium text-primary/100 flex items-center gap-2">
+        <div class="p-1.5 bg-green-100 rounded-lg">
+          <Icon name="lucide:send" class="h-4 w-4 text-green-600" />
+        </div>
+        Send Details
       </div>
       <div v-if="isPreview " class="flex items-center gap-x-2">
         <div v-if="enableEditSection === 'send-details'" class="flex gap-x-2">

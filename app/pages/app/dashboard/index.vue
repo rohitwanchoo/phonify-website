@@ -91,6 +91,14 @@ function onUserSelect(val: any) {
   refreshDispositions()
 }
 
+const selectedCampaignId = ref<number | null>(null)
+
+function onCampaignChange(campaignId: number | null) {
+  selectedCampaignId.value = campaignId
+  // Refresh data with campaign filter if needed
+  // This can be extended to filter all dashboard data by campaign
+}
+
 onMounted(() => {
   setStateWiseCalls()
 })
@@ -98,12 +106,63 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-1 flex-col gap-6 md:rounded-tl-xl bg-white">
+    <!-- Dashboard Header with Campaign Filter & Export -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <dashboardCampaignSwitcher @campaign-change="onCampaignChange" />
+      <dashboardExportPanel />
+    </div>
+
+    <!-- Anomaly Alerts Banner -->
+    <dashboardAnomalyAlerts />
+
+    <!-- Top Cards Section -->
     <dashboardCardsSection :counts />
+
+    <!-- KPI Tracking & System Health Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2">
+        <dashboardKpiTracking />
+      </div>
+      <dashboardSystemHealth />
+    </div>
+
+    <!-- Users/Analytics Section -->
     <dashboardUsers :counts :total-agents="totalAgentCount" @on-date-picker-update="onDatePickerChange" @on-user-select="onUserSelect" />
+
+    <!-- Period Comparison & AI Metrics Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <dashboardPeriodComparison />
+      <dashboardAiMetrics />
+    </div>
+
+    <!-- Lead Funnel & Wallet Metrics Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <dashboardLeadFunnel />
+      <dashboardWalletMetrics />
+    </div>
+
+    <!-- Map & Agent Leaderboard Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <dashboardMap :api-data="stateWiseCalls" />
-      <dashboardCalendar />
+      <dashboardAgentLeaderboard />
     </div>
+
+    <!-- Peak Hours & Disposition Trends Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <dashboardPeakHours />
+      <dashboardDispositionTrends />
+    </div>
+
+    <!-- Callbacks & Activity Feed Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <dashboardCallbackSchedule />
+      <dashboardActivityFeed />
+    </div>
+
+    <!-- Calendar Section -->
+    <dashboardCalendar />
+
+    <!-- Tables Section -->
     <dashboardTable :payload="dateFilter" />
   </div>
 </template>

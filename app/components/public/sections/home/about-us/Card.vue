@@ -1,11 +1,9 @@
 <script setup>
 import { ref } from 'vue'
+import { sanitizeHtml } from '~/utils'
 
 defineProps({
-  icon: String, // base icon name without "-outline"
-  value: String,
-  description: String,
-  icon: String, // base icon name without "-outline"
+  icon: String,
   value: String,
   description: String,
 })
@@ -47,7 +45,7 @@ const isHovered = ref(false)
       >
         {{ value }}
       </h3>
-      <p class="italic font-normal text-sm sm:text-xl leading-tight break-words transition-colors duration-500" :class="isHovered ? 'text-white' : 'text-[#44403C]'" v-html="description" />
+      <p class="italic font-normal text-sm sm:text-xl leading-tight break-words transition-colors duration-500" :class="isHovered ? 'text-white' : 'text-[#44403C]'" v-html="sanitizeHtml(description)" />
     </div>
   </div>
 </template>

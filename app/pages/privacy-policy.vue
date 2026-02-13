@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { sanitizeHtml } from '~/utils'
+
 definePageMeta({
   layout: 'website',
 })
@@ -370,7 +372,7 @@ onMounted(() => {
             <h2 class="text-zinc-800 text-xl lg:text-2xl font-medium">
               {{ index + 1 }}. {{ item.title }}
             </h2>
-            <div class="text-stone-600 text-sm lg:text-base" v-html="item.content" />
+            <div class="text-stone-600 text-sm lg:text-base" v-html="sanitizeHtml(item.content)" />
           </li>
         </ul>
       </div>

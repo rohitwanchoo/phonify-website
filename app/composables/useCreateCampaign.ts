@@ -3,19 +3,31 @@ import { CampaignCreate, CampaignPreview, CampaignSelectList } from '#components
 import { useStepper } from '@vueuse/core'
 
 export function useCreateCampaign() {
-  const countryCodes = useState('country-code-list', () => [])
+  const countryCodes = useState<any[]>('country-code-list', () => [])
+  const isLoadingCountryCodes = useState('country-code-loading', () => false)
 
-  const countryCodeList = computed(() => {
-    if (countryCodes.value.length) {
-      return countryCodes.value
+  // Fetch country codes once when needed (not in computed)
+  const fetchCountryCodes = async () => {
+    if (countryCodes.value.length > 0 || isLoadingCountryCodes.value) {
+      return
     }
-    else {
-      useApi().post('/country-list').then((res) => {
-        countryCodes.value = res.data
-      })
-      return countryCodes.value
+
+    isLoadingCountryCodes.value = true
+    try {
+      const res = await useApi().post('/country-list')
+      countryCodes.value = res.data || []
     }
-  })
+    catch (error) {
+      console.error('Failed to fetch country codes:', error)
+      countryCodes.value = []
+    }
+    finally {
+      isLoadingCountryCodes.value = false
+    }
+  }
+
+  // Computed property just returns the cached data
+  const countryCodeList = computed(() => countryCodes.value)
 
   const callerIds = [
     {
@@ -164,11 +176,15 @@ export function useCreateCampaign() {
     formState.value = initialState().value
   }
 
+  // Check if in edit mode
+  const route = useRoute()
+  const isEditMode = computed(() => !!route.query.id)
+
   // Stepper configuration
   const stepper = useStepper({
     'create-campaign': {
-      title: 'Create Campaign',
-      description: 'Office ipsum you must be muted.',
+      title: computed(() => isEditMode.value ? 'Edit Campaign' : 'Create Campaign'),
+      description: 'Configure your campaign settings',
       component: CampaignCreate,
       isValid: () => {
         // const state = formState.value
@@ -230,5 +246,5 @@ export function useCreateCampaign() {
     }
   }
 
-  return { formState, resetFormState, stepper, countryCodeList, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, transformCampaignToFormValues, enableEditSection }
+  return { formState, resetFormState, stepper, countryCodeList, fetchCountryCodes, isLoadingCountryCodes, callerIds, NoAgentAvailableList, timeIntervals, redirectToList, amdDropActions, transformCampaignToFormValues, enableEditSection }
 }

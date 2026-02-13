@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { sanitizeHtml } from '~/utils'
 import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
 
@@ -68,7 +69,7 @@ const to = computed(() => {
 
     <p
       class="font-normal text-sm leading-relaxed text-gray-600 line-clamp-3 overflow-hidden"
-      v-html="data?.description"
+      v-html="sanitizeHtml(data?.description)"
     />
 
     <div class="mt-auto">

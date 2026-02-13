@@ -8,9 +8,9 @@ const isCallActive = useState('sip.isCallActive', () => false)
 const callStatus = useState<'idle' | 'connecting' | 'active' | 'incoming' | 'ringing'>('sip.callStatus', () => 'idle')
 
 // SIP variables (global)
-let ua: any
-let registerer: any
-let activeSession: any
+let ua: UserAgent | null = null
+let registerer: import('sip.js').Registerer | null = null
+let activeSession: import('sip.js').Session | null = null
 let isInitialized = false
 
 // Setup media for the session (global function)
@@ -94,8 +94,7 @@ export function useSIP() {
     const agentData = {
       uri: `sip:${user.value?.alt_extension}@${user.value?.domain}`,
       username: user.value?.alt_extension || '',
-      // password: passwordDecrypt(user.value?.secret || '') || '',
-      password: user.value?.id === 918 ? 'demo@1990' : passwordDecrypt(user.value?.secret || '') || '',
+      password: passwordDecrypt(user.value?.secret || '') || '',
       wsServer: `wss://${user.value?.domain}:${config.public.asteriskWsPort}/ws`,
     }
 

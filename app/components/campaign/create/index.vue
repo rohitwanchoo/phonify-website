@@ -7,7 +7,7 @@ import * as z from 'zod'
 
 import { Button } from '~/components/ui/button'
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emits = defineEmits([
   'completed',
@@ -191,7 +191,7 @@ const formSchema = toTypedSchema(z.object({
 
 }))
 
-const { handleSubmit, values, setFieldValue, resetForm, setFieldError } = useForm({
+const { handleSubmit, values, setFieldValue, resetForm, setFieldError, errors } = useForm({
   validationSchema: formSchema,
   initialValues: {
     title: '',
@@ -213,6 +213,18 @@ const { handleSubmit, values, setFieldValue, resetForm, setFieldError } = useFor
     call_transfer: false,
   },
 })
+
+const hasErrors = computed(() => Object.keys(errors.value).length > 0)
+const errorCount = computed(() => Object.keys(errors.value).length)
+
+function scrollToFirstError() {
+  nextTick(() => {
+    const errorElement = document.querySelector('.text-red-600, [class*="border-red"]')
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+}
 
 const loading = ref(false)
 
@@ -267,8 +279,14 @@ const onSubmit = handleSubmit(async (values) => {
   }).finally(() => {
     loading.value = false
   })
-  // emits('completed')
-  // console.log('Form submitted!', values)
+}, (errors) => {
+  // Handle validation errors
+  const errorCount = Object.keys(errors).length
+  showToast({
+    type: 'error',
+    message: `Please fix ${errorCount} validation error${errorCount > 1 ? 's' : ''} before continuing`,
+  })
+  scrollToFirstError()
 })
 
 function checkTimeRange() {
@@ -352,6 +370,43 @@ onMounted(() => {
   }
 })
 
+// Watch formState.title - when it has a value in edit mode, sync with vee-validate
+watch(() => formState.value?.title, (newTitle) => {
+  if (isEdit.value && newTitle && newTitle !== values.title) {
+    const state = formState.value
+    resetForm({
+      values: {
+        title: state.title || '',
+        country_code: state.country_code || 0,
+        description: state.description || '',
+        caller_id: state.caller_id || '',
+        custom_caller_id: state.custom_caller_id || '',
+        dial_mode: state.dial_mode || '',
+        group_id: state.group_id || 0,
+        voip_configuration_id: state.voip_configuration_id || 0,
+        disposition_id: state.disposition_id || [],
+        call_schedule_id: state.call_schedule_id || 0,
+        time_based_calling: state.time_based_calling || false,
+        no_agent_dropdown_action: state.no_agent_dropdown_action || 0,
+        no_agent_available_action: state.no_agent_available_action || 0,
+        sms: state.sms || false,
+        send_report: state.send_report || false,
+        call_transfer: state.call_transfer || false,
+        email: state.email || 0,
+        hopper_mode: state.hopper_mode || 0,
+        call_ratio: String(state.call_ratio || ''),
+        duration: state.duration ? String(state.duration) : '',
+        automated_duration: state.automated_duration || false,
+        amd: state.amd || false,
+        amd_drop_action: state.amd_drop_action || 0,
+        voicedrop_option_user_id: state.voicedrop_option_user_id || 0,
+        redirect_to: state.redirect_to || 0,
+        redirect_to_dropdown: state.redirect_to_dropdown || 0,
+      },
+    })
+  }
+}, { immediate: true })
+
 function saveCampaign() {
   showToast({
     message: 'Campaign saved successfully',
@@ -361,8 +416,66 @@ function saveCampaign() {
 </script>
 
 <template>
-  <div class=" relative h-[calc(100vh-190px)]">
-    <div class=" m-5">
+  <div class="relative h-[calc(100vh-190px)]">
+    <!-- Loading State for Edit Mode -->
+    <div v-if="dataLoading && isEdit" class="m-5 space-y-4">
+      <div class="border rounded-lg bg-white p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <BaseSkelton class="h-6 w-6 rounded" />
+          <BaseSkelton class="h-6 w-40" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <BaseSkelton class="h-11 w-full" />
+          <BaseSkelton class="h-11 w-full" />
+        </div>
+        <BaseSkelton class="h-20 w-full mt-4" />
+      </div>
+      <div class="border rounded-lg bg-white p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <BaseSkelton class="h-6 w-6 rounded" />
+          <BaseSkelton class="h-6 w-32" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <BaseSkelton class="h-11 w-full" />
+          <BaseSkelton class="h-11 w-full" />
+          <BaseSkelton class="h-11 w-full" />
+          <BaseSkelton class="h-11 w-full" />
+        </div>
+      </div>
+      <div class="border rounded-lg bg-white p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <BaseSkelton class="h-6 w-6 rounded" />
+          <BaseSkelton class="h-6 w-36" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <BaseSkelton class="h-11 w-full" />
+          <BaseSkelton class="h-11 w-full" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Content -->
+    <div v-else class="m-5">
+      <!-- Validation Error Banner -->
+      <div v-if="hasErrors" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex items-start gap-3">
+          <div class="p-1.5 bg-red-100 rounded-full mt-0.5">
+            <Icon name="lucide:alert-circle" class="h-4 w-4 text-red-600" />
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">
+              {{ errorCount }} field{{ errorCount > 1 ? 's' : '' }} require{{ errorCount === 1 ? 's' : '' }} attention
+            </p>
+            <p class="text-xs text-red-600 mt-0.5">
+              Please review and correct the highlighted fields below
+            </p>
+          </div>
+          <button type="button" class="text-red-500 hover:text-red-700" @click="scrollToFirstError">
+            <Icon name="lucide:arrow-down" class="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
       <form class="space-y-4" @submit="onSubmit">
         <!-- CAMPAIGN DETAILS -->
         <CampaignDetails :is-preview="isPreview" :values :loading @reset-fields="emits('resetData')" />
@@ -387,22 +500,24 @@ function saveCampaign() {
           @set-field-value="setFieldValue"
           @cancel-edit="emits('resetData')"
         />
-
-      <!-- @page-navigation="changePage" @change-limit="changeLimit" -->
       </form>
     </div>
-    <div v-if="isPreview" class="sticky bottom-0 right-0 w-full flex gap-x-2 bg-white shadow-2xl p-4">
-      <Button :disabled="dataLoading || enableEditSection.length" class="w-1/2 h-[52px]" variant="outline" @click="saveCampaign">
-        Save
+
+    <!-- Footer Actions -->
+    <div v-if="isPreview && !dataLoading" class="sticky bottom-0 right-0 w-full flex gap-x-3 bg-white shadow-2xl p-4 border-t">
+      <Button :disabled="dataLoading || enableEditSection.length > 0" class="w-1/2 h-[52px]" variant="outline" @click="saveCampaign">
+        <Icon name="lucide:save" class="mr-2 h-4 w-4" />
+        Save Campaign
       </Button>
-      <Button class="w-1/2 h-[52px]" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="startDialing">
-        <Icon name="material-symbols:call" />
+      <Button class="w-1/2 h-[52px]" :disabled="dataLoading || enableEditSection.length > 0 || !formState.status" :loading="loading" @click="startDialing">
+        <Icon name="material-symbols:call" class="mr-2 h-4 w-4" />
         Start Dialing
       </Button>
     </div>
-    <div v-else class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4">
-      <Button class="w-full h-[52px]" type="submit" :disabled="dataLoading || enableEditSection.length" :loading="loading" @click="onSubmit">
-        Continue
+    <div v-else-if="!dataLoading" class="sticky bottom-0 right-0 w-full bg-white shadow-2xl p-4 border-t">
+      <Button class="w-full h-[52px]" type="submit" :disabled="dataLoading || enableEditSection.length > 0" :loading="loading" @click="onSubmit">
+        <Icon name="lucide:arrow-right" class="mr-2 h-4 w-4" />
+        {{ isEdit ? 'Save & Continue' : 'Continue' }}
       </Button>
     </div>
   </div>

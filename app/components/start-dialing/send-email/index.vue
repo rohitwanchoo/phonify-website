@@ -37,6 +37,10 @@ const senderType = 'system' // Fixed sender type
 
 const showHtml = ref(false)
 
+// Email constants
+const MAX_BODY_CHARACTERS = 10000 // Maximum characters for email body
+const MAX_SUBJECT_CHARACTERS = 100
+
 // Extract lead email from leadData
 function getLeadEmail() {
   if (!props.leadData)
@@ -52,17 +56,13 @@ function getLeadEmail() {
 
 // Define form validation schema using Zod
 const formSchema = toTypedSchema(z.object({
-  to: z.string().email('Lead Mail Id is required'),
+  to: z.string().email('Please enter a valid email address'),
   from: z.string().optional(),
-  // from: z.object({
-  //   id: z.number().int().positive(),
-  //   from_name: z.string().min(1, 'Agent Name is required'),
-  // }),
-  template: z.number().min(1, 'Please select a template').optional(),
+  template: z.number().optional(),
   LeadPlaceholders: z.string().optional(),
   SenderPlaceholders: z.string().optional(),
-  subject: z.string().min(1, 'Subject is required').max(100, 'Subject cannot exceed 100 characters'),
-  templateContent: z.string().min(1, 'Template Preview is required'),
+  subject: z.string().min(1, 'Subject is required').max(MAX_SUBJECT_CHARACTERS, `Subject cannot exceed ${MAX_SUBJECT_CHARACTERS} characters`),
+  templateContent: z.string().min(1, 'Email body is required').max(MAX_BODY_CHARACTERS, `Email body cannot exceed ${MAX_BODY_CHARACTERS} characters`),
 }))
 
 // Fetch sender details (agent emails)
@@ -87,9 +87,9 @@ const { data: leadPlaceholders } = await useLazyAsyncData('lead-placeholder-star
 const { handleSubmit, isSubmitting, values, setFieldValue, setValues } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    to: getLeadEmail(), // Auto-populate with lead email
-    from: '',
-    template: 0,
+    to: getLeadEmail(),
+    from: 'System Email',
+    template: undefined,
     LeadPlaceholders: '',
     SenderPlaceholders: '',
     subject: '',
@@ -97,8 +97,18 @@ const { handleSubmit, isSubmitting, values, setFieldValue, setValues } = useForm
   },
 })
 
+// Set system email in from field when data is available
+watch(emailSenderData, (data) => {
+  if (data?.[0]?.from_email) {
+    setFieldValue('from', data[0].from_email)
+  }
+  else if (data?.[0]?.from_name) {
+    setFieldValue('from', data[0].from_name)
+  }
+}, { immediate: true })
+
 // get email template
-const { data: emailTemplateData, refresh: refreshEmailTemplateData } = await useLazyAsyncData('email-template-start-dialing', () =>
+const { data: emailTemplateData, refresh: _refreshEmailTemplateData } = await useLazyAsyncData('email-template-start-dialing', () =>
   useApi().get('/email-templates'), {
   transform: res => res.data,
   immediate: true,
@@ -151,8 +161,8 @@ watch([subjectFocused, textareaFocused], ([s, t]) => {
   }
 })
 
-function onFromChange() {
-  // refreshEmailTemplateData()
+function _onFromChange() {
+  // Placeholder for future use when from field becomes editable
 }
 
 // Insert placeholder
@@ -238,36 +248,58 @@ watch(() => props.leadData, (newLeadData) => {
   }
 }, { immediate: true, deep: true })
 
+// Check if body exceeds limit
+const bodyExceedsLimit = computed(() => templateContentLength.value > MAX_BODY_CHARACTERS)
+
 // Submit handler for sending email
 const onSubmit = handleSubmit(async (vals) => {
+  // Check character limits
+  if (bodyExceedsLimit.value) {
+    showToast({
+      message: `Email body exceeds ${MAX_BODY_CHARACTERS} characters. Please shorten your message.`,
+      type: 'error',
+    })
+    return
+  }
+
   try {
     const payload = {
       senderType: 'system',
       user_id: user.value?.id,
-      campaign_id: campaign_id.value || 40,
+      campaign_id: campaign_id.value,
       subject: vals.subject,
-      body: vals.templateContent, // This now contains the actual Quill editor content
+      body: vals.templateContent,
       to: vals.to,
+      lead_id: props.leadData?.lead_id,
     }
 
     const response = await useApi().post('/send-email/generic', payload)
 
-    if (response.success === true) {
+    if (response?.success !== false) {
       showToast({
-        message: response.message || 'Email sent successfully',
+        message: response?.message || 'Email sent successfully',
         type: 'success',
       })
+
+      // Clear form after successful send
+      setFieldValue('subject', '')
+      setFieldValue('templateContent', '')
+      setFieldValue('template', undefined)
+      templateContent.value = ''
     }
     else {
       showToast({
-        message: response.message || 'Failed to send email',
+        message: response?.message || 'Failed to send email',
         type: 'error',
       })
     }
   }
   catch (error: any) {
+    const errorMessage = error?.response?.data?.message
+      || error?.message
+      || 'Failed to send email. Please try again.'
     showToast({
-      message: `${error.message || 'An error occurred while sending the email'}`,
+      message: errorMessage,
       type: 'error',
     })
   }
@@ -317,19 +349,19 @@ function onTemplateChange(val: any) {
                   From
                 </FormLabel>
                 <FormControl>
-                  <Input disabled v-bind="componentField" class="border-gray-200 h-11" :class="{ 'bg-gray-50': componentField.modelValue }" />
-                  <!-- <Select v-bind="componentField" @update:model-value="onFromChange">
-                    <SelectTrigger class="w-full !h-11">
-                      <SelectValue placeholder="" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="option in emailSenderData" :key="option.id" :value="{ id: option.id, from_name: option.from_name }">
-                        {{ option.from_name }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select> -->
+                  <div class="relative">
+                    <Input
+                      v-bind="componentField"
+                      disabled
+                      class="border-gray-200 h-11 bg-gray-50 pr-20"
+                      placeholder="System email will be used"
+                    />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                      System
+                    </span>
+                  </div>
                 </FormControl>
-                <FormMessage class="text-red-500" />
+                <p class="text-xs text-gray-500">Emails are sent from your organization's system email address</p>
               </FormItem>
             </FormField>
           </div>
@@ -433,11 +465,17 @@ function onTemplateChange(val: any) {
                   @focus="onTextareaFocus"
                 />
               </FormControl>
-              <div class="flex justify-between">
-                <FormMessage class="text-red-500 w-70" />
-                <span class="w-full text-right text-xs text-muted-foreground select-none">
-                  {{ templateContentLength }}/500 Characters
+              <div class="flex justify-between items-start gap-2">
+                <FormMessage class="text-red-500 flex-1" />
+                <span class="text-right text-xs select-none whitespace-nowrap"
+                  :class="bodyExceedsLimit ? 'text-red-500' : 'text-muted-foreground'"
+                >
+                  {{ templateContentLength.toLocaleString() }}/{{ MAX_BODY_CHARACTERS.toLocaleString() }} Characters
                 </span>
+              </div>
+              <div v-if="bodyExceedsLimit" class="flex items-center gap-2 p-2 rounded-md text-xs bg-red-50 text-red-700">
+                <Icon name="material-symbols:error" size="16" />
+                <span>Email body exceeds the maximum character limit. Please shorten your message.</span>
               </div>
             </FormItem>
           </FormField>
@@ -448,7 +486,12 @@ function onTemplateChange(val: any) {
         </div>
         <!-- Button section -->
         <div>
-          <Button type="submit" :disabled="isSubmitting" :loading="isSubmitting" class="w-full h-11">
+          <Button
+            type="submit"
+            :disabled="isSubmitting || bodyExceedsLimit"
+            :loading="isSubmitting"
+            class="w-full h-11"
+          >
             <Icon name="material-symbols:mail" size="20" />
             Send Email
           </Button>

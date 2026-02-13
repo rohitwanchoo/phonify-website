@@ -54,12 +54,14 @@ export function useAuth() {
   // Check if user has specific permissions/roles
   const hasRole = (role: string): boolean => {
     // Implement based on your user structure
-    return (user.value as any)?.role === role || false
+    const userValue = user.value as { role?: string } | null
+    return userValue?.role === role || false
   }
 
   const hasPermission = (permission: string): boolean => {
     // Implement based on your user structure
-    return (user.value as any)?.permissions?.includes(permission) || false
+    const userValue = user.value as { permissions?: string[] } | null
+    return userValue?.permissions?.includes(permission) || false
   }
 
   // Get auth token for manual API calls

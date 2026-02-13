@@ -1,173 +1,133 @@
 <script setup>
-const options = [
+const features = [
   {
-    label: 'All-in-one dashboard',
-    title: 'See everything at a glance',
-    content: 'All from a single place: a unified dashboard for everything that matters. Run campaigns, make calls, send SMS or emails, automate voice messages, and more.',
+    icon: 'lucide:bot',
+    label: 'AI Voice Agents',
+    title: 'AI that speaks naturally and never sleeps',
+    description: 'Deploy AI that speaks naturally, follows your scripts, and handles objections. Works 24/7 without breaks, sick days, or turnover.',
     image: '/images/website/sections/home/feature1.png',
-    duration: 5000,
+    link: '/product#ai-voice',
   },
   {
-    label: 'AI + Automation features',
-    title: 'Intelligence built into every step',
-    content: 'Automatically track call outcomes, analyze performance metrics, receive real-time alerts, and let AI handle every call from start to finish. Bonus: a built-in calendar!',
+    icon: 'lucide:phone-outgoing',
+    label: 'Predictive Dialer',
+    title: 'Dial 3x more leads with intelligent pacing',
+    description: 'Auto-skip voicemails, detect answering machines, and connect reps only to live humans. More conversations, less waiting.',
     image: '/images/website/sections/home/feature2.png',
-    duration: 5000,
+    link: '/product#dialer',
   },
   {
-    label: 'Omnichannel hub',
-    title: 'All your communication, together',
-    content: 'Calls, SMS, Emails, and Ringless voicemail live in one place. Each tool is powerful on its own, but together they give your team a seamless, unified workflow.',
+    icon: 'lucide:layers',
+    label: 'Omnichannel Hub',
+    title: 'Calls, SMS, email—one unified inbox',
+    description: 'Every conversation in one place. No switching tabs, no lost context. Calls, SMS, ringless voicemail, and email seamlessly integrated.',
     image: '/images/website/sections/home/feature3-1.png',
-    duration: 5000,
+    link: '/product#omnichannel',
   },
   {
-    label: 'Reminders & real-time insights',
-    title: 'All your communication, together',
-    content: 'Calls, SMS, Emails, and Ringless voicemail live in one place. Each tool is powerful on its own, but together they give your team a seamless, unified workflow.',
+    icon: 'lucide:bar-chart-3',
+    label: 'Real-Time Analytics',
+    title: 'Know what\'s working in seconds, not days',
+    description: 'Live dashboards show call outcomes, agent performance, and campaign ROI. AI summarizes every call so managers don\'t have to listen.',
     image: '/images/website/sections/home/feature4.png',
-    duration: 5000,
+    link: '/product#analytics',
   },
   {
-    label: 'Security made effortless',
-    title: 'Stay protected. Stay in charge',
-    content: 'User roles, IP limits, and activity logs — all managed with ease. Simple, solid security and full visibility.',
+    icon: 'lucide:shield-check',
+    label: 'Enterprise Security',
+    title: 'Compliance built-in, not bolted-on',
+    description: 'SOC 2 compliant. HIPAA ready. TCPA built-in. User roles, IP limits, and activity logs managed with ease.',
     image: '/images/website/sections/home/feature5.png',
-    duration: 5000,
+    link: '/security',
   },
 ]
 
-const observableElement = ref(null)
-
-let observer
-
-onMounted(() => {
-  const options = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.1,
-  }
-
-  observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting)
-        observableElement.value.play()
-
-      else
-        observableElement.value.pause()
-    })
-  }, options)
-
-  if (observableElement.value)
-    observer.observe(observableElement.value)
-})
-
-const selectedItem = ref(0)
-const timer = ref(null)
-
-const totalItems = options.length
-const progressBarWidth = ref(0)
-const videoElement = ref(null)
-
-function moveToNextItem() {
-  selectedItem.value = (selectedItem.value + 1) % totalItems
-}
-
-function startTimer() {
-  clearInterval(timer.value)
-  progressBarWidth.value = 0
-
-  const startTime = Date.now()
-  const duration = options[selectedItem.value].duration // use per-option duration
-
-  timer.value = setInterval(() => {
-    const elapsedTime = Date.now() - startTime
-    const progress = Math.min(elapsedTime / duration, 1) * 100
-
-    progressBarWidth.value = progress
-
-    if (progress >= 100) {
-      clearInterval(timer.value)
-      // Wait for 1 second after progress bar completes before switching
-      setTimeout(() => {
-        moveToNextItem()
-        progressBarWidth.value = 0
-        startTimer()
-      }, 500)
-    }
-  }, 16.67)
-}
-
-watch(selectedItem, (_newVal) => {
-  startTimer()
-  if (videoElement.value) {
-    videoElement.value.load()
-    videoElement.value.play()
-  }
-})
-
-onMounted(startTimer)
-
-onBeforeUnmount(() => {
-  observer?.disconnect()
-  clearInterval(timer.value)
-})
+const selectedFeature = ref(0)
 </script>
 
 <template>
-  <div id="features" class="w-full bg-white px-4 md:px-28 py-8 md:py-24">
-    <div class="max-w-[1440px] mx-auto w-full space-y-6 md:space-y-16">
-      <div class="space-y-4 md:space-y-5">
-        <p class="text-stone-800 text-base font-light">
-          <span class="inline-block w-3 h-3 bg-[#D11E28] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0%_50%)]" />
-          Features
-        </p>
-        <h1 class="text-stone-900 text-2xl md:text-5xl font-medium leading-9">
-          Your complete call center solution
-        </h1>
-      </div>
-      <div class="flex items-start justify-between md:items-center flex-col md:flex-row gap-6 md:gap-[100px]">
-        <div class="w-full md:max-w-96 flex flex-row md:flex-col gap-4 md:gap-0 overflow-x-auto">
-          <div
-            v-for="(item, index) in options"
-            :key="index"
-            class="relative cursor-pointer pb-4 md:pb-8 hover:bg-accent/50 h-fit border-b border-stone-300 border-dotted"
-            :class="index === 0 ? 'pt-0' : 'pt-0 md:pt-8'"
-            @click="selectedItem = index"
-          >
-            <div class="text-stone-500 text-base md:text-xl font-normal text-nowrap">
-              {{ item.label }}
-            </div>
-
-            <div
-              v-if="selectedItem === index"
-              data-aos-duration="500"
-            >
-              <div class="w-full absolute left-0 -bottom-[1px]">
-                <div class="w-full h-[2px]">
-                  <div
-                    class="h-full bg-[#D11E28] transition-transform  ease-in-out transform origin-left"
-                    :style="{ transform: `scaleX(${progressBarWidth / 100})` }"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="max-w-[745px] h-fit w-full py-4 md:py-8 bg-[#F8F3F0] rounded-sm outline outline-offset-[-1px] outline-stone-100 flex flex-col justify-start items-start">
-          <div class="w-full pt-1.5 md:pt-3 px-3 md:px-6 space-y-5 md:space-y-10">
-            <h2 class="text-base md:text-3xl font-medium text-zinc-900">
-              {{ options[selectedItem].title }}
-            </h2>
-            <div class="w-full md:h-96">
-              <img :src="options[selectedItem].image" alt="" class="w-full h-full object-contain">
-            </div>
-          </div>
-          <p class="text-stone-700 text-sm md:text-base leading-6 p-3 md:p-6">
-            {{ options[selectedItem].content }}
+  <section id="features" class="w-full bg-white py-16 lg:py-24 px-4">
+    <div class="max-w-[1440px] mx-auto">
+      <!-- Section Header -->
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12 lg:mb-16">
+        <div class="max-w-2xl">
+          <p class="text-[#D11E28] font-medium text-sm mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 bg-[#D11E28] rounded-full" />
+            PLATFORM FEATURES
           </p>
+          <h2 class="text-3xl lg:text-4xl font-semibold text-stone-900 mb-4">
+            One platform. Every call channel.
+          </h2>
+          <p class="text-lg text-stone-600">
+            Everything you need to automate voice at scale—without the enterprise complexity.
+          </p>
+        </div>
+        <NuxtLink
+          to="/product"
+          class="inline-flex items-center text-[#D11E28] font-medium hover:text-red-700 transition-colors"
+        >
+          View all features
+          <Icon name="lucide:arrow-right" class="w-5 h-5 ml-2" />
+        </NuxtLink>
+      </div>
+
+      <!-- Features Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Feature Tabs -->
+        <div class="lg:col-span-4 space-y-2">
+          <button
+            v-for="(feature, index) in features"
+            :key="index"
+            class="w-full text-left p-4 rounded-xl transition-all duration-200"
+            :class="selectedFeature === index
+              ? 'bg-stone-900 text-white'
+              : 'bg-stone-50 text-stone-700 hover:bg-stone-100'"
+            @click="selectedFeature = index"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-lg flex items-center justify-center"
+                :class="selectedFeature === index ? 'bg-white/10' : 'bg-white'"
+              >
+                <Icon
+                  :name="feature.icon"
+                  class="w-5 h-5"
+                  :class="selectedFeature === index ? 'text-white' : 'text-[#D11E28]'"
+                />
+              </div>
+              <span class="font-medium">{{ feature.label }}</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Feature Content -->
+        <div class="lg:col-span-8">
+          <div class="bg-stone-50 rounded-2xl p-6 lg:p-8 border border-stone-100">
+            <div class="mb-6">
+              <h3 class="text-2xl font-semibold text-stone-900 mb-3">
+                {{ features[selectedFeature].title }}
+              </h3>
+              <p class="text-stone-600 text-lg">
+                {{ features[selectedFeature].description }}
+              </p>
+            </div>
+            <div class="bg-white rounded-xl overflow-hidden border border-stone-200">
+              <img
+                :src="features[selectedFeature].image"
+                :alt="features[selectedFeature].label"
+                class="w-full h-auto"
+              >
+            </div>
+            <NuxtLink
+              :to="features[selectedFeature].link"
+              class="inline-flex items-center text-[#D11E28] font-medium mt-6 hover:text-red-700 transition-colors"
+            >
+              Learn more about {{ features[selectedFeature].label }}
+              <Icon name="lucide:arrow-right" class="w-5 h-5 ml-2" />
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>

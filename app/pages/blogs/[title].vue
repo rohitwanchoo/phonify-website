@@ -1,6 +1,7 @@
 <script setup>
 import dotArrow from '~/assets/svg/public/dotArrow.svg'
 import { Button } from '~/components/ui/button'
+import { sanitizeHtml } from '~/utils'
 
 definePageMeta({
   layout: 'website',
@@ -203,7 +204,7 @@ watch(data, async (newData) => {
         <div class="blog-content flex-1">
           <div
             class="flex flex-col justify-start items-start text-stone-600 text-base font-normal leading-8 prose prose-stone max-w-none"
-            v-html="data?.description"
+            v-html="sanitizeHtml(data?.description)"
           />
         </div>
       </div>

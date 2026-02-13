@@ -1,6 +1,32 @@
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import moment from 'moment'
 import { toast } from 'vue-sonner'
+import DOMPurify from 'dompurify'
+
+/**
+ * Sanitizes HTML content to prevent XSS attacks
+ * @param html - The HTML string to sanitize
+ * @param options - Optional DOMPurify configuration
+ * @returns The sanitized HTML string
+ */
+export function sanitizeHtml(html: string | null | undefined, options?: DOMPurify.Config): string {
+  if (!html)
+    return ''
+
+  // Default config that allows safe HTML elements
+  const defaultConfig: DOMPurify.Config = {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre', 'span', 'div', 'img'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class', 'id', 'style'],
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ['target'],
+    ...options,
+  }
+
+  // Add rel="noopener noreferrer" to links with target="_blank"
+  const clean = DOMPurify.sanitize(html, defaultConfig)
+
+  return clean
+}
 
 interface ToastOptions {
   type?: 'success' | 'error' | 'warning' | 'info'
@@ -80,16 +106,39 @@ export function getCountriesAll() {
   return countries
 }
 
-export function copyToClipboard(value: any, name?: string) {
-  navigator.clipboard.writeText(value)
+export function copyToClipboard(value: string | number, name?: string) {
+  navigator.clipboard.writeText(String(value))
     .then(() => {
-      showToast({ message: `${name || ''} copied to clipboard` })
+      showToast({ message: `${name || 'Content'} copied to clipboard` })
     })
-    .catch(() => { })
+    .catch((error) => {
+      console.error('Failed to copy to clipboard:', error)
+      showToast({ type: 'error', message: 'Failed to copy to clipboard' })
+    })
 }
 
 export function formatWithCommas(value: number | string): string {
   return new Intl.NumberFormat().format(Number(value))
+}
+
+/**
+ * Safely parses a JSON string with error handling
+ * @param jsonString - The JSON string to parse
+ * @param fallback - The fallback value if parsing fails (default: null)
+ * @returns The parsed JSON object or the fallback value
+ */
+export function safeJsonParse<T = unknown>(jsonString: string | null | undefined, fallback: T | null = null): T | null {
+  if (!jsonString || typeof jsonString !== 'string') {
+    return fallback
+  }
+
+  try {
+    return JSON.parse(jsonString) as T
+  }
+  catch (error) {
+    console.error('Failed to parse JSON:', error)
+    return fallback
+  }
 }
 
 // Simple utility functions for dialer control

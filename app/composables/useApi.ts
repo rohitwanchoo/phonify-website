@@ -1,4 +1,10 @@
 import type { ApiError, LoginRequest, LoginResponse } from '../../auth'
+import type { NitroFetchOptions } from 'nitropack'
+
+// Type for fetch options
+type FetchOptions = NitroFetchOptions<string> & {
+  headers?: HeadersInit | Record<string, string>
+}
 
 export function useApi() {
   const config = useRuntimeConfig()
@@ -21,7 +27,8 @@ export function useApi() {
           options.headers.set('Authorization', `Bearer ${session.value.token}`)
         }
         else {
-          (options.headers as any).Authorization = `Bearer ${session.value.token}`
+          const headers = options.headers as Record<string, string>
+          headers.Authorization = `Bearer ${session.value.token}`
         }
       }
     },
@@ -89,24 +96,24 @@ export function useApi() {
     })
   }
 
-  // Generic API methods
-  const get = async <T = any>(url: string, options?: any): Promise<T> => {
+  // Generic API methods with proper typing
+  const get = async <T = unknown>(url: string, options?: FetchOptions): Promise<T> => {
     return await apiClient(url, { method: 'GET', ...options })
   }
 
-  const post = async <T = any>(url: string, body?: any, options?: any): Promise<T> => {
+  const post = async <T = unknown>(url: string, body?: Record<string, unknown> | FormData | null, options?: FetchOptions): Promise<T> => {
     return await apiClient(url, { method: 'POST', body, ...options })
   }
 
-  const put = async <T = any>(url: string, body?: any, options?: any): Promise<T> => {
+  const put = async <T = unknown>(url: string, body?: Record<string, unknown> | FormData | null, options?: FetchOptions): Promise<T> => {
     return await apiClient(url, { method: 'PUT', body, ...options })
   }
 
-  const del = async <T = any>(url: string, options?: any): Promise<T> => {
+  const del = async <T = unknown>(url: string, options?: FetchOptions): Promise<T> => {
     return await apiClient(url, { method: 'DELETE', ...options })
   }
 
-  const patch = async <T = any>(url: string, body?: any, options?: any): Promise<T> => {
+  const patch = async <T = unknown>(url: string, body?: Record<string, unknown> | FormData | null, options?: FetchOptions): Promise<T> => {
     return await apiClient(url, { method: 'PATCH', body, ...options })
   }
 

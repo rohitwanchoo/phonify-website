@@ -2,6 +2,22 @@ import { consola } from 'consola'
 
 const { isDialerOpen: _isDialerOpen, closeDialer: _closeDialer, openDialer: _openDialer } = useDialer()
 
+// Track event listeners for cleanup
+const eventListenerCleanup: Array<() => void> = []
+
+// Helper to add event listener with automatic cleanup tracking
+function addTrackedEventListener<K extends keyof DocumentEventMap>(
+  target: Document,
+  type: K,
+  listener: (this: Document, ev: DocumentEventMap[K]) => void,
+  options?: AddEventListenerOptions,
+): void {
+  target.addEventListener(type, listener, options)
+  if (!options?.once) {
+    eventListenerCleanup.push(() => target.removeEventListener(type, listener))
+  }
+}
+
 // Global SIPml5 state using useState
 const isRegistered = useState('sipml5.isRegistered', () => false)
 const isCallActive = useState('sipml5.isCallActive', () => false)
@@ -597,6 +613,30 @@ export function useSIPml5() {
 
     // Reset mute state during cleanup
     isMuted.value = false
+
+    // Clean up all tracked event listeners
+    while (eventListenerCleanup.length > 0) {
+      const cleanupFn = eventListenerCleanup.pop()
+      if (cleanupFn) {
+        try {
+          cleanupFn()
+        }
+        catch (error) {
+          consola.error('Error cleaning up event listener:', error)
+        }
+      }
+    }
+
+    // Clean up DTMF audio context
+    if (dtmfAudioContext) {
+      try {
+        dtmfAudioContext.close()
+        dtmfAudioContext = null
+      }
+      catch (error) {
+        consola.error('Error closing DTMF audio context:', error)
+      }
+    }
 
     if (callSession) {
       try {

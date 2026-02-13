@@ -35,7 +35,12 @@ const emits = defineEmits(['resetFields', 'submit'])
 const target = shallowRef()
 useFocus(target, { initialValue: true })
 
-const { countryCodeList, enableEditSection } = useCreateCampaign()
+const { countryCodeList, enableEditSection, fetchCountryCodes } = useCreateCampaign()
+
+// Fetch country codes when component mounts
+onMounted(() => {
+  fetchCountryCodes()
+})
 
 const enableEdit = computed(() => enableEditSection.value === 'campaign-details' || !props.isPreview)
 watch(() => props.isPreview, (newVal) => {
@@ -59,7 +64,10 @@ function saveCampaign() {
 <template>
   <div class="border rounded-lg bg-white">
     <div class="border-b px-5 pt-[25.5px] pb-[17.5px] flex items-center justify-between">
-      <div class="text-[16px] font-medium text-primary/100">
+      <div class="text-[16px] font-medium text-primary/100 flex items-center gap-2">
+        <div class="p-1.5 bg-primary/10 rounded-lg">
+          <Icon name="lucide:megaphone" class="h-4 w-4 text-primary" />
+        </div>
         Campaign Details
       </div>
       <div v-if="!isPreview " v-auto-animate class="flex items-center gap-x-2">
