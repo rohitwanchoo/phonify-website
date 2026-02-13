@@ -43,18 +43,26 @@ const scrollToSection = (id: string) => {
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">
-              Phonify Design System
+              Phonify Design System - Website
             </h1>
             <p class="text-sm text-gray-600">
-              Complete component showcase for template reuse
+              Public website component showcase for template reuse
             </p>
           </div>
-          <a
-            href="/"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Home
-          </a>
+          <div class="flex gap-3">
+            <a
+              href="/design/app"
+              class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+            >
+              Internal App Components
+            </a>
+            <a
+              href="/"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Back to Home
+            </a>
+          </div>
         </div>
       </div>
     </div>

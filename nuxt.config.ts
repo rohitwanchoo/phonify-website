@@ -16,6 +16,9 @@ export default defineNuxtConfig({
     '/design': {
       ssr: true,
     },
+    '/design/app': {
+      ssr: true,
+    },
   },
   future: {
     compatibilityVersion: 4,
