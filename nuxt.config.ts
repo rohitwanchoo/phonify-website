@@ -13,6 +13,9 @@ export default defineNuxtConfig({
     '/contact-us': {
       ssr: true,
     },
+    '/design': {
+      ssr: true,
+    },
   },
   future: {
     compatibilityVersion: 4,
